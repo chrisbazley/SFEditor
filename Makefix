@@ -1,0 +1,33 @@
+# Project:   FixOldSF3K
+
+
+# Toolflags:
+CCflags = -c -depend !Depend -IC: -throwback -apcs 3/32bit/fpe3 
+C++flags = -c -depend !Depend -IC: -throwback
+Linkflags = -aif -map -x -c++ -o $@ 
+ObjAsmflags = -throwback -NoCache -depend !Depend
+CMHGflags = 
+LibFileflags = -c -o $@
+Squeezeflags = -v -o $@
+ASMflags = 
+
+
+# Final targets:
+@.AnimsFix:   @.o.FixAnims C:o.flexlib C:o.CBLib @.o.FilePaths C:o.stubs \
+        @.o.Scramble 
+        Link $(Linkflags) @.o.FixAnims C:o.flexlib C:o.CBLib @.o.FilePaths \
+        C:o.stubs @.o.Scramble 
+
+
+# User-editable dependencies:
+
+# Static dependencies:
+@.o.FixAnims:   @.c.FixAnims
+        cc $(ccflags) -o @.o.FixAnims @.c.FixAnims 
+@.o.FilePaths:   @.c.FilePaths
+        cc $(ccflags) -o @.o.FilePaths @.c.FilePaths 
+@.o.Scramble:   @.c.Scramble
+        cc $(ccflags) -o @.o.Scramble @.c.Scramble 
+
+
+# Dynamic dependencies:

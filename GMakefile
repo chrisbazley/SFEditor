@@ -1,0 +1,57 @@
+# Project:   SFEditor
+
+# Tools
+CC = gcc
+Link = gcc
+AS = asasm
+# Make cannot understand rules which contain RISC OS path names such as /C:Macros.h as prerequisites, so strip them from the dynamic dependencies
+StripBadPre = sed -r 's@/[A-Za-z]+:[^ ]*@@g'
+Delete = delete
+
+# Toolflags:
+CCCommonFlags =  -c -IC: -mlibscl -mthrowback -Wall -Wextra -Wsign-conversion -pedantic -std=c99 -MMD -MP -Wno-missing-field-initializers -Wno-type-limits -o $@
+CCFlags = $(CCCommonFlags) -DNDEBUG -O3
+CCDebugFlags = $(CCCommonFlags) -g -DDEBUG_OUTPUT -DFORTIFY
+LinkFlags = -LC: -mlibscl $(addprefix -l,$(ReleaseLibs)) -o $@
+LinkDebugFlags = -LC: -LC:CBLibrary.debug $(addprefix -l,$(DebugLibs)) $(LinkFlags)
+ASFlags = -throwback -NoCache -depend !Depend -apcs 3/32 -o $@
+ASDebugFlags = -G $(ASFlags)
+
+include MakeCommon
+
+DebugList = $(addsuffix .debug,$(ObjectList))
+ReleaseList = $(addsuffix .o,$(ObjectList))
+LibList = toolbox event wimp CB GKey
+DebugLibs =  $(LibList) Fortify
+ReleaseLibs = $(LibList) flex
+DebugObjects = $(DebugList)
+ReleaseObjects = $(ReleaseList)
+
+# Final targets:
+all: !RunImage !RunImageD
+
+!RunImage: $(ReleaseObjects)
+	$(Link) $(LinkFlags) $(ReleaseObjects)
+
+!RunImageD: $(DebugObjects)
+	$(Link) $(LinkDebugFlags) $(DebugObjects)
+
+# User-editable dependencies:
+# All of these suffixes must also be specified in UnixEnv$*$sfix
+.SUFFIXES: .o .c .debug .s
+.c.o:
+	${CC} $(CCFlags) -MF $*T.d $<
+	$(StripBadPre) < $*T.d >$*.d
+	$(Delete) d.$*T
+.c.debug:
+	${CC} $(CCDebugFlags) -MF $*TD.d $<
+	$(StripBadPre) < $*TD.d >$*D.d
+	$(Delete) d.$*TD
+.s.o:; ${AS} $(ASFlags) $<
+.s.debug:; ${AS} $(ASDebugFlags) $<
+
+# These files are generated during compilation to track C header #includes.
+# It's not an error if they don't exist.
+-include $(addsuffix .d,$(ObjectList))
+-include $(addsuffix Z.d,$(ObjectList))
+-include $(addsuffix D.d,$(DebugList))

@@ -1,0 +1,26 @@
+# Project:   SFEditor
+
+ObjectList = PolyCol HillCol MapCoord Vertex Config IbarMenu AppIcon \
+        MapsMenu Session Main PreQuit Utils filepaths filescan \
+        BriefDbox graphicsdata MapMode ObjectsMode \
+        ShipsMode StatusBar DCS_dialogue MapToolbar ConfigBrush ConfigFill \
+        ConfigWand NewTransfer DrawTiles TransMenu Palette \
+        RenameTrans GraphicsFiles filesmenus PathUtils missopts misstype \
+        failthresh GroundLaser EditMenu MissFiles MapFiles SFFileInfo \
+        SFSaveAs Revert MainMenu ZoomMenu ToolMenu ModeMenu EffectMenu \
+        MPropDbox Plot ShipsMenu FPerfDbox BPerfDbox UtilsMenu \
+        ORDMenu SaveMap SaveMiss RenameMiss RenameMap EMHmenu \
+        RenMissMenu PlotMenu TransMenu2 TransInfo SnakesMenu TilesMenu \
+        ObjGfxMesh MapTex SpecialShip ObjectsEdit \
+        MTransfersPalette TilesPalette MSnakesPalette Picker MapTexBitm \
+        GridCol BackCol MSnakes MapAnims MapEdit MTransfers \
+        Smooth EditWin MapEditSel MapEditChg GfxConfig SprMem Desktop \
+        Shapes Mission CoarseCoord Briefing Text Filenames Clouds \
+        Ships Paths Triggers Infos Defenc Player FPerf BPerf Pyram \
+        PerfMenu DFile Map Obj ParseArgs SFInit fsmenu ObjVertex ObjPolygon \
+        Editor ObjEditChg ObjsPalette ObjEditSel LayersMenu Snakes \
+        OSnakes OSnakesPalette ObjGfx DFileUtils SelCol CTransFunc \
+        DrawCloud OTransfers DrawObjs OPropDbox ConfigDbox \
+        GhostCol DrawTrig Hill OrientMenu ObjLayout MapLayout InfoMode \
+        SelBitmask IPropDbox InfoEditChg DrawInfo DrawInfos  ITransfers \
+        InfoEdit MapAreaCol IPalette Goto
