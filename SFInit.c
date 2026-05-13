@@ -422,6 +422,14 @@ static int autocreate_handler(int const event_code, ToolboxEvent *const event,
   assert(id_block != NULL);
   NOT_USED(handle);
 
+  char const *prev = "";
+  for (size_t i = 0; i < ARRAY_SIZE(auto_created); ++i)
+  {
+    char const *const cur = auto_created[i].template_name;
+    assert(strcmp(prev, cur) < 0);
+    prev = cur;
+  }
+
   /* Find the relevant initialisation function from the name of the template
      used to auto-create the object */
   match = bsearch(toace->template_name,
