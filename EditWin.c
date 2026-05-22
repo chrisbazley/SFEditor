@@ -723,7 +723,7 @@ static const _kernel_oserror *drag_box_method(DragBoxOp action, bool solid_drags
 static void update_projection(EditWin *const edit_win)
 {
   assert(edit_win);
-  int const map_scaler = SIGNED_R_SHIFT(256 << TexelToOSCoordLog2, edit_win->view.config.zoom_factor); /* min. 32 (at ½× zoom) */
+  int const map_scaler = SIGNED_R_SHIFT(256 << TexelToOSCoordLog2, edit_win->view.config.zoom_factor); /* min. 32 (at Â½Ã— zoom) */
   ObjGfxMeshes_set_direction(&edit_win->view.plot_ctx,
     (ObjGfxDirection){ObjGfxAngle_from_map(edit_win->view.config.angle), {-OBJGFXMESH_ANGLE_QUART}, {0}},
     map_scaler);
@@ -1012,7 +1012,7 @@ static int select_drag_complete(int const event_code, WimpPollBlock *const event
   /* Called when a Wimp_DragBox operation is terminated by the user */
   NOT_USED(id_block);
   NOT_USED(event_code);
-  WimpUserDragBoxEvent *wudbe = (WimpUserDragBoxEvent *)event;
+  WimpUserDragBoxEvent *wudbe = &event->user_drag_box;
   EditWin *const edit_win = handle;
 
   if (!edit_win->wimp_drag_box)
@@ -1083,7 +1083,7 @@ static int scroll_request(int const event_code, WimpPollBlock *const event,
   /* Respond to scroll request events */
   NOT_USED(event_code);
   EditWin *const edit_win = handle;
-  WimpScrollRequestEvent *const wsre = (WimpScrollRequestEvent *)event;
+  WimpScrollRequestEvent *const wsre = &event->scroll_request;
 
   DEBUG("Scroll request for window %d: x change %d, y change %d",
         wsre->open.window_handle, wsre->xscroll, wsre->yscroll);
@@ -1703,8 +1703,7 @@ static int open_window(int const event_code, WimpPollBlock *const event,
   /* We only get these events in response to the user dragging or resizing
      the window. */
   NOT_USED(event_code);
-  WimpOpenWindowRequestEvent *const wowre =
-    (WimpOpenWindowRequestEvent *)event;
+  WimpOpenWindowRequestEvent *const wowre = &event->open_window_request;
   EditWin *const edit_win = handle;
 
   E(toolbox_show_object(0, id_block->self_id,
@@ -1728,7 +1727,7 @@ static int mouse_click(int const event_code, WimpPollBlock *const event,
   NOT_USED(event_code);
   NOT_USED(id_block);
   EditWin *const edit_win = handle;
-  WimpMouseClickEvent const *const mouse_click = (WimpMouseClickEvent *)event;
+  WimpMouseClickEvent const *const mouse_click = &event->mouse_click;
   WimpGetWindowStateBlock window_state = {
     .window_handle = edit_win->wimp_id,
   };
@@ -1860,8 +1859,7 @@ static int redraw_window(int const event_code, WimpPollBlock *const event,
   /* Process redraw events */
   NOT_USED(event_code);
   NOT_USED(id_block);
-  const WimpRedrawWindowRequestEvent *const wrwre =
-    (WimpRedrawWindowRequestEvent *)event;
+  const WimpRedrawWindowRequestEvent *const wrwre = &event->redraw_window_request;
 #ifdef DEBUG_OUTPUT
   clock_t const start = clock();
 #endif
