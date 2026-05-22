@@ -7,9 +7,10 @@ FetchContent_Declare(CBUtil GIT_REPOSITORY https://github.com/chrisbazley/CBUtil
 FetchContent_Declare(CB GIT_REPOSITORY https://github.com/chrisbazley/CBLibrary.git GIT_TAG main)
 FetchContent_Declare(CBDebug GIT_REPOSITORY https://github.com/chrisbazley/CBDebugLib.git GIT_TAG main)
 FetchContent_Declare(OptionalAcornC GIT_REPOSITORY https://github.com/chrisbazley/OptionalAcornC.git GIT_TAG main)
-FetchContent_Declare(SF3K GIT_REPOSITORY https://github.com/chrisbazley/SF3KLib.git GIT_TAG main)
+FetchContent_Declare(GKey GIT_REPOSITORY https://github.com/chrisbazley/GKeyLib.git GIT_TAG main)
+FetchContent_Declare(CBOS GIT_REPOSITORY https://github.com/chrisbazley/CBOSLib.git GIT_TAG main)
 
-FetchContent_MakeAvailable(CBUtil CB CBDebug OptionalAcornC SF3K)
+FetchContent_MakeAvailable(CBUtil CB CBOS GKey CBDebug OptionalAcornC)
 
 set(CMAKE_C_STANDARD 99)
 
