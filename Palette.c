@@ -767,7 +767,7 @@ static int redraw_window(int const event_code, WimpPollBlock *const event,
   /* Process redraw events */
   NOT_USED(event_code);
   NOT_USED(id_block);
-  const WimpRedrawWindowRequestEvent *const wrwre = (WimpRedrawWindowRequestEvent *)event;
+  const WimpRedrawWindowRequestEvent *const wrwre = &event->redraw_window_request;
   PaletteData *const pal_data = handle;
   WimpRedrawWindowBlock block;
   int more;
@@ -790,8 +790,7 @@ static int open_window(int const event_code, WimpPollBlock *const event,
 {
   NOT_USED(event_code);
   NOT_USED(handle);
-  WimpOpenWindowRequestEvent *const wowre =
-    (WimpOpenWindowRequestEvent *)event;
+  WimpOpenWindowRequestEvent *const wowre = &event->open_window_request;
   assert(wowre != NULL);
 
   /*reformat_visible(handle, wowre->visible_area.xmin,
@@ -856,7 +855,7 @@ static int mouse_click(int const event_code, WimpPollBlock *const event,
   NOT_USED(event_code);
   NOT_USED(id_block);
   PaletteData *const pal_data = handle;
-  const WimpMouseClickEvent *const mouse_click = (WimpMouseClickEvent *)event;
+  const WimpMouseClickEvent *const mouse_click = &event->mouse_click;
   WimpGetWindowStateBlock state;
 
   assert(pal_data != NULL);
@@ -955,8 +954,7 @@ static int close_window(int const event_code, WimpPollBlock *const event,
      palette window */
   NOT_USED(event_code);
   NOT_USED(id_block);
-  WimpCloseWindowRequestEvent *const wcwre =
-    (WimpCloseWindowRequestEvent *)event;
+  WimpCloseWindowRequestEvent *const wcwre = &event->close_window_request;
   PaletteData *const pal_data = handle;
 
   E(wimp_close_window(&wcwre->window_handle));
