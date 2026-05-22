@@ -47,7 +47,7 @@ typedef struct ViewConfig {
   bool show_status_bar;
   ViewDisplayFlags flags;
   int zoom_factor; /* plotwidth = texwidth >> zoom
-                      -2:32×, -1:16×, 0:8×, 1:4×, 2:2×, 3:1×, 4:½×
+                      -2:32x, -1:16x, 0:8x, 1:4x, 2:2x, 3:1x, 4:.5x
                       (the 'magnification' levels are fairly arbitrary,
                       copied from the mission map within the game */
   MapAngle angle;
