@@ -200,7 +200,7 @@ static int mouse_click(int const event_code, WimpPollBlock *const event,
   /* Handle button presses in Tools window */
   NOT_USED(event_code);
   MapToolbar *const toolbar = handle;
-  const WimpMouseClickEvent *const mouse_click = (WimpMouseClickEvent *)event;
+  const WimpMouseClickEvent *const mouse_click = &event->mouse_click;
 
   void *edit_win;
   ON_ERR_RPT_RTN_V(toolbox_get_client_handle(0, id_block->ancestor_id, &edit_win),
