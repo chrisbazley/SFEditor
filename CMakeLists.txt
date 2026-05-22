@@ -147,7 +147,6 @@ set(SOURCES
     ObjGfx.c
     DFileUtils.c
     SelCol.c
-    CTransFunc.c
     DrawCloud.c
     OTransfers.c
     DrawObjs.c
