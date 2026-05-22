@@ -87,7 +87,7 @@ bool dfile_set_saved(DFile *const dfile, char const *const name,
   DEBUGF("Saved dfile %p from %s as %s\n", (void *)dfile,
          dfile->name ? dfile->name : "", name ? name : "");
   assert(date);
-  char *const dup = strdup(name);
+  char *const dup = name ? strdup(name) : name;
   if (dup || !name)
   {
     for (size_t i = 0; i < ARRAY_SIZE(dfile->date); ++i)
