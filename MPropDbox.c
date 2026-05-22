@@ -635,9 +635,7 @@ static int redraw_window(int const event_code, WimpPollBlock *const event,
   /* Process redraw events */
   NOT_USED(event_code);
   MapPropDbox *const prop = handle;
-  const WimpRedrawWindowRequestEvent *const wrwre =
-     (WimpRedrawWindowRequestEvent *)event;
-
+  const WimpRedrawWindowRequestEvent *const wrwre = &event->redraw_window_request;
   EditSession *const session = get_session(prop);
 
   MapTex *const textures = Session_get_textures(session);
