@@ -9,8 +9,9 @@ FetchContent_Declare(CBDebug GIT_REPOSITORY https://github.com/chrisbazley/CBDeb
 FetchContent_Declare(OptionalAcornC GIT_REPOSITORY https://github.com/chrisbazley/OptionalAcornC.git GIT_TAG main)
 FetchContent_Declare(GKey GIT_REPOSITORY https://github.com/chrisbazley/GKeyLib.git GIT_TAG main)
 FetchContent_Declare(CBOS GIT_REPOSITORY https://github.com/chrisbazley/CBOSLib.git GIT_TAG main)
+FetchContent_Declare(SF3K GIT_REPOSITORY https://github.com/chrisbazley/SF3KLib.git GIT_TAG main)
 
-FetchContent_MakeAvailable(CBUtil CB CBOS GKey CBDebug OptionalAcornC)
+FetchContent_MakeAvailable(CBUtil CB CBOS GKey CBDebug SF3K OptionalAcornC)
 
 set(CMAKE_C_STANDARD 99)
 
