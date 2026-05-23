@@ -24,7 +24,7 @@
 #include <limits.h>
 #include "toolbox.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
 #include "hourglass.h"

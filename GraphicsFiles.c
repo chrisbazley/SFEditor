@@ -25,10 +25,10 @@
 #include "event.h"
 #include "menu.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
-#include "debug.h"
+#include "Debug.h"
 
 #include "Config.h"
 #include "Session.h"

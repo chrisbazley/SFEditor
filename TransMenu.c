@@ -29,7 +29,7 @@
 #include "menu.h"
 
 #include "msgtrans.h"
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 
 #include "Session.h"

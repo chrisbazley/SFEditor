@@ -19,6 +19,7 @@
  */
 
 #include "stdlib.h"
+#include <string.h>
 
 #include "toolbox.h"
 #include "event.h"
@@ -28,16 +29,16 @@
 
 #include "eventextra.h"
 
-#include "debug.h"
+#include "Debug.h"
 #include "Macros.h"
 #include "Session.h"
 #include "utils.h"
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
-#include "pathtail.h"
+#include "PathTail.h"
 #include "Mission.h"
 #include "SFError.h"
-#include "briefingdata.h"
+#include "BriefingData.h"
 
 #include "BriefDbox.h"
 

@@ -27,13 +27,13 @@
 #include "toolbox.h"
 #include "menu.h"
 
-#include "err.h"
+#include "Err.h"
 #include "macros.h"
 #include "msgtrans.h"
 #include "strextra.h"
-#include "debug.h"
+#include "Debug.h"
 #include "FileUtils.h"
-#include "pathtail.h"
+#include "PathTail.h"
 
 #include "Session.h"
 #include "missfiles.h"

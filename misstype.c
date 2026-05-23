@@ -24,8 +24,8 @@
 #include "toolbox.h"
 #include "menu.h"
 
-#include "err.h"
-#include "macros.h"
+#include "Err.h"
+#include "Macros.h"
 
 #include "Session.h"
 #include "utils.h"

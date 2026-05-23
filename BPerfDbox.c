@@ -29,9 +29,9 @@
 #include "gadgets.h"
 #include "window.h"
 
-#include "debug.h"
-#include "err.h"
-#include "macros.h"
+#include "Debug.h"
+#include "Err.h"
+#include "Macros.h"
 #include "msgtrans.h"
 #include "PathTail.h"
 #include "GadgetUtil.h"

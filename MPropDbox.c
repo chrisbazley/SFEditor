@@ -30,7 +30,7 @@
 
 #include "msgtrans.h"
 #include "Macros.h"
-#include "err.h"
+#include "Err.h"
 #include "GadgetUtil.h"
 #include "WimpExtra.h"
 #include "EventExtra.h"
@@ -41,7 +41,7 @@
 #include "Session.h"
 #include "EditWin.h"
 #include "mapmode.h"
-#include "debug.h"
+#include "Debug.h"
 #include "MPropDbox.h"
 #include "utils.h"
 #include "plot.h"

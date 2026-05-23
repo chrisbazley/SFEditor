@@ -14,8 +14,8 @@
 #include "toolbox.h"
 
 #include "SprFormats.h"
-#include "Scheduler.h"
-#include "linkedlist.h"
+#include "scheduler.h"
+#include "LinkedList.h"
 #include "StringBuff.h"
 
 #include "Session.h"

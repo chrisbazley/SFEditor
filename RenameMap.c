@@ -30,12 +30,12 @@
 #include "gadgets.h"
 
 #include "hourglass.h"
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
 #include "PathTail.h"
 #include "strextra.h"
-#include "debug.h"
+#include "Debug.h"
 #include "GadgetUtil.h"
 
 #include "RenameMap.h"

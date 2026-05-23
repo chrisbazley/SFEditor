@@ -31,14 +31,14 @@
 
 #include "msgtrans.h"
 #include "Macros.h"
-#include "err.h"
+#include "Err.h"
 #include "EventExtra.h"
 #include "PathTail.h"
 #include "IntDict.h"
 
 #include "Session.h"
 #include "EditWin.h"
-#include "debug.h"
+#include "Debug.h"
 #include "IPropDbox.h"
 #include "EditWin.h"
 #include "Map.h"

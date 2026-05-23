@@ -23,12 +23,12 @@
 #include "kernel.h"
 
 #include "Flex.h"
-#include "nobudge.h"
-#include "macros.h"
-#include "err.h"
+#include "NoBudge.h"
+#include "Macros.h"
+#include "Err.h"
 #include "msgtrans.h"
 
-#include "debug.h"
+#include "Debug.h"
 #include "OSSpriteOp.h"
 #include "OSVDU.h"
 

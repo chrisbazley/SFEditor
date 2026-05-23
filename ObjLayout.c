@@ -19,7 +19,7 @@
  */
 
 #include "Macros.h"
-#include "debug.h"
+#include "Debug.h"
 
 #include "Obj.h"
 #include "Hill.h"

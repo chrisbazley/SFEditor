@@ -32,10 +32,10 @@
 
 #include "SFformats.h" /* get Fednet filetype */
 #include "Err.h"
-#include "Msgtrans.h"
+#include "msgtrans.h"
 #include "Macros.h"
 #include "StrExtra.h"
-#include "hourglass.h"
+#include "Hourglass.h"
 #include "DateStamp.h"
 #include "FileUtils.h"
 #include "NoBudge.h"

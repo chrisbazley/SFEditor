@@ -30,7 +30,7 @@
 #include "Macros.h"
 #include "Debug.h"
 #include "MsgTrans.h"
-#include "err.h"
+#include "Err.h"
 #include "hourglass.h"
 #include "Scheduler.h"
 #include "Reader.h"

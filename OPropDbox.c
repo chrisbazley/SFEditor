@@ -31,7 +31,7 @@
 #include "StringBuff.h"
 #include "msgtrans.h"
 #include "Macros.h"
-#include "err.h"
+#include "Err.h"
 #include "GadgetUtil.h"
 #include "EventExtra.h"
 

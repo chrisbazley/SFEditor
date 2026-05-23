@@ -24,7 +24,7 @@
 #include "toolbox.h"
 #include "menu.h"
 
-#include "err.h"
+#include "Err.h"
 #include "macros.h"
 
 #include "Editor.h"

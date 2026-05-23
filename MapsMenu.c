@@ -26,12 +26,12 @@
 #include "toolbox.h"
 #include "menu.h"
 
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
 #include "Macros.h"
-#include "strextra.h"
+#include "StrExtra.h"
 #include "Debug.h"
-#include "hourglass.h"
+#include "Hourglass.h"
 
 #include "filescan.h"
 #include "IbarMenu.h"

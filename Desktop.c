@@ -29,9 +29,9 @@
 
 #include "osvdu.h"
 #include "clrtrans.h"
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
-#include "nobudge.h"
+#include "NoBudge.h"
 
 #include "Desktop.h"
 #include "DrawTiles.h"

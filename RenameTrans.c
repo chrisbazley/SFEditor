@@ -29,7 +29,7 @@
 #include "window.h"
 #include "gadgets.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 #include "SprFormats.h"
 #include "msgtrans.h"

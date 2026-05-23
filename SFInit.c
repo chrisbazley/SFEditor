@@ -39,9 +39,9 @@
 #include "window.h"
 
 /* Tony Houghton's useful stuff */
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
-#include "hourglass.h"
+#include "Hourglass.h"
 
 /* My useful stuff */
 #include "Drag.h"
@@ -57,10 +57,10 @@
 #include "NoBudge.h"
 #include "InputFocus.h"
 #include "SprFormats.h"
-#include "debug.h"
-#include "Scheduler.h"
+#include "Debug.h"
+#include "scheduler.h"
 #include "MessTrans.h"
-#include "strextra.h"
+#include "StrExtra.h"
 #include "fileutils.h"
 
 #include "utils.h"
@@ -134,7 +134,7 @@
 
 #include "hillcol.h"
 #include "map.h"
-#include "obj.h"
+#include "Obj.h"
 #include "MapTex.h"
 #include "ObjGfx.h"
 #include "polycol.h"

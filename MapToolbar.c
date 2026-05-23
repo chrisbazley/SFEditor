@@ -33,11 +33,11 @@
 #include "wimp.h"
 
 #include "msgtrans.h"
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 #include "scheduler.h"
 #include "TboxBugs.h"
-#include "debug.h"
+#include "Debug.h"
 #include "GadgetUtil.h"
 #include "EventExtra.h"
 #include "Deiconise.h"

@@ -34,7 +34,7 @@
 #include "Macros.h"
 #include "Debug.h"
 #include "MsgTrans.h"
-#include "Scheduler.h"
+#include "scheduler.h"
 #include "WimpExtra.h"
 
 #include "Obj.h"

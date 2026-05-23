@@ -24,8 +24,8 @@
 #include "toolbox.h"
 #include "saveas.h"
 
-#include "err.h"
-#include "macros.h"
+#include "Err.h"
+#include "Macros.h"
 #include "FileUtils.h"
 #include "msgtrans.h"
 #include "Debug.h"

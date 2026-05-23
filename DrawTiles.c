@@ -26,9 +26,9 @@
 
 #include "OSVDU.h"
 
-#include "hourglass.h"
+#include "Hourglass.h"
 #include "Macros.h"
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
 #include "SprFormats.h"
 #include "OSSpriteOp.h"
@@ -37,7 +37,7 @@
 #ifdef FASTPLOT
 #include "FastPlot.h"
 #endif
-#include "debug.h"
+#include "Debug.h"
 #include "DrawTiles.h"
 #include "Plot.h"
 #include "MapTexBDat.h"

@@ -24,12 +24,12 @@
 #include <string.h>
 
 #include "SFformats.h" /* get Fednet filetype */
-#include "debug.h"
-#include "macros.h"
+#include "Debug.h"
+#include "Macros.h"
 #include "filepaths.h"
-#include "pyram.h"
-#include "strextra.h"
-#include "pathtail.h"
+#include "Pyram.h"
+#include "StrExtra.h"
+#include "PathTail.h"
 #include "DataType.h"
 
 void get_mission_file_name(Filename buffer, Pyramid const p,

@@ -25,10 +25,11 @@
 #include <limits.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <string.h>
 
 #include "flex.h"
 
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
 #include "Macros.h"
 #include "filepaths.h"
@@ -36,7 +37,7 @@
 #include "hourglass.h"
 #include "FileUtils.h"
 #include "SFError.h"
-#include "debug.h"
+#include "Debug.h"
 #include "Smooth.h"
 #include "MapEdit.h"
 #include "utils.h"

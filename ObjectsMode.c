@@ -22,6 +22,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <math.h>
+#include <string.h>
 #include "stdlib.h"
 #include "stdio.h"
 #include <ctype.h>
@@ -33,8 +34,8 @@
 #include "OurEvents.h"
 #include "msgtrans.h"
 #include "Macros.h"
-#include "err.h"
-#include "hourglass.h"
+#include "Err.h"
+#include "Hourglass.h"
 #include "Pal256.h"
 #include "StrExtra.h"
 #include "PalEntry.h"
@@ -44,7 +45,7 @@
 #include "ObjectsMode.h"
 #include "StatusBar.h"
 #include "EditWin.h"
-#include "debug.h"
+#include "Debug.h"
 #include "plot.h"
 #include "ObjGfxMesh.h"
 #include "utils.h"

@@ -29,7 +29,7 @@
 #include "toolbox.h"
 #include "Menu.h"
 
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
 #include "hourglass.h"
 #include "Macros.h"
@@ -43,7 +43,7 @@
 #include "Config.h"
 #include "utils.h"
 #include "SFInit.h"
-#include "debug.h"
+#include "Debug.h"
 #include "DataType.h"
 
 struct fs_dir_info {

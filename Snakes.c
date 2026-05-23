@@ -27,7 +27,7 @@
 
 #include "flex.h"
 #include "macros.h"
-#include "debug.h"
+#include "Debug.h"
 
 #include "Snakes.h"
 #include "SnakesData.h"

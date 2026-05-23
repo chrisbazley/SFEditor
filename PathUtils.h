@@ -9,8 +9,8 @@
 #define pathutils_h
 
 #include <stdbool.h>
-#include "pyram.h"
-#include "filenamesdata.h"
+#include "Pyram.h"
+#include "FilenamesData.h"
 #include "DFile.h"
 
 bool filepaths_get_mission_filenames(char const *path,

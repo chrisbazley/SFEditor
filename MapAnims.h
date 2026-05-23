@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "Scheduler.h"
+#include "scheduler.h"
 
 #include "SFError.h"
 #include "Map.h"

@@ -24,12 +24,12 @@
 #include "kernel.h"
 #include "swis.h"
 
-#include "wimpextra.h"
+#include "WimpExtra.h"
 #include "OSVDU.h"
 #include "ClrTrans.h"
 #include "Macros.h"
-#include "err.h"
-#include "debug.h"
+#include "Err.h"
+#include "Debug.h"
 
 #include "plot.h"
 

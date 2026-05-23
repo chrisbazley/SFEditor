@@ -25,13 +25,13 @@
 #include "toolbox.h"
 #include "menu.h"
 
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
 #include "Macros.h"
 #include "strextra.h"
 
 #include "Session.h"
-#include "debug.h"
+#include "Debug.h"
 #include "utils.h"
 #include "graphicsdata.h"
 #include "EditWin.h"

@@ -23,7 +23,7 @@
 #include "event.h"
 #include "menu.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 #include "Debug.h"
 

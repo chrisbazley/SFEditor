@@ -25,7 +25,7 @@
 #include "event.h"
 #include "gadgets.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 #include "TboxBugs.h"
 #include "msgtrans.h"

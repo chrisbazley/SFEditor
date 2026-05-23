@@ -24,11 +24,11 @@
 #include "toolbox.h"
 #include "menu.h"
 
-#include "err.h"
-#include "macros.h"
+#include "Err.h"
+#include "Macros.h"
 
 #include "Editor.h"
-#include "mapmode.h"
+#include "MapMode.h"
 #include "EffectMenu.h"
 #include "EditWin.h"
 #include "utils.h"

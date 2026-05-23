@@ -25,7 +25,7 @@
 #include "event.h"
 #include "window.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 
 #include "EditWin.h"

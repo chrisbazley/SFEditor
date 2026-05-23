@@ -28,8 +28,8 @@
 
 #include "Macros.h"
 #include "Debug.h"
-#include "err.h"
-#include "hourglass.h"
+#include "Err.h"
+#include "Hourglass.h"
 #include "msgtrans.h"
 
 #include "Utils.h"

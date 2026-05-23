@@ -21,8 +21,9 @@
 #include "stdlib.h"
 #include <ctype.h>
 #include "stdio.h"
+#include <string.h>
 
-#include "err.h"
+#include "Err.h"
 
 #include "msgtrans.h"
 

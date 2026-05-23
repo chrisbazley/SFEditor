@@ -25,7 +25,7 @@
 #include "toolbox.h"
 #include "menu.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 
 #include "TransMenu2.h"

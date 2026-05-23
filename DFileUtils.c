@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <limits.h>
 
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
 #include "debug.h"
 #include "FopenCount.h"

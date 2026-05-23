@@ -26,7 +26,7 @@
 #include "gadgets.h"
 
 #include "Macros.h"
-#include "err.h"
+#include "Err.h"
 
 #include "Session.h"
 #include "EditWin.h"

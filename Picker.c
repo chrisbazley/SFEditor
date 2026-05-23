@@ -23,7 +23,7 @@
 #include "window.h"
 
 #include "Macros.h"
-#include "err.h"
+#include "Err.h"
 #include "Pal256.h"
 #include "SFInit.h"
 

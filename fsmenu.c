@@ -24,9 +24,9 @@
 #include "toolbox.h"
 #include "menu.h"
 
-#include "strextra.h"
-#include "err.h"
-#include "debug.h"
+#include "StrExtra.h"
+#include "Err.h"
+#include "Debug.h"
 #include "msgtrans.h"
 
 #include "filepaths.h"

@@ -33,8 +33,8 @@
 
 /* My headers */
 #include "msgtrans.h"
-#include "macros.h"
-#include "err.h"
+#include "Macros.h"
+#include "Err.h"
 #include "NoBudge.h"
 #include "TrigTable.h"
 #include "OSVDU.h"

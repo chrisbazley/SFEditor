@@ -22,9 +22,9 @@
 #include "event.h"
 #include "menu.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
-#include "debug.h"
+#include "Debug.h"
 
 #include "Session.h"
 #include "utils.h"

@@ -30,11 +30,11 @@
 #include "gadgets.h"
 
 /* CBLibrary headers */
-#include "err.h"
+#include "Err.h"
 #include "macros.h"
 #include "msgtrans.h"
 #include "macros.h"
-#include "pathtail.h"
+#include "PathTail.h"
 #include "StrExtra.h"
 #include "GadgetUtil.h"
 

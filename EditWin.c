@@ -38,7 +38,7 @@
 #include "window.h"
 #include "menu.h"
 
-#include "err.h"
+#include "Err.h"
 #include "DeIconise.h"
 #include "Macros.h"
 #include "msgtrans.h"

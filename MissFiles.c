@@ -22,12 +22,12 @@
 #include "menu.h"
 #include "event.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 
 #include "Session.h"
 #include "utils.h"
-#include "debug.h"
+#include "Debug.h"
 #include "EditWin.h"
 #include "missfiles.h"
 #include "DataType.h"

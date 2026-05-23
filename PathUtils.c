@@ -24,8 +24,8 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#include "err.h"
-#include "debug.h"
+#include "Err.h"
+#include "Debug.h"
 #include "strextra.h"
 #include "FileUtils.h"
 

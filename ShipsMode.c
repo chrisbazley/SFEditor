@@ -24,9 +24,9 @@
 #include "toolbox.h"
 
 #include "Macros.h"
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
-#include "debug.h"
+#include "Debug.h"
 
 #include "MapCoord.h"
 #include "EditorData.h"

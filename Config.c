@@ -28,7 +28,7 @@
 
 #include "View.h"
 #include "msgtrans.h"
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 #include "FileUtils.h"
 #include "Debug.h"

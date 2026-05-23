@@ -12,7 +12,7 @@
 #include "flex.h"
 
 #include "Macros.h"
-#include "debug.h"
+#include "Debug.h"
 #include "NoBudge.h"
 #include "StrDict.h"
 

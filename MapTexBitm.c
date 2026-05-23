@@ -38,7 +38,7 @@
 #include "SFSprConv.h"
 #include "Utils.h"
 #include "msgtrans.h"
-#include "hourglass.h"
+#include "Hourglass.h"
 #include "SFInit.h"
 #include "MapTexBDat.h"
 #include "MapTexBitm.h"

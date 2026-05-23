@@ -32,7 +32,7 @@
 #include "wimplib.h"
 
 #include "msgtrans.h"
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 #include "Debug.h"
 #include "PathTail.h"

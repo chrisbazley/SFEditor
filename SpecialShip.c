@@ -29,7 +29,7 @@
 
 #include "StrExtra.h"
 #include "Macros.h"
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
 #include "PathTail.h"
 #include "GadgetUtil.h"

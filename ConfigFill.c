@@ -22,7 +22,7 @@
 #include "menu.h"
 #include "event.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 
 #include "Session.h"

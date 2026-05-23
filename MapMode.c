@@ -38,14 +38,14 @@
 #include "gadgets.h"
 #include "menu.h"
 
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
 #include "Macros.h"
 #include "SprFormats.h"
 #include "TboxBugs.h"
 #include "FileUtils.h"
 #include "StrExtra.h"
-#include "debug.h"
+#include "Debug.h"
 #include "nobudge.h"
 
 #include "OurEvents.h"
@@ -58,7 +58,7 @@
 #ifdef FASTPLOT
 #include "FastPlot.h"
 #endif
-#include "debug.h"
+#include "Debug.h"
 #include "plot.h"
 #include "EditWin.h"
 #include "MPropDbox.h"

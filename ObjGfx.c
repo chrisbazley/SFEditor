@@ -23,7 +23,7 @@
 #include <assert.h>
 
 /* My headers */
-#include "debug.h"
+#include "Debug.h"
 #include "Macros.h"
 #include "Reader.h"
 #include "PathTail.h"

@@ -24,7 +24,7 @@
 #include "toolbox.h"
 #include "DCS.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
 

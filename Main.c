@@ -25,7 +25,7 @@
 #include "event.h"
 #include "wimp.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Debug.h"
 #include "scheduler.h"
 
@@ -67,7 +67,7 @@ static void fortify_output(char const *text)
 
 int main(int argc, char *argv[])
 {
-  DEBUG_SET_OUTPUT(DebugOutput_Reporter, APP_NAME);
+  DEBUG_SET_OUTPUT(DebugOutput_StdErr, APP_NAME);
 
 #ifdef FORTIFY
   Fortify_SetOutputFunc(fortify_output);

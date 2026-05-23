@@ -11,7 +11,7 @@
 
 #include "toolbox.h"
 
-#include "Scheduler.h"
+#include "scheduler.h"
 #include "PalEntry.h"
 
 #include "Vertex.h"

@@ -30,11 +30,11 @@
 #include "wimplib.h"
 #include "iconbar.h"
 
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
 #include "Macros.h"
 #include "Loader3.h"
-#include "debug.h"
+#include "Debug.h"
 #include "FileUtils.h"
 
 #include "AppIcon.h"

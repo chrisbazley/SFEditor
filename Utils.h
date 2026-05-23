@@ -17,10 +17,10 @@
 
 #include "PalEntry.h"
 #include "StringBuff.h"
-#include "loader2.h"
-#include "sprformats.h"
-#include "sferror.h"
-#include "reader.h"
+#include "Loader2.h"
+#include "SprFormats.h"
+#include "SFError.h"
+#include "Reader.h"
 #include "DFile.h"
 #include "DataType.h"
 

@@ -26,7 +26,7 @@
 #include <ctype.h>
 
 #include "Scheduler.h"
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
 #include "strextra.h"
 #include "filepaths.h"

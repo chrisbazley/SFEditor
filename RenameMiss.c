@@ -28,7 +28,7 @@
 #include "window.h"
 #include "gadgets.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
 #include "PathTail.h"

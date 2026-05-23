@@ -29,11 +29,11 @@
 #include "menu.h"
 #include "flex.h"
 
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
 #include "Macros.h"
-#include "strextra.h"
-#include "hourglass.h"
+#include "StrExtra.h"
+#include "Hourglass.h"
 
 #include "filescan.h"
 #include "Session.h"
@@ -42,7 +42,7 @@
 #include "utils.h"
 #include "filesmenus.h"
 #include "EditWin.h"
-#include "debug.h"
+#include "Debug.h"
 #include "Palette.h"
 #include "MapToolbar.h"
 #include "GraphicsFiles.h"

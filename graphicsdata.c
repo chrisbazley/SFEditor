@@ -23,12 +23,12 @@
 #include <stdbool.h>
 #include "stdio.h"
 
-#include "stringbuff.h"
-#include "debug.h"
+#include "StringBuff.h"
+#include "Debug.h"
 #include "msgtrans.h"
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
-#include "messtrans.h"
+#include "MessTrans.h"
 
 #include "graphicsdata.h"
 #include "SFInit.h"

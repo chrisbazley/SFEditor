@@ -8,7 +8,7 @@
 #define ObjGfx_h
 
 #include <stdbool.h>
-#include "Dfile.h"
+#include "DFile.h"
 
 typedef struct ObjGfx ObjGfx;
 
