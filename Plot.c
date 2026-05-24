@@ -19,6 +19,7 @@
  */
 
 #include <limits.h>
+#include <stdint.h>
 
 #include "wimplib.h"
 #include "kernel.h"
@@ -106,12 +107,12 @@ void plot_get_window(BBox *const bbox)
   assert(bbox);
 
   VDUVar var_ids[] = {VDUVar_GWLCol, VDUVar_GWBRow, VDUVar_GWRCol, VDUVar_GWTRow,
-    ModeVar_XEigFactor,
-    ModeVar_YEigFactor,
+    (VDUVar)ModeVar_XEigFactor,
+    (VDUVar)ModeVar_YEigFactor,
     VDUVar_OrgX,
     VDUVar_OrgY,
     VDUVar_EndOfList};
-  int values[ARRAY_SIZE(var_ids)];
+  intptr_t values[ARRAY_SIZE(var_ids)];
   E(os_read_vdu_variables(var_ids, values));
 
   bbox->xmin = values[6] + (values[0] << values[4]);
