@@ -147,7 +147,7 @@ static void gen_sel_tex_bw_table(EditWin *const edit_win)
     unsigned int const bright =
       palette_entry_brightness(edit_win->view.sel_palette[av]);
 
-    size_t const bit = 1u << (index % CHAR_BIT);
+    size_t const bit = (size_t)1 << (index % CHAR_BIT);
     if (bright > MaxBrightness/2)
     {
       SET_BITS(edit_win->sel_tex_bw_table[index / CHAR_BIT], bit);
