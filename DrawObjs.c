@@ -555,7 +555,7 @@ void DrawObjs_to_screen(
         ObjRef const obj_ref = read_obj(cb_arg, map_pos);
         bool const is_occluded = occluded && ObjEditSelection_is_selected(occluded, map_pos);
         bool const is_selected = selection && ObjEditSelection_is_selected(selection, map_pos);
-        Vertex scr_min, scr_max;
+        Vertex scr_min = {0,0}, scr_max = {0,0};
 
         if ((!objects_ref_is_none(obj_ref) && is_selected) || found.trigger || found.defence || is_ghost) {
           MapArea object_bbox = get_mesh_bbox(meshes, view, obj_ref);
