@@ -913,7 +913,6 @@ static SchedulerTime track_pointer(void *const handle, SchedulerTime const new_t
         MapPoint const start_pos = Editor_grid_to_map_coords(editor, edit_win->start_drag_pos, edit_win);
 
         if (!edit_win->snap_horiz && !edit_win->snap_vert) {
-          Vertex const window_origin = calc_window_origin(edit_win, &window_state);
           Vertex const start_scr = map_to_scr_coords(edit_win, window_origin, start_pos);
           MapPoint diff = MapPoint_abs_diff(grid_pos, edit_win->start_drag_pos);
           if (diff.x || diff.y) {
