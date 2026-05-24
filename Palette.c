@@ -610,7 +610,7 @@ static void redraw_loop(PaletteData *const pal_data, WimpRedrawWindowBlock *cons
 
     Vertex const image_min = Vertex_mul(grid_min, pal_data->object_size);
 
-    BBox image_bbox, label_bbox;
+    BBox image_bbox, label_bbox = {0, 0, 0, 0};
 
     image_bbox.ymax = -Y_BORDER - image_min.y -OBJECT_Y_SPACER;
     image_bbox.ymin = image_bbox.ymax - pal_data->object_size.y + (OBJECT_Y_SPACER * 2);
