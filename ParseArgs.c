@@ -25,11 +25,11 @@
 #include <assert.h>
 #include <ctype.h>
 
-#include "Scheduler.h"
+#include "scheduler.h"
 #include "Err.h"
 #include "msgtrans.h"
-#include "strextra.h"
-#include "filepaths.h"
+#include "StrExtra.h"
+#include "FilePaths.h"
 #include "FileUtils.h"
 
 #include "Session.h"

@@ -38,9 +38,9 @@
 
 #include "SFError.h"
 #include "SpecialShip.h"
-#include "utils.h"
+#include "Utils.h"
 #include "Session.h"
-#include "graphicsdata.h"
+#include "GraphicsData.h"
 #include "DataType.h"
 #include "Mission.h"
 #include "Player.h"

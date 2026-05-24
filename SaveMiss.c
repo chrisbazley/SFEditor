@@ -31,22 +31,22 @@
 
 /* CBLibrary headers */
 #include "Err.h"
-#include "macros.h"
+#include "Macros.h"
 #include "msgtrans.h"
-#include "macros.h"
+#include "Macros.h"
 #include "PathTail.h"
 #include "StrExtra.h"
 #include "GadgetUtil.h"
 
 /* Local headers */
-#include "utils.h"
-#include "session.h"
+#include "Utils.h"
+#include "Session.h"
 #include "EditWin.h"
-#include "dcs_dialogue.h"
-#include "savemiss.h"
-#include "filepaths.h"
-#include "mission.h"
-#include "pyram.h"
+#include "DCS_dialogue.h"
+#include "SaveMiss.h"
+#include "FilePaths.h"
+#include "Mission.h"
+#include "Pyram.h"
 
 /* ----------------- Gadget Ids -------------------- */
 

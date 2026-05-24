@@ -30,12 +30,12 @@
 #include "kernel.h"
 #include "flex.h"
 
-#include "SFformats.h" /* get Fednet filetype */
+#include "SFFormats.h" /* get Fednet filetype */
 #include "Err.h"
-#include "Msgtrans.h"
+#include "msgtrans.h"
 #include "Macros.h"
 #include "StrExtra.h"
-#include "hourglass.h"
+#include "Hourglass.h"
 #include "DateStamp.h"
 #include "FileUtils.h"
 #include "NoBudge.h"
@@ -56,8 +56,8 @@
 #include "ObjEditCtx.h"
 #include "DataType.h"
 #include "WriterGKC.h"
-#include "WriterGkey.h"
-#include "ReaderGkey.h"
+#include "WriterGKey.h"
+#include "ReaderGKey.h"
 #include "DFileUtils.h"
 #include "Triggers.h"
 #include "Obj.h"

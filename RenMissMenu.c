@@ -28,7 +28,7 @@
 #include "msgtrans.h"
 #include "Macros.h"
 
-#include "filescan.h"
+#include "FileScan.h"
 #include "RenMissMenu.h"
 
 enum {

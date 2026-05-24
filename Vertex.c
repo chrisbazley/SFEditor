@@ -19,7 +19,7 @@
  */
 
 #include "wimp.h" // For BBox
-#include "macros.h"
+#include "Macros.h"
 #include "Vertex.h"
 
 void BBox_expand(BBox *const bounding_box, Vertex const point)

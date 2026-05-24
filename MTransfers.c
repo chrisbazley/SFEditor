@@ -30,7 +30,7 @@
 #include "kernel.h"
 #include "flex.h"
 
-#include "SFformats.h" /* get Fednet filetype */
+#include "SFFormats.h" /* get Fednet filetype */
 #include "Err.h"
 #include "msgtrans.h"
 #include "Macros.h"
@@ -63,8 +63,8 @@
 #include "MapEditCtx.h"
 #include "DataType.h"
 #include "WriterGKC.h"
-#include "WriterGkey.h"
-#include "ReaderGkey.h"
+#include "WriterGKey.h"
+#include "ReaderGKey.h"
 #include "Map.h"
 #include "CoarseCoord.h"
 #include "StrDict.h"

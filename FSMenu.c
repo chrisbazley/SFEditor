@@ -29,9 +29,9 @@
 #include "Debug.h"
 #include "msgtrans.h"
 
-#include "filepaths.h"
-#include "filescan.h"
-#include "fsmenu.h"
+#include "FilePaths.h"
+#include "FileScan.h"
+#include "FSMenu.h"
 
 void fsmenu_grey_internal(ObjectId const menu,
                               const filescan_leafname *const leaf_names,

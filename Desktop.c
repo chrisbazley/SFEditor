@@ -25,10 +25,10 @@
 #include "wimp.h"
 #include "wimplib.h"
 #include "event.h"
-#include "Flex.h"
+#include "flex.h"
 
-#include "osvdu.h"
-#include "clrtrans.h"
+#include "OSVDU.h"
+#include "ClrTrans.h"
 #include "Err.h"
 #include "msgtrans.h"
 #include "NoBudge.h"

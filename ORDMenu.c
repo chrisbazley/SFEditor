@@ -29,8 +29,8 @@
 #include "Macros.h"
 
 #include "Utils.h"
-#include "filescan.h"
-#include "ORDmenu.h"
+#include "FileScan.h"
+#include "ORDMenu.h"
 
 enum {
   ORDMENU_BASEMAP = 0x0,

@@ -33,13 +33,13 @@
 #include "Debug.h"
 #include "Hourglass.h"
 
-#include "filescan.h"
+#include "FileScan.h"
 #include "IbarMenu.h"
-#include "filesmenus.h"
-#include "utils.h"
+#include "FilesMenus.h"
+#include "Utils.h"
 #include "MapsMenu.h"
 #include "RenameMap.h"
-#include "fsmenu.h"
+#include "FSMenu.h"
 
 static ComponentId ticked = NULL_ComponentId;
 static filescan_leafname *combined_list;

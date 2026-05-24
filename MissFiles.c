@@ -26,10 +26,10 @@
 #include "Macros.h"
 
 #include "Session.h"
-#include "utils.h"
+#include "Utils.h"
 #include "Debug.h"
 #include "EditWin.h"
-#include "missfiles.h"
+#include "MissFiles.h"
 #include "DataType.h"
 
 enum {

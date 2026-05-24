@@ -24,6 +24,7 @@
 #include <limits.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <string.h>
 
 #include "Err.h"
 #include "Macros.h"
@@ -32,8 +33,8 @@
 #include "Utils.h"
 #include "ITransfers.h"
 #include "WriterGKC.h"
-#include "WriterGkey.h"
-#include "ReaderGkey.h"
+#include "WriterGKey.h"
+#include "ReaderGKey.h"
 #include "InfosData.h"
 #include "Infos.h"
 #include "InfoEdit.h"

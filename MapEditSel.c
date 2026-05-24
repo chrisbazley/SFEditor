@@ -21,7 +21,7 @@
 #include <stdbool.h>
 
 #include "flex.h"
-#include "utils.h"
+#include "Utils.h"
 #include "MapEditSel.h"
 #include "MapCoord.h"
 #include "Shapes.h"

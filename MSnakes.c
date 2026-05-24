@@ -28,13 +28,13 @@
 /* My headers */
 #include "Snakes.h"
 #include "SprFormats.h"
-#include "hourglass.h"
+#include "Hourglass.h"
 #include "Err.h"
 #include "Macros.h"
 #include "FileUtils.h"
 
 #include "Session.h"
-#include "utils.h"
+#include "Utils.h"
 #include "Debug.h"
 #include "MSnakes.h"
 #include "DrawTiles.h"

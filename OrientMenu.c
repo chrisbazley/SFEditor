@@ -28,7 +28,7 @@
 #include "Macros.h"
 
 #include "EditWin.h"
-#include "utils.h"
+#include "Utils.h"
 #include "OrientMenu.h"
 
 /* --------------------- Gadgets -------------------- */

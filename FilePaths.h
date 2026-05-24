@@ -13,7 +13,7 @@
 #include "Platform.h"
 #include "Pyram.h"
 #include "DataType.h"
-#include "filescan.h"
+#include "FileScan.h"
 
 #define DIR_SEP "."
 #define NUM_SEP "_"

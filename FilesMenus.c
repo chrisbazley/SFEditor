@@ -35,12 +35,12 @@
 #include "StrExtra.h"
 #include "Hourglass.h"
 
-#include "filescan.h"
+#include "FileScan.h"
 #include "Session.h"
 #include "Filenames.h"
-#include "filepaths.h"
-#include "utils.h"
-#include "filesmenus.h"
+#include "FilePaths.h"
+#include "Utils.h"
+#include "FilesMenus.h"
 #include "EditWin.h"
 #include "Debug.h"
 #include "Palette.h"
@@ -51,7 +51,7 @@
 #include "GfxConfig.h"
 #include "MapEditChg.h"
 #include "DataType.h"
-#include "fsmenu.h"
+#include "FSMenu.h"
 
 struct fm_menu_info {
   ComponentId ticked;

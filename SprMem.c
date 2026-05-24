@@ -22,7 +22,7 @@
 #include <stdbool.h>
 #include "kernel.h"
 
-#include "Flex.h"
+#include "flex.h"
 #include "NoBudge.h"
 #include "Macros.h"
 #include "Err.h"

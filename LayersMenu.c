@@ -30,7 +30,7 @@
 
 #include "EditWin.h"
 #include "Session.h"
-#include "utils.h"
+#include "Utils.h"
 #include "LayersMenu.h"
 #include "DataType.h"
 

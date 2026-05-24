@@ -24,14 +24,14 @@
 #include "menu.h"
 #include "event.h"
 
-#include "err.h"
+#include "Err.h"
 #include "Macros.h"
 
 #include "Session.h"
 #include "EditWin.h"
 #include "ToolMenu.h"
 #include "PlotMenu.h"
-#include "utils.h"
+#include "Utils.h"
 
 /* --------------------- Menu entries -------------------- */
 

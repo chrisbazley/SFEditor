@@ -29,11 +29,11 @@
 
 #include "Err.h"
 #include "Macros.h"
-#include "MsgTrans.h"
+#include "msgtrans.h"
 #include "WimpExtra.h"
 
 #include "Vertex.h"
-#include "utils.h"
+#include "Utils.h"
 #include "Session.h"
 #include "Editor.h"
 #include "Palette.h"
@@ -43,7 +43,7 @@
 #include "MapMode.h"
 #include "ObjGfxData.h"
 #include "FilenamesData.h"
-#include "plot.h"
+#include "Plot.h"
 #include "Obj.h"
 #include "ObjGfxMesh.h"
 

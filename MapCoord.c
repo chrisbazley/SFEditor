@@ -23,7 +23,7 @@
 #include "Macros.h"
 #include "Debug.h"
 #include "Err.h"
-#include "Msgtrans.h"
+#include "msgtrans.h"
 #include "Reader.h"
 #include "Writer.h"
 

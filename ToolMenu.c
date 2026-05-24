@@ -30,7 +30,7 @@
 #include "Session.h"
 #include "Editor.h"
 #include "EditWin.h"
-#include "utils.h"
+#include "Utils.h"
 #include "ToolMenu.h"
 #include "MTransfers.h"
 #include "MSnakes.h"

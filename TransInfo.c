@@ -27,8 +27,8 @@
 #include "toolbox.h"
 #include "fileinfo.h"
 
-#include "err.h"
-#include "macros.h"
+#include "Err.h"
+#include "Macros.h"
 
 #include "Palette.h"
 #include "TransInfo.h"
@@ -36,7 +36,7 @@
 #include "Session.h"
 #include "MapTexData.h"
 #include "Utils.h"
-#include "DfileUtils.h"
+#include "DFileUtils.h"
 
 /* Extra gadgets over normal FileInfo object */
 enum {

@@ -9,7 +9,7 @@
 
 #include <stdbool.h>
 #include "toolbox.h"
-#include "filescan.h"
+#include "FileScan.h"
 
 /* Build menu from array of leafnames */
 ComponentId fsmenu_build(ObjectId menu, filescan_leafname *leaf_names,

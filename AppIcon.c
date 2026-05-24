@@ -40,7 +40,7 @@
 #include "AppIcon.h"
 #include "Utils.h"
 #include "Session.h"
-#include "filepaths.h"
+#include "FilePaths.h"
 
 enum
 {

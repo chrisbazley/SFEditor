@@ -42,9 +42,9 @@
 #include "IPropDbox.h"
 #include "EditWin.h"
 #include "Map.h"
-#include "utils.h"
-#include "infos.h"
-#include "infomode.h"
+#include "Utils.h"
+#include "Infos.h"
+#include "InfoMode.h"
 
 /* --------------------- Gadgets -------------------- */
 

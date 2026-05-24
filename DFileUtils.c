@@ -27,8 +27,8 @@
 
 #include "Err.h"
 #include "msgtrans.h"
-#include "debug.h"
-#include "FopenCount.h"
+#include "Debug.h"
+#include "FOpenCount.h"
 #include "ReaderGKey.h"
 #include "WriterGKey.h"
 #include "WriterGKC.h"

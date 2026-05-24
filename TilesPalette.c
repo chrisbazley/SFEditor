@@ -32,7 +32,7 @@
 #include "Err.h"
 #include "Macros.h"
 #include "Debug.h"
-#include "MsgTrans.h"
+#include "msgtrans.h"
 #include "WimpExtra.h"
 
 #include "Map.h"

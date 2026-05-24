@@ -11,7 +11,7 @@
 
 #include "Vertex.h"
 #include "MapCoord.h"
-#include "infos.h"
+#include "Infos.h"
 
 struct Editor;
 struct EditWin;

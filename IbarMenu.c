@@ -33,9 +33,9 @@
 #include "Macros.h"
 #include "ViewsMenu.h"
 
-#include "filescan.h"
-#include "filepaths.h"
-#include "utils.h"
+#include "FileScan.h"
+#include "FilePaths.h"
+#include "Utils.h"
 #include "IbarMenu.h"
 #include "Session.h"
 #include "PathUtils.h"

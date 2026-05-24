@@ -34,7 +34,7 @@
 #include "Debug.h"
 
 #include "EditWin.h"
-#include "statusbar.h"
+#include "StatusBar.h"
 #include "MapCoord.h"
 
 enum {

@@ -29,7 +29,7 @@
 
 #include "EditWin.h"
 #include "ModeMenu.h"
-#include "utils.h"
+#include "Utils.h"
 #include "MainMenu.h"
 #include "DataType.h"
 #include "Editor.h"

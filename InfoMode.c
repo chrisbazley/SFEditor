@@ -50,7 +50,7 @@
 #include "InfoEditChg.h"
 #include "InfoMode.h"
 #include "DrawInfos.h"
-#include "infos.h"
+#include "Infos.h"
 
 typedef struct
 {

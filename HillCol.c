@@ -17,7 +17,7 @@
 
 #include "DFileData.h"
 #include "HillCol.h"
-#include "utils.h"
+#include "Utils.h"
 
 enum {
   PREALLOC_SIZE = 4096,

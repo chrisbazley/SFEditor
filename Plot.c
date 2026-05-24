@@ -31,7 +31,7 @@
 #include "Err.h"
 #include "Debug.h"
 
-#include "plot.h"
+#include "Plot.h"
 
 enum {
   MILLIPOINTS_PER_UNIT = 400,

@@ -40,8 +40,8 @@
 #include "OSVDU.h"
 #include "SFFormats.h"
 
-#include "utils.h"
-#include "plot.h"
+#include "Utils.h"
+#include "Plot.h"
 #include "Debug.h"
 #include "ObjGfxMesh.h"
 #include "ObjGfxMeshData.h"

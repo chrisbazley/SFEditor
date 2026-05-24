@@ -33,7 +33,7 @@
 #include "Triggers.h"
 #include "EditWin.h"
 #include "Utils.h"
-#include "failthresh.h"
+#include "FailThresh.h"
 #include "DataType.h"
 #include "Mission.h"
 

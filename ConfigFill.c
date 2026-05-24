@@ -28,7 +28,7 @@
 #include "Session.h"
 #include "EditWin.h"
 #include "ToolMenu.h"
-#include "utils.h"
+#include "Utils.h"
 #include "ConfigFill.h"
 
 /* --------------------- Menu entries -------------------- */

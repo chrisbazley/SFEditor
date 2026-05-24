@@ -26,7 +26,7 @@
 #include <stdint.h>
 
 #include "flex.h"
-#include "macros.h"
+#include "Macros.h"
 #include "Debug.h"
 
 #include "Snakes.h"

@@ -38,10 +38,10 @@
 #include "EventExtra.h"
 
 #include "Ships.h"
-#include "utils.h"
+#include "Utils.h"
 #include "Session.h"
 #include "Mission.h"
-#include "graphicsdata.h"
+#include "GraphicsData.h"
 #include "BPerf.h"
 #include "BPerfDbox.h"
 #include "DataType.h"

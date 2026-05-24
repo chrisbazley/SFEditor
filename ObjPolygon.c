@@ -20,7 +20,7 @@
 
 #include <limits.h>
 
-#include "Flex.h"
+#include "flex.h"
 #include "Debug.h"
 #include "Reader.h"
 #include "Macros.h"

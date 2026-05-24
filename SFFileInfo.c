@@ -24,14 +24,14 @@
 #include "toolbox.h"
 #include "fileinfo.h"
 
-#include "err.h"
-#include "macros.h"
+#include "Err.h"
+#include "Macros.h"
 
 #include "Session.h"
-#include "missfiles.h"
-#include "mapfiles.h"
+#include "MissFiles.h"
+#include "MapFiles.h"
 #include "EditWin.h"
-#include "sffileinfo.h"
+#include "SFFileInfo.h"
 #include "DataType.h"
 #include "FilePaths.h"
 

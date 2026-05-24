@@ -21,7 +21,7 @@
 #include "stdlib.h"
 #include <inttypes.h>
 
-#include "Flex.h"
+#include "flex.h"
 
 #include "Debug.h"
 #include "Macros.h"

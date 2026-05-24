@@ -30,7 +30,7 @@
 #include "EditWin.h"
 #include "MapCoord.h"
 #include "SFInit.h"
-#include "plot.h"
+#include "Plot.h"
 #include "DrawInfos.h"
 #include "DrawInfo.h"
 #include "SelBitmask.h"

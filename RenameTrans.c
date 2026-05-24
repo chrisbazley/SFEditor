@@ -40,7 +40,7 @@
 #include "Palette.h"
 #include "RenameTrans.h"
 #include "MTransfers.h"
-#include "utils.h"
+#include "Utils.h"
 #include "MapTexData.h"
 #include "FilenamesData.h"
 #include "DFileUtils.h"

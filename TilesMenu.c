@@ -39,7 +39,7 @@
 #include "Session.h"
 #include "Smooth.h"
 #include "MapTexData.h"
-#include "filenames.h"
+#include "Filenames.h"
 #include "DataType.h"
 
 /* Menu entries */

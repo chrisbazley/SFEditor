@@ -9,7 +9,7 @@
 
 #include <stdbool.h>
 #include "toolbox.h"
-#include "filescan.h"
+#include "FileScan.h"
 
 void tilesetmenu_created(ObjectId const id);
 void polysetmenu_created(ObjectId const id);

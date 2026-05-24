@@ -28,9 +28,9 @@
 #include "Macros.h"
 
 #include "Session.h"
-#include "utils.h"
+#include "Utils.h"
 #include "EditWin.h"
-#include "missopts.h"
+#include "MissOpts.h"
 #include "DataType.h"
 #include "Mission.h"
 

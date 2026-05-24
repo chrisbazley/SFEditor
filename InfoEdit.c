@@ -27,7 +27,7 @@
 #include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
-#include "hourglass.h"
+#include "Hourglass.h"
 #include "Debug.h"
 
 #include "Infos.h"

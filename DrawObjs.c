@@ -33,7 +33,7 @@
 #include "DrawCloud.h"
 #include "DrawTrig.h"
 #include "ObjGfxMesh.h"
-#include "plot.h"
+#include "Plot.h"
 #include "DrawObjs.h"
 #include "ObjEditSel.h"
 #include "Vertex.h"

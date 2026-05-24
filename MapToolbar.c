@@ -40,7 +40,7 @@
 #include "Debug.h"
 #include "GadgetUtil.h"
 #include "EventExtra.h"
-#include "Deiconise.h"
+#include "DeIconise.h"
 
 #include "MapToolbar.h"
 #include "Utils.h"

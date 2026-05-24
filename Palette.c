@@ -51,7 +51,7 @@
 #include "Session.h"
 #include "Palette.h"
 #include "Editor.h"
-#include "plot.h"
+#include "Plot.h"
 #include "PaletteData.h"
 #include "Desktop.h"
 #include "Vertex.h"

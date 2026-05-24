@@ -29,13 +29,13 @@
 
 #include "Err.h"
 #include "Macros.h"
-#include "MsgTrans.h"
+#include "msgtrans.h"
 #include "PathTail.h"
 #include "Debug.h"
 #include "WimpExtra.h"
 
 #include "Vertex.h"
-#include "utils.h"
+#include "Utils.h"
 #include "Session.h"
 #include "Editor.h"
 #include "Palette.h"

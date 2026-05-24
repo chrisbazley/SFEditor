@@ -26,19 +26,19 @@
 #include "toolbox.h"
 #include "menu.h"
 
-#include "err.h"
-#include "macros.h"
-#include "strextra.h"
+#include "Err.h"
+#include "Macros.h"
+#include "StrExtra.h"
 #include "Debug.h"
-#include "hourglass.h"
+#include "Hourglass.h"
 
-#include "filescan.h"
+#include "FileScan.h"
 #include "IbarMenu.h"
 #include "RenameMiss.h"
-#include "filesmenus.h"
-#include "utils.h"
-#include "fsmenu.h"
-#include "EMHmenu.h"
+#include "FilesMenus.h"
+#include "Utils.h"
+#include "FSMenu.h"
+#include "EMHMenu.h"
 
 static struct
 {

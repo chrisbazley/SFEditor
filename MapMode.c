@@ -46,11 +46,11 @@
 #include "FileUtils.h"
 #include "StrExtra.h"
 #include "Debug.h"
-#include "nobudge.h"
+#include "NoBudge.h"
 
 #include "OurEvents.h"
 #include "Session.h"
-#include "utils.h"
+#include "Utils.h"
 #include "MapMode.h"
 #include "StatusBar.h"
 #include "DrawTiles.h"
@@ -59,7 +59,7 @@
 #include "FastPlot.h"
 #endif
 #include "Debug.h"
-#include "plot.h"
+#include "Plot.h"
 #include "EditWin.h"
 #include "MPropDbox.h"
 #include "NewTransfer.h"

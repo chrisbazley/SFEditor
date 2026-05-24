@@ -8,7 +8,7 @@
 #define Palette_h
 
 #include <stdbool.h>
-#include "Scheduler.h"
+#include "scheduler.h"
 
 #include "toolbox.h"
 #include "Vertex.h"

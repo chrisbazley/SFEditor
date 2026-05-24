@@ -38,11 +38,11 @@
 #include "PathTail.h"
 
 /* Local headers */
-#include "utils.h"
-#include "session.h"
+#include "Utils.h"
+#include "Session.h"
 #include "EditWin.h"
-#include "dcs_dialogue.h"
-#include "savemap.h"
+#include "DCS_dialogue.h"
+#include "SaveMap.h"
 #include "FilenamesData.h"
 
 /* ----------------- Gadget Ids -------------------- */

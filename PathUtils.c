@@ -26,20 +26,20 @@
 
 #include "Err.h"
 #include "Debug.h"
-#include "strextra.h"
+#include "StrExtra.h"
 #include "FileUtils.h"
 
 #include "Macros.h"
-#include "utils.h"
+#include "Utils.h"
 #include "Config.h"
-#include "filepaths.h"
-#include "pathutils.h"
-#include "filescan.h"
-#include "filepaths.h"
-#include "filenames.h"
-#include "mission.h"
-#include "pyram.h"
-#include "dfileutils.h"
+#include "FilePaths.h"
+#include "PathUtils.h"
+#include "FileScan.h"
+#include "FilePaths.h"
+#include "Filenames.h"
+#include "Mission.h"
+#include "Pyram.h"
+#include "DFileUtils.h"
 
 static bool rename_level_file(char const *const dest_sub_path,
   char const *const src_sub_path, char const *const dir_name, bool const copy)

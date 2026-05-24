@@ -32,11 +32,11 @@
 #include "StrExtra.h"
 
 #include "Session.h"
-#include "missfiles.h"
-#include "mapfiles.h"
-#include "utils.h"
+#include "MissFiles.h"
+#include "MapFiles.h"
+#include "Utils.h"
 #include "EditWin.h"
-#include "sfsaveas.h"
+#include "SFSaveAs.h"
 #include "DataType.h"
 #include "FilePaths.h"
 

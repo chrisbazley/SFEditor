@@ -31,11 +31,11 @@
 #include "FileUtils.h"
 #include "StrExtra.h"
 #include "SFError.h"
-#include "utils.h"
-#include "filepaths.h"
+#include "Utils.h"
+#include "FilePaths.h"
 #include "GfxConfig.h"
-#include "filenames.h"
-#include "clouds.h"
+#include "Filenames.h"
+#include "Clouds.h"
 #include "DataType.h"
 
 static char const GF_STARTBASEGFXMARK[] = "StartBaseGfx\n";

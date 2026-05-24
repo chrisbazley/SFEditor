@@ -28,20 +28,20 @@
 #include "menu.h"
 
 #include "Err.h"
-#include "macros.h"
+#include "Macros.h"
 #include "msgtrans.h"
-#include "strextra.h"
+#include "StrExtra.h"
 #include "Debug.h"
 #include "FileUtils.h"
 #include "PathTail.h"
 
 #include "Session.h"
-#include "missfiles.h"
-#include "mapfiles.h"
-#include "filepaths.h"
-#include "utils.h"
+#include "MissFiles.h"
+#include "MapFiles.h"
+#include "FilePaths.h"
+#include "Utils.h"
 #include "EditWin.h"
-#include "revert.h"
+#include "Revert.h"
 #include "MapAnims.h"
 
 enum {

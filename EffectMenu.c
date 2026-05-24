@@ -31,7 +31,7 @@
 #include "MapMode.h"
 #include "EffectMenu.h"
 #include "EditWin.h"
-#include "utils.h"
+#include "Utils.h"
 
 enum {
   ComponentId_FILL     = 0x8,

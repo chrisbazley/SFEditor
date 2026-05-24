@@ -23,10 +23,10 @@
 #include "stdio.h"
 #include <string.h>
 
-#include "SFformats.h" /* get Fednet filetype */
+#include "SFFormats.h" /* get Fednet filetype */
 #include "Debug.h"
 #include "Macros.h"
-#include "filepaths.h"
+#include "FilePaths.h"
 #include "Pyram.h"
 #include "StrExtra.h"
 #include "PathTail.h"

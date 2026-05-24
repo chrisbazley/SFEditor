@@ -28,7 +28,7 @@
 #include "Macros.h"
 
 #include "Session.h"
-#include "utils.h"
+#include "Utils.h"
 #include "EditWin.h"
 #include "UtilsMenu.h"
 #include "MapAnims.h"

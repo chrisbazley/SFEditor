@@ -27,12 +27,12 @@
 #include "gadgets.h"
 #include "textarea.h"
 
-#include "eventextra.h"
+#include "EventExtra.h"
 
 #include "Debug.h"
 #include "Macros.h"
 #include "Session.h"
-#include "utils.h"
+#include "Utils.h"
 #include "Err.h"
 #include "msgtrans.h"
 #include "PathTail.h"

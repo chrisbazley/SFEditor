@@ -32,18 +32,18 @@
 #include "Macros.h"
 #include "msgtrans.h"
 #include "PathTail.h"
-#include "strextra.h"
+#include "StrExtra.h"
 #include "Debug.h"
-#include "fileperc.h"
+#include "FilePerc.h"
 #include "GadgetUtil.h"
 
 #include "Utils.h"
 #include "RenameMiss.h"
 #include "Config.h"
-#include "filepaths.h"
-#include "filescan.h"
-#include "pathutils.h"
-#include "pyram.h"
+#include "FilePaths.h"
+#include "FileScan.h"
+#include "PathUtils.h"
+#include "Pyram.h"
 
 /* Gadget numbers */
 enum {

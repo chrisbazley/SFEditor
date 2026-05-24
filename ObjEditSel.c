@@ -22,9 +22,9 @@
 #include <stdint.h>
 
 #include "flex.h"
-#include "err.h"
+#include "Err.h"
 #include "msgtrans.h"
-#include "utils.h"
+#include "Utils.h"
 #include "ObjEditSel.h"
 #include "MapCoord.h"
 #include "Obj.h"

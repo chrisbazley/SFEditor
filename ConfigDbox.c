@@ -42,7 +42,7 @@
 #include "SFError.h"
 #include "Config.h"
 #include "Utils.h"
-#include "filepaths.h"
+#include "FilePaths.h"
 
 /* --------------------- Gadgets -------------------- */
 

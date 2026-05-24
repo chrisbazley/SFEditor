@@ -35,7 +35,7 @@
 #include "Session.h"
 #include "TransMenu.h"
 #include "Palette.h"
-#include "utils.h"
+#include "Utils.h"
 #include "MTransfers.h"
 #include "MapTexData.h"
 #include "DataType.h"

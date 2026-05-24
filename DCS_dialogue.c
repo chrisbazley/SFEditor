@@ -22,7 +22,7 @@
 
 #include "event.h"
 #include "toolbox.h"
-#include "DCS.h"
+#include "dcs.h"
 
 #include "Err.h"
 #include "Macros.h"
@@ -31,7 +31,7 @@
 #include "SaveMiss.h"
 #include "SaveMap.h"
 #include "EditWin.h"
-#include "utils.h"
+#include "Utils.h"
 #include "DCS_dialogue.h"
 #include "Session.h"
 

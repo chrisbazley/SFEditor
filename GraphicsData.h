@@ -9,9 +9,9 @@
 
 #include <stdbool.h>
 
-#include "stringbuff.h"
-#include "ships.h"
-#include "obj.h"
+#include "StringBuff.h"
+#include "Ships.h"
+#include "Obj.h"
 
 bool get_shipname_from_type(StringBuffer *output_string,
   char const *graphics_set, ShipType shipnum);

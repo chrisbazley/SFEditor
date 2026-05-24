@@ -30,8 +30,8 @@
 
 #include "Session.h"
 #include "EditWin.h"
-#include "utils.h"
-#include "groundlaser.h"
+#include "Utils.h"
+#include "GroundLaser.h"
 #include "DataType.h"
 #include "Mission.h"
 

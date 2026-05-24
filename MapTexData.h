@@ -7,7 +7,7 @@
 #ifndef MapTexData_h
 #define MapTexData_h
 
-#include "DfileData.h"
+#include "DFileData.h"
 #include "SmoothData.h"
 #include "MSnakesData.h"
 #include "MTransfersData.h"

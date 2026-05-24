@@ -29,14 +29,14 @@
 
 #include "Macros.h"
 #include "Debug.h"
-#include "MsgTrans.h"
+#include "msgtrans.h"
 #include "Err.h"
-#include "hourglass.h"
-#include "Scheduler.h"
+#include "Hourglass.h"
+#include "scheduler.h"
 #include "Reader.h"
 #include "Writer.h"
 
-#include "utils.h"
+#include "Utils.h"
 #include "MapAnims.h"
 #include "MapEdit.h"
 #include "MapCoord.h"

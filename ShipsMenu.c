@@ -32,10 +32,10 @@
 
 #include "Session.h"
 #include "Debug.h"
-#include "utils.h"
-#include "graphicsdata.h"
+#include "Utils.h"
+#include "GraphicsData.h"
 #include "EditWin.h"
-#include "shipsmenu.h"
+#include "ShipsMenu.h"
 #include "Ships.h"
 #include "Defenc.h"
 #include "DataType.h"

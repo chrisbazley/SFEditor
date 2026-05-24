@@ -36,8 +36,8 @@
 #include "SFError.h"
 #include "Config.h"
 #include "Utils.h"
-#include "filescan.h"
-#include "filepaths.h"
+#include "FileScan.h"
+#include "FilePaths.h"
 #include "PalEntry.h"
 
 #define CUSTOMGAMELOC "CustomGameLocation = %d\n"

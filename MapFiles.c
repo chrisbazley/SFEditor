@@ -27,9 +27,9 @@
 #include "Debug.h"
 
 #include "Session.h"
-#include "utils.h"
+#include "Utils.h"
 #include "EditWin.h"
-#include "mapfiles.h"
+#include "MapFiles.h"
 #include "DataType.h"
 
 enum {

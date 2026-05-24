@@ -25,7 +25,7 @@
 #include <limits.h>
 #include <inttypes.h>
 
-#include "Flex.h"
+#include "flex.h"
 
 #include "Reader.h"
 #include "Writer.h"

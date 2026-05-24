@@ -18,7 +18,7 @@
 
 #include "DFileData.h"
 #include "PolyCol.h"
-#include "utils.h"
+#include "Utils.h"
 
 enum {
   PREALLOC_SIZE = 4096,

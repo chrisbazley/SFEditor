@@ -25,11 +25,11 @@
 #include "menu.h"
 
 #include "Err.h"
-#include "macros.h"
+#include "Macros.h"
 
 #include "Editor.h"
-#include "editmenu.h"
-#include "utils.h"
+#include "EditMenu.h"
+#include "Utils.h"
 #include "EditWin.h"
 
 enum {

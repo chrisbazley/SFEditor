@@ -19,7 +19,7 @@
  */
 
 #include "stdlib.h"
-#include "Flex.h"
+#include "flex.h"
 
 #include "Debug.h"
 #include "Macros.h"
@@ -31,7 +31,7 @@
 
 #include "Obj.h"
 #include "ObjData.h"
-#include "utils.h"
+#include "Utils.h"
 
 enum {
   PREALLOC_SIZE = 4096,

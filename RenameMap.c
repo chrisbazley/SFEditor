@@ -29,21 +29,21 @@
 #include "window.h"
 #include "gadgets.h"
 
-#include "hourglass.h"
+#include "Hourglass.h"
 #include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
 #include "PathTail.h"
-#include "strextra.h"
+#include "StrExtra.h"
 #include "Debug.h"
 #include "GadgetUtil.h"
 
 #include "RenameMap.h"
 #include "Utils.h"
 #include "Config.h"
-#include "filepaths.h"
-#include "pathutils.h"
-#include "filescan.h"
+#include "FilePaths.h"
+#include "PathUtils.h"
+#include "FileScan.h"
 
 /* Gadget numbers */
 enum {

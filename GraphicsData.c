@@ -30,9 +30,9 @@
 #include "Macros.h"
 #include "MessTrans.h"
 
-#include "graphicsdata.h"
+#include "GraphicsData.h"
 #include "SFInit.h"
-#include "utils.h"
+#include "Utils.h"
 #include "Obj.h"
 
 #include "Ships.h"

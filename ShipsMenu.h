@@ -8,7 +8,7 @@
 #define ShipsMenu_h
 
 #include "toolbox.h"
-#include "filescan.h"
+#include "FileScan.h"
 
 void ShipsMenu_created(ObjectId id);
 
