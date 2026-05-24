@@ -1686,7 +1686,7 @@ static void cb_status(Editor *const editor, bool const copy)
 
   size_t const refs_count = ObjEditSelection_size(&mode_data->selection);
   char refs_count_str[16];
-  sprintf(refs_count_str, "%ld", refs_count);
+  sprintf(refs_count_str, "%zu", refs_count);
 
   size_t const trig_count = ObjTransfers_get_trigger_count(clipboard);
 
