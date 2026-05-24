@@ -962,10 +962,10 @@ MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
 
   size_t sel_count = 0;
   if (map->anims != NULL) {
-    MapAnimsIter iter;
-    for (MapPoint p = MapAnimsIter_get_first(&iter, map->anims, &bounds, NULL);
-         !MapAnimsIter_done(&iter);
-         p = MapAnimsIter_get_next(&iter, NULL))
+    MapAnimsIter anims_iter;
+    for (MapPoint p = MapAnimsIter_get_first(&anims_iter, map->anims, &bounds, NULL);
+         !MapAnimsIter_done(&anims_iter);
+         p = MapAnimsIter_get_next(&anims_iter, NULL))
     {
       if (MapEditSelection_is_selected(selected, p)) {
         sel_count++;
