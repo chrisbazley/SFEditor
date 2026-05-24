@@ -180,7 +180,7 @@ static void start_redraw(Editor *const editor, bool const labels)
   /* Initialisation that can be done once before the redraw process starts,
      rather than upon processing each individual redraw rectangle. */
   EditSession *const session = Editor_get_session(editor);
-  redraw_graphics = Session_get_redraw_graphics(session);
+  redraw_graphics = Session_get_graphics(session);
   redraw_meshes = &redraw_graphics->redraw_meshes;
   redraw_poly_colours = Session_get_poly_colours(session);
 
