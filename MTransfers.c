@@ -962,11 +962,6 @@ MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
 
   size_t sel_count = 0;
   if (map->anims != NULL) {
-    MapArea bounds;
-    if (!MapEditSelection_get_bounds(selected, &bounds)) {
-      return 0; /* nothing selected! */
-    }
-
     MapAnimsIter iter;
     for (MapPoint p = MapAnimsIter_get_first(&iter, map->anims, &bounds, NULL);
          !MapAnimsIter_done(&iter);
