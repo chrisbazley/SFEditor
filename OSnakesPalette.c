@@ -52,9 +52,9 @@
 static WimpPlotIconBlock plot_label;
 static char truncated_name[sizeof(Filename) + sizeof("...") - 1];
 /* -1 because both sizeof() values include space for a string terminator. */
-static ObjGfxMeshes *meshes;
-static PolyColData const *poly_colours;
-ObjGfx *graphics;
+static ObjGfxMeshes *redraw_meshes;
+static PolyColData const *redraw_poly_colours;
+ObjGfx *redraw_graphics;
 static ObjGfxMeshesView plot_ctx;
 
 enum {
@@ -180,9 +180,9 @@ static void start_redraw(Editor *const editor, bool const labels)
   /* Initialisation that can be done once before the redraw process starts,
      rather than upon processing each individual redraw rectangle. */
   EditSession *const session = Editor_get_session(editor);
-  graphics = Session_get_graphics(session);
-  meshes = &graphics->meshes;
-  poly_colours = Session_get_poly_colours(session);
+  redraw_graphics = Session_get_redraw_graphics(session);
+  redraw_meshes = &redraw_graphics->redraw_meshes;
+  redraw_poly_colours = Session_get_poly_colours(session);
 
   ObjGfxMeshes_set_direction(&plot_ctx,
      (ObjGfxDirection){{HorizontalAngle}, {VerticalAngle}, {0}}, 0);
@@ -205,11 +205,11 @@ static void redraw_label(Editor *const editor, Vertex const origin,
 {
   NOT_USED(editor);
   NOT_USED(origin);
-  assert(graphics);
+  assert(redraw_graphics);
 
   /* Truncate the file name with a ellipsis if it exceeds the
      width of the object to which it refers */
-  ObjSnakes_get_name(&graphics->snakes, object_no, truncated_name, sizeof(truncated_name));
+  ObjSnakes_get_name(&redraw_graphics->snakes, object_no, truncated_name, sizeof(truncated_name));
   int const width = truncate_string(truncated_name, bbox->xmax - bbox->xmin);
 
   /* Reduce the width of the label icon to fit the truncated text */
@@ -314,15 +314,15 @@ static void redraw_object(Editor *const editor, Vertex const origin,
   plot_set_window(&temp_window);
 
   ObjRef thumb_refs[THUMB_TILE_SIZE][THUMB_TILE_WIDTH];
-  make_mini_map(&graphics->snakes, object_no, &thumb_refs);
+  make_mini_map(&redraw_graphics->snakes, object_no, &thumb_refs);
 
-  long int distance = ObjSnakes_get_pal_distance(&graphics->snakes, object_no);
+  long int distance = ObjSnakes_get_pal_distance(&redraw_graphics->snakes, object_no);
   if (distance < 0)
   {
     for (distance = MinDist; distance < MaxDist; distance += DistStep)
     {
       BBox obj_bbox = BBox_make_invalid();
-      draw_snake(meshes, NULL, centre, distance, &thumb_refs, NULL, &obj_bbox,
+      draw_snake(redraw_meshes, NULL, centre, distance, &thumb_refs, NULL, &obj_bbox,
                  ObjGfxMeshStyle_BBox);
 
       assert(distance <= MaxDist);
@@ -343,7 +343,7 @@ static void redraw_object(Editor *const editor, Vertex const origin,
     }
 
     distance = LOWEST(distance, MaxDist);
-    ObjSnakes_set_pal_distance(&graphics->snakes, object_no, distance);
+    ObjSnakes_set_pal_distance(&redraw_graphics->snakes, object_no, distance);
   }
 
   if (selected) {
@@ -354,7 +354,7 @@ static void redraw_object(Editor *const editor, Vertex const origin,
   Vertex const plot_centre = Vertex_add(centre, BBox_get_min(&plot_bbox));
   plot_set_col(PAL_BLACK);
   ObjGfxMeshes_plot_grid(&plot_ctx, plot_centre, distance, (Vertex3D){0, 0, 0});
-  draw_snake(meshes, poly_colours, plot_centre, distance, &thumb_refs, palette, NULL,
+  draw_snake(redraw_meshes, redraw_poly_colours, plot_centre, distance, &thumb_refs, palette, NULL,
              ObjGfxMeshStyle_Filled);
 
   plot_set_window(&old_window);
@@ -394,7 +394,7 @@ static void update_menus(PaletteData *const pal_data)
 
 /* ---------------- Public functions ---------------- */
 
-bool ObjSnakesPalette_register(PaletteData *const palette)
+bool ObjSnakesPalette_register(PaletteData *const pal_data)
 {
   static const PaletteClientFuncts snakes_palette_definition =
   {
@@ -414,5 +414,5 @@ bool ObjSnakesPalette_register(PaletteData *const palette)
     .update_menus = update_menus,
   };
 
-  return Palette_register_client(palette, &snakes_palette_definition);
+  return Palette_register_client(pal_data, &snakes_palette_definition);
 }
