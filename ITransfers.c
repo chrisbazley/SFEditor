@@ -69,7 +69,7 @@ static void destroy_all(InfoTransfer *const transfer)
 }
 
 static SFError read_offsets(size_t const n,
-  long int offsets[n],
+  long int offsets[],
   Reader *const reader)
 {
   assert(offsets);
