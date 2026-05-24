@@ -1376,10 +1376,10 @@ bool MapTransfers_rename(MapTransfers *const transfers_data,
     // Careful! Key string isn't copied on insertion.
     // Should be impossible to fail to insert after removal
     size_t new_index;
-    bool success = strdict_insert(&transfers_data->dict, get_leaf_name(&transfer_to_rename->dfile),
-                                   transfer_to_rename, &new_index);
-    assert(success);
-    NOT_USED(success);
+    bool is_inserted = strdict_insert(&transfers_data->dict, get_leaf_name(&transfer_to_rename->dfile),
+                                      transfer_to_rename, &new_index);
+    assert(is_inserted);
+    NOT_USED(is_inserted);
 
     if (new_index_out != NULL) {
       assert(new_index <= INT_MAX);
