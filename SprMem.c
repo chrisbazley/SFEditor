@@ -43,7 +43,7 @@ enum {
 
 static void *save_area = NULL;
 static SpriteRestoreOutputBlock old_output_state;
-static bool restore_state = false, on_exit = false;
+static bool restore_state = false, restore_output_is_reg = false;
 
 typedef _kernel_oserror *switch_output_fn(SpriteAreaHeader *,
   char const *, void *, size_t, size_t *, SpriteRestoreOutputBlock *);
@@ -141,9 +141,9 @@ static bool switch_output(SprMem *const sm, char const *const name,
   *(int *)save_area = 0;
 
   /* Restore the VDU driver state at exit if not earlier  */
-  if (!on_exit) {
+  if (!restore_output_is_reg) {
     atexit(restore_output);
-    on_exit = true;
+    restore_output_is_reg = true;
   }
 
   /* Switch VDU output to the sprite or its mask */
