@@ -2977,7 +2977,7 @@ bool Session_file_modified(EditSession const *const session, DataType const data
 int const *Session_get_file_date(EditSession *const session, DataType const data_type)
 {
   DFile const *const dfile = Session_get_dfile(session, data_type);
-  static int const dummy[2];
+  static int const dummy[2] = {0, 0};
   return dfile ? dfile_get_date(dfile) : dummy;
 }
 
