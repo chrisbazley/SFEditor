@@ -181,7 +181,7 @@ static void start_redraw(Editor *const editor, bool const labels)
      rather than upon processing each individual redraw rectangle. */
   EditSession *const session = Editor_get_session(editor);
   redraw_graphics = Session_get_graphics(session);
-  redraw_meshes = &redraw_graphics->redraw_meshes;
+  redraw_meshes = &redraw_graphics-->meshes;
   redraw_poly_colours = Session_get_poly_colours(session);
 
   ObjGfxMeshes_set_direction(&plot_ctx,
