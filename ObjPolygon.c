@@ -207,10 +207,10 @@ SFError obj_polygons_read(ObjPolygons *const polygons, Reader *const reader,
          reader_ftell(reader), reader_ftell(reader));
 
   *max_group = 0;
+  ObjPolygon polygon = {0, 0, 0, {0}};
 
   for (int p = 0; p < num_polygons; ++p)
   {
-    ObjPolygon polygon;
     SFError err = obj_polygon_read(polygons ? &polygon : NULL, reader, nvertices, max_group);
     if (SFError_fail(err))
     {
