@@ -76,12 +76,13 @@ Vertex DrawCloud_get_size_os(void)
 }
 
 bool DrawCloud_init(DrawCloudContext *const context, CloudColData const *const clouds,
-  PaletteEntry const (*const palette)[NumColours], PaletteEntry const (*const sel_palette)[NumColours],
+  PaletteEntry const (*const unsel_palette)[NumColours],
+  PaletteEntry const (*const sel_palette)[NumColours],
   int const zoom, bool const is_ghost)
 {
   /* Set up the workspace for the transfer function */
   assert(context);
-  assert(palette);
+  assert(unsel_palette);
 
   Vertex const eigen_factors = Desktop_get_eigen_factors();
   get_sprite_info();
@@ -105,7 +106,7 @@ bool DrawCloud_init(DrawCloudContext *const context, CloudColData const *const c
       for (size_t n = 0; n < Clouds_NumColours; ++n) {
         unsigned int const cloud_colour = clouds_get_colour(clouds, n) + cloud_type;
         cloud_colours[n] = ((is_selected == DrawCloudSel_Yes) && sel_palette) ?
-                              (*sel_palette)[cloud_colour] : (*palette)[cloud_colour];
+                              (*sel_palette)[cloud_colour] : (*unsel_palette)[cloud_colour];
       }
 
       /* The transfer function can't be written in C because it's not APCS-compliant */
