@@ -204,7 +204,7 @@ static void edit(Editor *const editor)
 
 /* ---------------- Public functions ---------------- */
 
-bool MapSnakesPalette_register(PaletteData *const palette)
+bool MapSnakesPalette_register(PaletteData *const pal_data)
 {
   static const PaletteClientFuncts snakes_palette_definition =
   {
@@ -225,5 +225,5 @@ bool MapSnakesPalette_register(PaletteData *const palette)
     .edit = edit,
   };
 
-  return Palette_register_client(palette, &snakes_palette_definition);
+  return Palette_register_client(pal_data, &snakes_palette_definition);
 }
