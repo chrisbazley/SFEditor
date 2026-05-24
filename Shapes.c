@@ -143,7 +143,7 @@ static void plot_trapezium(ShapesWriteFunction *const write, void *const arg,
   assert(left->x <= right->x);
   assert(bot_y <= top_y);
 
-  MapArea map_area;
+  MapArea map_area = {{0,0}, {0,0}};
 
   for (MapCoord y = bot_y; y <= top_y; y++) {
     MapCoord const min_x = advance_edge(left, EdgeSide_Left);
@@ -558,7 +558,7 @@ static void shallow_thick_line(ShapesWriteFunction *const write,
   DEBUG("Plot to columns %" PRIMapCoord " to %" PRIMapCoord "",
     lowest_x, highest_x);
 
-  MapArea map_area;
+  MapArea map_area = {{0,0}, {0,0}};
   for (MapCoord x = lowest_x; x <= highest_x; x++)
   {
     MapCoord y_end_offset = -1, y_start_offset = -1;
