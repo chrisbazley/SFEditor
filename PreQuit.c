@@ -126,7 +126,7 @@ void PreQuit_created(ObjectId const PreQuit_id)
   }
 }
 
-bool PreQuit_queryunsaved(int const task_handle)
+bool PreQuit_queryunsaved(int const th)
 {
   /* Return true from this function in order to prevent immediate quit */
   int const unsaved_count = Session_all_count_modified();
@@ -148,7 +148,7 @@ bool PreQuit_queryunsaved(int const task_handle)
     return false; /* may quit */
   }
 
-  quit_sender = task_handle;
+  quit_sender = th;
 
   E(toolbox_show_object(Toolbox_ShowObject_AsMenu, dbox_id,
      Toolbox_ShowObject_Centre, NULL, NULL_ObjectId, NULL_ComponentId));
