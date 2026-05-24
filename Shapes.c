@@ -404,7 +404,7 @@ static void steep_thick_line(ShapesWriteFunction *const write, void *const arg,
   MapCoord lowest_y = start.y - thickness, highest_y = end.y + thickness;
   DEBUG("Plot to rows %" PRIMapCoord " to %" PRIMapCoord "", lowest_y, highest_y);
 
-  MapArea map_area;
+  MapArea map_area = {{0,0}, {0,0}};
   for (MapCoord y = lowest_y; y <= highest_y; y++)
   {
     MapCoord x_end_offset = -1, x_start_offset = -1; /* impossible sqr root */
