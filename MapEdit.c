@@ -449,14 +449,14 @@ void MapEdit_global_replace(MapEditContext const *const map,
   if (map->anims != NULL) {
     /* Now perform equivalent substitution within animations data */
     MapAnimParam param;
-    MapAnimsIter iter;
+    MapAnimsIter anims_iter;
     MapArea const bounds = {{0,0}, {Map_Size - 1, Map_Size - 1}};
-    for (MapPoint p = MapAnimsIter_get_first(&iter, map->anims, &bounds, &param);
-         !MapAnimsIter_done(&iter);
-         p = MapAnimsIter_get_next(&iter, &param))
+    for (MapPoint p = MapAnimsIter_get_first(&anims_iter, map->anims, &bounds, &param);
+         !MapAnimsIter_done(&anims_iter);
+         p = MapAnimsIter_get_next(&anims_iter, &param))
     {
       if (replace_frame(&param, find, replace)) {
-        MapAnimsIter_replace_current(&iter, param);
+        MapAnimsIter_replace_current(&anims_iter, param);
         MapArea_expand(&redraw_area, p);
         MapEditChanges_change_anim(change_info);
       }
