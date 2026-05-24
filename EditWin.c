@@ -540,7 +540,7 @@ static void redraw_all(EditWin *const edit_win)
 }
 
 static bool auto_scroll(EditWin *const edit_win, WimpGetWindowStateBlock *const window_state,
-                        Vertex const ptr, const SchedulerTime const new_time)
+                        Vertex const ptr, SchedulerTime const new_time)
 {
   Vertex scroll = {0,0};
   Vertex border = {0,0};
