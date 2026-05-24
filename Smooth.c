@@ -300,7 +300,7 @@ static size_t count_groups_in_file(FILE *const file)
   while (read_line_comm(read_line, sizeof(read_line), file, NULL) != NULL) {
     /* KISS - no syntax checking etc on first pass */
     int num_inputs = 0;
-    size_t group;
+    size_t group = 0;
     if (strncmp(read_line, UX_STARTSMOOTHMARK,
                 sizeof(UX_STARTSMOOTHMARK) - 1) == 0) {
       /* extract group number */
