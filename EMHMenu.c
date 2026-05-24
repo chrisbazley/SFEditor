@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <assert.h>
+#include <stdint.h>
 
 #include "event.h"
 #include "toolbox.h"
@@ -63,7 +64,7 @@ static int selectionhandler(int const event_code, ToolboxEvent *const event,
   NOT_USED(event_code);
   NOT_USED(event);
 
-  filescan_type const which = (filescan_type)(int)handle;
+  filescan_type const which = (filescan_type)(intptr_t)handle;
   Filename leafname, path;
 
   /* get filename from menu text */
@@ -107,7 +108,7 @@ static int openhandler(int const event_code, ToolboxEvent *const event,
   NOT_USED(event_code);
   NOT_USED(event);
 
-  filescan_type const which = (filescan_type)(int)handle;
+  filescan_type const which = (filescan_type)(intptr_t)handle;
   int new_vsn;
   bool grey_internal;
   Filename leafname_buf;
@@ -214,7 +215,7 @@ static void EMHmenu_created(ObjectId const id, filescan_type which)
   {
     EF(event_register_toolbox_handler(id, handlers[i].event_code,
                                       handlers[i].handler,
-                                      (void *)(int)which));
+                                      (void *)(intptr_t)which));
   }
 }
 
