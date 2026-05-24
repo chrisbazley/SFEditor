@@ -36,10 +36,10 @@ set(SOURCES
     Main.c
     PreQuit.c
     Utils.c
-    filepaths.c
-    filescan.c
+    FilePaths.c
+    FileScan.c
     BriefDbox.c
-    graphicsdata.c
+    GraphicsData.c
     MapMode.c
     ObjectsMode.c
     ShipsMode.c
@@ -55,11 +55,11 @@ set(SOURCES
     Palette.c
     RenameTrans.c
     GraphicsFiles.c
-    filesmenus.c
+    FilesMenus.c
     PathUtils.c
-    missopts.c
-    misstype.c
-    failthresh.c
+    MissOpts.c
+    MissType.c
+    FailThresh.c
     GroundLaser.c
     EditMenu.c
     MissFiles.c
@@ -83,7 +83,7 @@ set(SOURCES
     SaveMiss.c
     RenameMiss.c
     RenameMap.c
-    EMHmenu.c
+    EMHMenu.c
     RenMissMenu.c
     PlotMenu.c
     TransMenu2.c
@@ -134,7 +134,7 @@ set(SOURCES
     Obj.c
     ParseArgs.c
     SFInit.c
-    fsmenu.c
+    FSMenu.c
     ObjVertex.c
     ObjPolygon.c
     Editor.c
