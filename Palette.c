@@ -207,7 +207,7 @@ static size_t p_object_to_index(PaletteData const *const pal_data, size_t const 
   return index;
 }
 
-static void select(PaletteData *const pal_data, Vertex const grid_pos, size_t const index,
+static void select_index_at_pos(PaletteData *const pal_data, Vertex const grid_pos, size_t const index,
                    bool scroll, bool redraw, bool const hint)
 {
   DEBUGF("Selecting item %zu at %d,%d\n", index, grid_pos.x, grid_pos.y);
@@ -904,7 +904,7 @@ static int mouse_click(int const event_code, WimpPollBlock *const event,
   size_t const index = index_from_grid(pal_data, grid_pos);
   if (index != NULL_DATA_INDEX &&
       index != pal_data->sel_index) {
-    select(pal_data, grid_pos, index, false, true, true);
+    select_index_at_pos(pal_data, grid_pos, index, false, true, true);
   }
 
   return 1; /* claim event */
@@ -1261,7 +1261,7 @@ static bool do_init(PaletteData *const pal_data,
 
     size_t index = index_from_grid(pal_data, default_selected);
     if (index != NULL_DATA_INDEX)
-      select(pal_data, default_selected, index, true, false,
+      select_index_at_pos(pal_data, default_selected, index, true, false,
                       false);
 
 
@@ -1670,6 +1670,6 @@ void Palette_set_selection(PaletteData *const pal_data, size_t const object)
 
   size_t const index = p_object_to_index(pal_data, object);
   if (index != pal_data->sel_index) {
-    select(pal_data, grid_from_index(pal_data, index), index, true, true, true);
+    select_index_at_pos(pal_data, grid_from_index(pal_data, index), index, true, true, true);
   }
 }
