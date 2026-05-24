@@ -120,7 +120,7 @@ static void start_redraw(Editor *const editor, bool const labels)
   blend = plot_can_blend_font();
 
   /* Get a handle with which to paint text using a monospaced ROM font
-     at size 12 × 6 points, default no. of dots per inch. */
+     at size 12 Ã— 6 points, default no. of dots per inch. */
   Vertex const font_size = {6 << 1, 12 << 1};
   got_font = plot_find_font(font_size, &font_handle);
   if (!got_font) {
@@ -482,7 +482,7 @@ static void update_menus(PaletteData *const pal_data)
 
 /* ---------------- Public functions ---------------- */
 
-bool TilesPalette_register(PaletteData *const palette)
+bool TilesPalette_register(PaletteData *const pal_data)
 {
   static const PaletteClientFuncts tiles_palette_definition =
   {
@@ -508,5 +508,5 @@ bool TilesPalette_register(PaletteData *const palette)
     .update_menus = update_menus,
   };
 
-  return Palette_register_client(palette, &tiles_palette_definition);
+  return Palette_register_client(pal_data, &tiles_palette_definition);
 }
