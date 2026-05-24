@@ -23,6 +23,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "event.h"
 #include "toolbox.h"
@@ -86,7 +87,7 @@ static int menu_selection(int const event_code, ToolboxEvent *const event,
     &edit_win), 0);
   EditSession *const session = EditWin_get_session(edit_win);
 
-  filescan_type const which = (filescan_type)(int)handle;
+  filescan_type const which = (filescan_type)(intptr_t)handle;
   DataType const data_type = filescan_get_data_type(which);
 
   DEBUG("Entry %d of files menu %d (for dir %d) selected",
@@ -139,7 +140,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 
   int new_vsn;
   /* Directory to use is encoded in handle */
-  filescan_type const which = (filescan_type)(int)handle;
+  filescan_type const which = (filescan_type)(intptr_t)handle;
   DataType const data_type = filescan_get_data_type(which);
 
   hourglass_on();
@@ -236,7 +237,7 @@ static void filesmenu_created(ObjectId const id, filescan_type const which)
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
     EF(event_register_toolbox_handler(id, handlers[i].event_code,
-                                      handlers[i].handler, (void *)(int)which));
+                                      handlers[i].handler, (void *)(intptr_t)which));
   }
 }
 
