@@ -211,7 +211,7 @@ static void create_trans_msg(Editor *const editor,
 
   size_t const num_tiles = MapEditSelection_size(&mode_data->selection);
   char tiles_count_str[16];
-  sprintf(tiles_count_str, "%ld", num_tiles);
+  sprintf(tiles_count_str, "%zu", num_tiles);
 
   size_t const num_animations = MapTransfers_get_anim_count(transfer);
   if (num_animations > 0) {
@@ -1302,7 +1302,7 @@ static void cb_status(Editor *const editor, bool const copy)
 
   size_t const tiles_count = MapEditSelection_size(&mode_data->selection);
   char tiles_count_str[16];
-  sprintf(tiles_count_str, "%ld",
+  sprintf(tiles_count_str, "%zu",
            tiles_count);
 
   size_t const anim_count = MapTransfers_get_anim_count(clipboard);
