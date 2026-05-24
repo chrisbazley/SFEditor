@@ -148,7 +148,7 @@ static bool read_win(InfoPropDbox *const prop)
   }
 
   if (ok) {
-    ok = InfoMode_set_properties(get_editor(prop), prop->info, strings);
+    ok = InfoMode_set_properties(get_editor(prop), prop->info, &strings);
   }
 
   for (TargetInfoTextIndex k = TargetInfoTextIndex_First;

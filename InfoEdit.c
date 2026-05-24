@@ -42,7 +42,7 @@
 #include "SelBitmask.h"
 
 SFError InfoEdit_add(InfoEditContext const *const infos, MapPoint const pos,
-  char const *const strings[static TargetInfoTextIndex_Count],
+  char const *const (*const strings)[TargetInfoTextIndex_Count],
   InfoEditChanges *const change_info, size_t *const index)
 {
   assert(infos);
@@ -59,7 +59,7 @@ SFError InfoEdit_add(InfoEditContext const *const infos, MapPoint const pos,
     for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
          k < TargetInfoTextIndex_Count;
          ++k) {
-      err = target_info_set_text(info, k, strings[k]);
+      err = target_info_set_text(info, k, (*strings)[k]);
       if (SFError_fail(err)) {
         target_info_delete(info);
         return err;
@@ -105,14 +105,14 @@ void InfoEdit_move(InfoEditContext const *const infos, MapPoint const vec,
 
 SFError InfoEdit_set_texts(
   TargetInfo *const info,
-  char const *const strings[static TargetInfoTextIndex_Count],
+  char const *const (*const strings)[TargetInfoTextIndex_Count],
   InfoEditChanges *const change_info)
 {
   SFError err = SFERROR(OK);
   for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
        k < TargetInfoTextIndex_Count;
        ++k) {
-    err = target_info_set_text(info, k, strings[k]);
+    err = target_info_set_text(info, k, (*strings)[k]);
     if (SFError_fail(err)) {
       break;
     }
