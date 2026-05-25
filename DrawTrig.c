@@ -145,7 +145,6 @@ static void get_sprite_info(void)
   have_sprite_info = true;
   SpriteAreaHeader *const sprite_area = get_sprite_area();
   if (sprite_area) {
-    int all_mode = OS_ReadModeVariable_CurrentMode;
     for (DrawTrigSpr sprite = DrawTrigSpr_First; sprite < DrawTrigSpr_Count; ++sprite) {
       Vertex sprite_size_in_px;
       int mode = 0;
