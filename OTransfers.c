@@ -215,7 +215,6 @@ static ObjTransferTrigger transfer_get_trigger(ObjTransfer const *const transfer
   assert(transfer);
   assert(transfer->triggers);
   assert(transfer->trigger_count <= transfer->trigger_alloc);
-  assert(index >= 0);
   assert(index < transfer->trigger_count);
 
   ObjTransferTrigger const *const trigger = ((ObjTransferTrigger *)transfer->triggers) + index;
@@ -972,7 +971,7 @@ void ObjTransfers_fill_map(ObjEditContext const *const objects,
 {
   assert(objects);
   assert(transfer);
-  DEBUG("About to fill shape of transfer %p at %" PRIMapCoord ",%" PRIMapCoord " with %d",
+  DEBUG("About to fill shape of transfer %p at %" PRIMapCoord ",%" PRIMapCoord " with %zu",
         (void *)transfer, bl.x, bl.y, objects_ref_to_num(value));
 
   FillMapData data = {objects, bl, value, change_info, meshes};
