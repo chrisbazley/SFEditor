@@ -151,7 +151,7 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
 
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
   size_t const num_objects = MapTexBitmaps_get_count(&textures->tiles);
-  if (object_no >= 0 && (size_t)object_no > num_objects - 1) {
+  if ((size_t)object_no > num_objects - 1) {
     object_no = Map_RefMask;
     font_colour = PAL_BLACK;
   }
@@ -191,7 +191,7 @@ static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
 
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
   size_t const num_objects = MapTexBitmaps_get_count(&textures->tiles);
-  if (object_no >= 0 && (size_t)object_no > num_objects - 1) {
+  if ((size_t)object_no > num_objects - 1) {
 
     BBox scr_bbox;
     BBox_translate(bbox, origin, &scr_bbox);
@@ -454,7 +454,7 @@ static size_t index_to_object(Editor *const editor, size_t const index)
   size_t object_no = index;
   MapTex *const textures = Session_get_textures(session);
 
-  if (index >= 0 && index >= MapTexBitmaps_get_count(&textures->tiles)) {
+  if (index >= MapTexBitmaps_get_count(&textures->tiles)) {
     assert(Session_has_data(session, DataType_OverlayMap));
     object_no = Map_RefMask;
   }
