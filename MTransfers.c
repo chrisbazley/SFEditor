@@ -132,7 +132,9 @@ static DrawTilesReadResult read_transfer_tile(void *const cb_arg, MapPoint const
     MapTransfers_get_dims(transfer).x, MapTransfers_get_dims(transfer).y);
 
   return (DrawTilesReadResult){
-    map_ref_from_num(((unsigned char *)transfer->tiles)[uchar_offset(transfer, trans_pos)])};
+    .tile_ref = map_ref_from_num(((unsigned char *)transfer->tiles)[uchar_offset(transfer, trans_pos)]),
+    .is_selected = false,
+  };
 }
 
 static void write_transfer_tile(MapTransfer *const transfer,
@@ -471,7 +473,13 @@ static SFError read_anims(MapTransfer *const transfer, Reader *const reader,
 
   for (int32_t a = 0; a < anim_count; ++a)
   {
-    MapTransferAnim anim = {{0}};
+    MapTransferAnim anim = {
+      .coords = {0, 0},
+      .param = {
+        .period = 0,
+        .tiles = {{0}},
+      },
+    };
 
     if (version < TransferFormatWithCompactAnims)
     {
