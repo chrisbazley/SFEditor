@@ -399,7 +399,7 @@ static bool make_mip_level(MapTexBitmaps *const tiles, MapAngle const angle, int
     hourglass_percentage((int)((tile_num * 100) / tiles->count));
 
     char name[SpriteNameSize] = {0};
-    char numstr[16];
+    char numstr[32];
     int nout = sprintf(numstr, "%zu", tile_num);
     assert(nout >= 0); /* no formatting error */
     NOT_USED(nout);
@@ -506,7 +506,7 @@ SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *const tiles, MapAngle angle, in
       hourglass_percentage((int)((tile_num * 100) / tiles->count));
 
       char name[SpriteNameSize] = {0};
-      char numstr[16];
+      char numstr[32];
       int nout = sprintf(numstr, "%zu", tile_num);
       assert(nout >= 0); /* no formatting error */
       NOT_USED(nout);
