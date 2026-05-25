@@ -1368,6 +1368,7 @@ static int useracthandler(int const event_code, ToolboxEvent *const event,
         return 1; /* claim event */
       }
       /* otherwise continue as for normal save... */
+      // fallthrough
 
     case EVENT_STD_SAVE:
       EditWin_show_dbox(edit_win, Toolbox_ShowObject_AsMenu, Session_get_ui_type(session) ==
