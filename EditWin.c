@@ -276,7 +276,14 @@ static void set_extent(EditWin *const edit_win, MapPoint const *const grid_pos)
   ON_ERR_RPT_RTN(window_set_extent(0, edit_win->window_id, &extent));
 
   /* Re-open window with new extent */
-  WimpGetWindowStateBlock window_state = {edit_win->wimp_id};
+  WimpGetWindowStateBlock window_state = {
+    .window_handle = edit_win->wimp_id,
+    .visible_area = {0,0,0,0},
+    .xscroll = 0,
+    .yscroll = 0,
+    .behind = 0,
+    .flags = 0,
+  };
   ON_ERR_RPT_RTN(wimp_get_window_state(&window_state));
 
   if (grid_pos) {
@@ -1228,7 +1235,7 @@ static MapArea drag_bbox_to_grid2(EditWin const *const edit_win, MapPoint const 
 {
   assert(edit_win);
 
-  MapArea map_bbox = {{0}};
+  MapArea map_bbox = {{0,0},{0,0}};
   MapArea_rotate(edit_win->view.config.angle, drag_bbox, &map_bbox);
   MapArea_translate(&map_bbox, map_pos, &map_bbox);
 
@@ -1523,12 +1530,25 @@ static int useracthandler(int const event_code, ToolboxEvent *const event,
     case EVENT_SCROLL_RIGHT:
       { /* To avoid duplication of scrollbar handling code
            we fake a Wimp scroll request event */
-        WimpScrollRequestEvent wsre = {{edit_win->wimp_id}};
-        ON_ERR_RPT_RTN_V(wimp_get_window_state((WimpGetWindowStateBlock *)
-                         &wsre.open), 1);
-        /* The above call overwrites wsre.xscroll with window flags,
-        but that doesn't matter because... */
-
+        WimpGetWindowStateBlock wgwsb = {
+          .window_handle = edit_win->wimp_id,
+          .visible_area = {0,0,0,0},
+          .xscroll = 0,
+          .yscroll = 0,
+          .behind = 0,
+        };
+        ON_ERR_RPT_RTN_V(wimp_get_window_state(&wgwsb), 1);
+        WimpScrollRequestEvent wsre = {
+          .open = {
+            .window_handle = edit_win->wimp_id,
+            .visible_area = wgwsb.visible_area,
+            .xscroll = wgwsb.xscroll,
+            .yscroll = wgwsb.yscroll,
+            .behind = wgwsb.behind,
+          },
+          .xscroll = 0,
+          .yscroll = 0,
+        };
         switch (event_code) {
           case EVENT_SCROLL_RHS:
             wsre.xscroll = +4; /* N.B. +/-3 are used by the Ursula Wimp */
