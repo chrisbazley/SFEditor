@@ -142,7 +142,7 @@ static void setup_win(void)
       if (data[i].leaves == NULL) {
         data[i].leaves = filescan_get_leaf_names(data[i].dir, NULL);
       }
-      if (data[i].leaves[0].leaf_name != '\0') {
+      if (*data[i].leaves[0].leaf_name != '\0') {
         first_leaf = data[i].leaves;
         prefix = filescan_get_emh_path(data[i].dir);
       }
