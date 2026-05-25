@@ -565,7 +565,6 @@ bool ObjectsEdit_write_ref_n_triggers(ObjEditContext const *const objects, MapPo
   ObjEditChanges *const change_info, ObjGfxMeshes *const meshes)
 {
   assert(objects);
-  assert(nitems >= 0);
 
   if (!objects_can_place(pos)) {
     return false;
