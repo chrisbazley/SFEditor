@@ -394,7 +394,12 @@ ConvAnimations *MapAnims_create(void)
   ConvAnimations *const anims = malloc(sizeof(*anims));
   if (anims)
   {
-    *anims = (ConvAnimations){{0}};
+    *anims = (ConvAnimations){
+      .dfile = {0},
+      .sa_coords = {0},
+      .bit_map = NULL,
+      .steps_since_reset = 0,
+    };
     intdict_init(&anims->sa_coords);
 
     if (!flex_alloc(&anims->bit_map, ANIMS_BIT_MAP_SIZE)) {
