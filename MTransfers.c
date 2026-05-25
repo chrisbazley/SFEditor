@@ -365,7 +365,6 @@ static MapTransferAnim transfer_get_anim(MapTransfer const *const transfer, size
   assert(transfer);
   assert(transfer->anims);
   assert(transfer->anim_count <= transfer->anim_alloc);
-  assert(index >= 0);
   assert(index < transfer->anim_count);
 
   MapTransferAnim const *const anim = ((MapTransferAnim *)transfer->anims) + index;
