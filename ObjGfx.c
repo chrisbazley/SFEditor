@@ -94,7 +94,15 @@ ObjGfx *ObjGfx_create(void)
   ObjGfx *const graphics = malloc(sizeof(*graphics));
   if (graphics)
   {
-    *graphics = (ObjGfx){{0}};
+    *graphics = (ObjGfx){
+      {0},
+      {0},
+      {
+        .super = {0},
+        .distances = NULL,
+      },
+      {0},
+    };
 
     dfile_init(&graphics->dfile, ObjGfx_read_cb, NULL, NULL,
                ObjGfx_destroy_cb);
