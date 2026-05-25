@@ -18,7 +18,7 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-
+#include <stdint.h>
 #include "event.h"
 #include "toolbox.h"
 #include "window.h"
@@ -804,7 +804,7 @@ static void write_gadgets(ObjPropDbox const *const prop, TriggerFullParam const 
   {
     if (ui_act == UITriggerAction_CrippleShipType) {
       E(stringset_set_selected(StringSet_IndexedSelection, prop->my_add_object, gadget,
-        (char *)ship_type_to_index(item.param.value)));
+        (char *)(intptr_t)ship_type_to_index(item.param.value)));
     } else {
       E(numberrange_set_value(0, prop->my_add_object, gadget, item.param.value));
     }
