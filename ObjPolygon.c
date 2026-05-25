@@ -151,7 +151,6 @@ void obj_polygons_free(ObjPolygons *const polygons)
 SFError obj_group_add_polygon(ObjGroup *const group, ObjPolygon const polygon)
 {
   assert(group != NULL);
-  assert(group->pcount >= 0);
   assert(group->pcount <= group->palloc);
   assert(!group->polygons || ((group->palloc * sizeof(ObjPolygon)) == (size_t)flex_size(&group->polygons)));
 
@@ -186,7 +185,6 @@ SFError obj_polygons_read(ObjPolygons *const polygons, Reader *const reader,
   size_t const nvertices, size_t *const max_group)
 {
   assert(!reader_ferror(reader));
-  assert(nvertices >= 0);
   assert(max_group);
 
   /* Get number of polygons */
@@ -234,7 +232,6 @@ ObjGroup *obj_polygons_get_group(ObjPolygons *const polygons,
   size_t const n)
 {
   assert(polygons != NULL);
-  assert(n >= 0);
   assert(n < ObjPolygonMaxGroups);
   return &polygons->groups[n];
 }
@@ -248,10 +245,8 @@ size_t obj_group_get_polygon_count(ObjGroup *const group)
 ObjPolygon obj_group_get_polygon(ObjGroup *const group, size_t const n)
 {
   assert(group != NULL);
-  assert(group->pcount >= 0);
   assert(group->pcount <= group->palloc);
   assert(!group->polygons || ((group->palloc * sizeof(ObjPolygon)) == (size_t)flex_size(&group->polygons)));
-  assert(n >= 0);
   assert(n < group->pcount);
 
   return ((ObjPolygon *)group->polygons)[n];
