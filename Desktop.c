@@ -26,6 +26,7 @@
 #include "wimplib.h"
 #include "event.h"
 #include "flex.h"
+#include <stdint.h>
 
 #include "OSVDU.h"
 #include "ClrTrans.h"
@@ -146,7 +147,7 @@ static void read_mode_vars(void)
    [VarIndex_Log2BPP] = (VDUVar)ModeVar_Log2BPP,
    [VarIndex_End] = VDUVar_EndOfList};
 
-  int mode_var_val[VarIndex_End] = {0};
+  intptr_t mode_var_val[VarIndex_End] = {0};
 
   if (!E(os_read_vdu_variables(mode_variables, mode_var_val))) {
     eigen_factors.x = mode_var_val[VarIndex_XEig];
