@@ -210,7 +210,7 @@ static MapArea get_collision_bbox(ObjGfxMeshes *const meshes, View const *const 
   MapPoint coords[4];
   get_fine_collision_coords_for_obj(meshes, view, obj_ref, &coords);
 
-  MapArea bbox = {{0}};
+  MapArea bbox = {{0,0}, {0,0}};
   for (size_t n = 0; n < ARRAY_SIZE(coords); ++n) {
     MapArea_expand(&bbox, coords[n]);
   }
