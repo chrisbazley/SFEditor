@@ -85,7 +85,6 @@ static inline void validate_selection(MapEditSelection const *const selection)
   NOT_USED(selection);
 #else
   assert(selection);
-  assert(selection->num_selected >= 0);
   assert(selection->num_selected <= Map_Area);
   assert(selection->flex);
 
@@ -148,7 +147,6 @@ static void select_and_inc(MapEditSelection *const selection,
   MapPoint const pos)
 {
   select_in_map(selection, pos);
-  assert(selection->num_selected >= 0);
   ++selection->num_selected;
   DEBUGF("%zu tiles selected after select\n", selection->num_selected);
 }
