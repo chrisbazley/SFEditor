@@ -158,7 +158,7 @@ static bool make_thumbnails(MapSnakes *const snakes_data,
       hourglass_percentage((int)((snake * 100) / snakes_data->super.count));
 
     /* Create thumbnail sprite */
-    char sprite_name[12];
+    char sprite_name[32];
     sprintf(sprite_name, "%zu", snake);
 
     static Vertex const thumbnail_size = {
