@@ -1308,7 +1308,7 @@ static void cb_status(Editor *const editor, bool const copy)
   size_t const anim_count = MapTransfers_get_anim_count(clipboard);
 
   if (anim_count > 0) {
-    char anim_count_str[16];
+    char anim_count_str[32];
     sprintf(anim_count_str, "%zu", anim_count);
 
     Editor_display_msg(editor, msgs_lookup_subn(copy ? "MStatusCopy2" :
