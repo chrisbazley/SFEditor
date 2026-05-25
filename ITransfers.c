@@ -337,7 +337,7 @@ bool InfoTransfers_plot_to_map(InfoEditContext const *const infos,
     }
 
     size_t index;
-    if (report_error(InfoEdit_add(infos, MapPoint_add(bl, pos), strings, change_info, &index), "", "")) {
+    if (report_error(InfoEdit_add(infos, MapPoint_add(bl, pos), &strings, change_info, &index), "", "")) {
       return false;
     }
 
