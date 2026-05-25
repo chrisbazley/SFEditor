@@ -145,7 +145,7 @@ static MapPoint get_trig_size(void)
 static MapArea get_mesh_bbox(ObjGfxMeshes *const meshes, View const *const view, ObjRef const obj_ref)
 {
   assert(view);
-  MapArea bbox = {{0}};
+  MapArea bbox = {{0,0},{0,0}};
 
   if (objects_ref_is_none(obj_ref)) {
     // FIXME: 3D?
@@ -222,7 +222,7 @@ static MapArea get_max_collision_bbox(ObjGfxMeshes *const meshes, View const *co
   MapPoint coords[4];
   get_fine_collision_coords(view, ObjGfxMeshes_get_max_collision_size(meshes), &coords);
 
-  MapArea bbox = {{0}};
+  MapArea bbox = {{0,0}, {0,0}};
   for (size_t n = 0; n < ARRAY_SIZE(coords); ++n) {
     MapArea_expand(&bbox, coords[n]);
   }
@@ -679,7 +679,13 @@ void DrawObjs_to_screen(
     plot_set_dash_pattern(SIGNED_R_SHIFT(dash_len, zoom));
 
     TriggersChainIter chain_iter;
-    TriggerFullParam fparam = {{0}};
+    TriggerFullParam fparam = {
+      .param = {
+        .action = TriggerAction_MissionTarget,
+        .value = 0,
+      },
+      .next_coords = {0,0},
+    };
     static MapArea const all = {{0,0}, {Obj_Size - 1, Obj_Size - 1}};
     for (MapPoint p = TriggersChainIter_get_first(&chain_iter, triggers, &all, &fparam);
          !TriggersChainIter_done(&chain_iter);
