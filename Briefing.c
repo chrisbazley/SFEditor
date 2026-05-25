@@ -113,7 +113,6 @@ SFError briefing_read_texts(BriefingData *const briefing,
 {
   assert(briefing);
   assert(offsets);
-  assert(count >= 0);
   assert(count <= BriefingMax);
 
   briefing->texts = malloc(sizeof(briefing->texts[0]) * count);
@@ -149,7 +148,6 @@ SFError briefing_read_texts(BriefingData *const briefing,
 size_t briefing_get_text_count(BriefingData const *const briefing)
 {
   assert(briefing);
-  assert(briefing->count >= 0);
   assert(briefing->count <= BriefingMax);
   return briefing->count;
 }
@@ -158,7 +156,6 @@ char const *briefing_get_text(BriefingData const *const briefing, size_t const i
 {
   assert(briefing);
   assert(briefing->texts);
-  assert(briefing->count >= 0);
   assert(briefing->count <= BriefingMax);
   assert(index < briefing->count);
   return text_get_string(&briefing->texts[index]);
@@ -168,7 +165,6 @@ SFError briefing_add_text(BriefingData *const briefing,
   char const *const string)
 {
   assert(briefing);
-  assert(briefing->count >= 0);
   assert(briefing->count <= BriefingMax);
   assert(string);
   DEBUGF("Add string '%s'\n", string);
