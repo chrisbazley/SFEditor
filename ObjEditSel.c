@@ -62,7 +62,6 @@ static inline void validate_selection(ObjEditSelection const *const selection)
 {
 #ifndef NDEBUG
   assert(selection);
-  assert(selection->num_selected >= 0);
   assert(selection->num_selected <= Obj_Area);
   assert(selection->flex);
 
@@ -123,7 +122,6 @@ static void update_bounds_for_deselect(ObjEditSelection *const selection)
 static void select_and_inc(ObjEditSelection *const selection, MapPoint const pos)
 {
   select_in_map(selection, pos);
-  assert(selection->num_selected >= 0);
   ++selection->num_selected;
   DEBUGF("%ld objects selected after select\n", selection->num_selected);
 }
