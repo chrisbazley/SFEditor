@@ -85,7 +85,6 @@ typedef struct
 static size_t get_group_member(TexGroupRoot *const group, size_t const index)
 {
   assert(group != NULL);
-  assert(index >= 0);
   assert(index < group->count);
   assert(group->array_anchor != NULL);
   DEBUG_VERBOSEF("get_group_member %p,%zu, count %zu\n", (void *)group, index,
@@ -172,7 +171,6 @@ static size_t calc_match(const MapTexGroups *const groups_data,
         cand->north_group, cand->east_group, cand->south_group, cand->west_group,
         ideal->north_group, ideal->east_group, ideal->south_group, ideal->west_group);
 
-  assert(score >= MinScore);
   assert(score <= MaxScore);
   return score;
 }
@@ -188,7 +186,6 @@ static void init_group(TexGroupRoot *const tile_group)
 static bool add_group_member(TexGroupRoot *const group, size_t const new_member)
 {
   assert(group != NULL);
-  assert(new_member >= 0);
   assert(new_member < UCHAR_MAX);
 
   /*
@@ -225,15 +222,10 @@ static void set_tile_smooth_data(MapTexGroups *const groups_data, MapRef const t
   assert(groups_data->smooth_anchor != NULL);
   size_t const index = map_ref_to_num(tile);
   assert(index * sizeof(TileSmoothData) < (size_t)flex_size(&groups_data->smooth_anchor));
-  assert(main >= 0);
   assert(main == UCHAR_MAX || main < groups_data->count);
-  assert(n >= 0);
   assert(n == UCHAR_MAX || n < groups_data->count);
-  assert(e >= 0);
   assert(e == UCHAR_MAX || e < groups_data->count);
-  assert(s >= 0);
   assert(s == UCHAR_MAX || s < groups_data->count);
-  assert(w >= 0);
   assert(w == UCHAR_MAX || w < groups_data->count);
 
   ((TileSmoothData *)groups_data->smooth_anchor)[index] = (TileSmoothData){
@@ -337,7 +329,6 @@ static bool add_undef_to_group(MapTexGroups *const groups_data,
   size_t const undef_group, size_t const ntiles)
 {
   assert(groups_data != NULL);
-  assert(undef_group >= 0);
   assert(undef_group < UCHAR_MAX);
 
   /*
@@ -406,7 +397,7 @@ static SFError read_from_file(FILE *const file,
         return SFERROR(Mistake);
       }
 
-      if (group < 0 || group >= ngroups) {
+      if (group >= ngroups) {
         /* Report group no. out of range and line number */
         sprintf(err_buf, "%d", line);
         return SFERROR(GroupRange);
@@ -451,7 +442,7 @@ static SFError read_from_file(FILE *const file,
         return SFERROR(Mistake);
       }
 
-      if (group < 0 || group >= ngroups) {
+      if (group >= ngroups) {
         /* Report group no. out of range and line number */
         sprintf(err_buf, "%d", line);
         return SFERROR(GroupRange);
@@ -485,7 +476,7 @@ static SFError read_from_file(FILE *const file,
         return SFERROR(Mistake);
       }
 
-      if (group < 0 || group >= ngroups) {
+      if (group >= ngroups) {
         /* Report group no. out of range and line number */
         sprintf(err_buf, "%d", line);
         return SFERROR(GroupRange);
@@ -535,7 +526,7 @@ static SFError read_from_file(FILE *const file,
       return SFERROR(GroupRange);
     }
 
-    if (tile < 0 || tile >= ntiles) {
+    if (tile >= ntiles) {
       /* Tile number out of range */
       sprintf(err_buf, "%d", line);
       return SFERROR(NumRange);
@@ -646,7 +637,6 @@ void MapTexGroups_load(MapTexGroups *const groups_data, char const *tiles_set, s
 size_t MapTexGroups_get_count(MapTexGroups const *const groups_data)
 {
   assert(groups_data != NULL);
-  assert(groups_data->count >= 0);
   DEBUGF("There are %zu texture groups\n", groups_data->count);
   return groups_data->count;
 }
@@ -654,7 +644,6 @@ size_t MapTexGroups_get_count(MapTexGroups const *const groups_data)
 size_t MapTexGroups_get_num_group_members(MapTexGroups *const groups_data, size_t const group)
 {
   assert(groups_data != NULL);
-  assert(group >= 0);
   assert(group < groups_data->count);
   const TexGroupRoot *const pgroup = &groups_data->array[group];
   size_t const n = pgroup->super ? 0 : pgroup->count;
@@ -666,7 +655,6 @@ MapRef MapTexGroups_get_group_member(MapTexGroups *const groups_data, size_t con
   size_t const index)
 {
   assert(groups_data != NULL);
-  assert(group >= 0);
   assert(group < groups_data->count);
   TexGroupRoot *const pgroup = &groups_data->array[group];
   size_t const tile = get_group_member(pgroup, index);
@@ -678,7 +666,6 @@ size_t MapTexGroups_get_group_of_tile(MapTexGroups *const groups_data, MapRef co
 {
   assert(groups_data != NULL);
   size_t const index = map_ref_to_num(tile);
-  assert(index >= 0);
   assert(index * sizeof(TileSmoothData) < (size_t)flex_size(&groups_data->smooth_anchor));
 
   size_t const group = ((TileSmoothData *)groups_data->smooth_anchor)[index].main_group;
@@ -689,7 +676,6 @@ size_t MapTexGroups_get_group_of_tile(MapTexGroups *const groups_data, MapRef co
 void MapTexGroups_free(MapTexGroups *const groups_data)
 {
   assert(groups_data != NULL);
-  assert(groups_data->count >= 0);
 
   if (groups_data->array != NULL) {
     TexGroupRoot *tile_groups = groups_data->array;
