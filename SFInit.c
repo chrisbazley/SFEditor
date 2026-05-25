@@ -159,7 +159,7 @@ typedef struct
 ObjectInitInfo;
 
 PaletteEntry loc_palette[NumColours];
-PaletteEntry const (*palette)[NumColours];
+PaletteEntry C23_CONST (*palette)[NumColours];
 char taskname[MaxTaskNameLen + 1] = APP_NAME;
 int  wimp_version, task_handle;
 MessagesFD messages;
