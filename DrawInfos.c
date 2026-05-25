@@ -81,14 +81,12 @@ static MapPoint get_info_size(View const *const view)
 static MapArea get_info_bbox(View const *const view)
 {
   assert(view);
-  MapArea bbox = {{0}};
-
   MapPoint const info_size = get_info_size(view);
   MapPoint const half_size = MapPoint_div_log2(info_size, HalveFactorLog2);
   DEBUGF("half_size %" PRIMapCoord ",%" PRIMapCoord "\n", half_size.x, half_size.y);
 
   /* Centre the bounding box in the tiles grid location */
-  bbox = (MapArea){
+  MapArea bbox = {
     .min = {-half_size.x, -half_size.y},
     .max = {-half_size.x + info_size.x, -half_size.y + info_size.y}
   };
@@ -118,7 +116,7 @@ static MapArea get_clickable_bbox(View const *const view)
   MapPoint coords[4];
   get_fine_clickable_coords(view, &coords);
 
-  MapArea bbox = {{0}};
+  MapArea bbox = {{0,0},{0,0}};
   for (size_t n = 0; n < ARRAY_SIZE(coords); ++n) {
     MapArea_expand(&bbox, coords[n]);
   }
