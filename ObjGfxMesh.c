@@ -152,7 +152,6 @@ static void obj_array_free(ObjGfxMeshArray *const array)
 static ObjGfxMesh *obj_array_get(ObjGfxMeshArray const *const array, ObjRef const obj_ref)
 {
   assert(array);
-  assert(array->ocount >= 0);
   assert(array->ocount <= array->oalloc);
   size_t const n = objects_ref_to_num(obj_ref);
   assert(n < array->ocount);
@@ -601,8 +600,7 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
     unsigned char const expected_max_group =
       (plot_type_and_last_group & Object_LastGroupMask) >> Object_LastGroupShift;
 
-    if ((expected_max_group < 0) ||
-        (expected_max_group >= ObjPolygonFacingCheckGroup))
+    if (expected_max_group >= ObjPolygonFacingCheckGroup)
     {
       DEBUGF("Bad highest plot group %d (object %zu)\n",
               expected_max_group, object_count);
@@ -932,7 +930,6 @@ SFError ObjGfxMeshes_read(ObjGfxMeshes *const meshes, Reader *const reader)
 size_t ObjGfxMeshes_get_ground_count(const ObjGfxMeshes *const meshes)
 {
   assert(meshes);
-  assert(meshes->ground.ocount >= 0);
   assert(meshes->ground.ocount <= meshes->ground.oalloc);
   return meshes->ground.ocount;
 }
@@ -940,7 +937,6 @@ size_t ObjGfxMeshes_get_ground_count(const ObjGfxMeshes *const meshes)
 size_t ObjGfxMeshes_get_ships_count(const ObjGfxMeshes *const meshes)
 {
   assert(meshes);
-  assert(meshes->ships.ocount >= 0);
   assert(meshes->ships.ocount <= meshes->ships.oalloc);
   return meshes->ships.ocount;
 }
