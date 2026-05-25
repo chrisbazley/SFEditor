@@ -1045,7 +1045,15 @@ bool ObjTransfers_can_plot_to_map(ObjEditContext const *const objects,
   DEBUG("Checking whether we can paste transfer %p at %" PRIMapCoord ",%" PRIMapCoord,
         (void *)transfer, bl.x, bl.y);
 
-  PlotToMapData data = {objects, bl, transfer, meshes, occluded};
+  PlotToMapData data = {
+    .objects = objects,
+    .t_pos_on_map = bl,
+    .transfer = transfer,
+    .meshes = meshes,
+    .occluded = occluded,
+    .selection = NULL, // unused by can_plot_to_map_cb
+    .change_info = NULL, // unused by can_plot_to_map_cb
+  };
   bool const can_plot = for_each_area(transfer, can_plot_to_map_cb, &data);
   DEBUGF("%s plot transfer\n", can_plot ? "Can" : "Can't");
   return can_plot;
