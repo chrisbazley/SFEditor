@@ -338,12 +338,19 @@ static DrawTilesReadResult draw_chequered_read(void *const cb_arg, MapPoint cons
      (prevents unsightly overplotting). */
   if (data->map && !map_ref_is_mask(MapEdit_read_overlay(data->map, map_pos)))
   {
-    return (DrawTilesReadResult){map_ref_from_num(RedrawCheqValue_Skip)};
+    return (DrawTilesReadResult){
+      .tile_ref = map_ref_from_num(RedrawCheqValue_Skip),
+      .is_selected = false,
+    };
   }
 
-  return (DrawTilesReadResult){map_ref_from_num(
-    data->selection && MapEditSelection_is_selected(data->selection, map_pos) ?
-           RedrawCheqValue_Selected : RedrawCheqValue_Clear)};
+  return (DrawTilesReadResult){
+    .tile_ref = map_ref_from_num(
+                  data->selection &&
+                  MapEditSelection_is_selected(data->selection, map_pos) ?
+                    RedrawCheqValue_Selected : RedrawCheqValue_Clear),
+    .is_selected = false,
+  };
 }
 
 static void fill_to_infinity(PaletteEntry const fill_col)
@@ -2128,7 +2135,10 @@ static DrawTilesReadResult ghost_paste_read(void *const cb_arg, MapPoint map_pos
   const DrawTransferShadow *const args = cb_arg;
 
   if (!map_bbox_contains(&args->transfer_area, map_pos)) {
-    return (DrawTilesReadResult){map_ref_mask()};
+    return (DrawTilesReadResult){
+      .tile_ref = map_ref_mask(),
+      .is_selected = false,
+    };
   }
 
   map_pos = map_wrap_coords(map_pos);
@@ -2147,7 +2157,11 @@ static DrawTilesReadResult ghost_paste_read(void *const cb_arg, MapPoint map_pos
   if (!map_ref_is_mask(tile)) {
     tile = map_ref_from_num(0);
   }
-  return (DrawTilesReadResult){tile};
+
+  return (DrawTilesReadResult){
+    .tile_ref = tile,
+    .is_selected = false,
+  };
 }
 
 static void write_ghost(BBox const *const bbox, Vertex const min_os)
