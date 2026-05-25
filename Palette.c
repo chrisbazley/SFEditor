@@ -229,7 +229,14 @@ static void select_index_at_pos(PaletteData *const pal_data, Vertex const grid_p
 
   if (scroll && object_is_showing(pal_data->my_object)) {
     /* Re-open window with new scroll offset */
-    WimpGetWindowStateBlock window_state = {window_handle};
+    WimpGetWindowStateBlock window_state = {
+      .window_handle = window_handle,
+      .visible_area = {0},
+      .xscroll = 0,
+      .yscroll = 0,
+      .behind = 0,
+      .flags = 0,
+    };
 
     if (!E(wimp_get_window_state(&window_state)))
     {
