@@ -127,7 +127,6 @@ SFError ships_add(ShipsData *const ships,
 {
   assert(ships);
   assert(ships->state != ShipsDataState_PostRead);
-  assert(ships->count >= 0);
   assert(ships->count <= ShipsMax);
 
   if (ships->count == ShipsMax)
@@ -613,7 +612,6 @@ void ships_write(ShipsData *const ships, Writer *const writer)
 {
   assert(ships);
   assert(ships->state == ShipsDataState_Write);
-  assert(ships->count >= 0);
   assert(ships->count <= ShipsMax);
   assert(ships->count <= INT32_MAX);
   writer_fwrite_int32((int32_t)ships->count, writer);
