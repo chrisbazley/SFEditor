@@ -142,7 +142,10 @@ static DrawTilesReadResult read_thumbnail(void *const cb_arg, MapPoint const map
   assert(map_pos.y >= 0);
   assert(map_pos.y < MapSnakesMiniMapHeight);
 
-  return (DrawTilesReadResult){(*thumb_tiles)[map_pos.y][map_pos.x]};
+  return (DrawTilesReadResult){
+    .tile_ref = (*thumb_tiles)[map_pos.y][map_pos.x],
+    .is_selected = false,
+  };
 }
 
 static bool make_thumbnails(MapSnakes *const snakes_data,
