@@ -161,7 +161,6 @@ void triggers_destroy(TriggersData *const triggers)
 static void insert_trigger(TriggersData *const triggers, Trigger *const prev_trigger, Trigger *const trigger)
 {
   assert(triggers);
-  assert(triggers->count >= 0);
   assert(triggers->count < TriggersMax);
   DEBUGF("Inserting trigger %s with parameter %d at coordinates %d,%d\n",
          TriggerAction_to_string(trigger->param.action), trigger->param.value,
@@ -877,7 +876,6 @@ void triggers_write(TriggersData *const triggers,
   Writer *const writer)
 {
   assert(triggers);
-  assert(triggers->count >= 0);
   assert(triggers->count <= TriggersMax);
 
   writer_fwrite_int32((int32_t)triggers->count, writer);
@@ -916,7 +914,6 @@ void triggers_write_max_losses(TriggersData *const triggers,
   Writer *const writer)
 {
   assert(triggers);
-  assert(triggers->max_losses >= 0);
   assert(triggers->max_losses <= TriggersMax);
   writer_fputc((int)triggers->max_losses, writer);
 }
@@ -931,7 +928,6 @@ void triggers_set_max_losses(TriggersData *const triggers,
   size_t const max)
 {
   assert(triggers);
-  assert(max >= 0);
   assert(max <= triggers_get_count(triggers));
   triggers->max_losses = max;
 }
@@ -939,7 +935,6 @@ void triggers_set_max_losses(TriggersData *const triggers,
 size_t triggers_get_count(TriggersData *triggers)
 {
   assert(triggers);
-  assert(triggers->count >= 0);
   assert(triggers->count <= TriggersMax);
   return triggers->count;
 }
