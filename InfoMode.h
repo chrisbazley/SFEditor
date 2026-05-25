@@ -8,6 +8,7 @@
 #define InfoMode
 
 #include <stdbool.h>
+#include "Macros.h"
 
 #include "Vertex.h"
 #include "MapCoord.h"
@@ -17,7 +18,7 @@ struct Editor;
 struct EditWin;
 
 bool InfoMode_set_properties(struct Editor *editor, TargetInfo *info,
-  char const *const (*strings)[TargetInfoTextIndex_Count]);
+  char const *C23_CONST (*strings)[TargetInfoTextIndex_Count]);
 
 bool InfoMode_enter(struct Editor *editor);
 bool InfoMode_can_enter(struct Editor *editor);

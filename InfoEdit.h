@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include "MapCoord.h"
 #include "Infos.h"
+#include "Macros.h"
 
 struct InfoEditChanges;
 struct SelectionBitmask;
@@ -17,7 +18,7 @@ struct SelectionBitmask;
 typedef struct InfoEditContext InfoEditContext;
 
 SFError InfoEdit_add(InfoEditContext const *infos, MapPoint pos,
-  char const *const (*strings)[TargetInfoTextIndex_Count],
+  char const *C23_CONST (*strings)[TargetInfoTextIndex_Count],
   struct InfoEditChanges *change_info, size_t *index);
 
 void InfoEdit_move(InfoEditContext const *infos,
@@ -27,7 +28,7 @@ void InfoEdit_move(InfoEditContext const *infos,
 
 SFError InfoEdit_set_texts(
   TargetInfo *info,
-  char const *const (*strings)[TargetInfoTextIndex_Count],
+  char const *C23_CONST (*strings)[TargetInfoTextIndex_Count],
   struct InfoEditChanges *change_info);
 
 TargetInfo *InfoEdit_get(InfoEditContext const *infos, size_t index);
