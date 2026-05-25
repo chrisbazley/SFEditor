@@ -217,7 +217,12 @@ InfoTransfer *InfoTransfer_create(void)
   }
   DEBUG ("New transfer list record is at %p", (void *)transfer);
 
-  *transfer = (InfoTransfer){{0}};
+  *transfer = (InfoTransfer){
+    .dfile = {0},
+    .offset = {0,0},
+    .size_minus_one = {0,0},
+    .infos = {0},
+  };
 
   target_infos_init(&transfer->infos);
 
