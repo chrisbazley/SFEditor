@@ -80,7 +80,10 @@ void MapAreaCol_add(MapAreaColData *const coll, MapArea const *const area)
   assert(MapArea_is_valid(area));
 
   size_t best = SIZE_MAX;
-  MapAreaColEntry best_candidate = {{0}};
+  MapAreaColEntry best_candidate = {
+    .bbox = {0,0,0,0},
+    .area = {0,0},
+  };
   MapCoord best_area_diff = MAP_COORDS_LIMIT;
 
   size_t const count = coll->count;
@@ -128,8 +131,10 @@ void MapAreaCol_add(MapAreaColData *const coll, MapArea const *const area)
   if (count >= MapAreaColMax) {
     // Consider the alternative cost of merging any two existing boxes
     size_t best_i = SIZE_MAX, best_k = SIZE_MAX;
-    MapAreaColEntry best_i_candidate = {{0}};
-
+    MapAreaColEntry best_i_candidate = {
+      .bbox = {0,0,0,0},
+      .area = {0,0},
+    };
     for (size_t i = 0; i < count; ++i) {
       for (size_t k = i + 1; k < count; ++k) {
         MapAreaColEntry candidate = {
