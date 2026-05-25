@@ -67,7 +67,7 @@ static int encode_char(int const ch)
   switch (ch)
   {
     case '.': return 38;
-    case '£': return 39;
+    case '\xA3'/*£*/: return 39;
     case '-': return 40;
     case '/': return 41;
     case '>': return 43;
@@ -109,7 +109,7 @@ static int decode_char(int const ch)
   switch (ch)
   {
     case 38:return '.';
-    case 39:return '£';
+    case 39:return '\xA3'/*£*/;
     case 40:return '-';
     case 41:return '/';
     case 43:return '>';
