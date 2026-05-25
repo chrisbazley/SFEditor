@@ -79,9 +79,10 @@ enum {
   ANIM_ARROW_LEFT      = 0x18,
   ANIM_BUTTON_REVERSE  = 0x19,
   ANIM_LOCATION = 0x21,
-  PropsAngle = MapAngle_North,
   PropsMipLevel = 0,
 };
+
+#define PropsAngle MapAngle_North
 
 /* In 25ths of a second at normal game speed */
 #define DEFAULT_PERIOD 12 /* up to UINT16_MAX */
