@@ -689,7 +689,7 @@ int truncate_string(char *string, int max_width)
     if (wimp_version >= 321) {
       /* Variable size desktop font */
       args.r[0] = 1; /* calculate width of string */
-      args.r[1] = (int)string;
+      args.r[1] = (intptr_t)string;
       args.r[2] = 0; /* whole string */
       ON_ERR_RPT_RTN_V(wimp_text_op(&args), -1);
       width = args.r[0];
