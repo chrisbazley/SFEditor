@@ -77,7 +77,6 @@ long int ObjSnakes_get_pal_distance(const ObjSnakes *const snakes_data,
   size_t const snake)
 {
   assert(snakes_data);
-  assert(snake >= 0);
   assert(snake < Snakes_get_count(&snakes_data->super));
 
   return snakes_data->distances ? snakes_data->distances[snake] : -1;
@@ -87,7 +86,6 @@ void ObjSnakes_set_pal_distance(ObjSnakes *const snakes_data,
   size_t const snake, long int const distance)
 {
   assert(snakes_data);
-  assert(snake >= 0);
   assert(distance >= 0);
 
   size_t const count = Snakes_get_count(&snakes_data->super);
