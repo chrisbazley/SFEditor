@@ -43,8 +43,9 @@ enum {
   DefaultColour = 255, // White
   DefaultDuration = 5000,
   DefaultDelay = 0,
-  DefaultCursorType = CursorType_None,
 };
+
+#define DefaultCursorType CursorType_None
 
 static int encode_char(int const ch)
 {
@@ -66,7 +67,7 @@ static int encode_char(int const ch)
   switch (ch)
   {
     case '.': return 38;
-    case '£': return 39;
+    case 'Â£': return 39;
     case '-': return 40;
     case '/': return 41;
     case '>': return 43;
@@ -108,7 +109,7 @@ static int decode_char(int const ch)
   switch (ch)
   {
     case 38:return '.';
-    case 39:return '£';
+    case 39:return 'Â£';
     case 40:return '-';
     case 41:return '/';
     case 43:return '>';
