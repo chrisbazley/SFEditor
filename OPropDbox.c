@@ -823,7 +823,13 @@ static TriggerFullParam read_gadgets(ObjPropDbox const *const prop)
   ComponentId radio_selected;
   if (E(radiobutton_get_state(0, prop->my_add_object,
          ComponentId_MissionTarget, NULL, &radio_selected))) {
-    return (TriggerFullParam){{0}};
+    return (TriggerFullParam){
+      .param = {
+        .action = TriggerAction_MissionTarget,
+        .value = 0,
+      },
+      .next_coords = {0,0},
+    };
   }
 
   UITriggerAction const ui_act = ui_from_radio(radio_selected);
