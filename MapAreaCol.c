@@ -117,7 +117,7 @@ void MapAreaCol_add(MapAreaColData *const coll, MapArea const *const area)
     assert(coll->areas[i].area < candidate.area);
     MapCoord const area_diff = candidate.area - coll->areas[i].area;
     if (area_diff < best_area_diff) {
-      DEBUGF("Map area %d is new best candidate (extra area is %" PRIMapCoord ")\n",
+      DEBUGF("Map area %zu is new best candidate (extra area is %" PRIMapCoord ")\n",
              i, area_diff);
       best_area_diff = area_diff;
       best_candidate = candidate;
