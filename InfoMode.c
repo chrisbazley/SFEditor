@@ -1489,7 +1489,7 @@ int InfoMode_estimate_clipboard(DataType data_type)
   return worst_compressed_size(InfoTransfer_get_dfile(clipboard));
 }
 
-bool InfoMode_set_properties(Editor *editor, TargetInfo *const info, char const *(*const strings)[TargetInfoTextIndex_Count])
+bool InfoMode_set_properties(Editor *editor, TargetInfo *const info, char const *const (*const strings)[TargetInfoTextIndex_Count])
 {
   InfoModeData *const mode_data = get_mode_data(editor);
   InfoEditChanges_init(&mode_data->change_info);
