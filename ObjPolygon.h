@@ -52,7 +52,6 @@ static inline size_t obj_polygon_get_side(ObjPolygon const * const polygon, cons
   assert(polygon != NULL);
   assert(polygon->scount >= ObjPolygonMinSides);
   assert(polygon->scount <= ObjPolygonMaxSides);
-  assert(n >= 0);
   assert(n < polygon->scount);
 
   return polygon->sides[n];
