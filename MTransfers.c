@@ -986,7 +986,13 @@ MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
       return NULL;
     }
 
-    MapTransferAnim anim = {{0}};
+    MapTransferAnim anim = {
+      .coords = {0, 0},
+      .param = {
+        .period = 0,
+        .tiles = {{0}},
+      },
+    };
     MapAnimsIter iter;
     for (MapPoint p = MapAnimsIter_get_first(&iter, map->anims, &bounds, &anim.param);
          !MapAnimsIter_done(&iter);
@@ -1009,7 +1015,7 @@ static void for_each_area(MapTransfer *const transfer,
 {
   MapPoint const t_dims = MapTransfers_get_dims(transfer);
 
-  MapArea area = {{0}};
+  MapArea area = {{0},{0}};
   struct {
     bool pend_span_x:1;
     bool pend_span_xy:1;
