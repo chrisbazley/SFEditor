@@ -1589,7 +1589,7 @@ static int MapMode_misc_event(Editor *const editor, int const event_code)
 static char *MapMode_get_help_msg(Editor const *const editor)
 {
   char *msg = NULL; // remove help
-  char size_string[4] = "";
+  char size_string[16] = "";
   MapModeData *const mode_data = editor->editingmode_data;
 
   switch (Editor_get_tool(editor)) {
