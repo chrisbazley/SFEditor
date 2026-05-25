@@ -80,7 +80,6 @@ void paths_destroy(PathsData *const paths)
 Path *paths_add(PathsData *const paths)
 {
   assert(paths);
-  assert(paths->count >= 0);
   assert(paths->count <= PathsMax);
 
   if (paths->count == PathsMax)
@@ -325,7 +324,6 @@ void paths_write(PathsData *const paths, Writer *const writer)
   assert(paths);
   assert(paths->state == PathsDataState_Write);
 
-  assert(paths->count >= 0);
   assert(paths->count <= PathsMax);
   assert(paths->count <= INT32_MAX);
   writer_fwrite_int32((int32_t)paths->count, writer);
