@@ -288,7 +288,6 @@ void texts_write(MissionData *const mission, Writer *const writer)
   assert(offset - TextOffsetMin <= TotalTextSize);
 
   size_t const padding = TextOffsetCount - btexts - ttexts;
-  assert(padding >= 0);
   writer_fseek(writer, (long)padding * BytesPerTextOffset, SEEK_CUR);
   DEBUGF("Finished writing string index data at %ld\n", writer_ftell(writer));
 
