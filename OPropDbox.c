@@ -599,7 +599,7 @@ static void set_obj_type(ObjPropDbox const *const prop, ObjRef const obj_ref)
 {
   assert(prop);
   E(stringset_set_selected(StringSet_IndexedSelection, prop->my_object,
-         ComponentId_TypeSet, (char *)obj_type_to_index(obj_ref)));
+         ComponentId_TypeSet, (char *)(intptr_t)obj_type_to_index(obj_ref)));
 }
 
 static ObjRef get_obj_type(ObjPropDbox *const prop)
