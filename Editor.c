@@ -205,7 +205,7 @@ static void select_tool_with_fallback(Editor *const editor, EditorTool tool)
       }
     }
     if (tool == EDITORTOOL_COUNT) {
-      tool = EDITING_MODE_NONE;
+      tool = EDITORTOOL_NONE;
     }
   }
 
