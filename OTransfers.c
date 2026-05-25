@@ -320,7 +320,16 @@ static SFError read_triggers(ObjTransfer *const transfer, Reader *const reader)
 
   for (int32_t a = 0; a < trigger_count; ++a)
   {
-    ObjTransferTrigger trigger = {{0}};
+    ObjTransferTrigger trigger = {
+      .coords = {0,0},
+      .fparam = {
+        .param = {
+          .action = TriggerAction_MissionTarget,
+          .value = 0,
+        },
+        .next_coords = {0,0},
+      },
+    };
     if (!CoarsePoint2d_read(&trigger.coords, reader))
     {
       return SFERROR(ReadFail);
@@ -519,7 +528,14 @@ ObjTransfer *ObjTransfer_create(void)
   }
   DEBUG ("New transfer list record is at %p", (void *)transfer);
 
-  *transfer = (ObjTransfer){{0}};
+  *transfer = (ObjTransfer){
+    .dfile = {0},
+    .size_minus_one = {0,0},
+    .refs = NULL,
+    .triggers = NULL,
+    .trigger_count = 0,
+    .trigger_alloc = 0,
+  };
 
   dfile_init(&transfer->dfile, ObjTransfer_read_cb,
              ObjTransfer_write_cb, NULL, ObjTransfer_destroy_cb);
@@ -681,7 +697,13 @@ static size_t count_triggers(TriggersData *const triggers,
   }
 
   TriggersChainIter chain_iter;
-  TriggerFullParam fparam = {{0}};
+  TriggerFullParam fparam = {
+    .param = {
+      .action = TriggerAction_MissionTarget,
+      .value = 0,
+    },
+    .next_coords = {0,0},
+  };
   for (MapPoint p = TriggersChainIter_get_first(&chain_iter, triggers, &sel_area, &fparam);
        !TriggersChainIter_done(&chain_iter);
        p = TriggersChainIter_get_next(&chain_iter, &fparam))
@@ -761,7 +783,16 @@ ObjTransfer *ObjTransfers_grab_selection(ObjEditContext const *const objects,
 
     /* Collect all triggers activated by destruction of selected objects, including chain
        reactions which destroy a (selected or unselected) object some time afterwards. */
-    ObjTransferTrigger t_trig = {{0}};
+    ObjTransferTrigger t_trig = {
+      .coords = {0,0},
+      .fparam = {
+        .param = {
+          .action = TriggerAction_MissionTarget,
+          .value = 0,
+        },
+        .next_coords = {0,0},
+      },
+    };
     TriggersIter iter;
     for (MapPoint p = TriggersIter_get_first(&iter, triggers, &sel_area, &t_trig.fparam);
          !TriggersIter_done(&iter);
@@ -826,7 +857,7 @@ static bool for_each_area(ObjTransfer *const transfer,
 {
   MapPoint const t_dims = ObjTransfers_get_dims(transfer);
 
-  MapArea area = {{0}};
+  MapArea area = {{0,0},{0,0}};
   struct {
     bool pend_span_x:1;
     bool pend_span_xy:1;
