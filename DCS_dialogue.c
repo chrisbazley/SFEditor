@@ -70,6 +70,7 @@ static int actions_handler(int const event_code, ToolboxEvent *const event,
         return 1; /* failed */
 
       /* After successful save, carry straight on as for Discard... */
+      // fallthrough
 
     case DCS_Discard:
       DCS_notifysaved(id_block->self_id, session);
