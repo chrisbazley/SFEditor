@@ -100,7 +100,6 @@ static size_t get_snake_read_tile(Snakes const *const snakes_data, size_t const 
   unsigned int const part)
 {
   assert(snakes_data != NULL);
-  assert(snake >= 0);
   assert(snake < snakes_data->count);
   assert((part & ~SNAKE_ALL) == 0);
 
@@ -119,7 +118,6 @@ static int get_snake_write_tile(Snakes const *const snakes_data, size_t const sn
   unsigned int const part)
 {
   assert(snakes_data != NULL);
-  assert(snake >= 0);
   assert(snake < snakes_data->count);
   assert((part & ~SNAKE_ALL) == 0);
 
@@ -348,7 +346,6 @@ static bool add_to_connectivity(const SnakeContext *const ctx,
   bool found = false, match = false;
 
   assert(ctx != NULL);
-  assert(tile >= 0);
   assert(edge == SNAKE_NORTH || edge == SNAKE_EAST || edge == SNAKE_SOUTH || edge == SNAKE_WEST);
 
   DEBUG("Looking for tile %zu in snake %zu with connectivity (%s, %s)...",
@@ -1020,7 +1017,6 @@ static void shallow_line(SnakeContext *const ctx, MapPoint end,
 size_t Snakes_get_count(const Snakes *const snakes_data)
 {
   assert(snakes_data != NULL);
-  assert(snakes_data->count >= 0);
   DEBUG_VERBOSEF("No. of snakes is %zu\n", snakes_data->count);
   return snakes_data->count;
 }
@@ -1029,7 +1025,6 @@ void Snakes_get_name(const Snakes *const snakes_data, size_t const snake,
   char *const snake_name, size_t const n)
 {
   assert(snakes_data != NULL);
-  assert(snake >= 0);
   assert(snake < snakes_data->count);
   assert(snake_name != NULL);
 
