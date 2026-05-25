@@ -96,7 +96,6 @@ static inline size_t map_ref_to_num(MapRef const tile)
 
 static inline MapRef map_ref_from_num(size_t const tile)
 {
-  assert(tile >= 0);
   assert(tile <= Map_RefMax || tile == Map_RefMask);
   return (MapRef){tile};
 }
