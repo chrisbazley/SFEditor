@@ -136,7 +136,6 @@ static void draw_sprite(MapPropDbox const *const prop,
 {
   /* Must be called with flex budge disabled */
   assert(prop != NULL);
-  assert(t >= 0);
   assert(t < ARRAY_SIZE(prop->tiles_to_display));
 
   if (map_ref_to_num(prop->tiles_to_display[t]) >= sprite_count) {
