@@ -107,7 +107,6 @@ DFile *polycol_get_dfile(PolyColData *const poly_colours)
 size_t polycol_get_colour(PolyColData const *const poly_colours, size_t const index)
 {
   assert(poly_colours);
-  assert(index >= 0);
   assert(index < PolyColMax);
   return ((uint8_t const *)poly_colours->flex)[index];
 }
