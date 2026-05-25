@@ -42,7 +42,6 @@ void obj_vertices_init(ObjVertices * const varray)
 void obj_vertices_free(ObjVertices * const varray)
 {
   assert(varray != NULL);
-  assert(varray->vcount >= 0);
   assert(varray->vcount <= ObjVertexMax);
   if (varray->vertices)
   {
@@ -54,7 +53,6 @@ void obj_vertices_free(ObjVertices * const varray)
 size_t obj_vertices_get_count(ObjVertices *varray)
 {
   assert(varray != NULL);
-  assert(varray->vcount >= 0);
   assert(varray->vcount <= ObjVertexMax);
   assert(varray->vcount * sizeof(ObjVertex) <= (size_t)flex_size(&varray->vertices));
   return varray->vcount;
@@ -214,7 +212,6 @@ void obj_vertices_to_coords(ObjVertices * const varray, Vertex3D const *const ce
   const UnitVectors *const unit, Vertex3D (*const out)[ObjVertexMax])
 {
   assert(varray != NULL);
-  assert(varray->vcount >= 0);
   assert(varray->vcount * sizeof(ObjVertex) <= (size_t)flex_size(&varray->vertices));
   assert(varray->vcount <= ObjVertexMax);
   assert(centre != NULL);
