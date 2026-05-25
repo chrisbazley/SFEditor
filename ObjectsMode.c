@@ -1691,7 +1691,7 @@ static void cb_status(Editor *const editor, bool const copy)
   size_t const trig_count = ObjTransfers_get_trigger_count(clipboard);
 
   if (trig_count > 0) {
-    char trig_count_str[16];
+    char trig_count_str[32];
     sprintf(trig_count_str, "%zu", trig_count);
 
     Editor_display_msg(editor, msgs_lookup_subn(copy ? "OStatusCopy2" :
