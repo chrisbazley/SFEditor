@@ -1799,8 +1799,6 @@ static int mouse_click(int const event_code, WimpPollBlock *const event,
                                 msgs_lookup("StatusZoomOut"));
         }
       }
-
-      Vertex const work_area_origin = calc_work_area_origin(&window_state);
       change_zoom_recentre(edit_win, zoom_factor, Editor_map_to_grid_coords(editor, map_pos, edit_win));
     }
   } else {
@@ -1816,7 +1814,6 @@ static int mouse_click(int const event_code, WimpPollBlock *const event,
       free_pointer(edit_win);
     }
   }
-  MapPoint const grid_pos = get_scroll_pos(edit_win, &window_state);
 
   return 1; /* claim event */
 }
