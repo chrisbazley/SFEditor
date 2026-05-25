@@ -102,7 +102,7 @@ MapTex *MapTex_create(void)
   MapTex *const textures = malloc(sizeof(*textures));
   if (textures)
   {
-    *textures = (MapTex){{0}};
+    *textures = (MapTex){{0},{0},{0},{0},{0}};
 
     dfile_init(&textures->dfile, MapTex_read_cb, NULL, NULL,
                MapTex_destroy_cb);
