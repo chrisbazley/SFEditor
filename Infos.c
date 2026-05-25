@@ -171,7 +171,6 @@ SFError target_infos_add(TargetInfosData *const target_infos,
   MapPoint const pos, size_t *const index)
 {
   assert(target_infos);
-  assert(target_infos->count >= 0);
   assert(target_infos->count <= TargetInfoMax);
 
   if (target_infos->count == TargetInfoMax)
@@ -362,7 +361,6 @@ SFError target_infos_read(TargetInfosData *const target_infos,
 size_t target_infos_get_count(TargetInfosData const *const target_infos)
 {
   assert(target_infos);
-  assert(target_infos->count >= 0);
   assert(target_infos->count <= TargetInfoMax);
   return target_infos->count;
 }
@@ -393,7 +391,6 @@ void target_infos_write_pad(TargetInfosData *const target_infos, Writer *const w
 void target_infos_write(TargetInfosData *const target_infos, Writer *const writer)
 {
   assert(target_infos);
-  assert(target_infos->count >= 0);
   assert(target_infos->count <= TargetInfoMax);
   writer_fwrite_int32((int32_t)target_infos->count, writer);
 
