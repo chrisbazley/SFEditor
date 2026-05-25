@@ -131,7 +131,6 @@ static BBox bbox_for_object(PaletteData const *const pal_data, Vertex const grid
 static Vertex grid_from_index(PaletteData *const pal_data, size_t const index)
 {
   assert(pal_data != NULL);
-  assert(index >= 0);
   assert(index <= pal_data->num_indices); /* intentional for deletion of last object */
 
   Vertex grid_pos = {0,0};
@@ -160,7 +159,6 @@ static size_t index_to_object(PaletteData const *const pal_data, size_t const in
   if (index == NULL_DATA_INDEX) {
     return NULL_DATA_INDEX;
   }
-  assert(index >= 0);
   assert(index < pal_data->num_indices);
 
   size_t object = index;
@@ -190,7 +188,6 @@ static void update_menus(PaletteData *const pal_data)
 static size_t p_object_to_index(PaletteData const *const pal_data, size_t const object)
 {
   assert(pal_data);
-  assert(object >= 0);
 
   size_t index = object;
 
@@ -202,7 +199,6 @@ static size_t p_object_to_index(PaletteData const *const pal_data, size_t const 
   }
 
   DEBUGF("Index is %zu from object %zu, count %zu\n", index, object, pal_data->num_indices);
-  assert(index >= 0);
   assert(index < pal_data->num_indices);
   return index;
 }
@@ -316,7 +312,6 @@ static bool calcmaxcolumns(PaletteData *const pal_data, int const new_width)
 
   size_t new_max_columns = (size_t)((new_width - sbar_width - X_BORDER * 2) /
                                      pal_data->object_size.x);
-  assert(new_max_columns >= 0);
   size_t columns_limit = 1;
 
   if (pal_data->client_functions == NULL || pal_data->numeric_order ||
