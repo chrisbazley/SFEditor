@@ -208,7 +208,7 @@ static void read_trans_table(int const mode)
         size == 1u << (1u << DrawTilesModeLog2BPP)) {
       size_t i;
       for (i = 0; i < size; i++) {
-        char * const ct = trans_table;
+        unsigned char * const ct = trans_table;
         if (ct[i] != i)
           break;
       }
