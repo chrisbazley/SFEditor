@@ -35,8 +35,8 @@ void InfoEditChanges_init(InfoEditChanges *const change_info)
 
 char *InfoEditChanges_get_message(const InfoEditChanges *const change_info)
 {
-  char infos_added_str[12], infos_changed_str[12],
-       infos_deleted_str[12], token[sizeof(TOKEN_STEM "ACK")];
+  char infos_added_str[32], infos_changed_str[32],
+       infos_deleted_str[32], token[sizeof(TOKEN_STEM "ACK")];
   char const *sub[3];
 
   if (!InfoEditChanges_is_changed(change_info)) {
