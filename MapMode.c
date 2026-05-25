@@ -215,7 +215,7 @@ static void create_trans_msg(Editor *const editor,
 
   size_t const num_animations = MapTransfers_get_anim_count(transfer);
   if (num_animations > 0) {
-    char anim_count_str[16];
+    char anim_count_str[32];
     sprintf(anim_count_str, "%zu", num_animations);
 
     Editor_display_msg(editor,
