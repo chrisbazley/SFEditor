@@ -157,7 +157,7 @@ void ObjSnakes_edit(char const *const tiles_set)
 void ObjSnakes_init(ObjSnakes *const snakes_data)
 {
   assert(snakes_data);
-  *snakes_data = (ObjSnakes){{0}};
+  *snakes_data = (ObjSnakes){.super = {0}, .distances = NULL};
   Snakes_init(&snakes_data->super);
 }
 
