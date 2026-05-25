@@ -114,7 +114,6 @@ static inline size_t objects_ref_to_num(ObjRef const obj_ref)
 
 static inline ObjRef objects_ref_from_num(size_t const obj_ref)
 {
-  assert(obj_ref >= Obj_RefNone);
   assert(obj_ref <= Obj_RefHill || obj_ref == Obj_RefMask);
   return (ObjRef){obj_ref};
 }
