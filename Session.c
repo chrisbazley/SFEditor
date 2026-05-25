@@ -2738,7 +2738,7 @@ void Session_resource_change(EditSession *const session,
     break;
   case EDITOR_CHANGE_INFO_ADDED:
   case EDITOR_CHANGE_INFO_PREDELETE:
-    DEBUGF("Info %p at index %zu\n", params->info_added.info, params->info_added.index);
+    DEBUGF("Info %p at index %zu\n", (void *)params->info_added.info, params->info_added.index);
     break;
   default:
     break;
