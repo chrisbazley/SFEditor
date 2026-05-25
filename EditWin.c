@@ -1885,7 +1885,13 @@ static int redraw_window(int const event_code, WimpPollBlock *const event,
   DebugOutput old = DEBUG_SET_OUTPUT(DebugOutput_None, "");
 #endif
 
-  WimpRedrawWindowBlock block = {wrwre->window_handle};
+  WimpRedrawWindowBlock block = {
+    .window_handle = wrwre->window_handle,
+    .visible_area = {0,0,0,0},
+    .xscroll = 0,
+    .yscroll = 0,
+    .redraw_area = {0,0,0,0},
+  };
   int more;
   if (!E(wimp_redraw_window(&block, &more)) && more) {
     redraw_loop(handle, &block);
@@ -3451,7 +3457,14 @@ void EditWin_show_window_aligned_right(EditWin const *const edit_win,
 
   /* Enabling about-to-be-shown events for the edit_win object breaks this because its
      Wimp window state is not up-to-date during creation of a new edit_win. Don't! */
-  WimpGetWindowStateBlock wgwsb = {edit_win->wimp_id};
+  WimpGetWindowStateBlock wgwsb = {
+    .window_handle = edit_win->wimp_id,
+    .visible_area = {0,0,0,0},
+    .xscroll = 0,
+    .yscroll = 0,
+    .behind = 0,
+    .flags = 0,
+  };
   ON_ERR_RPT_RTN(wimp_get_window_state(&wgwsb));
 
   int sbar_width = 0, sbar_height = 0;
