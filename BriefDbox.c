@@ -82,10 +82,10 @@ static bool read_brief_win(BriefingData *const briefing, ObjectId const id)
     end = strchr(string, ENDPARA[0]);
     if (end != NULL) {
       // Replace the end-of-paragraph marker with a string terminator
-      DEBUGF("End of paragraph at %d: %c\n", end - buffer, *end);
+      DEBUGF("End of paragraph at %td: %c\n", end - buffer, *end);
       *end = '\0';
     }
-    DEBUGF("String of length %zu at %d: %c\n", strlen(string), string - buffer, *string);
+    DEBUGF("String of length %zu at %td: %c\n", strlen(string), string - buffer, *string);
     if (report_error(briefing_add_text(&new_briefing, string), "", "")) {
       success = false;
       break;
