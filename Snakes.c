@@ -1109,7 +1109,7 @@ SFError Snakes_load(FILE *const file, Snakes *const snakes_data,
   char read_line[LineBufferSize];
   int line = 0;
   bool in_snake = false;
-  SnakeDefinition snake = {"", {0}};
+  SnakeDefinition snake = {.name = "", .read_parts = {0}, .write_parts = {0}};
 
   Snakes_free(snakes_data);
   Snakes_init(snakes_data);
