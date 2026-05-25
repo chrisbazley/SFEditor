@@ -761,7 +761,6 @@ MapTransfer *MapTransfer_create(void)
 size_t MapTransfers_get_count(const MapTransfers *const transfers_data)
 {
   assert(transfers_data != NULL);
-  assert(transfers_data->count >= 0);
   DEBUG_VERBOSEF("No. of transfers is %zu\n", transfers_data->count);
   return transfers_data->count;
 }
