@@ -57,7 +57,7 @@ static bool draw_bitmap_big(MapTexBitmaps *const textures,
   MapAngle const angle, MapArea const *const scr_area,
   DrawTilesReadFn *const read, void *const cb_arg, int const zoom,
   SprMem const *const sprites,
-  unsigned char const (*const sel_colours)[NumColours])
+  unsigned char C23_CONST (*const sel_colours)[NumColours])
 {
   assert(textures != NULL);
   assert(read != NULL);
@@ -135,7 +135,7 @@ static bool draw_bitmap_big(MapTexBitmaps *const textures,
 static bool draw_bitmap_small(MapTexBitmaps *const textures,
   MapAngle const angle, MapArea const *const scr_area,
   DrawTilesReadFn *const read, void *const cb_arg,
-  unsigned char const (*const sel_colours)[NumColours])
+  unsigned char C23_CONST (*const sel_colours)[NumColours])
 {
   assert(textures != NULL);
   assert(read != NULL);
@@ -210,7 +210,7 @@ static bool draw_bitmap_small(MapTexBitmaps *const textures,
 bool DrawTiles_to_sprite(MapTexBitmaps *const textures,
   SprMem *const sm, char const *const name, MapAngle const angle, MapArea const *const scr_area,
   DrawTilesReadFn *const read, void *const cb_arg,
-  int const zoom, unsigned char const (*const sel_colours)[NumColours])
+  int const zoom, unsigned char C23_CONST (*const sel_colours)[NumColours])
 {
   assert(textures != NULL);
   assert(read != NULL);

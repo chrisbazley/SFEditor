@@ -235,7 +235,7 @@ static void redraw_label(Editor *const editor, Vertex const origin,
 static void draw_snake(ObjGfxMeshes *const meshes, PolyColData const *const poly_colours,
   Vertex const plot_centre, long int const distance,
   ObjRef (*const thumb_refs)[THUMB_TILE_SIZE][THUMB_TILE_WIDTH],
-  PaletteEntry const (*const pal)[NumColours], BBox *const bounding_box,
+  PaletteEntry C23_CONST (*const pal)[NumColours], BBox *const bounding_box,
   ObjGfxMeshStyle const style)
 {
   long int const xstart = -((THUMB_TILE_WIDTH / 2) * ObjGridSize);
