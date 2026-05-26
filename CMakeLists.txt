@@ -23,6 +23,8 @@ else()
     add_compile_options(-Wall -Wextra -Wsign-compare -pedantic)
 endif()
 
+file(GLOB HEADER_FILES CONFIGURE_DEPENDS "*.h")
+
 set(SOURCES
     PolyCol.c
     HillCol.c
@@ -172,7 +174,7 @@ set(SOURCES
     Goto.c
 )
 
-add_library(SFEditor ${SOURCES})
+add_library(SFEditor ${SOURCES} ${HEADER_FILES})
 
 target_link_libraries(SFEditor PUBLIC
     CB
