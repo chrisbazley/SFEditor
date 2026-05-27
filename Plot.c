@@ -106,19 +106,26 @@ void plot_get_window(BBox *const bbox)
 {
   assert(bbox);
 
-  VDUVar var_ids[] = {VDUVar_GWLCol, VDUVar_GWBRow, VDUVar_GWRCol, VDUVar_GWTRow,
-    (VDUVar)ModeVar_XEigFactor,
-    (VDUVar)ModeVar_YEigFactor,
-    VDUVar_OrgX,
-    VDUVar_OrgY,
-    VDUVar_EndOfList};
+  enum {
+    GWLCol, GWBRow, GWRCol, GWTRow, XEigFactor, YEigFactor, OrgX, OrgY, VarCount
+  };
+  static const VDUVar var_ids[] = {
+    [GWLCol] = VDUVar_GWLCol,
+    [GWBRow] = VDUVar_GWBRow,
+    [GWRCol] = VDUVar_GWRCol,
+    [GWTRow] = VDUVar_GWTRow,
+    [XEigFactor] = (VDUVar)ModeVar_XEigFactor,
+    [YEigFactor] = (VDUVar)ModeVar_YEigFactor,
+    [OrgX] = VDUVar_OrgX,
+    [OrgY] = VDUVar_OrgY,
+    [VarCount] = VDUVar_EndOfList};
   intptr_t values[ARRAY_SIZE(var_ids)];
   E(os_read_vdu_variables(var_ids, values));
 
-  bbox->xmin = values[6] + (values[0] << values[4]);
-  bbox->ymin = values[7] + (values[1] << values[5]);
-  bbox->xmax = values[6] + (values[2] << values[4]);
-  bbox->ymax = values[7] +  (values[3] << values[5]);
+  bbox->xmin = values[OrgX] + (values[GWLCol] << values[XEigFactor]);
+  bbox->ymin = values[OrgY] + (values[GWBRow] << values[YEigFactor]);
+  bbox->xmax = values[OrgX] + (values[GWRCol] << values[XEigFactor]);
+  bbox->ymax = values[OrgY] + (values[GWTRow] << values[YEigFactor]);
 
   DEBUGF("Got graphics window %d,%d,%d,%d\n",
     bbox->xmin, bbox->ymin, bbox->xmax, bbox->ymax);
