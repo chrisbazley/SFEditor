@@ -15,9 +15,14 @@
 #include "Macros.h"
 
 /* Holds coordinates */
+typedef int VertexCoord;
+
+#define VERTEXCOORD_MIN INT_MIN
+#define VERTEXCOORD_MAX INT_MAX
+
 typedef struct
 {
-  int x, y;
+  VertexCoord x, y;
 }
 Vertex;
 

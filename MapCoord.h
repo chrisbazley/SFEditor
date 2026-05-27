@@ -294,7 +294,11 @@ bool MapArea_split(MapArea const *area, int size_log2,
 
 static inline Vertex MapPoint_to_vertex(MapPoint const point)
 {
-  return (Vertex){point.x, point.y};
+  assert(point.x >= VERTEXCOORD_MIN);
+  assert(point.x <= VERTEXCOORD_MAX);
+  assert(point.y >= VERTEXCOORD_MIN);
+  assert(point.y <= VERTEXCOORD_MAX);
+  return (Vertex){(VertexCoord)point.x, (VertexCoord)point.y};
 }
 
 static inline MapPoint MapPoint_from_vertex(Vertex const vertex)
