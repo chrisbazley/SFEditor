@@ -27,6 +27,7 @@
 #include "event.h"
 #include "flex.h"
 #include <stdint.h>
+#include <limits.h>
 
 #include "OSVDU.h"
 #include "ClrTrans.h"
@@ -121,7 +122,9 @@ int Desktop_get_screen_mode(void)
   _kernel_swi_regs regs = {{ReadModeNumber}};
   if (!E(_kernel_swi(OS_Byte, &regs, &regs)))
   {
-    mode = regs.r[2];
+    assert(regs.r[2] >= INT_MIN);
+    assert(regs.r[2] <= INT_MAX);
+    mode = (int)regs.r[2];
   }
   return mode;
 }
@@ -150,11 +153,15 @@ static void read_mode_vars(void)
   intptr_t mode_var_val[VarIndex_End] = {0};
 
   if (!E(os_read_vdu_variables(mode_variables, mode_var_val))) {
-    eigen_factors.x = mode_var_val[VarIndex_XEig];
-    eigen_factors.y = mode_var_val[VarIndex_YEig];
-    desktop_size.x = mode_var_val[VarIndex_XWindLimit];
-    desktop_size.y = mode_var_val[VarIndex_YWindLimit];
-    log2bpp = mode_var_val[VarIndex_Log2BPP];
+    for (int i = 0; i < VarIndex_End; ++i) {
+      assert(mode_var_val[i] >= 0);
+      assert(mode_var_val[i] <= INT_MAX);
+    }
+    eigen_factors.x = (int)mode_var_val[VarIndex_XEig];
+    eigen_factors.y = (int)mode_var_val[VarIndex_YEig];
+    desktop_size.x = (int)mode_var_val[VarIndex_XWindLimit];
+    desktop_size.y = (int)mode_var_val[VarIndex_YWindLimit];
+    log2bpp = (int)mode_var_val[VarIndex_Log2BPP];
     vars_are_valid = true;
   }
 }
