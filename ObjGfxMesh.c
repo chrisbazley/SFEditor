@@ -1315,7 +1315,7 @@ static void plot_hill(
   Vertex const centre,
   HillColData const *const hill_colours,
   BBox *const bounding_box,
-  HillCorner C23_CONST (*const sides)[Hill_PolygonNumSides],
+  HillCorner const (*const sides)[Hill_PolygonNumSides],
   int const colour,
   PaletteEntry const (*const pal)[NumColours], ObjGfxMeshStyle const style,
   Vertex (*const screen_coords)[ObjVertexMax])
