@@ -2965,12 +2965,12 @@ void EditWin_set_sel_colour(EditWin *const edit_win, PaletteEntry const colour)
   }
 }
 
-PaletteEntry C23_CONST (*EditWin_get_sel_palette(EditWin C23_CONST *const edit_win))[NumColours]
+PaletteEntry const (*EditWin_get_sel_palette(EditWin const *const edit_win))[NumColours]
 {
   return &edit_win->view.sel_palette;
 }
 
-unsigned char C23_CONST (*EditWin_get_sel_colours(EditWin C23_CONST *const edit_win))[NumColours]
+unsigned char const (*EditWin_get_sel_colours(EditWin const *const edit_win))[NumColours]
 {
   return &edit_win->view.sel_colours;
 }

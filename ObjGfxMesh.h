@@ -80,14 +80,14 @@ typedef enum {
 void ObjGfxMeshes_plot(ObjGfxMeshes const *meshes, ObjGfxMeshesView const *ctx,
   PolyColData const *colours, ObjRef obj_no,
   Vertex centre, long int distance, Vertex3D pos,
-  PaletteEntry C23_CONST (*pal)[NumColours], BBox *bounding_box, ObjGfxMeshStyle style);
+  PaletteEntry const (*pal)[NumColours], BBox *bounding_box, ObjGfxMeshStyle style);
 
 void ObjGfxMeshes_plot_poly_hill(ObjGfxMeshesView const *ctx,
   HillColData const *hill_colours,
   HillType type, unsigned char (*colours)[Hill_MaxPolygons],
   unsigned char (*heights)[HillCorner_Count],
   Vertex centre, long int distance, Vertex3D pos,
-  PaletteEntry C23_CONST (*pal)[NumColours], BBox *bounding_box, ObjGfxMeshStyle style);
+  PaletteEntry const (*pal)[NumColours], BBox *bounding_box, ObjGfxMeshStyle style);
 
 void ObjGfxMeshes_plot_grid(ObjGfxMeshesView const *ctx, Vertex centre, long int distance, Vertex3D pos);
 void ObjGfxMeshes_plot_mask(ObjGfxMeshesView const *ctx, Vertex centre, long int distance, Vertex3D pos);

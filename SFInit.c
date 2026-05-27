@@ -159,7 +159,7 @@ typedef struct
 ObjectInitInfo;
 
 PaletteEntry loc_palette[NumColours];
-PaletteEntry C23_CONST (*palette)[NumColours];
+PaletteEntry const (*palette)[NumColours];
 char taskname[MaxTaskNameLen + 1] = APP_NAME;
 int  wimp_version, task_handle;
 MessagesFD messages;
@@ -553,7 +553,11 @@ void initialise()
     }
   };
   EF(colourtrans_read_palette(0, &source, loc_palette, sizeof(loc_palette), NULL));
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
   palette = &loc_palette;
+#else
+  palette = (PaletteEntry const (*)[NumColours])&loc_palette;
+#endif
 
   Config_init();
   ObjGfxMeshes_global_init();

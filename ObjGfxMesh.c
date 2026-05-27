@@ -408,7 +408,7 @@ static void plot_group(
   PolyColData const *const colours,
   BBox *const bounding_box,
   ObjGroup *const group, bool const plot_all,
-  PaletteEntry C23_CONST (*const pal)[NumColours], ObjGfxMeshStyle const style,
+  PaletteEntry const (*const pal)[NumColours], ObjGfxMeshStyle const style,
   Vertex (*const screen_coords)[ObjVertexMax])
 {
   size_t const pcount = obj_group_get_polygon_count(group);
@@ -1175,7 +1175,7 @@ void ObjGfxMeshes_plot(ObjGfxMeshes const *const meshes,
                        ObjRef const obj_ref,
                        Vertex const centre,
                        long int const distance, Vertex3D const pos,
-                       PaletteEntry C23_CONST (*const pal)[NumColours],
+                       PaletteEntry const (*const pal)[NumColours],
                        BBox *const bounding_box,
                        ObjGfxMeshStyle const style)
 {
@@ -1317,7 +1317,7 @@ static void plot_hill(
   BBox *const bounding_box,
   HillCorner C23_CONST (*const sides)[Hill_PolygonNumSides],
   int const colour,
-  PaletteEntry C23_CONST (*const pal)[NumColours], ObjGfxMeshStyle const style,
+  PaletteEntry const (*const pal)[NumColours], ObjGfxMeshStyle const style,
   Vertex (*const screen_coords)[ObjVertexMax])
 {
   DEBUGF("Plotting hill polygon\n");
@@ -1375,7 +1375,7 @@ void ObjGfxMeshes_plot_poly_hill(ObjGfxMeshesView const *const ctx,
   HillType const type, unsigned char (*const colours)[Hill_MaxPolygons],
   unsigned char (*const heights)[HillCorner_Count],
   Vertex const centre, long int const distance, Vertex3D const pos,
-  PaletteEntry C23_CONST (*const pal)[NumColours], BBox *const bounding_box, ObjGfxMeshStyle const style)
+  PaletteEntry const (*const pal)[NumColours], BBox *const bounding_box, ObjGfxMeshStyle const style)
 {
 
   Vertex3D obj_pos = pos;

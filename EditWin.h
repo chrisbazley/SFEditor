@@ -104,9 +104,9 @@ PaletteEntry EditWin_get_bg_colour(EditWin const *edit_win);
 void EditWin_set_bg_colour(EditWin *edit_win, PaletteEntry colour);
 
 PaletteEntry EditWin_get_sel_colour(EditWin const *edit_win);
-PaletteEntry C23_CONST (*EditWin_get_sel_palette(EditWin C23_CONST *edit_win))[NumColours];
+PaletteEntry const (*EditWin_get_sel_palette(EditWin const *edit_win))[NumColours];
 
-unsigned char C23_CONST (*EditWin_get_sel_colours(EditWin C23_CONST *edit_win))[NumColours];
+unsigned char const (*EditWin_get_sel_colours(EditWin const *edit_win))[NumColours];
 void EditWin_set_sel_colour(EditWin *edit_win, PaletteEntry colour);
 bool EditWin_get_sel_tex_is_bright(EditWin const *const edit_win, MapRef const tile_num);
 

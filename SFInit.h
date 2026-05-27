@@ -18,7 +18,7 @@ enum
   NumColours = 256
 };
 
-extern PaletteEntry C23_CONST (*palette)[NumColours];
+extern PaletteEntry const (*palette)[NumColours];
 extern char taskname[];
 extern int wimp_version, task_handle;
 extern MessagesFD messages;

@@ -76,8 +76,8 @@ Vertex DrawCloud_get_size_os(void)
 }
 
 bool DrawCloud_init(DrawCloudContext *const context, CloudColData const *const clouds,
-  PaletteEntry C23_CONST (*const unsel_palette)[NumColours],
-  PaletteEntry C23_CONST (*const sel_palette)[NumColours],
+  PaletteEntry const (*const unsel_palette)[NumColours],
+  PaletteEntry const (*const sel_palette)[NumColours],
   int const zoom, bool const is_ghost)
 {
   /* Set up the workspace for the transfer function */
