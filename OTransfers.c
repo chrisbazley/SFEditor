@@ -343,17 +343,17 @@ static SFError read_triggers(ObjTransfer *const transfer, Reader *const reader)
 
     trigger.fparam.next_coords = objects_coords_from_coarse(next_coords);
 
-    int const a = reader_fgetc(reader);
-    if (a == EOF)
+    int const action = reader_fgetc(reader);
+    if (action == EOF)
     {
       return SFERROR(ReadFail);
     }
-    if (a < TriggerAction_MissionTarget ||
-        a > TriggerAction_ChainReactionIn)
+    if (action < TriggerAction_MissionTarget ||
+        action > TriggerAction_ChainReactionIn)
     {
       return SFERROR(BadTriggerAction);
     }
-    trigger.fparam.param.action = a;
+    trigger.fparam.param.action = action;
 
     if (trigger.fparam.param.action != TriggerAction_ChainReactionIn)
     {
@@ -793,10 +793,10 @@ ObjTransfer *ObjTransfers_grab_selection(ObjEditContext const *const objects,
         .next_coords = {0,0},
       },
     };
-    TriggersIter iter;
-    for (MapPoint p = TriggersIter_get_first(&iter, triggers, &sel_area, &t_trig.fparam);
-         !TriggersIter_done(&iter);
-         p = TriggersIter_get_next(&iter, &t_trig.fparam))
+    TriggersIter trig_iter;
+    for (MapPoint p = TriggersIter_get_first(&trig_iter, triggers, &sel_area, &t_trig.fparam);
+         !TriggersIter_done(&trig_iter);
+         p = TriggersIter_get_next(&trig_iter, &t_trig.fparam))
     {
       assert(t_trig.fparam.param.action != TriggerAction_ChainReactionOut);
       assert(t_trig.fparam.param.action != TriggerAction_ChainReactionIn);
@@ -1316,10 +1316,10 @@ bool ObjTransfers_rename(ObjTransfers *const transfers_data,
     // Careful! Key string isn't copied on insertion.
     // Should be impossible to fail to insert after removal
     size_t new_index;
-    bool success = strdict_insert(&transfers_data->dict, get_leaf_name(&transfer_to_rename->dfile),
-                                  transfer_to_rename, &new_index);
-    assert(success);
-    NOT_USED(success);
+    bool is_inserted = strdict_insert(&transfers_data->dict, get_leaf_name(&transfer_to_rename->dfile),
+                                      transfer_to_rename, &new_index);
+    assert(is_inserted);
+    NOT_USED(is_inserted);
 
     if (new_index_out != NULL) {
       assert(new_index <= INT_MAX);
