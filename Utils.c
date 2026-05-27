@@ -26,6 +26,7 @@
 #include "stdio.h"
 #include <stdbool.h>
 #include <inttypes.h>
+#include <limits.h>
 
 #include "kernel.h"
 #include "swis.h"
@@ -77,7 +78,10 @@ int string_lcount(char const *const string, int *const max_width)
       end = start + strlen(start);
       finished = true;
     }
-    *max_width = HIGHEST(end - start, *max_width);
+    ptrdiff_t nchars = end - start;
+    assert(nchars >= 0);
+    assert(nchars <= INT_MAX);
+    *max_width = HIGHEST((int)nchars, *max_width);
     line_count++;
     start = end + 1;
   } while (!finished);
