@@ -329,7 +329,7 @@ SFError text_read_block(Text *const text, Reader *const reader)
     return SFERROR(BadTextRepeat);
   }
 
-  if (cursor_type < CursorType_None && cursor_type >= CursorType_Count) {
+  if (cursor_type < CursorType_None || cursor_type >= CursorType_Count) {
     return SFERROR(BadTextCursorType);
   }
 
