@@ -73,7 +73,7 @@ static SFError mission_type_read(MissionData *const mission,
     return SFERROR(ReadFail);
   }
   DEBUGF("Space: %d\n", type);
-  if (type < MissionType_Normal && type > MissionType_Cyber)
+  if (type < MissionType_Normal || type > MissionType_Cyber)
   {
     return SFERROR(BadMissionType);
   }
