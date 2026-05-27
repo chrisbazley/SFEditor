@@ -83,7 +83,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 
   MapPoint const dims = MapTransfers_get_dims(transfer);
   char dim[32];
-  sprintf(dim, "%" PRIMapCoord " × %" PRIMapCoord, dims.x, dims.y);
+  sprintf(dim, "%" PRIMapCoord " x %" PRIMapCoord, dims.x, dims.y);
   E(displayfield_set_value(0, window, TRANSINFO_DIMENSIONS, dim));
 
   size_t acount = MapTransfers_get_anim_count(transfer);

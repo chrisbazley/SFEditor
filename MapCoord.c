@@ -355,7 +355,7 @@ MapCoord MapCoord_opp_to_adj(const MapCoord opp, const MapCoord hyp_squared)
   */
   double const fadj = sqrt((double)(hyp_squared - (opp * opp)));
   MapCoord const adj = (MapCoord)(fadj + 0.5);
-  DEBUGF("Adjacent is %" PRIMapCoord " (%f) for triangle with hypotenuse² %" PRIMapCoord
+  DEBUGF("Adjacent is %" PRIMapCoord " (%f) for triangle with hypotenuse^2 %" PRIMapCoord
          " and opposite %" PRIMapCoord "\n", adj, fadj, hyp_squared, opp);
   return adj;
 }
