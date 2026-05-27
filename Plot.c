@@ -122,10 +122,43 @@ void plot_get_window(BBox *const bbox)
   intptr_t values[ARRAY_SIZE(var_ids)];
   E(os_read_vdu_variables(var_ids, values));
 
-  bbox->xmin = values[OrgX] + (values[GWLCol] << values[XEigFactor]);
-  bbox->ymin = values[OrgY] + (values[GWBRow] << values[YEigFactor]);
-  bbox->xmax = values[OrgX] + (values[GWRCol] << values[XEigFactor]);
-  bbox->ymax = values[OrgY] + (values[GWTRow] << values[YEigFactor]);
+  const intptr_t xeig = values[XEigFactor],
+                 yeig = values[YEigFactor],
+                 xorg = values[OrgX],
+                 yorg = values[OrgY];
+
+  assert(xeig >= 0);
+  assert(xeig < 16);
+
+  assert(yeig >= 0);
+  assert(yeig < 16);
+
+  intptr_t xmin = values[GWLCol],
+           ymin = values[GWBRow],
+           xmax = values[GWRCol],
+           ymax = values[GWTRow];
+
+  assert(xmin <= INT_MAX >> xeig);
+  assert(ymin <= INT_MAX >> yeig);
+  assert(xmax <= INT_MAX >> xeig);
+  assert(ymax <= INT_MAX >> yeig);
+
+  xmin <<= xeig;
+  ymin <<= yeig;
+  xmax <<= xeig;
+  ymax <<= yeig;
+
+  assert((xorg > 0 && xmin <= INT_MAX - xorg) || (xorg <= 0 && xmin >= INT_MIN - xorg));
+  assert((yorg > 0 && ymin <= INT_MAX - yorg) || (yorg <= 0 && ymin >= INT_MIN - yorg));
+  assert((xorg > 0 && xmax <= INT_MAX - xorg) || (xorg <= 0 && xmax >= INT_MIN - xorg));
+  assert((yorg > 0 && ymax <= INT_MAX - yorg) || (yorg <= 0 && ymax >= INT_MIN - yorg));
+
+  xmin += xorg;
+  ymin += yorg;
+  xmax += xorg;
+  ymax += yorg;
+
+  *bbox = (BBox){(int)xmin, (int)ymin, (int)xmax, (int)ymax};
 
   DEBUGF("Got graphics window %d,%d,%d,%d\n",
     bbox->xmin, bbox->ymin, bbox->xmax, bbox->ymax);
