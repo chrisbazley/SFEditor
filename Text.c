@@ -201,7 +201,7 @@ void text_set_params(Text *const text, TextParams const *const params)
   assert(params->cursor_type >= CursorType_None);
   assert(params->cursor_type < CursorType_Count);
   assert(params->colour >= 0);
-  assert(params->colour < NumColours);
+  assert((int)params->colour < NumColours);
 
   text->params = *params;
 }
