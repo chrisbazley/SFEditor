@@ -249,7 +249,7 @@ static void delete(Editor *const editor, size_t const object_no)
 
 /* ---------------- Public functions ---------------- */
 
-bool MapTransfersPalette_register(PaletteData *const palette)
+bool MapTransfersPalette_register(PaletteData *const pal_data)
 {
   static const PaletteClientFuncts transfers_palette_definition =
   {
@@ -274,5 +274,5 @@ bool MapTransfersPalette_register(PaletteData *const palette)
     .update_menus = update_menus,
   };
 
-  return Palette_register_client(palette, &transfers_palette_definition);
+  return Palette_register_client(pal_data, &transfers_palette_definition);
 }
