@@ -692,7 +692,9 @@ int truncate_string(char *string, int max_width)
       args.r[1] = (intptr_t)string;
       args.r[2] = 0; /* whole string */
       ON_ERR_RPT_RTN_V(wimp_text_op(&args), -1);
-      width = args.r[0];
+      assert(args.r[0] >= 0);
+      assert(args.r[0] <= INT_MAX);
+      width = (int)args.r[0];
     } else {
       /* Fixed size system font */
       width = 8 * (int)strlen(string);
