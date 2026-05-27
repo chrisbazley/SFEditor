@@ -150,7 +150,7 @@ static void redraw_object(Editor *const editor, Vertex const origin,
 
 /* ---------------- Public functions ---------------- */
 
-bool InfoPalette_register(PaletteData *const palette)
+bool InfoPalette_register(PaletteData *const pal_data)
 {
   static PaletteClientFuncts info_palette_definition =
   {
@@ -166,5 +166,5 @@ bool InfoPalette_register(PaletteData *const palette)
   };
   info_palette_definition.object_size = DrawInfo_get_size_os(false);
 
-  return Palette_register_client(palette, &info_palette_definition);
+  return Palette_register_client(pal_data, &info_palette_definition);
 }
