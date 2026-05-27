@@ -456,7 +456,7 @@ static int autocreate_handler(int const event_code, ToolboxEvent *const event,
 
 /* ---------------- Public functions ---------------- */
 
-void initialise()
+void initialise(void)
 {
   static int wimp_messages[] = {
         Wimp_MDataOpen,
