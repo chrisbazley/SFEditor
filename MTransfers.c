@@ -993,10 +993,10 @@ MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
         .tiles = {{0}},
       },
     };
-    MapAnimsIter iter;
-    for (MapPoint p = MapAnimsIter_get_first(&iter, map->anims, &bounds, &anim.param);
-         !MapAnimsIter_done(&iter);
-         p = MapAnimsIter_get_next(&iter, &anim.param))
+    MapAnimsIter anims_iter;
+    for (MapPoint p = MapAnimsIter_get_first(&anims_iter, map->anims, &bounds, &anim.param);
+         !MapAnimsIter_done(&anims_iter);
+         p = MapAnimsIter_get_next(&anims_iter, &anim.param))
     {
       if (MapEditSelection_is_selected(selected, p)) {
         /* The selection's wrapped bounding box may contain the coordinates of
