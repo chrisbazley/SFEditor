@@ -111,7 +111,7 @@ static bool draw_bitmap_big(MapTexBitmaps *const textures,
         }
 
         char tile_name[12];
-        sprintf(tile_name, "%zu", map_ref_to_num(tile_ref));
+        sprintf(tile_name, "%d", map_ref_to_num(tile_ref));
 
         int action = SPRITE_ACTION_OVERWRITE;
         void const *colours = NULL;
@@ -405,7 +405,7 @@ void DrawTiles_to_bbox(
       }
 
       span_value = value.tile_ref;
-      DEBUG("Span of %zu starts at %" PRIMapCoord ",%" PRIMapCoord "",
+      DEBUG("Span of %d starts at %" PRIMapCoord ",%" PRIMapCoord "",
             map_ref_to_num(value.tile_ref), scr_pos.x, scr_pos.y);
 
       BBox_set_min(&bbox, draw_pos);

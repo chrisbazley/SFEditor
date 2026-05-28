@@ -543,7 +543,7 @@ MapRef MapAnimsIter_get_current(MapAnimsIter const *const iter)
     anim_tile = anim->param.tiles[wrapped_frame];
     if (!map_ref_is_mask(anim_tile))
     {
-      DEBUG("Initial frame is %d (tile %zu)", wrapped_frame, map_ref_to_num(anim_tile));
+      DEBUG("Initial frame is %d (tile %d)", wrapped_frame, map_ref_to_num(anim_tile));
       break;
     }
   }

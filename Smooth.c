@@ -220,7 +220,7 @@ static void set_tile_smooth_data(MapTexGroups *const groups_data, MapRef const t
 {
   assert(groups_data != NULL);
   assert(groups_data->smooth_anchor != NULL);
-  size_t const index = map_ref_to_num(tile);
+  unsigned char const index = map_ref_to_num(tile);
   assert(index * sizeof(TileSmoothData) < (size_t)flex_size(&groups_data->smooth_anchor));
   assert(main == UCHAR_MAX || main < groups_data->count);
   assert(n == UCHAR_MAX || n < groups_data->count);
@@ -263,7 +263,7 @@ static inline TileSmoothData get_tile_smooth_data(
   assert(groups_data != NULL);
   assert(groups_data->smooth_anchor != NULL);
 
-  size_t const index = map_ref_to_num(tile);
+  unsigned char const index = map_ref_to_num(tile);
   if (index < groups_data->ntiles)
   {
     assert(index * sizeof(TileSmoothData) < (size_t)flex_size(&groups_data->smooth_anchor));
@@ -665,11 +665,11 @@ MapRef MapTexGroups_get_group_member(MapTexGroups *const groups_data, size_t con
 size_t MapTexGroups_get_group_of_tile(MapTexGroups *const groups_data, MapRef const tile)
 {
   assert(groups_data != NULL);
-  size_t const index = map_ref_to_num(tile);
+  unsigned char const index = map_ref_to_num(tile);
   assert(index * sizeof(TileSmoothData) < (size_t)flex_size(&groups_data->smooth_anchor));
 
   size_t const group = ((TileSmoothData *)groups_data->smooth_anchor)[index].main_group;
-  DEBUGF("Tile %zu is a member of texture group %zu\n", index, group);
+  DEBUGF("Tile %d is a member of texture group %zu\n", index, group);
   return group;
 }
 
@@ -711,16 +711,16 @@ void MapTexGroups_smooth(MapEditContext const *const map,
 
   TileSmoothData const our_tile = get_tile_smooth_data(groups_data, Ctile);
   if (our_tile.main_group == UCHAR_MAX) {
-    DEBUG("tile %zu is member of no group", map_ref_to_num(Ctile));
+    DEBUG("tile %d is member of no group", map_ref_to_num(Ctile));
     return; /* can do nothing if tile undefined */
   }
 
   if (our_tile.dont_smooth) {
-    DEBUG("tile %zu cannot be smoothed", map_ref_to_num(Ctile));
+    DEBUG("tile %d cannot be smoothed", map_ref_to_num(Ctile));
     return; /* some tiles are locked against change */
   }
 
-  DEBUG("tile:%zu (group %d)", map_ref_to_num(Ctile), our_tile.main_group);
+  DEBUG("tile:%d (group %d)", map_ref_to_num(Ctile), our_tile.main_group);
 
   DEBUG("tile's edges - N:%d E:%d S:%d W:%d", our_tile.north_group,
         our_tile.east_group, our_tile.south_group, our_tile.west_group);
@@ -800,7 +800,7 @@ void MapTexGroups_smooth(MapEditContext const *const map,
     //}
 
     if (score <= current_score) {
-      DEBUG("Discounting tile %zu (no better score %zu)",
+      DEBUG("Discounting tile %d (no better score %zu)",
             map_ref_to_num(member_tile),
             score);
       continue;
@@ -810,7 +810,7 @@ void MapTexGroups_smooth(MapEditContext const *const map,
       /* Add another tile to the set of possible replacements
          (it is just as suitable as those already found) */
       best_tiles[num_found++] = member_tile;
-      DEBUG("Adding tile %zu to list of %zu with score %zu",
+      DEBUG("Adding tile %d to list of %zu with score %zu",
             map_ref_to_num(member_tile), num_found, best_score);
       continue;
     }
@@ -821,7 +821,7 @@ void MapTexGroups_smooth(MapEditContext const *const map,
       num_found = 0;
       best_tiles[num_found++] = member_tile;
       best_score = score;
-      DEBUG("New best fit is tile %zu (scores %zu)",
+      DEBUG("New best fit is tile %d (scores %zu)",
             map_ref_to_num(member_tile), best_score);
     }
   } /* next member */
@@ -829,7 +829,7 @@ void MapTexGroups_smooth(MapEditContext const *const map,
   if (num_found > 0) {
     /* Use best replacement we find */
     MapRef random_tile = best_tiles[0 /*rand() % num_found*/];
-    DEBUG("Replacing with tile %zu (of %zu possibilities)",
+    DEBUG("Replacing with tile %d (of %zu possibilities)",
           map_ref_to_num(random_tile), num_found);
 
     MapEdit_write_tile(map, map_pos, random_tile, change_info);

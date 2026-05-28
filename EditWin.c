@@ -2981,7 +2981,7 @@ unsigned char const (*EditWin_get_sel_colours(EditWin const *const edit_win))[Nu
 bool EditWin_get_sel_tex_is_bright(EditWin const *const edit_win, MapRef const tile_num)
 {
   assert(edit_win != NULL);
-  size_t const index = map_ref_to_num(tile_num);
+  unsigned char const index = map_ref_to_num(tile_num);
   assert(index < MapTexBitmaps_get_count(&Session_get_textures(EditWin_get_session(edit_win))->tiles));
 
   return TEST_BITS(edit_win->sel_tex_bw_table[index / CHAR_BIT], 1u << (index % CHAR_BIT));
@@ -3072,7 +3072,7 @@ void EditWin_redraw_object(EditWin *const edit_win, MapPoint const pos,
     return;
   }
 
-  DEBUGF("Redraw object %zu to %zu (base %zu) at %" PRIMapCoord ", %" PRIMapCoord "\n",
+  DEBUGF("Redraw object %d to %d (base %d) at %" PRIMapCoord ", %" PRIMapCoord "\n",
           objects_ref_to_num(old_ref), objects_ref_to_num(new_ref), objects_ref_to_num(base_ref),
           pos.x, pos.y);
 
@@ -3125,7 +3125,7 @@ void EditWin_redraw_info(EditWin *const edit_win, MapPoint const pos)
 
 void EditWin_occluded_obj_changed(EditWin *const edit_win, MapPoint const pos, ObjRef const obj_ref)
 {
-  DEBUGF("Redraw occluded obj %zu at %" PRIMapCoord ",%" PRIMapCoord "\n",
+  DEBUGF("Redraw occluded obj %d at %" PRIMapCoord ",%" PRIMapCoord "\n",
          objects_ref_to_num(obj_ref), pos.x, pos.y);
   MapArea const obj_bbox = EditWin_get_ghost_obj_bbox(edit_win, pos, obj_ref);
   MapAreaCol_add(&edit_win->pending_redraws, &obj_bbox);
@@ -3151,7 +3151,7 @@ void EditWin_trig_changed(EditWin *const edit_win, MapPoint const pos,
     return;
   }
 
-  DEBUGF("Redraw trigger for object %zu at %" PRIMapCoord ", %" PRIMapCoord "\n",
+  DEBUGF("Redraw trigger for object %d at %" PRIMapCoord ", %" PRIMapCoord "\n",
           objects_ref_to_num(obj_ref), pos.x, pos.y);
 
   MapPoint const centre = ObjLayout_map_coords_to_centre(&edit_win->view, pos);
@@ -3206,7 +3206,7 @@ MapArea EditWin_get_ghost_obj_bbox(EditWin *const edit_win, MapPoint const pos, 
 
 void EditWin_add_ghost_obj(EditWin *const edit_win, MapPoint const pos, ObjRef const obj_ref)
 {
-  DEBUGF("Extend ghost bbox for obj %zu at %" PRIMapCoord ",%" PRIMapCoord "\n",
+  DEBUGF("Extend ghost bbox for obj %d at %" PRIMapCoord ",%" PRIMapCoord "\n",
          objects_ref_to_num(obj_ref), pos.x, pos.y);
   MapArea const obj_bbox = EditWin_get_ghost_obj_bbox(edit_win, pos, obj_ref);
   MapAreaCol_add(&edit_win->ghost_bboxes, &obj_bbox);

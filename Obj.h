@@ -106,7 +106,7 @@ typedef struct {
   unsigned char index;
 } ObjRef;
 
-static inline size_t objects_ref_to_num(ObjRef const obj_ref)
+static inline unsigned char objects_ref_to_num(ObjRef const obj_ref)
 {
   assert(obj_ref.index <= Obj_RefHill || obj_ref.index == Obj_RefMask);
   return obj_ref.index;
@@ -236,10 +236,10 @@ static inline void objects_set_ref(ObjectsData const *const objects,
 {
   assert(objects);
   assert(objects_ref_is_valid(objects, ref));
-  size_t const value = objects_ref_to_num(ref);
-  DEBUG("Set ref %zu at grid location %" PRIMapCoord ",%" PRIMapCoord,
+  unsigned char const value = objects_ref_to_num(ref);
+  DEBUG("Set ref %d at grid location %" PRIMapCoord ",%" PRIMapCoord,
         value, pos.x, pos.y);
-  ((unsigned char *)objects->flex)[objects_coords_to_index(pos)] = (unsigned char)value;
+  ((unsigned char *)objects->flex)[objects_coords_to_index(pos)] = value;
   /* If you're thinking of converting values here, don't! It's more
      efficient to do so when reading/writing the file. */
 }
@@ -251,15 +251,15 @@ static inline ObjRef objects_update_ref(ObjectsData const *const objects,
   assert(objects_ref_is_valid(objects, ref));
   size_t const index = objects_coords_to_index(pos);
 
-  size_t const current = ((unsigned char *)objects->flex)[index];
+  unsigned char const current = ((unsigned char *)objects->flex)[index];
   ObjRef const cref = objects_ref_from_num(current);
   assert(objects_ref_is_valid(objects, cref));
 
   if (!objects_ref_is_equal(cref, ref)) {
-    size_t const value = objects_ref_to_num(ref);
-    DEBUG("Change ref %zu to %zu at grid location %" PRIMapCoord ",%" PRIMapCoord,
+    unsigned char const value = objects_ref_to_num(ref);
+    DEBUG("Change ref %d to %d at grid location %" PRIMapCoord ",%" PRIMapCoord,
           current, value, pos.x, pos.y);
-    ((unsigned char *)objects->flex)[index] = (unsigned char)value;
+    ((unsigned char *)objects->flex)[index] = value;
   }
   return cref;
 }

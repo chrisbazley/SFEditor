@@ -185,7 +185,7 @@ static void update_menus(PaletteData *const pal_data)
 }
 
 
-static size_t p_object_to_index(PaletteData const *const pal_data, size_t const object)
+static size_t p_object_to_index(PaletteData const *const pal_data, int const object)
 {
   assert(pal_data);
 
@@ -198,7 +198,7 @@ static size_t p_object_to_index(PaletteData const *const pal_data, size_t const 
       pal_data->parent_editor, object);
   }
 
-  DEBUGF("Index is %zu from object %zu, count %zu\n", index, object, pal_data->num_indices);
+  DEBUGF("Index is %zu from object %d, count %zu\n", index, object, pal_data->num_indices);
   assert(index < pal_data->num_indices);
   return index;
 }
@@ -1433,14 +1433,15 @@ void Palette_destroy(PaletteData *const pal_data)
   E(remove_event_handlers_delete(pal_data->my_object));
 }
 
-void Palette_object_moved(PaletteData *const pal_data, size_t const old_object, size_t const new_object)
+void Palette_object_moved(PaletteData *const pal_data, unsigned char const old_object,
+                          unsigned char const new_object)
 {
-  DEBUG ("Palette object %p notified that item moved from %zu to %zu",
+  DEBUG ("Palette object %p notified that item moved from %d to %d",
          (void *)pal_data, old_object, new_object);
   assert(pal_data != NULL);
 
-  size_t const old_index = p_object_to_index(pal_data, old_object);
-  size_t const new_index = p_object_to_index(pal_data, new_object);
+  unsigned char const old_index = p_object_to_index(pal_data, old_object),
+                      new_index = p_object_to_index(pal_data, new_object);
 
   if (pal_data->sel_index != NULL_DATA_INDEX) {
     /* Adjust the index of the selected object, according to whether it was
@@ -1475,10 +1476,10 @@ void Palette_object_moved(PaletteData *const pal_data, size_t const old_object, 
   redraw_below_pos(pal_data, start_pos);
 }
 
-void Palette_redraw_object(PaletteData *const pal_data, size_t object)
+void Palette_redraw_object(PaletteData *const pal_data, unsigned char object)
 {
   assert(pal_data != NULL);
-  DEBUG ("Redrawing item %zu in palette %p (object 0x%x)", object, (void *)pal_data, pal_data->my_object);
+  DEBUG ("Redrawing item %d in palette %p (object 0x%x)", object, (void *)pal_data, pal_data->my_object);
   assert(pal_data->client_functions != NULL);
   size_t const index = p_object_to_index(pal_data, object);
 
@@ -1506,7 +1507,7 @@ void Palette_redraw_object(PaletteData *const pal_data, size_t object)
   }
 }
 
-void Palette_redraw_name(PaletteData *const pal_data, size_t const object)
+void Palette_redraw_name(PaletteData *const pal_data, unsigned char const object)
 {
   assert(pal_data != NULL);
   if (!pal_data->labels)
@@ -1528,13 +1529,13 @@ void Palette_redraw_name(PaletteData *const pal_data, size_t const object)
   }
 }
 
-void Palette_object_deleted(PaletteData *const pal_data, size_t const object)
+void Palette_object_deleted(PaletteData *const pal_data, unsigned char const object)
 {
   /* Notification that an object (at position 'index') has been deleted, so we
      must reformat our display. Call with index == NULL_DATA_INDEX if all
      objects have been deleted simultaneously. */
   assert(pal_data != NULL);
-  DEBUG ("Palette object %p notified that item %zu was deleted", (void *)pal_data,
+  DEBUG ("Palette object %p notified that item %d was deleted", (void *)pal_data,
          object);
   size_t const index = p_object_to_index(pal_data, object);
 
@@ -1580,11 +1581,11 @@ void Palette_object_deleted(PaletteData *const pal_data, size_t const object)
   update_menus(pal_data);
 }
 
-void Palette_object_added(PaletteData *const pal_data, size_t const object)
+void Palette_object_added(PaletteData *const pal_data, unsigned char const object)
 {
   /* Notification that an object is being added so that we can reformat our
      display. */
-  DEBUG ("Palette object %p notified that item was added at %zu", (void *)pal_data,
+  DEBUG ("Palette object %p notified that item was added at %d", (void *)pal_data,
          object);
   assert(pal_data != NULL);
   size_t const index = p_object_to_index(pal_data, object);
@@ -1665,9 +1666,9 @@ size_t Palette_get_selection(PaletteData const *const pal_data)
   return sel_index;
 }
 
-void Palette_set_selection(PaletteData *const pal_data, size_t const object)
+void Palette_set_selection(PaletteData *const pal_data, unsigned char const object)
 {
-  DEBUG ("About to select item %zu in palette object %p", object, (void *)pal_data);
+  DEBUG ("About to select item %d in palette object %p", object, (void *)pal_data);
   assert(pal_data != NULL);
 
   size_t const index = p_object_to_index(pal_data, object);

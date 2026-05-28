@@ -167,7 +167,7 @@ static MapArea get_mesh_bbox(ObjGfxMeshes *const meshes, View const *const view,
     DEBUGF("cloud_bbox B %" PRIMapCoord ",%" PRIMapCoord ",%" PRIMapCoord ",%" PRIMapCoord "\n",
            bbox.min.x, bbox.min.y, bbox.max.x, bbox.max.y);
   } else {
-    DEBUGF("%zu is not a polygonal object or bad object reference\n", objects_ref_to_num(obj_ref));
+    DEBUGF("%d is not a polygonal object or bad object reference\n", objects_ref_to_num(obj_ref));
   }
 
   /* Some views might have a number centred on the grid location; also used for bad refs. */
@@ -445,7 +445,7 @@ void DrawObjs_to_screen(
       }
 
       ObjRef const obj_ref = read_obj(cb_arg, map_pos);
-      DEBUGF("DrawObjs read object type %zu at %" PRIMapCoord ",%" PRIMapCoord "\n",
+      DEBUGF("DrawObjs read object type %d at %" PRIMapCoord ",%" PRIMapCoord "\n",
              objects_ref_to_num(obj_ref), map_pos.x, map_pos.y);
 
       if (objects_ref_is_none(obj_ref))
@@ -460,7 +460,7 @@ void DrawObjs_to_screen(
                             is_selected ? &view->sel_palette : palette, NULL,
                             is_ghost ? ObjGfxMeshStyle_Wireframe : ObjGfxMeshStyle_Filled);
         } else {
-          DEBUGF("Bad object reference %zu at %" PRIMapCoord ",%" PRIMapCoord "\n",
+          DEBUGF("Bad object reference %d at %" PRIMapCoord ",%" PRIMapCoord "\n",
                  objects_ref_to_num(obj_ref), map_pos.x, map_pos.y);
 
           if (!is_ghost) {

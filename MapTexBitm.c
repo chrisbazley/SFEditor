@@ -172,7 +172,7 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
 
   char name[SpriteNameSize] = {0};
   char numstr[16];
-  int nout = sprintf(numstr, "%zu", map_ref_to_num(tile_num));
+  int nout = sprintf(numstr, "%d", map_ref_to_num(tile_num));
   assert(nout >= 0); /* no formatting error */
   NOT_USED(nout);
   strncat(name, numstr, sizeof(name) - 1);
@@ -224,11 +224,11 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
   int const bright =
     rgb_brightness(red_total, green_total, blue_total);
 
-  DEBUG("Average colour for sprite %zu is %d,%d,%d (brightness %d)",
+  DEBUG("Average colour for sprite %d is %d,%d,%d (brightness %d)",
         map_ref_to_num(tile_num), red_total, green_total, blue_total, bright);
 
-  size_t const index = map_ref_to_num(tile_num);
-  size_t const bit = (size_t)1 << (index % CHAR_BIT);
+  unsigned char const index = map_ref_to_num(tile_num);
+  size_t const bit = (size_t)1 << index;
   char *const bw_table = tiles->bw_table;
   if (bright > MaxBrightness/2)
   {
@@ -270,11 +270,11 @@ static void dump_sprites(const MapTexBitmaps *const tiles, MapAngle const angle,
 
 /* ---------------- Public functions ---------------- */
 
-size_t MapTexBitmaps_get_count(const MapTexBitmaps *const tiles)
+int MapTexBitmaps_get_count(const MapTexBitmaps *const tiles)
 {
   assert(tiles != NULL);
   assert(tiles->count > 0);
-  DEBUG_VERBOSEF("No. of tiles is %zu\n", tiles->count);
+  DEBUG_VERBOSEF("No. of tiles is %d\n", tiles->count);
   return tiles->count;
 }
 
@@ -304,14 +304,15 @@ SFError MapTexBitmaps_read(MapTexBitmaps *const tiles, Reader *const reader)
   }
 
   assert(hdr.last_tile_num >= 0);
-  tiles->count = (size_t)hdr.last_tile_num + 1;
+  assert(hdr.last_tile_num <= INT_MAX - 1);
+  tiles->count = hdr.last_tile_num + 1;
 
-  if (!flex_alloc(&tiles->avcols_table, (int)tiles->count))
+  if (!flex_alloc(&tiles->avcols_table, tiles->count))
   {
     return SFERROR(NoMem);
   }
 
-  if (!flex_alloc(&tiles->bw_table, ((int)tiles->count + CHAR_BIT - 1) / CHAR_BIT))
+  if (!flex_alloc(&tiles->bw_table, (tiles->count + CHAR_BIT - 1) / CHAR_BIT))
   {
     flex_free(&tiles->avcols_table);
     return SFERROR(NoMem);
@@ -319,9 +320,9 @@ SFError MapTexBitmaps_read(MapTexBitmaps *const tiles, Reader *const reader)
 
   hourglass_on();
 
-  for (size_t tile_num = 0; tile_num < tiles->count && !SFError_fail(err); ++tile_num)
+  for (int tile_num = 0; tile_num < tiles->count && !SFError_fail(err); ++tile_num)
   {
-    hourglass_percentage((int)((tile_num * 100) / tiles->count));
+    hourglass_percentage((tile_num * 100) / tiles->count);
     err = tile_to_sprite(reader, tiles, map_ref_from_num(tile_num));
   }
 
@@ -359,7 +360,7 @@ void MapTexBitmaps_free(MapTexBitmaps *const tiles)
 bool MapTexBitmaps_is_bright(const MapTexBitmaps *const tiles, MapRef const tile_num)
 {
   assert(tiles != NULL);
-  size_t const index = map_ref_to_num(tile_num);
+  unsigned char const index = map_ref_to_num(tile_num);
   assert(index < tiles->count);
 
   char *const bw_table = tiles->bw_table;
@@ -370,7 +371,7 @@ bool MapTexBitmaps_is_bright(const MapTexBitmaps *const tiles, MapRef const tile
 int MapTexBitmaps_get_average_colour(const MapTexBitmaps *const tiles, MapRef const tile_num)
 {
   assert(tiles != NULL);
-  size_t const index = map_ref_to_num(tile_num);
+  unsigned char const index = map_ref_to_num(tile_num);
   assert(index < tiles->count);
 
   unsigned char *const avcols_table = tiles->avcols_table;
@@ -396,13 +397,13 @@ static bool make_mip_level(MapTexBitmaps *const tiles, MapAngle const angle, int
 
   hourglass_on();
 
-  for (size_t tile_num = 0; tile_num < tiles->count; ++tile_num)
+  for (int tile_num = 0; tile_num < tiles->count; ++tile_num)
   {
     hourglass_percentage((int)((tile_num * 100) / tiles->count));
 
     char name[SpriteNameSize] = {0};
     char numstr[32];
-    int nout = sprintf(numstr, "%zu", tile_num);
+    int nout = sprintf(numstr, "%d", tile_num);
     assert(nout >= 0); /* no formatting error */
     NOT_USED(nout);
     strncat(name, numstr, sizeof(name) - 1);
@@ -506,13 +507,13 @@ SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *const tiles, MapAngle angle, in
 
     hourglass_on();
 
-    for (size_t tile_num = 0; tile_num < tiles->count; ++tile_num)
+    for (int tile_num = 0; tile_num < tiles->count; ++tile_num)
     {
       hourglass_percentage((int)((tile_num * 100) / tiles->count));
 
       char name[SpriteNameSize] = {0};
       char numstr[32];
-      int nout = sprintf(numstr, "%zu", tile_num);
+      int nout = sprintf(numstr, "%d", tile_num);
       assert(nout >= 0); /* no formatting error */
       NOT_USED(nout);
       strncat(name, numstr, sizeof(name) - 1);

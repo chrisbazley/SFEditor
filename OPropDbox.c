@@ -227,7 +227,7 @@ static ObjRef index_to_obj_type(int const index)
 
 static int obj_type_to_index(ObjRef const obj_type)
 {
-  DEBUGF("Object type %zu to index\n", objects_ref_to_num(obj_type));
+  DEBUGF("Object type %d to index\n", objects_ref_to_num(obj_type));
   int low = 0;
 
 //  if (objects_ref_is_none(obj_type)) {
@@ -236,12 +236,12 @@ static int obj_type_to_index(ObjRef const obj_type)
 //  low++;
 
   if (objects_ref_is_object(obj_type)) {
-    return low + ((int)objects_ref_to_num(obj_type) - Obj_RefMinObject);
+    return low + (objects_ref_to_num(obj_type) - Obj_RefMinObject);
   }
   low += Obj_ObjectCount;
 
   if (objects_ref_is_cloud(obj_type)) {
-    return low + ((int)objects_ref_to_num(obj_type) - Obj_RefMinCloud);
+    return low + (objects_ref_to_num(obj_type) - Obj_RefMinCloud);
   }
   low += Obj_CloudCount;
 

@@ -484,7 +484,7 @@ void Session_redraw_map(EditSession *const session, MapArea const *const area)
 void Session_redraw_object(EditSession *const session, MapPoint const pos, ObjRef const base_ref, ObjRef old_ref, ObjRef const new_ref, bool const has_triggers)
 {
   assert(session != NULL);
-  DEBUGF("Redraw object %zu to %zu (base %zu) at %" PRIMapCoord ", %" PRIMapCoord "\n",
+  DEBUGF("Redraw object %d to %d (base %d) at %" PRIMapCoord ", %" PRIMapCoord "\n",
           objects_ref_to_num(old_ref), objects_ref_to_num(new_ref), objects_ref_to_num(base_ref),
           pos.x, pos.y);
 
@@ -508,7 +508,7 @@ void Session_redraw_info(EditSession *const session, MapPoint const pos)
 void Session_occluded_obj_changed(EditSession *const session, MapPoint const pos, ObjRef const obj_ref)
 {
   assert(session != NULL);
-  DEBUGF("Occluded object %zu changed at %" PRIMapCoord ", %" PRIMapCoord "\n",
+  DEBUGF("Occluded object %d changed at %" PRIMapCoord ", %" PRIMapCoord "\n",
           objects_ref_to_num(obj_ref), pos.x, pos.y);
 
   INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
@@ -531,7 +531,7 @@ void Session_occluded_info_changed(EditSession *const session, MapPoint const po
 void Session_trig_changed(EditSession *const session, MapPoint const pos, ObjRef const obj_ref, TriggerFullParam const fparam)
 {
   assert(session != NULL);
-  DEBUGF("Redraw trigger for object %zu at %" PRIMapCoord ", %" PRIMapCoord "\n",
+  DEBUGF("Redraw trigger for object %d at %" PRIMapCoord ", %" PRIMapCoord "\n",
           objects_ref_to_num(obj_ref), pos.x, pos.y);
 
   INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {

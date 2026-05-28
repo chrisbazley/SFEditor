@@ -51,7 +51,7 @@ typedef struct {
   MapRef (*thumb_tiles)[MapSnakesMiniMapHeight][MapSnakesMiniMapWidth];
 } MapSnakesMiniContext;
 
-static size_t read_mini_map(MapPoint const map_pos, SnakeContext *const ctx)
+static unsigned char read_mini_map(MapPoint const map_pos, SnakeContext *const ctx)
 {
   assert(ctx);
   MapSnakesMiniContext const *const mctx = CONTAINER_OF(ctx, MapSnakesMiniContext, super);
@@ -67,7 +67,8 @@ static size_t read_mini_map(MapPoint const map_pos, SnakeContext *const ctx)
   return map_ref_to_num((*mctx->thumb_tiles)[map_pos.y][map_pos.x]);
 }
 
-static void write_mini_map(MapPoint const map_pos, size_t const tile, SnakeContext *const ctx)
+static void write_mini_map(MapPoint const map_pos, unsigned char const tile,
+                           SnakeContext *const ctx)
 {
   assert(ctx);
   MapSnakesMiniContext const *const mctx = CONTAINER_OF(ctx, MapSnakesMiniContext, super);
@@ -218,13 +219,14 @@ void MapSnakes_get_name(const MapSnakes *const snakes_data, size_t const snake,
   Snakes_get_name(&snakes_data->super, snake, snake_name, n);
 }
 
-static size_t read_map(MapPoint const map_pos, SnakeContext *const ctx)
+static unsigned char read_map(MapPoint const map_pos, SnakeContext *const ctx)
 {
   MapSnakesContext const *const mctx = CONTAINER_OF(ctx, MapSnakesContext, super);
   return map_ref_to_num(MapEdit_read_tile(mctx->map, map_pos));
 }
 
-static void write_map(MapPoint const map_pos, size_t const tile, SnakeContext *const ctx)
+static void write_map(MapPoint const map_pos, unsigned char const tile,
+                      SnakeContext *const ctx)
 {
   MapSnakesContext const *const mctx = CONTAINER_OF(ctx, MapSnakesContext, super);
   MapEdit_write_tile(mctx->map, map_pos, map_ref_from_num(tile), mctx->change_info);

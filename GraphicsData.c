@@ -42,7 +42,7 @@ enum {
 };
 
 static bool get_name_from_type(StringBuffer *const output_string,
-  char const *const graphics_set, int const type_prefix, size_t const obj_no)
+  char const *const graphics_set, int const type_prefix, unsigned char const obj_no)
 {
   bool success = false;
 
@@ -55,7 +55,7 @@ static bool get_name_from_type(StringBuffer *const output_string,
     char *const toktail = stringbuffer_prepare_append(&token, &toksize);
     if (toktail)
     {
-      int const nchars = sprintf(toktail, "@%c%zu", type_prefix, obj_no);
+      int const nchars = sprintf(toktail, "@%c%d", type_prefix, obj_no);
       assert(nchars >= 0);
       stringbuffer_finish_append(&token, (size_t)nchars);
 
@@ -106,7 +106,7 @@ bool get_objname_from_type(StringBuffer *const output_string,
     char const *const token = categories[height_cat];
 
     char id_string[16];
-    sprintf(id_string, "%zu", objects_ref_to_num(obj_no) - Obj_RefMinCloud);
+    sprintf(id_string, "%d", objects_ref_to_num(obj_no) - Obj_RefMinCloud);
 
     if (messagetrans_lookup(&messages, token,
                              NULL, 0, &msgsize, 1, id_string) == NULL)

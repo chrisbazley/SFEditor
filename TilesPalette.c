@@ -308,13 +308,13 @@ static size_t grid_to_index(Editor *const editor, Vertex grid_pos, size_t num_co
 
   /* Be careful of blank grid locations at tail of group */
   size_t const member_index = ((size_t)(grid_pos.y - group_start_row) * num_columns) + (size_t)grid_pos.x;
-  size_t object_no;
+  unsigned char object_no;
   if (member_index < member_count) {
     object_no = include_mask && (group_index == num_groups - 1) ?
        MapTexBitmaps_get_count(&textures->tiles) :
        map_ref_to_num(MapTexGroups_get_group_member(&textures->groups, group_index, member_index));
 
-    DEBUGF("Grid location is member %zu of group %zu: tile %zu\n", member_index,
+    DEBUGF("Grid location is member %zu of group %zu: tile %d\n", member_index,
       group_index, object_no);
   } else {
     DEBUGF("Grid location is off the tail of group %zu\n", group_index);
@@ -448,20 +448,23 @@ static void edit(Editor *const editor)
   MapTexGroups_edit(filenames_get(filenames, DataType_MapTextures));
 }
 
-static size_t index_to_object(Editor *const editor, size_t const index)
+static unsigned char index_to_object(Editor *const editor, size_t const index)
 {
   EditSession *const session = Editor_get_session(editor);
-  size_t object_no = index;
+  unsigned char object_no;
   MapTex *const textures = Session_get_textures(session);
 
-  if (index >= MapTexBitmaps_get_count(&textures->tiles)) {
+  if (index >= (size_t)MapTexBitmaps_get_count(&textures->tiles)) {
     assert(Session_has_data(session, DataType_OverlayMap));
     object_no = Map_RefMask;
+  } else {
+    object_no = (unsigned char)index;
+    assert(object_no == index);
   }
   return object_no;
 }
 
-static size_t object_to_index(Editor *const editor, size_t const object_no)
+static size_t object_to_index(Editor *const editor, unsigned char const object_no)
 {
   EditSession *const session = Editor_get_session(editor);
   size_t index = object_no;

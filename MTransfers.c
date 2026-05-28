@@ -398,7 +398,7 @@ static void write_anims(MapTransfer const *const transfer,
 
     for (size_t i = 0; i < AnimsNFrames; ++i)
     {
-      writer_fputc((int)map_ref_to_num(anim.param.tiles[i]), writer);
+      writer_fputc(map_ref_to_num(anim.param.tiles[i]), writer);
     }
   }
 }

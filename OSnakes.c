@@ -44,13 +44,14 @@
 #include "Session.h"
 #include "ObjEditChg.h"
 
-static size_t read_map(MapPoint const map_pos, SnakeContext *const ctx)
+static unsigned char read_map(MapPoint const map_pos, SnakeContext *const ctx)
 {
   ObjSnakesContext const *const octx = CONTAINER_OF(ctx, ObjSnakesContext, super);
   return objects_ref_to_num(ObjectsEdit_read_ref(octx->objects, map_pos));
 }
 
-static void write_map(MapPoint const map_pos, size_t const ref_num, SnakeContext *const ctx)
+static void write_map(MapPoint const map_pos, unsigned char const ref_num,
+                      SnakeContext *const ctx)
 {
   ObjSnakesContext const *const octx = CONTAINER_OF(ctx, ObjSnakesContext, super);
 

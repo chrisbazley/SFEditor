@@ -13,7 +13,7 @@
 
 struct MapTexBitmaps
 {
-  size_t count;
+  int count;
   bool have_sprites[MapAngle_Count][MapTexSizeLog2+1];
   SprMem sprites[MapAngle_Count][MapTexSizeLog2+1];
   void *avcols_table; /* flex anchor (for x1 zoom level) */

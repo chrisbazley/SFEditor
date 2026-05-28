@@ -342,7 +342,7 @@ typedef struct {
   MapArea redraw_area;
 } WriteShapeContext;
 
-static size_t read_shape(MapPoint const pos, void *const arg)
+static unsigned char read_shape(MapPoint const pos, void *const arg)
 {
   DEBUGF("Read shape pos {%" PRIMapCoord ", %" PRIMapCoord "}\n", pos.x, pos.y);
 
@@ -425,7 +425,7 @@ void MapEdit_global_replace(MapEditContext const *const map,
 {
   assert(map != NULL);
   assert(map->overlay || !map_ref_is_mask(replace));
-  DEBUG("Will globally replace tile %zu with %zu", map_ref_to_num(find),
+  DEBUG("Will globally replace tile %d with %d", map_ref_to_num(find),
         map_ref_to_num(replace));
 
   if (map_ref_is_equal(find, replace)) {
@@ -470,7 +470,7 @@ void MapEdit_flood_fill(MapEditContext const *const map,
   MapRef const replace,  MapPoint const pos,
   MapEditChanges *const change_info)
 {
-  DEBUG("Will locally replace with %zu (flood at %" PRIMapCoord ",%" PRIMapCoord ")",
+  DEBUG("Will locally replace with %d (flood at %" PRIMapCoord ",%" PRIMapCoord ")",
         map_ref_to_num(replace), pos.x, pos.y);
 
   MapRef const find = MapEdit_read_tile(map, pos);
@@ -542,7 +542,7 @@ void MapEdit_copy_to_area(MapEditContext const *const map,
 void MapEdit_write_tile(MapEditContext const *const map, MapPoint const pos,
   MapRef const tile_num, MapEditChanges *const change_info)
 {
-  DEBUG_VERBOSE("Putting tile no. %zu at map location %" PRIMapCoord ",%" PRIMapCoord,
+  DEBUG_VERBOSE("Putting tile no. %d at map location %" PRIMapCoord ",%" PRIMapCoord,
     map_ref_to_num(tile_num), pos.x, pos.y);
 
   assert(map != NULL);
@@ -665,7 +665,7 @@ bool MapEdit_check_tile_range(MapEditContext const *const map,
     if (map->base != NULL) {
       MapRef const map_tile = map_get_tile(map->base, p);
       if (map_ref_to_num(map_tile) >= num_tiles) {
-        DEBUG("Base tile %zu at location %" PRIMapCoord ",%" PRIMapCoord
+        DEBUG("Base tile %d at location %" PRIMapCoord ",%" PRIMapCoord
               " not in range 0,%zu", map_ref_to_num(map_tile), p.x, p.y,
               num_tiles - 1);
         return false;
@@ -676,7 +676,7 @@ bool MapEdit_check_tile_range(MapEditContext const *const map,
       MapRef const map_tile = map_get_tile(map->overlay, p);
       if (!map_ref_is_mask(map_tile) &&
           map_ref_to_num(map_tile) >= num_tiles) {
-        DEBUG("Overlay tile %zu at location %" PRIMapCoord ",%" PRIMapCoord
+        DEBUG("Overlay tile %d at location %" PRIMapCoord ",%" PRIMapCoord
               " not in range 0,%zu", map_ref_to_num(map_tile), p.x, p.y,
               num_tiles - 1);
         return false;

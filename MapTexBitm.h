@@ -28,7 +28,7 @@ enum {
 typedef struct MapTexBitmaps MapTexBitmaps;
 
 void MapTexBitmaps_init(MapTexBitmaps *tiles);
-size_t MapTexBitmaps_get_count(const MapTexBitmaps *tiles);
+int MapTexBitmaps_get_count(const MapTexBitmaps *tiles);
 SFError MapTexBitmaps_read(MapTexBitmaps *tiles, struct Reader *reader);
 void MapTexBitmaps_free(MapTexBitmaps *tiles);
 bool MapTexBitmaps_is_bright(const MapTexBitmaps *tiles, MapRef tile_num);

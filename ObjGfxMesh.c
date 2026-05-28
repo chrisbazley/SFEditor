@@ -153,7 +153,7 @@ static ObjGfxMesh *obj_array_get(ObjGfxMeshArray const *const array, ObjRef cons
 {
   assert(array);
   assert(array->ocount <= array->oalloc);
-  size_t const n = objects_ref_to_num(obj_ref);
+  unsigned char const n = objects_ref_to_num(obj_ref);
   assert(n < array->ocount);
   assert(array->objects);
   return array->objects[n];
@@ -1035,7 +1035,7 @@ MapArea ObjGfxMeshes_get_ground_bbox(ObjGfxMeshes *const meshes, ObjRef const ob
     assert(MapArea_is_valid(&obj->misc.bounding_box[angle]));
   }
 
-  DEBUG("Object type %zu covers area %" PRIMapCoord ",%" PRIMapCoord
+  DEBUG("Object type %d covers area %" PRIMapCoord ",%" PRIMapCoord
         ",%" PRIMapCoord ",%" PRIMapCoord,
         objects_ref_to_num(obj_ref), obj->misc.bounding_box[angle].min.x,
         obj->misc.bounding_box[angle].min.y,
@@ -1194,7 +1194,7 @@ void ObjGfxMeshes_plot(ObjGfxMeshes const *const meshes,
                        ObjGfxMeshStyle const style)
 {
   assert(meshes);
-  DEBUG("Request to plot object %zu at coords %d,%d (world coords %ld,%ld,%ld)",
+  DEBUG("Request to plot object %d at coords %d,%d (world coords %ld,%ld,%ld)",
         objects_ref_to_num(obj_ref), centre.x, centre.y, pos.x, pos.y, pos.z);
 
   static Vertex3D rot_vertices[ObjVertexMax];

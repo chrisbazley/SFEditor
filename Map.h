@@ -88,13 +88,13 @@ typedef struct {
   unsigned char index;
 } MapRef;
 
-static inline size_t map_ref_to_num(MapRef const tile)
+static inline unsigned char map_ref_to_num(MapRef const tile)
 {
   assert(tile.index <= Map_RefMax || tile.index == Map_RefMask);
   return tile.index;
 }
 
-static inline MapRef map_ref_from_num(size_t const tile)
+static inline MapRef map_ref_from_num(unsigned char const tile)
 {
   assert(tile <= Map_RefMax || tile == Map_RefMask);
   return (MapRef){(unsigned char)tile};
@@ -143,8 +143,8 @@ static inline void map_set_tile(MapData const *const map,
 {
   assert(map);
   assert(map_ref_is_valid(map, tile));
-  size_t const value = map_ref_to_num(tile);
-  ((unsigned char *)map->flex)[map_coords_to_index(pos)] = (unsigned char)value;
+  unsigned char const value = map_ref_to_num(tile);
+  ((unsigned char *)map->flex)[map_coords_to_index(pos)] = value;
   /* If you're thinking of converting values here, don't! It's more
      efficient to do so when reading/writing the file. */
 }
@@ -156,15 +156,15 @@ static inline MapRef map_update_tile(MapData const *const map,
   assert(map_ref_is_valid(map, tile));
   size_t const index = map_coords_to_index(pos);
 
-  size_t const current = ((unsigned char *)map->flex)[index];
+  unsigned char const current = ((unsigned char *)map->flex)[index];
   MapRef const ctile = map_ref_from_num(current);
   assert(map_ref_is_valid(map, ctile));
 
   if (!map_ref_is_equal(ctile, tile)) {
-    size_t const value = map_ref_to_num(tile);
-    DEBUG("Changing tile %zu to %zu at grid location %" PRIMapCoord ",%" PRIMapCoord,
+    unsigned char const value = map_ref_to_num(tile);
+    DEBUG("Changing tile %d to %d at grid location %" PRIMapCoord ",%" PRIMapCoord,
           current, value, pos.x, pos.y);
-    ((unsigned char *)map->flex)[index] = (unsigned char)value;
+    ((unsigned char *)map->flex)[index] = value;
   }
   return ctile;
 }

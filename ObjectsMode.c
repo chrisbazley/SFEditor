@@ -865,7 +865,7 @@ static ObjRef get_obj_at_point(ObjGfxMeshes *const meshes, View const *const vie
   ObjRef obj_ref = read_ref_if_select_overlap(meshes, view, read_obj_ctx, search_centre, &sample_point);
 
   if (!objects_ref_is_none(obj_ref)) {
-    DEBUG("Found object %zu at exact location", objects_ref_to_num(obj_ref));
+    DEBUG("Found object %d at exact location", objects_ref_to_num(obj_ref));
     *grid_coords_out = search_centre;
   } else {
     /* Nothing at the specified grid location, so search outwards  */
@@ -886,7 +886,7 @@ static ObjRef get_obj_at_point(ObjGfxMeshes *const meshes, View const *const vie
   }
 
   if (!objects_ref_is_none(obj_ref)) {
-    DEBUG("Found overlapping object of type %zu at %" PRIMapCoord ",%" PRIMapCoord,
+    DEBUG("Found overlapping object of type %d at %" PRIMapCoord ",%" PRIMapCoord,
           objects_ref_to_num(obj_ref),
           grid_coords_out->x, grid_coords_out->y);
   } else {
@@ -1111,7 +1111,7 @@ static void ObjectsMode_clip_overlay(Editor *const editor)
 static void set_selected_obj(Editor *const editor, ObjRef const obj_ref)
 {
   assert(editor);
-  size_t const index = objects_ref_to_num(obj_ref);
+  int const index = objects_ref_to_num(obj_ref);
   Palette_set_selection(&editor->palette_data, index);
 }
 
@@ -1455,7 +1455,7 @@ static void ObjectsMode_draw_numbers(Editor *const editor,
   /* Calculate which rows and columns to redraw */
   MapArea const scr_area = ObjLayout_scr_area_from_fine(EditWin_get_view(edit_win), redraw_area);
 
-  size_t last_obj = SIZE_MAX; /* impossible */
+  int last_obj = INT_MAX; /* impossible */
 
   PaletteEntry const bg_sel_colour = opposite_col(bg_colour);
   unsigned int const bg_brightness = palette_entry_brightness(bg_colour);
@@ -1495,9 +1495,9 @@ static void ObjectsMode_draw_numbers(Editor *const editor,
       font_fg_colour = (is_sel ? bg_sel_brightness : bg_brightness) >
                        MaxBrightness/2 ? PAL_BLACK : PAL_WHITE;
 
-      size_t const this_obj = objects_ref_to_num(obj_ref);
+      unsigned char const this_obj = objects_ref_to_num(obj_ref);
       if (last_obj != this_obj) {
-        sprintf(string, "%zu", this_obj);
+        sprintf(string, "%d", this_obj);
         plot_get_string_bbox(handle, string, &text_bbox);
         last_obj = this_obj;
       }

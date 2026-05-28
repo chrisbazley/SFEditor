@@ -16,8 +16,8 @@
 typedef struct Snakes Snakes;
 
 struct SnakeContext;
-typedef void SnakesWriteFunction(MapPoint, size_t, struct SnakeContext *);
-typedef size_t SnakesReadFunction(MapPoint, struct SnakeContext *);
+typedef void SnakesWriteFunction(MapPoint, unsigned char, struct SnakeContext *);
+typedef unsigned char SnakesReadFunction(MapPoint, struct SnakeContext *);
 
 typedef enum {
   DIR_NORTH, DIR_EAST, DIR_SOUTH, DIR_WEST, DIR_START

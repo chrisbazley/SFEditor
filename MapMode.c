@@ -313,7 +313,7 @@ static void draw_chequered_bbox(void *cb_arg, BBox const *bbox, MapRef const val
   RedrawCheqValue current = map_ref_to_num(value);
   assert(data);
   assert(bbox);
-  DEBUGF("BBox value %zu min %d,%d max %d,%d\n", map_ref_to_num(value),
+  DEBUGF("BBox value %d min %d,%d max %d,%d\n", map_ref_to_num(value),
          bbox->xmin, bbox->ymin, bbox->xmax, bbox->ymax);
 
   if (current != RedrawCheqValue_Skip) {
@@ -2002,10 +2002,10 @@ static void MapMode_draw_numbers(Editor *const editor,
 #endif
 
       /* Only generate text string if different from last map location */
-      size_t const this_tile = map_ref_to_num(tile_no);
+      unsigned char const this_tile = map_ref_to_num(tile_no);
       if (last_tile != this_tile) {
         /* Generate string and calculate width */
-        sprintf(string, "%zu", this_tile);
+        sprintf(string, "%d", this_tile);
         string_size.x = plot_get_font_width(handle, string);
         last_tile = this_tile;
       }
@@ -2210,7 +2210,7 @@ static void draw_shape_ghost(MapArea const *const bbox, void *const cb_arg)
 static void ghost_paste_bbox(void *const cb_arg, BBox const *const bbox, MapRef const value)
 {
   const DrawTransferShadow *const args = cb_arg;
-  DEBUGF("Drawing ghost value %zu with bbox {%d,%d,%d,%d}\n", map_ref_to_num(value),
+  DEBUGF("Drawing ghost value %d with bbox {%d,%d,%d,%d}\n", map_ref_to_num(value),
          bbox->xmin, bbox->ymin, bbox->xmax, bbox->ymax);
 
   if (!map_ref_is_mask(value)) {

@@ -9,7 +9,7 @@
 
 #include "MapCoord.h"
 
-typedef size_t ShapesReadFunction(MapPoint, void *);
+typedef unsigned char ShapesReadFunction(MapPoint, void *);
 typedef void ShapesWriteFunction(MapArea const *, void *);
 
 void Shapes_tri(ShapesWriteFunction *write, void *arg,

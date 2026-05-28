@@ -168,7 +168,7 @@ static void draw_sprite(MapPropDbox const *const prop,
     /* Set the tile sprite to appear in the icon */
     assert(plot_icon->data.is.sprite_name_length >= 0);
     sprintf(plot_icon->data.is.sprite,
-             "%zu", map_ref_to_num(prop->tiles_to_display[t]));
+             "%d", map_ref_to_num(prop->tiles_to_display[t]));
 
     E(wimp_plot_icon(plot_icon));
   }
@@ -308,14 +308,14 @@ static void setup_win(MapPropDbox *const prop)
     E(set_gadget_faded(prop->my_object, gadgets_tile_num[t], map_ref_is_mask((prop->anim.tiles[t]))));
 
     E(numberrange_set_value(0, prop->my_object, gadgets_tile_num[t],
-      map_ref_is_mask(prop->anim.tiles[t]) ? 0 : (int)map_ref_to_num(prop->anim.tiles[t])));
+      map_ref_is_mask(prop->anim.tiles[t]) ? 0 : map_ref_to_num(prop->anim.tiles[t])));
 
     if (map_ref_is_equal(prop->tiles_to_display[t], prop->anim.tiles[t])) {
       continue;
     }
 
     prop->tiles_to_display[t] = prop->anim.tiles[t];
-    DEBUG("Tile to display for frame %zu is %zu", t, map_ref_to_num(prop->tiles_to_display[t]));
+    DEBUG("Tile to display for frame %zu is %d", t, map_ref_to_num(prop->tiles_to_display[t]));
     //redraw_gadget(prop->my_object, gadgets_tile_display[t]);
     update_sprite(prop, prop->my_object, t);
   } /* next t */
@@ -481,10 +481,10 @@ static int numberrange_value_changed(int const event_code, ToolboxEvent *const e
 
     if (gadgets_tile_num[frame_index] == id_block->self_component) {
       if (nrvce->new_value >= 0 &&
-          (size_t)nrvce->new_value < MapTexBitmaps_get_count(&Session_get_textures(session)->tiles)) {
+          nrvce->new_value < MapTexBitmaps_get_count(&Session_get_textures(session)->tiles)) {
 
         prop->tiles_to_display[frame_index] = map_ref_from_num((size_t)nrvce->new_value);
-        DEBUG("Tile to display for frame %zu is now %zu", frame_index,
+        DEBUG("Tile to display for frame %zu is now %d", frame_index,
               map_ref_to_num(prop->tiles_to_display[frame_index]));
 
         //redraw_gadget(id_block->self_id, gadgets_tile_display[frame_index]);
@@ -528,7 +528,7 @@ static int optionbutton_state_changed(int const event_code, ToolboxEvent *const 
       }
     }
 
-    DEBUG("Tile to display for frame %zu is now %zu", frame_index,
+    DEBUG("Tile to display for frame %zu is now %d", frame_index,
           map_ref_to_num(prop->tiles_to_display[frame_index]));
 
     //redraw_gadget(id_block->self_id, gadgets_tile_display[frame_index]);
@@ -679,7 +679,7 @@ static int redraw_window(int const event_code, WimpPollBlock *const event,
           block.redraw_area.ymax);
 
     for (size_t t = 0; t < ARRAY_SIZE(gadgets_tile_display); t++) {
-      DEBUG("Tile to display for frame %zu is %zu", t, map_ref_to_num(prop->tiles_to_display[t]));
+      DEBUG("Tile to display for frame %zu is %d", t, map_ref_to_num(prop->tiles_to_display[t]));
 
       if (E(gadget_get_bbox(0, id_block->self_id,
                             gadgets_tile_display[t], &plot_icon.bbox)))

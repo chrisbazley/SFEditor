@@ -34,8 +34,8 @@ typedef void PaletteReloadFunction(struct Editor *editor);
 typedef void PaletteEditFunction(struct Editor *editor);
 typedef void PaletteDeleteAllFunction(struct Editor *editor);
 typedef void PaletteDeleteFunction(struct Editor *editor, size_t index);
-typedef size_t PaletteIndexToObject(struct Editor *editor, size_t index);
-typedef size_t PaletteObjectToIndex(struct Editor *editor, size_t object_no);
+typedef unsigned char PaletteIndexToObject(struct Editor *editor, size_t index);
+typedef size_t PaletteObjectToIndex(struct Editor *editor, unsigned char object_no);
 typedef SchedulerTime PaletteAnimateFunction(struct Editor *editor, SchedulerTime time_no);
 
 typedef void PaletteUpdateMenusFunction(PaletteData *pal_data);
@@ -90,13 +90,14 @@ struct EditSession *Palette_get_session(PaletteData const *pal_data);
 
 bool Palette_is_showing(PaletteData const *pal_data);
 size_t Palette_get_selection(PaletteData const *pal_data);
-void Palette_set_selection(PaletteData *pal_data, size_t object);
+void Palette_set_selection(PaletteData *pal_data, unsigned char object);
 bool Palette_get_ordered_flag(PaletteData const *pal_data);
 bool Palette_get_labels_flag(PaletteData const *pal_data);
-void Palette_object_added(PaletteData *pal_data, size_t object);
-void Palette_redraw_object(PaletteData *pal_data, size_t object);
-void Palette_redraw_name(PaletteData *pal_data, size_t object);
-void Palette_object_moved(PaletteData *pal_data, size_t old_object, size_t new_object);
-void Palette_object_deleted(PaletteData *pal_data, size_t object);
+void Palette_object_added(PaletteData *pal_data, unsigned char object);
+void Palette_redraw_object(PaletteData *pal_data, unsigned char object);
+void Palette_redraw_name(PaletteData *pal_data, unsigned char object);
+void Palette_object_moved(PaletteData *pal_data, unsigned char old_object,
+                          unsigned char new_object);
+void Palette_object_deleted(PaletteData *pal_data, unsigned char object);
 
 #endif

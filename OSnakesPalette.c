@@ -78,7 +78,7 @@ typedef struct {
   ObjRef (*thumb_obj_refs)[THUMB_TILE_SIZE][THUMB_TILE_WIDTH];
 } ObjSnakesMiniContext;
 
-static size_t read_mini_map(MapPoint const map_pos, SnakeContext *const ctx)
+static unsigned char read_mini_map(MapPoint const map_pos, SnakeContext *const ctx)
 {
   assert(ctx);
   ObjSnakesMiniContext const *const mctx = CONTAINER_OF(ctx, ObjSnakesMiniContext, super);
@@ -94,7 +94,8 @@ static size_t read_mini_map(MapPoint const map_pos, SnakeContext *const ctx)
   return objects_ref_to_num((*mctx->thumb_obj_refs)[map_pos.y][map_pos.x]);
 }
 
-static void write_mini_map(MapPoint const map_pos, size_t const obj_ref, SnakeContext *const ctx)
+static void write_mini_map(MapPoint const map_pos, unsigned char const obj_ref,
+                           SnakeContext *const ctx)
 {
   assert(ctx);
   ObjSnakesMiniContext const *const mctx = CONTAINER_OF(ctx, ObjSnakesMiniContext, super);

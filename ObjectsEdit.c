@@ -57,7 +57,7 @@ static MapPoint get_coll_size(ObjGfxMeshes *const meshes, ObjRef const obj_ref)
   }
 
   if (objects_ref_to_num(obj_ref) >= ObjGfxMeshes_get_ground_count(meshes)) {
-    DEBUGF("Bad object reference %zu\n", objects_ref_to_num(obj_ref));
+    DEBUGF("Bad object reference %d\n", objects_ref_to_num(obj_ref));
     return (MapPoint){0,0};
   }
 
@@ -245,8 +245,8 @@ static void clear_overlapped(ObjEditContext const *const objects,
       continue;
     }
 
-    DEBUGF("Delete object %zu at %" PRIMapCoord ",%" PRIMapCoord
-           " (fully occluded by object ref %zu at %" PRIMapCoord ",%" PRIMapCoord ")\n",
+    DEBUGF("Delete object %d at %" PRIMapCoord ",%" PRIMapCoord
+           " (fully occluded by object ref %d at %" PRIMapCoord ",%" PRIMapCoord ")\n",
            objects_ref_to_num(obj_ref), p.x, p.y,
            objects_ref_to_num(new_disp_ref), grid_pos.x, grid_pos.y);
 
@@ -313,7 +313,7 @@ typedef struct {
   ObjGfxMeshes *meshes;
 } WriteShapeContext;
 
-static size_t read_shape(MapPoint const pos, void *const arg)
+static unsigned char read_shape(MapPoint const pos, void *const arg)
 {
   DEBUGF("Read shape pos {%" PRIMapCoord ", %" PRIMapCoord "}\n", pos.x, pos.y);
 
@@ -421,7 +421,7 @@ void ObjectsEdit_global_replace(ObjEditContext *const objects,
 {
   assert(objects != NULL);
   assert(objects->overlay || !objects_ref_is_mask(replace));
-  DEBUG("Will globally replace object %zu with %zu",
+  DEBUG("Will globally replace object %d with %d",
         objects_ref_to_num(find), objects_ref_to_num(replace));
 
   if (objects_ref_is_equal(find, replace)) {
@@ -444,7 +444,7 @@ void ObjectsEdit_flood_fill(ObjEditContext *const objects,
   ObjRef const replace, MapPoint const pos, ObjEditChanges *const change_info,
   ObjGfxMeshes *const meshes)
 {
-  DEBUG("Will locally replace with %zu (flood at %" PRIMapCoord ",%" PRIMapCoord ")",
+  DEBUG("Will locally replace with %d (flood at %" PRIMapCoord ",%" PRIMapCoord ")",
         objects_ref_to_num(replace), pos.x, pos.y);
 
   ObjRef const find = ObjectsEdit_read_ref(objects, pos);
@@ -686,7 +686,7 @@ void ObjectsEdit_write_ref(ObjEditContext const *const objects, MapPoint const p
   ObjRef const ref_num, TriggersWipeAction const wipe_action,
   ObjEditChanges *const change_info, ObjGfxMeshes *const meshes)
 {
-  DEBUG("Putting ref no. %zu at objects location %" PRIMapCoord ",%" PRIMapCoord,
+  DEBUG("Putting ref no. %d at objects location %" PRIMapCoord ",%" PRIMapCoord,
     objects_ref_to_num(ref_num), pos.x, pos.y);
 
   assert(objects != NULL);
@@ -739,7 +739,7 @@ bool ObjectsEdit_check_ref_range(ObjEditContext const *const objects,
       ObjRef const objects_ref = objects_get_ref(objects->base, p);
       if (objects_ref_is_object(objects_ref) &&
           objects_ref_to_num(objects_ref) >= num_refs) {
-        DEBUG("Base ref %zu at location %" PRIMapCoord ",%" PRIMapCoord
+        DEBUG("Base ref %d at location %" PRIMapCoord ",%" PRIMapCoord
               " not in range 0,%zu", objects_ref_to_num(objects_ref), p.x, p.y,
               num_refs - 1);
         return false;
@@ -750,7 +750,7 @@ bool ObjectsEdit_check_ref_range(ObjEditContext const *const objects,
       ObjRef const objects_ref = objects_get_ref(objects->overlay, p);
       if (objects_ref_is_object(objects_ref) &&
           objects_ref_to_num(objects_ref) >= num_refs) {
-        DEBUG("Overlay ref %zu at location %" PRIMapCoord ",%" PRIMapCoord
+        DEBUG("Overlay ref %d at location %" PRIMapCoord ",%" PRIMapCoord
               " not in range 0,%zu", objects_ref_to_num(objects_ref), p.x, p.y,
               num_refs - 1);
         return false;
@@ -791,7 +791,7 @@ bool ObjectsEdit_can_place(ObjEditContext const *const objects, MapPoint const g
   ObjGfxMeshes *const meshes, ObjEditSelection *const occluded)
 {
   if (!objects_can_place(grid_pos)) {
-    DEBUGF("Can't place object %zu at %" PRIMapCoord ",%" PRIMapCoord " (map limit)\n",
+    DEBUGF("Can't place object %d at %" PRIMapCoord ",%" PRIMapCoord " (map limit)\n",
            objects_ref_to_num(value), grid_pos.x, grid_pos.y);
     return false;
   }
@@ -826,8 +826,8 @@ bool ObjectsEdit_can_place(ObjEditContext const *const objects, MapPoint const g
       MapArea const obj_area = {MapPoint_sub(p, coll_size), MapPoint_add(p, coll_size)};
 
       if (objects_overlap(&my_obj_area, &obj_area)) {
-        DEBUGF("Object %zu at %" PRIMapCoord ",%" PRIMapCoord
-               " overlaps object ref %zu at %" PRIMapCoord ",%" PRIMapCoord "\n",
+        DEBUGF("Object %d at %" PRIMapCoord ",%" PRIMapCoord
+               " overlaps object ref %d at %" PRIMapCoord ",%" PRIMapCoord "\n",
                objects_ref_to_num(value), grid_pos.x, grid_pos.y,
                objects_ref_to_num(obj_ref), p.x, p.y);
 
@@ -840,7 +840,7 @@ bool ObjectsEdit_can_place(ObjEditContext const *const objects, MapPoint const g
             ObjEditSelection_select(occluded, p);
           }
         } else {
-          DEBUGF("Can't place object %zu at %" PRIMapCoord ",%" PRIMapCoord " (occupied)\n",
+          DEBUGF("Can't place object %d at %" PRIMapCoord ",%" PRIMapCoord " (occupied)\n",
                  objects_ref_to_num(value), grid_pos.x, grid_pos.y);
         }
         return objects_ref_is_none(value);
@@ -849,7 +849,7 @@ bool ObjectsEdit_can_place(ObjEditContext const *const objects, MapPoint const g
     }
   }
 
-  DEBUGF("Can place object %zu at %" PRIMapCoord ",%" PRIMapCoord " (vacant)\n",
+  DEBUGF("Can place object %d at %" PRIMapCoord ",%" PRIMapCoord " (vacant)\n",
          objects_ref_to_num(value), grid_pos.x, grid_pos.y);
 
   return true;

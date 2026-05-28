@@ -485,7 +485,7 @@ static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
   plot_set_window(&old_window);
 }
 
-static size_t index_to_object(Editor *const editor, size_t const index)
+static unsigned char index_to_object(Editor *const editor, size_t const index)
 {
   EditSession *const session = Editor_get_session(editor);
   ObjGfx *const graphics = Session_get_graphics(session);
@@ -508,14 +508,14 @@ static size_t index_to_object(Editor *const editor, size_t const index)
   return objects_ref_to_num(obj_ref);
 }
 
-static size_t object_to_index(Editor *const editor, size_t const object_no)
+static size_t object_to_index(Editor *const editor, unsigned char const object_no)
 {
   EditSession *const session = Editor_get_session(editor);
   ObjGfx *const graphics = Session_get_graphics(session);
   size_t const num_objects = ObjGfxMeshes_get_ground_count(&graphics->meshes);
   size_t index = object_no;
 
-  ObjRef const obj_ref = objects_ref_from_num((size_t)object_no);
+  ObjRef const obj_ref = objects_ref_from_num(object_no);
   if (objects_ref_is_cloud(obj_ref)) {
     size_t const cloud_type = object_no - Obj_RefMinCloud;
     index = num_objects + cloud_type;

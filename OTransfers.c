@@ -118,11 +118,10 @@ static void write_transfer_ref(ObjTransfer *const transfer,
     trans_pos.x, trans_pos.y,
     ObjTransfers_get_dims(transfer).x, ObjTransfers_get_dims(transfer).y);
 
-  size_t const num = objects_ref_to_num(ref);
-  assert(num <= UCHAR_MAX);
+  unsigned char const num = objects_ref_to_num(ref);
 
   ((unsigned char *)transfer->refs)[
-    uchar_offset(transfer, trans_pos)] = (unsigned char)num;
+    uchar_offset(transfer, trans_pos)] = num;
 }
 
 static bool add_to_list(ObjTransfers *const transfers_data,
@@ -1005,7 +1004,7 @@ void ObjTransfers_fill_map(ObjEditContext const *const objects,
 {
   assert(objects);
   assert(transfer);
-  DEBUG("About to fill shape of transfer %p at %" PRIMapCoord ",%" PRIMapCoord " with %zu",
+  DEBUG("About to fill shape of transfer %p at %" PRIMapCoord ",%" PRIMapCoord " with %d",
         (void *)transfer, bl.x, bl.y, objects_ref_to_num(value));
 
   FillMapData data = {objects, bl, value, change_info, meshes};
@@ -1192,10 +1191,10 @@ ObjRef ObjTransfers_read_ref(ObjTransfer *const transfer, MapPoint const trans_p
   assert(transfer != NULL);
 
   ObjRef const obj_ref = objects_ref_from_num(((unsigned char *)transfer->refs)[uchar_offset(transfer, trans_pos)]);
-  DEBUGF("Read %zu at %" PRIMapCoord ",%" PRIMapCoord
-                 " in transfer of size %" PRIMapCoord ",%" PRIMapCoord "\n",
-    objects_ref_to_num(obj_ref), trans_pos.x, trans_pos.y,
-    ObjTransfers_get_dims(transfer).x, ObjTransfers_get_dims(transfer).y);
+  DEBUGF("Read %d at %" PRIMapCoord ",%" PRIMapCoord
+         " in transfer of size %" PRIMapCoord ",%" PRIMapCoord "\n",
+         objects_ref_to_num(obj_ref), trans_pos.x, trans_pos.y,
+         ObjTransfers_get_dims(transfer).x, ObjTransfers_get_dims(transfer).y);
   return obj_ref;
 }
 

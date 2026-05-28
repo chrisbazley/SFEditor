@@ -774,12 +774,12 @@ SFError triggers_read(TriggersData *const triggers,
   {
     return SFERROR(BadNumTriggers);
   }
-  size_t const num_triggers = (size_t)tmp;
+  int const num_triggers = tmp;
   MapPoint prev_coords = {0,0};
 
-  for (size_t j = 0; j < num_triggers; ++j)
+  for (int j = 0; j < num_triggers; ++j)
   {
-    DEBUGF("Reading trigger %zu data at %ld\n", j, reader_ftell(reader));
+    DEBUGF("Reading trigger %d data at %ld\n", j, reader_ftell(reader));
     CoarsePoint2d coarse_coords = {0};
     if (!CoarsePoint2d_read(&coarse_coords, reader))
     {

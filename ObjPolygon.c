@@ -64,7 +64,7 @@ static SFError obj_polygon_read(ObjPolygon * const polygon,
 
   if (num_sides < ObjPolygonMinSides || num_sides > ObjPolygonMaxSides)
   {
-    DEBUGF("Bad side count %zu\n", num_sides);
+    DEBUGF("Bad side count %d\n", num_sides);
     return SFERROR(BadNumSides);
   }
 
@@ -73,7 +73,7 @@ static SFError obj_polygon_read(ObjPolygon * const polygon,
     *max_group = HIGHEST(group, *max_group);
   }
 
-  DEBUGF("Found %zu sides in group %zu at offset %ld (0x%lx)\n",
+  DEBUGF("Found %d sides in group %d at offset %ld (0x%lx)\n",
          num_sides, group, reader_ftell(reader), reader_ftell(reader));
 
   /* We need to read the polygon definition into a temporary array so
