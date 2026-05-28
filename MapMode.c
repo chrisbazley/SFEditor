@@ -744,7 +744,9 @@ static MapRef get_selected_tile(Editor *const editor)
 {
   assert(editor);
   int const pal_index = Palette_get_selection(&editor->palette_data);
-  return map_ref_from_num(pal_index != NULL_DATA_INDEX ? pal_index : 0);
+  assert(pal_index >= 0);
+  assert(pal_index <= UCHAR_MAX);
+  return map_ref_from_num(pal_index != NULL_DATA_INDEX ? (unsigned char)pal_index : 0);
 }
 
 static MapTransfer *get_selected_transfer(Editor *const editor)
