@@ -11,7 +11,7 @@
 
 struct PyramidData {
   Pyramid difficulty;
-  unsigned char level_number;
+  int level_number;
 };
 
 #endif
