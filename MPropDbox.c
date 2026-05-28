@@ -347,8 +347,10 @@ static void read_win(MapPropDbox *const prop)
       } else {
         int tile_ref = 0;
         E(numberrange_get_value(0, prop->my_object, gadgets_tile_num[t], &tile_ref));
-        if (tile_ref < 0) tile_ref = 0;
-        prop->anim.tiles[t] = map_ref_from_num((size_t)tile_ref);
+        if (tile_ref < 0 || tile_ref > UCHAR_MAX) {
+          tile_ref = 0;
+        }
+        prop->anim.tiles[t] = map_ref_from_num((unsigned char)tile_ref);
       }
     }
   }
@@ -483,7 +485,8 @@ static int numberrange_value_changed(int const event_code, ToolboxEvent *const e
       if (nrvce->new_value >= 0 &&
           nrvce->new_value < MapTexBitmaps_get_count(&Session_get_textures(session)->tiles)) {
 
-        prop->tiles_to_display[frame_index] = map_ref_from_num((size_t)nrvce->new_value);
+        assert(nrvce->new_value <= UCHAR_MAX);
+        prop->tiles_to_display[frame_index] = map_ref_from_num((unsigned char)nrvce->new_value);
         DEBUG("Tile to display for frame %zu is now %d", frame_index,
               map_ref_to_num(prop->tiles_to_display[frame_index]));
 
@@ -523,8 +526,10 @@ static int optionbutton_state_changed(int const event_code, ToolboxEvent *const 
       int value = 0;
 
       if (!E(numberrange_get_value(0, id_block->self_id,
-                gadgets_tile_num[frame_index], &value)) && value >= 0) {
-        prop->tiles_to_display[frame_index] = map_ref_from_num((size_t)value);
+                                   gadgets_tile_num[frame_index], &value)) &&
+          value >= 0 &&
+          value <= UCHAR_MAX) {
+        prop->tiles_to_display[frame_index] = map_ref_from_num((unsigned char)value);
       }
     }
 
