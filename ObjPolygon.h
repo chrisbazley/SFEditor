@@ -26,8 +26,7 @@ typedef struct {
 } ObjPolygon;
 
 typedef struct {
-  size_t pcount;
-  size_t palloc;
+  int pcount, palloc;
   void *polygons;
 } ObjGroup;
 
@@ -39,15 +38,15 @@ void obj_polygons_init(ObjPolygons *polygons);
 void obj_polygons_free(ObjPolygons *polygons);
 
 SFError obj_polygons_read(ObjPolygons *polygons, struct Reader *reader,
-  size_t num_vertices, size_t *max_group);
+  int num_vertices, int *max_group);
 
-ObjGroup *obj_polygons_get_group(ObjPolygons *polygons, size_t n);
+ObjGroup *obj_polygons_get_group(ObjPolygons *polygons, int n);
 
-size_t obj_group_get_polygon_count(ObjGroup *group);
+int obj_group_get_polygon_count(ObjGroup *group);
 
-ObjPolygon obj_group_get_polygon(ObjGroup *group, size_t n);
+ObjPolygon obj_group_get_polygon(ObjGroup *group, int n);
 
-static inline size_t obj_polygon_get_side(ObjPolygon const * const polygon, const size_t n)
+static inline int obj_polygon_get_side(ObjPolygon const * const polygon, const int n)
 {
   assert(polygon != NULL);
   assert(polygon->scount >= ObjPolygonMinSides);
@@ -57,7 +56,7 @@ static inline size_t obj_polygon_get_side(ObjPolygon const * const polygon, cons
   return polygon->sides[n];
 }
 
-static inline size_t obj_polygon_get_side_count(ObjPolygon const * const polygon)
+static inline int obj_polygon_get_side_count(ObjPolygon const * const polygon)
 {
   assert(polygon != NULL);
   assert(polygon->scount >= ObjPolygonMinSides);
@@ -65,7 +64,7 @@ static inline size_t obj_polygon_get_side_count(ObjPolygon const * const polygon
   return polygon->scount;
 }
 
-static inline size_t obj_polygon_get_colour(ObjPolygon const * const polygon)
+static inline int obj_polygon_get_colour(ObjPolygon const * const polygon)
 {
   assert(polygon != NULL);
   return polygon->colour;

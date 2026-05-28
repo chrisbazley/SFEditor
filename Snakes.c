@@ -96,7 +96,7 @@ typedef enum {
 
 /* ---------------- Private functions --------------- */
 
-static size_t get_snake_read_tile(Snakes const *const snakes_data, size_t const snake,
+static int get_snake_read_tile(Snakes const *const snakes_data, int const snake,
   unsigned int const part)
 {
   assert(snakes_data != NULL);
@@ -104,9 +104,9 @@ static size_t get_snake_read_tile(Snakes const *const snakes_data, size_t const 
   assert((part & ~SNAKE_ALL) == 0);
 
   SnakeDefinition const *const defs = snakes_data->data_anchor;
-  size_t const tile = defs[snake].read_parts[part];
+  int const tile = defs[snake].read_parts[part];
 
-  DEBUG("%zu is read part %u (N:%u: E:%u S:%u W:%u I:%u) in snake definition %zu",
+  DEBUG("%d is read part %u (N:%u: E:%u S:%u W:%u I:%u) in snake definition %d",
         tile, part, TEST_BITS(part, SNAKE_NORTH), TEST_BITS(part, SNAKE_EAST),
         TEST_BITS(part, SNAKE_SOUTH), TEST_BITS(part, SNAKE_WEST),
         TEST_BITS(part, SNAKE_INSIDE), snake);
@@ -114,7 +114,7 @@ static size_t get_snake_read_tile(Snakes const *const snakes_data, size_t const 
   return tile;
 }
 
-static int get_snake_write_tile(Snakes const *const snakes_data, size_t const snake,
+static int get_snake_write_tile(Snakes const *const snakes_data, int const snake,
   unsigned int const part)
 {
   assert(snakes_data != NULL);
@@ -124,7 +124,7 @@ static int get_snake_write_tile(Snakes const *const snakes_data, size_t const sn
   SnakeDefinition const *const defs = snakes_data->data_anchor;
   int const tile = defs[snake].write_parts[part];
 
-  DEBUG("%d is write part %u (N:%u: E:%u S:%u W:%u I:%u) in snake definition %zu",
+  DEBUG("%d is write part %u (N:%u: E:%u S:%u W:%u I:%u) in snake definition %d",
         tile, part, TEST_BITS(part, SNAKE_NORTH), TEST_BITS(part, SNAKE_EAST),
         TEST_BITS(part, SNAKE_SOUTH), TEST_BITS(part, SNAKE_WEST),
         TEST_BITS(part, SNAKE_INSIDE), snake);
@@ -279,7 +279,7 @@ static bool add_snake(Snakes *const snakes_data, SnakeDefinition *const snake)
 
   if (success) {
     /* Add snake to array */
-    DEBUG("Adding snake '%s' to array at index %zu", snake->name, snakes_data->count);
+    DEBUG("Adding snake '%s' to array at index %d", snake->name, snakes_data->count);
     SnakeDefinition *const defs = snakes_data->data_anchor;
     defs[snakes_data->count++] = *snake;
   }
@@ -338,7 +338,7 @@ static bool south_is_inside(unsigned int const part)
 }
 
 static bool add_to_connectivity(const SnakeContext *const ctx,
-  size_t const tile, unsigned int const edge, bool const inside)
+  int const tile, unsigned int const edge, bool const inside)
 {
   /* Check whether a given tile number matches an edge and sidedness
      specification. Only one of the direction bits may be set in 'edge'.
@@ -348,7 +348,7 @@ static bool add_to_connectivity(const SnakeContext *const ctx,
   assert(ctx != NULL);
   assert(edge == SNAKE_NORTH || edge == SNAKE_EAST || edge == SNAKE_SOUTH || edge == SNAKE_WEST);
 
-  DEBUG("Looking for tile %zu in snake %zu with connectivity (%s, %s)...",
+  DEBUG("Looking for tile %d in snake %d with connectivity (%s, %s)...",
         tile, ctx->snake,
         TEST_BITS(edge, SNAKE_NORTH) ? "north" :
         TEST_BITS(edge, SNAKE_EAST) ? "east" :
@@ -433,7 +433,7 @@ static bool add_north_exit(SnakeContext *const ctx, unsigned int const part)
     return false;
 
   MapPoint const map_pos = {ctx->map_pos.x, ctx->map_pos.y + 1};
-  size_t const north_tile = ctx->read(map_pos, ctx);
+  int const north_tile = ctx->read(map_pos, ctx);
   if (north_tile == UINT8_MAX)
     return false;
 
@@ -450,7 +450,7 @@ static bool add_east_exit(SnakeContext *const ctx, unsigned int const part)
     return false;
 
   MapPoint const map_pos = {ctx->map_pos.x + 1, ctx->map_pos.y};
-  size_t const east_tile = ctx->read(map_pos, ctx);
+  int const east_tile = ctx->read(map_pos, ctx);
   if (east_tile == UINT8_MAX)
     return false;
 
@@ -470,7 +470,7 @@ static bool add_south_exit(SnakeContext *const ctx, unsigned int const part)
     return false;
 
   MapPoint const map_pos = {ctx->map_pos.x, ctx->map_pos.y - 1};
-  size_t const south_tile = ctx->read(map_pos, ctx);
+  int const south_tile = ctx->read(map_pos, ctx);
   if (south_tile == UINT8_MAX)
     return false;
 
@@ -487,7 +487,7 @@ static bool add_west_exit(SnakeContext *const ctx, unsigned int const part)
     return false;
 
   MapPoint const map_pos = {ctx->map_pos.x - 1, ctx->map_pos.y};
-  size_t const west_tile = ctx->read(map_pos, ctx);
+  int const west_tile = ctx->read(map_pos, ctx);
   if (west_tile == UINT8_MAX)
     return false;
 
@@ -596,7 +596,7 @@ static unsigned int amend_part(SnakeContext *const ctx, unsigned int part)
   return part;
 }
 
-static size_t plot_tile(SnakeContext *const ctx, unsigned int const part_spec)
+static int plot_tile(SnakeContext *const ctx, unsigned int const part_spec)
 {
   /* Look at the surrounding tiles, and add to the connectivity of part_spec
      as appropriate. We are prepared to use a snake tile of different
@@ -606,7 +606,7 @@ static size_t plot_tile(SnakeContext *const ctx, unsigned int const part_spec)
   assert(ctx->snakes_data);
   assert((part_spec & ~SNAKE_ALL) == 0);
 
-  DEBUG("Tile from snake %zu requested at %" PRIMapCoord ",% " PRIMapCoord,
+  DEBUG("Tile from snake %d requested at %" PRIMapCoord ",% " PRIMapCoord,
         ctx->snake, ctx->map_pos.x, ctx->map_pos.y);
 
   unsigned int part_to_plot = amend_part(ctx, part_spec);
@@ -633,7 +633,7 @@ static size_t plot_tile(SnakeContext *const ctx, unsigned int const part_spec)
     DEBUG("Plotting snake tile %d", tile_num);
     ctx->write(ctx->map_pos, (unsigned char)tile_num, ctx);
   }
-  return (size_t)tile_num;
+  return tile_num;
 }
 
 static void steep_line_to_south(SnakeContext *const ctx, MapPoint end,
@@ -1014,22 +1014,22 @@ static void shallow_line(SnakeContext *const ctx, MapPoint end,
 
 /* ---------------- Public functions ---------------- */
 
-size_t Snakes_get_count(const Snakes *const snakes_data)
+int Snakes_get_count(const Snakes *const snakes_data)
 {
   assert(snakes_data != NULL);
-  DEBUG_VERBOSEF("No. of snakes is %zu\n", snakes_data->count);
+  DEBUG_VERBOSEF("No. of snakes is %d\n", snakes_data->count);
   return snakes_data->count;
 }
 
-void Snakes_get_name(const Snakes *const snakes_data, size_t const snake,
-  char *const snake_name, size_t const n)
+void Snakes_get_name(const Snakes *const snakes_data, int const snake,
+  char *const snake_name, int const n)
 {
   assert(snakes_data != NULL);
   assert(snake < snakes_data->count);
   assert(snake_name != NULL);
 
   if (n > 0) {
-    size_t len = 0;
+    int len = 0;
     char *out = snake_name;
     SnakeDefinition const *const defs = snakes_data->data_anchor;
     char const *const in = defs[snake].name;
@@ -1044,8 +1044,8 @@ void Snakes_get_name(const Snakes *const snakes_data, size_t const snake,
   }
 }
 
-size_t Snakes_begin_line(SnakeContext *const ctx,
-  Snakes *const snakes_data, MapPoint const map_pos, size_t const snake,
+int Snakes_begin_line(SnakeContext *const ctx,
+  Snakes *const snakes_data, MapPoint const map_pos, int const snake,
   bool const inside, SnakesReadFunction *const read,
   SnakesWriteFunction *const write)
 {
@@ -1061,7 +1061,7 @@ size_t Snakes_begin_line(SnakeContext *const ctx,
     .write = write,
   };
 
-  DEBUG("Starting %sside snake %zu at %" PRIMapCoord ",%" PRIMapCoord,
+  DEBUG("Starting %sside snake %d at %" PRIMapCoord ",%" PRIMapCoord,
         inside ? "in" : "out", snake, map_pos.x, map_pos.y);
 
   return plot_tile(ctx, ctx->default_piece);
@@ -1070,7 +1070,7 @@ size_t Snakes_begin_line(SnakeContext *const ctx,
 void Snakes_plot_line(SnakeContext *const ctx, MapPoint const end)
 {
   assert(ctx != NULL);
-  DEBUG("Continuing snake %zu from %" PRIMapCoord ",%" PRIMapCoord
+  DEBUG("Continuing snake %d from %" PRIMapCoord ",%" PRIMapCoord
         " to %" PRIMapCoord ",%" PRIMapCoord, ctx->snake,
         ctx->map_pos.x, ctx->map_pos.y, end.x, end.y);
 
@@ -1099,7 +1099,7 @@ void Snakes_init(Snakes *const snakes_data)
 }
 
 SFError Snakes_load(FILE *const file, Snakes *const snakes_data,
-  size_t const nobj, char *const err_buf)
+  int const nobj, char *const err_buf)
 {
   assert(file != NULL);
   assert(!ferror(file));
@@ -1148,7 +1148,7 @@ SFError Snakes_load(FILE *const file, Snakes *const snakes_data,
           sprintf(err_buf, "%d", line);
           return SFERROR(StringTooLong);
         }
-        DEBUG("Snake name %zu: %s", snakes_data->count, snake_name);
+        DEBUG("Snake name %d: %s", snakes_data->count, snake_name);
         strcpy(snake.name, snake_name);
       }
 
@@ -1190,7 +1190,7 @@ SFError Snakes_load(FILE *const file, Snakes *const snakes_data,
       sprintf(err_buf, "%d", line);
       return SFERROR(Mistake);
     }
-    if (tile < 0 || (size_t)tile >= nobj) {
+    if (tile < 0 || tile >= nobj) {
       /* Tile number out of range */
       sprintf(err_buf, "%d", line);
       return SFERROR(NumRange);
@@ -1225,12 +1225,12 @@ void Snakes_free(Snakes *const snakes_data)
   }
 }
 
-bool Snakes_has_junctions(const Snakes *const snakes_data, size_t const snake)
+bool Snakes_has_junctions(const Snakes *const snakes_data, int const snake)
 {
   return get_snake_read_tile(snakes_data, snake, SNAKE_ALL) != UCHAR_MAX;
 }
 
-bool Snakes_has_bends(const Snakes *const snakes_data, size_t const snake)
+bool Snakes_has_bends(const Snakes *const snakes_data, int const snake)
 {
   assert(snakes_data != NULL);
   return get_snake_read_tile(snakes_data, snake, SNAKE_NORTH|SNAKE_EAST) != UCHAR_MAX;

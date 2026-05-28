@@ -57,7 +57,7 @@ static ObjectId trans_menu_id = NULL_ObjectId;
 static void update_trans_menu(PaletteData *const pal_data)
 {
   EditSession *const session = Palette_get_session(pal_data);
-  size_t const selected = Palette_get_selection(pal_data);
+  int const selected = Palette_get_selection(pal_data);
 
   MapTransfer *transfer_to_edit = NULL;
   if (selected != NULL_DATA_INDEX)

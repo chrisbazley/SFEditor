@@ -68,7 +68,7 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
   EditSession *const session = Palette_get_session(pal_data);
   MapTex *const textures = Session_get_textures(session);
 
-  size_t sel_index, new_index;
+  int sel_index, new_index;
   Filename new_name;
   MapTransfer *transfer_to_rename;
 
@@ -120,7 +120,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   EditSession *const session = Palette_get_session(pal_data);
   MapTex *const textures = Session_get_textures(session);
 
-  size_t const selected = Palette_get_selection(pal_data);
+  int const selected = Palette_get_selection(pal_data);
   if (selected == NULL_DATA_INDEX)
     return 1; /* nothing selected - simply claim event */
 

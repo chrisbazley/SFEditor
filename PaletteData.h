@@ -18,20 +18,16 @@ struct PaletteData {
   ObjectId my_object;
   struct Editor *parent_editor;
 
-  bool redraw_error:1; /* prevent redraw after error */
-  bool tools_change:1;
-  bool mode_change:1;
-  bool user_event:1;
-  bool numeric_order:1;
-  bool labels:1;
-  bool is_showing:1;
+  bool redraw_error:1, /* prevent redraw after error */
+       tools_change:1,
+       mode_change:1,
+       user_event:1,
+       numeric_order:1,
+       labels:1,
+       is_showing:1;
 
-  size_t sel_index;
-  size_t num_indices;
-  Vertex grid_size;
-  size_t max_columns;
-  Vertex sel_pos;
-  Vertex object_size;
+  int sel_index, num_indices, max_columns;
+  Vertex grid_size, sel_pos, object_size;
   const struct PaletteClientFuncts *client_functions;
 };
 

@@ -19,8 +19,7 @@ typedef struct ObjGfxMesh ObjGfxMesh;
 
 typedef struct
 {
-  size_t ocount;
-  size_t oalloc;
+  int ocount, oalloc;
   ObjGfxMesh **objects;
 } ObjGfxMeshArray;
 

@@ -86,7 +86,7 @@ static ObjGfx *redraw_graphics;
 static PolyColData const *poly_colours;
 static SprMem back_buffer;
 static bool have_back_buffer, found_cloud;
-static size_t pcount = 0, redraw_num_objects;
+static int pcount = 0, redraw_num_objects;
 //static ScaleFactors scale_factors =
 //{
 //  .xmul = 2,
@@ -160,7 +160,7 @@ static int message_handler(WimpMessage *const message, void *const handle)
   return 0; /* don't claim event */
 }
 
-static bool init(PaletteData *const pal_data, Editor *const editor, size_t *const num_indices, bool const reinit)
+static bool init(PaletteData *const pal_data, Editor *const editor, int *const num_indices, bool const reinit)
 {
   NOT_USED(reinit);
   EditSession *const session = Editor_get_session(editor);
@@ -253,14 +253,14 @@ static void start_redraw(Editor *const editor, bool const labels)
 }
 
 static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
-                         size_t const object_no, bool const selected)
+                         int const object_no, bool const selected)
 {
   NOT_USED(editor);
   NOT_USED(origin);
 
   StringBuffer obj_name;
   stringbuffer_init(&obj_name);
-  if (!get_objname_from_type(&obj_name, graphics_set, objects_ref_from_num((size_t)object_no)))
+  if (!get_objname_from_type(&obj_name, graphics_set, objects_ref_from_num(object_no)))
   {
     report_error(SFERROR(NoMem), "", "");
     return;
@@ -293,7 +293,7 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
 }
 
 static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
-                          size_t const object_no, bool const selected)
+                          int const object_no, bool const selected)
 {
   BBox old_window;
   plot_get_window(&old_window);
@@ -316,7 +316,7 @@ static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
 
   if (object_no > 0 && object_no < redraw_num_objects)
   {
-    ObjRef const obj_ref = objects_ref_from_num((size_t)object_no);
+    ObjRef const obj_ref = objects_ref_from_num(object_no);
     distance = ObjGfxMeshes_get_pal_distance(&redraw_graphics->meshes, obj_ref);
     if (distance < 0)
     {
@@ -369,7 +369,7 @@ static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
 
   if (!selected || (have_back_buffer && SprMem_output_to_sprite(&back_buffer, "tmp")))
   {
-    ObjRef const obj_ref = objects_ref_from_num((size_t)object_no);
+    ObjRef const obj_ref = objects_ref_from_num(object_no);
     if (selected) {
       plot_set_bg_col(PAL_WHITE);
       plot_clear_window();
@@ -485,11 +485,11 @@ static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
   plot_set_window(&old_window);
 }
 
-static unsigned char index_to_object(Editor *const editor, size_t const index)
+static int index_to_object(Editor *const editor, int const index)
 {
   EditSession *const session = Editor_get_session(editor);
   ObjGfx *const graphics = Session_get_graphics(session);
-  size_t const num_objects = ObjGfxMeshes_get_ground_count(&graphics->meshes);
+  int const num_objects = ObjGfxMeshes_get_ground_count(&graphics->meshes);
   ObjRef obj_ref;
 
   if (index == 0) {
@@ -508,16 +508,16 @@ static unsigned char index_to_object(Editor *const editor, size_t const index)
   return objects_ref_to_num(obj_ref);
 }
 
-static size_t object_to_index(Editor *const editor, unsigned char const object_no)
+static int object_to_index(Editor *const editor, int const object_no)
 {
   EditSession *const session = Editor_get_session(editor);
   ObjGfx *const graphics = Session_get_graphics(session);
-  size_t const num_objects = ObjGfxMeshes_get_ground_count(&graphics->meshes);
-  size_t index = object_no;
+  int const num_objects = ObjGfxMeshes_get_ground_count(&graphics->meshes);
+  int index = object_no;
 
   ObjRef const obj_ref = objects_ref_from_num(object_no);
   if (objects_ref_is_cloud(obj_ref)) {
-    size_t const cloud_type = object_no - Obj_RefMinCloud;
+    int const cloud_type = object_no - Obj_RefMinCloud;
     index = num_objects + cloud_type;
   } else if (objects_ref_is_hill(obj_ref)) {
     index = num_objects + Obj_CloudCount;

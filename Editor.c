@@ -1868,7 +1868,7 @@ ObjGfxAngle Editor_get_palette_rotation(Editor const *const editor)
   return editor->palette_rotation;
 }
 
-void Editor_palette_selection(Editor *const editor, size_t const object)
+void Editor_palette_selection(Editor *const editor, int const object)
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);

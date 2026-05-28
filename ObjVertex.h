@@ -15,7 +15,7 @@ enum {
 };
 
 typedef struct {
-  size_t vcount;
+  int vcount;
   void *vertices;
 } ObjVertices;
 
@@ -65,9 +65,9 @@ typedef struct
 void obj_vertices_init(ObjVertices *varray);
 void obj_vertices_free(ObjVertices *varray);
 
-SFError obj_vertices_read(ObjVertices *varray, struct Reader *reader, size_t *nvert);
+SFError obj_vertices_read(ObjVertices *varray, struct Reader *reader, int *nvert);
 
-size_t obj_vertices_get_count(ObjVertices *varray);
+int obj_vertices_get_count(ObjVertices *varray);
 
 void obj_vertices_scale_unit(UnitVectors *out, UnitVectors const *in, int div_log2);
 void obj_vertices_add_scaled_unit(Vertex3D *vertex_pos,

@@ -42,7 +42,7 @@ enum {
 };
 
 static SFError obj_polygon_read(ObjPolygon * const polygon,
-  Reader * const reader, size_t const num_vertices, size_t *const max_group)
+  Reader * const reader, int const num_vertices, int *const max_group)
 {
   assert(!reader_ferror(reader));
   assert(max_group);
@@ -83,19 +83,19 @@ static SFError obj_polygon_read(ObjPolygon * const polygon,
   if (polygon)
   {
     /* Get the vertex indices */
-    for (size_t s = 0; s < num_sides; ++s)
+    for (int s = 0; s < num_sides; ++s)
     {
       int const v = reader_fgetc(reader);
       if (v == EOF)
       {
-        DEBUGF("Failed to read side %zu of polygon\n", s);
+        DEBUGF("Failed to read side %d of polygon\n", s);
         return SFERROR(ReadFail);
       }
 
       /* Validate the vertex index */
-      if (v < ObjPolygonMinVertex || (size_t)v > num_vertices)
+      if (v < ObjPolygonMinVertex || (int)v > num_vertices)
       {
-        DEBUGF("Bad vertex %d (side %zu of polygon)\n",
+        DEBUGF("Bad vertex %d (side %d of polygon)\n",
                v - 1, s);
         return SFERROR(BadVertex);
       }
@@ -144,7 +144,7 @@ void obj_polygons_init(ObjPolygons *const polygons)
 
 void obj_polygons_free(ObjPolygons *const polygons)
 {
-  for (size_t g = 0; g < ObjPolygonMaxGroups; ++g)
+  for (int g = 0; g < ObjPolygonMaxGroups; ++g)
   {
     ObjGroup *const group = obj_polygons_get_group(polygons, g);
     assert(!group->pcount || group->polygons);
@@ -160,14 +160,14 @@ SFError obj_group_add_polygon(ObjGroup *const group, ObjPolygon const polygon)
 {
   assert(group != NULL);
   assert(group->pcount <= group->palloc);
-  assert(!group->polygons || ((group->palloc * sizeof(ObjPolygon)) == (size_t)flex_size(&group->polygons)));
+  assert(!group->polygons || ((group->palloc * sizeof(ObjPolygon)) == flex_size(&group->polygons)));
 
   if (group->pcount + 1 > group->palloc)
   {
     if (group->polygons)
     {
       assert(group->palloc > 0);
-      size_t const new_size = group->palloc * PAllocGrowth;
+      int const new_size = group->palloc * PAllocGrowth;
       if (!flex_extend(&group->polygons, (int)(sizeof(ObjPolygon) * new_size)))
       {
         return SFERROR(NoMem);
@@ -190,7 +190,7 @@ SFError obj_group_add_polygon(ObjGroup *const group, ObjPolygon const polygon)
 }
 
 SFError obj_polygons_read(ObjPolygons *const polygons, Reader *const reader,
-  size_t const nvertices, size_t *const max_group)
+  int const nvertices, int *const max_group)
 {
   assert(!reader_ferror(reader));
   assert(max_group);
@@ -237,24 +237,24 @@ SFError obj_polygons_read(ObjPolygons *const polygons, Reader *const reader,
 }
 
 ObjGroup *obj_polygons_get_group(ObjPolygons *const polygons,
-  size_t const n)
+  int const n)
 {
   assert(polygons != NULL);
   assert(n < ObjPolygonMaxGroups);
   return &polygons->groups[n];
 }
 
-size_t obj_group_get_polygon_count(ObjGroup *const group)
+int obj_group_get_polygon_count(ObjGroup *const group)
 {
   assert(group);
   return group->pcount;
 }
 
-ObjPolygon obj_group_get_polygon(ObjGroup *const group, size_t const n)
+ObjPolygon obj_group_get_polygon(ObjGroup *const group, int const n)
 {
   assert(group != NULL);
   assert(group->pcount <= group->palloc);
-  assert(!group->polygons || ((group->palloc * sizeof(ObjPolygon)) == (size_t)flex_size(&group->polygons)));
+  assert(!group->polygons || ((group->palloc * sizeof(ObjPolygon)) == flex_size(&group->polygons)));
   assert(n < group->pcount);
 
   return ((ObjPolygon *)group->polygons)[n];

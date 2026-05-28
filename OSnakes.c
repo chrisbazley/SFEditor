@@ -61,21 +61,21 @@ static void write_map(MapPoint const map_pos, unsigned char const ref_num,
 
 /* ---------------- Public functions ---------------- */
 
-size_t ObjSnakes_get_count(const ObjSnakes *const snakes_data)
+int ObjSnakes_get_count(const ObjSnakes *const snakes_data)
 {
   assert(snakes_data);
   return Snakes_get_count(&snakes_data->super);
 }
 
-void ObjSnakes_get_name(const ObjSnakes *const snakes_data, size_t const snake,
-  char *const snake_name, size_t const n)
+void ObjSnakes_get_name(const ObjSnakes *const snakes_data, int const snake,
+  char *const snake_name, int const n)
 {
   assert(snakes_data);
   Snakes_get_name(&snakes_data->super, snake, snake_name, n);
 }
 
 long int ObjSnakes_get_pal_distance(const ObjSnakes *const snakes_data,
-  size_t const snake)
+                                    int const snake)
 {
   assert(snakes_data);
   assert(snake < Snakes_get_count(&snakes_data->super));
@@ -84,12 +84,12 @@ long int ObjSnakes_get_pal_distance(const ObjSnakes *const snakes_data,
 }
 
 void ObjSnakes_set_pal_distance(ObjSnakes *const snakes_data,
-  size_t const snake, long int const distance)
+                                int const snake, long int const distance)
 {
   assert(snakes_data);
   assert(distance >= 0);
 
-  size_t const count = Snakes_get_count(&snakes_data->super);
+  int const count = Snakes_get_count(&snakes_data->super);
   assert(snake < count);
 
   if (!snakes_data->distances) {
@@ -100,7 +100,7 @@ void ObjSnakes_set_pal_distance(ObjSnakes *const snakes_data,
       return;
     }
 
-    for (size_t i = 0; i < count; ++i) {
+    for (int i = 0; i < count; ++i) {
       snakes_data->distances[i] = -1;
     }
   }
@@ -108,7 +108,7 @@ void ObjSnakes_set_pal_distance(ObjSnakes *const snakes_data,
 }
 
 ObjRef ObjSnakes_get_value(EditSession *const session,
-  ObjSnakes *const snakes_data, MapPoint const map_pos, size_t const snake,
+  ObjSnakes *const snakes_data, MapPoint const map_pos, int const snake,
   bool const inside, ObjGfxMeshes *const meshes)
 {
   assert(snakes_data != NULL);
@@ -124,7 +124,7 @@ ObjRef ObjSnakes_get_value(EditSession *const session,
 
 void ObjSnakes_begin_line(ObjSnakesContext *const ctx,
   EditSession *const session,
-  ObjSnakes *const snakes_data, MapPoint const map_pos, size_t const snake,
+  ObjSnakes *const snakes_data, MapPoint const map_pos, int const snake,
   bool const inside, ObjEditChanges *const change_info,
   ObjGfxMeshes *const meshes)
 {
@@ -163,7 +163,7 @@ void ObjSnakes_init(ObjSnakes *const snakes_data)
 }
 
 void ObjSnakes_load(ObjSnakes *const snakes_data,
-  char const *const tiles_set, size_t const nobj)
+  char const *const tiles_set, int const nobj)
 {
   ObjSnakes_free(snakes_data);
   ObjSnakes_init(snakes_data);

@@ -46,7 +46,7 @@ static char truncated_name[sizeof(SPRITE_NAME) + sizeof("...") - 1];
 
 /* ---------------- Private functions ---------------- */
 
-static bool init(PaletteData *const pal_data, Editor *const editor, size_t *num_indices, bool const reinit)
+static bool init(PaletteData *const pal_data, Editor *const editor, int *num_indices, bool const reinit)
 {
   NOT_USED(pal_data);
   NOT_USED(editor);
@@ -90,7 +90,7 @@ static void start_redraw(Editor *const editor, bool const labels)
 }
 
 static void redraw_label(Editor *const editor, Vertex const origin,
-  BBox const *const bbox, size_t const object_no, bool const selected)
+  BBox const *const bbox, int const object_no, bool const selected)
 {
   NOT_USED(object_no);
   NOT_USED(editor);
@@ -124,7 +124,7 @@ static void redraw_label(Editor *const editor, Vertex const origin,
 }
 
 static void redraw_object(Editor *const editor, Vertex const origin,
-  BBox const *const bbox, size_t const object_no, bool const selected)
+  BBox const *const bbox, int const object_no, bool const selected)
 {
   NOT_USED(object_no);
   NOT_USED(origin);

@@ -33,10 +33,10 @@ typedef struct {
 
 void MapSnakes_init(MapSnakes *snakes_data);
 
-size_t MapSnakes_get_count(const MapSnakes *snakes_data);
+int MapSnakes_get_count(const MapSnakes *snakes_data);
 
-void MapSnakes_get_name(const MapSnakes *snakes_data, size_t snake,
-  char *snake_name, size_t n);
+void MapSnakes_get_name(const MapSnakes *snakes_data, int snake,
+  char *snake_name, int n);
 
 bool MapSnakes_ensure_thumbnails(MapSnakes *snakes_data,
   MapTexBitmaps *textures);
@@ -44,11 +44,11 @@ bool MapSnakes_ensure_thumbnails(MapSnakes *snakes_data,
 void MapSnakes_edit(const char *tiles_set);
 
 void MapSnakes_load(MapSnakes *snakes_data,
-  const char *tiles_set, size_t ntiles);
+  const char *tiles_set, int ntiles);
 
 void MapSnakes_begin_line(MapSnakesContext *ctx,
   MapEditContext const *map, /*MapData *s_map,*/
-  MapSnakes *snakes_data, MapPoint map_pos, size_t snake,
+  MapSnakes *snakes_data, MapPoint map_pos, int snake,
   bool inside, MapEditChanges *change_info);
 
 void MapSnakes_plot_line(MapSnakesContext *ctx, MapPoint map_pos,

@@ -213,10 +213,10 @@ static void create_trans_msg(Editor *const editor,
   char tiles_count_str[16];
   sprintf(tiles_count_str, "%zu", num_tiles);
 
-  size_t const num_animations = MapTransfers_get_anim_count(transfer);
+  int const num_animations = MapTransfers_get_anim_count(transfer);
   if (num_animations > 0) {
     char anim_count_str[32];
-    sprintf(anim_count_str, "%zu", num_animations);
+    sprintf(anim_count_str, "%d", num_animations);
 
     Editor_display_msg(editor,
       msgs_lookup_subn("MStatusCrTr2", 3, tiles_count_str, anim_count_str, name),
@@ -452,7 +452,7 @@ static void draw_anims(Editor *const editor,
 
   MapTex *const textures = Session_get_textures(session);
 
-  size_t const tile_count = MapTexBitmaps_get_count(&textures->tiles);
+  int const tile_count = MapTexBitmaps_get_count(&textures->tiles);
   PaletteEntry last_colour = 1; /* impossible? */
   PaletteEntry const bg_colour = EditWin_get_bg_colour(edit_win);
   PaletteEntry const bg_sel_colour = opposite_col(bg_colour);
@@ -743,14 +743,14 @@ static void MapMode_sample_tile(Editor *const editor, MapPoint fine_pos, MapPoin
 static MapRef get_selected_tile(Editor *const editor)
 {
   assert(editor);
-  size_t const pal_index = Palette_get_selection(&editor->palette_data);
+  int const pal_index = Palette_get_selection(&editor->palette_data);
   return map_ref_from_num(pal_index != NULL_DATA_INDEX ? pal_index : 0);
 }
 
 static MapTransfer *get_selected_transfer(Editor *const editor)
 {
   assert(editor != NULL);
-  size_t const sel_index = Palette_get_selection(&editor->palette_data);
+  int const sel_index = Palette_get_selection(&editor->palette_data);
   if (sel_index == NULL_DATA_INDEX)
     return NULL;
 
@@ -864,7 +864,7 @@ static void MapMode_start_snake(Editor *const editor, MapPoint const map_pos, bo
 {
   MapModeData *const mode_data = get_mode_data(editor);
 
-  size_t const snake = Palette_get_selection(&editor->palette_data);
+  int const snake = Palette_get_selection(&editor->palette_data);
   if (snake == NULL_DATA_INDEX) {
     return;
   }
@@ -888,7 +888,7 @@ static void MapMode_draw_snake(Editor *const editor, MapPoint const map_pos)
 
   MapMode_wipe_ghost(editor);
 
-  size_t const snake = Palette_get_selection(&editor->palette_data);
+  int const snake = Palette_get_selection(&editor->palette_data);
   if (snake == NULL_DATA_INDEX) {
     return;
   }
@@ -1312,11 +1312,11 @@ static void cb_status(Editor *const editor, bool const copy)
   sprintf(tiles_count_str, "%zu",
            tiles_count);
 
-  size_t const anim_count = MapTransfers_get_anim_count(clipboard);
+  int const anim_count = MapTransfers_get_anim_count(clipboard);
 
   if (anim_count > 0) {
     char anim_count_str[32];
-    sprintf(anim_count_str, "%zu", anim_count);
+    sprintf(anim_count_str, "%d", anim_count);
 
     Editor_display_msg(editor, msgs_lookup_subn(copy ? "MStatusCopy2" :
                        "MStatusCut2", 2, tiles_count_str, anim_count_str), true);
@@ -1386,7 +1386,7 @@ static MapPoint MapMode_grid_to_map_coords(MapPoint const pos, EditWin const *co
 
 bool MapMode_set_properties(Editor *const editor, MapPoint const pos, MapAnimParam const anim)
 {
-  size_t nm_count = 0;
+  int nm_count = 0;
   MapRef tile = map_ref_mask();
   for (size_t frame = 0; frame < ARRAY_SIZE(anim.tiles); ++frame) {
     if (!map_ref_is_mask(anim.tiles[frame])) {
@@ -1394,7 +1394,7 @@ bool MapMode_set_properties(Editor *const editor, MapPoint const pos, MapAnimPar
       ++nm_count;
     }
   }
-  DEBUG("%zu non-skipped animation frames", nm_count);
+  DEBUG("%d non-skipped animation frames", nm_count);
   if (nm_count == 0) {
     return false;
   }
@@ -1429,7 +1429,7 @@ static void MapMode_create_transfer(Editor *const editor, char const *const name
   /* Check for an existing transfer with the same name */
   MapTex *const textures = Session_get_textures(session);
 
-  size_t replace_index;
+  int replace_index;
   MapTransfer * const replace_transfer = MapTransfers_find_by_name(
     &textures->transfers, name, &replace_index);
 
@@ -1448,7 +1448,7 @@ static void MapMode_create_transfer(Editor *const editor, char const *const name
   }
 
   /* Add the new transfer to the linked list for this tiles set */
-  size_t new_index;
+  int new_index;
   if (!MapTransfers_add(&textures->transfers, transfer, name,
                      &new_index, &textures->tiles)) {
     dfile_release(MapTransfer_get_dfile(transfer));
@@ -1872,7 +1872,7 @@ static void MapMode_resource_change(Editor *const editor, EditorChange const eve
   }
 }
 
-static void MapMode_palette_selection(Editor *const editor, size_t const object)
+static void MapMode_palette_selection(Editor *const editor, int const object)
 {
   MapModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
@@ -1892,7 +1892,7 @@ static void MapMode_palette_selection(Editor *const editor, size_t const object)
     case MAPPALETTE_TYPE_TILES:
     {
       char tile_num_as_string[12];
-      sprintf(tile_num_as_string, "%zu", object);
+      sprintf(tile_num_as_string, "%d", object);
 
       assert(editor != NULL);
       msg = msgs_lookup_subn("StatusTiSel", 1, tile_num_as_string);
@@ -1958,7 +1958,7 @@ static void MapMode_draw_numbers(Editor *const editor,
   Vertex coord = {
     .y = scr_orig.y + (scr_area.min.y * grid_size.y) + (grid_size.y / 2l)
   };
-  size_t last_tile = SIZE_MAX;
+  int last_tile = SIZE_MAX;
   bool blend = false;
   PaletteEntry const bg_colour = EditWin_get_bg_colour(edit_win);
   PaletteEntry const bg_sel_colour = opposite_col(bg_colour);
@@ -1977,7 +1977,7 @@ static void MapMode_draw_numbers(Editor *const editor,
   size_t last_ulen = 0;
 
   MapAngle const angle = EditWin_get_angle(edit_win);
-  size_t const tile_count = MapTexBitmaps_get_count(&textures->tiles);
+  int const tile_count = MapTexBitmaps_get_count(&textures->tiles);
 
   for (MapPoint scr_pos = {.y = scr_area.min.y};
        scr_pos.y <= scr_area.max.y;

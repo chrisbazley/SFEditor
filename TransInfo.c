@@ -60,7 +60,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
     0, id_block->ancestor_id, &pal_data), 0);
 
   EditSession *const session = Palette_get_session(pal_data);
-  size_t const selected = Palette_get_selection(pal_data);
+  int const selected = Palette_get_selection(pal_data);
   if (selected == NULL_DATA_INDEX)
     return 1; /* no transfer selected in palette - just claim event */
 

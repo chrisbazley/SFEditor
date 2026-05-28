@@ -51,8 +51,8 @@ void ObjGfxMeshes_init(ObjGfxMeshes *meshes);
 void ObjGfxMeshes_free(ObjGfxMeshes *meshes);
 SFError ObjGfxMeshes_read(ObjGfxMeshes *meshes, Reader *const reader);
 
-size_t ObjGfxMeshes_get_ground_count(const ObjGfxMeshes *meshes);
-size_t ObjGfxMeshes_get_ships_count(const ObjGfxMeshes *meshes);
+int ObjGfxMeshes_get_ground_count(const ObjGfxMeshes *meshes);
+int ObjGfxMeshes_get_ships_count(const ObjGfxMeshes *meshes);
 
 MapArea ObjGfxMeshes_get_ground_bbox(ObjGfxMeshes *meshes, ObjRef index, MapAngle angle);
 MapArea ObjGfxMeshes_get_hill_bbox(HillType hill_type,

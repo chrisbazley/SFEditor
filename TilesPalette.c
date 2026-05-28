@@ -70,7 +70,7 @@ static char spr_name[12];
 
 /* ---------------- Private functions ---------------- */
 
-static bool init(PaletteData *const pal_data, Editor *const editor, size_t *const num_indices, bool const reinit)
+static bool init(PaletteData *const pal_data, Editor *const editor, int *const num_indices, bool const reinit)
 {
   NOT_USED(reinit);
 
@@ -138,7 +138,7 @@ static void start_redraw(Editor *const editor, bool const labels)
 }
 
 static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
-                         size_t object_no, bool const selected)
+                         int object_no, bool const selected)
 {
   NOT_USED(selected);
   int string_width;
@@ -150,14 +150,14 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
   }
 
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
-  size_t const num_objects = MapTexBitmaps_get_count(&textures->tiles);
-  if ((size_t)object_no > num_objects - 1) {
+  int const num_objects = MapTexBitmaps_get_count(&textures->tiles);
+  if (object_no > num_objects - 1) {
     object_no = Map_RefMask;
     font_colour = PAL_BLACK;
   }
   /* Set text colour to black or white, whichever gives greater
       contrast with average colour of this tile */
-  else if (MapTexBitmaps_is_bright(&textures->tiles, map_ref_from_num((size_t)object_no))) {
+  else if (MapTexBitmaps_is_bright(&textures->tiles, map_ref_from_num(object_no))) {
     font_colour = PAL_BLACK;
   } else {
     font_colour = PAL_WHITE;
@@ -172,7 +172,7 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
   }
 
   /* Generate string and calculate width */
-  sprintf(string, "%zu", object_no);
+  sprintf(string, "%d", object_no);
   string_width = plot_get_font_width(font_handle, string);
 
   /* Paint number string overlayed on tile icon */
@@ -184,14 +184,14 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
 }
 
 static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
-                          size_t object_no, bool const selected)
+                          int object_no, bool const selected)
 {
   NOT_USED(editor);
   NOT_USED(origin);
 
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
-  size_t const num_objects = MapTexBitmaps_get_count(&textures->tiles);
-  if ((size_t)object_no > num_objects - 1) {
+  int const num_objects = MapTexBitmaps_get_count(&textures->tiles);
+  if (object_no > num_objects - 1) {
 
     BBox scr_bbox;
     BBox_translate(bbox, origin, &scr_bbox);
@@ -229,7 +229,7 @@ static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
 #endif
   } else {
     /* Set the tile sprite to appear in the icon */
-    sprintf(spr_name, "%zu", object_no);
+    sprintf(spr_name, "%d", object_no);
 
     /* Cover specified bounding box with the sprite icon */
     plot_icon.bbox = *bbox;
@@ -260,7 +260,7 @@ static void end_redraw(Editor *const editor, bool const labels)
   }
 }
 
-static size_t grid_to_index(Editor *const editor, Vertex grid_pos, size_t num_columns)
+static int grid_to_index(Editor *const editor, Vertex grid_pos, int num_columns)
 {
   /* Converts a grid location within the palette window's current layout
      to an object index (i.e. tile number). Returns NULL_DATA_INDEX if
@@ -268,15 +268,15 @@ static size_t grid_to_index(Editor *const editor, Vertex grid_pos, size_t num_co
 
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
 
-  DEBUGF("Finding tile no. at grid location %d,%d in %zu columns\n",
+  DEBUGF("Finding tile no. at grid location %d,%d in %d columns\n",
     grid_pos.x, grid_pos.y, num_columns);
 
-  size_t num_groups = MapTexGroups_get_count(&textures->groups);
+  int num_groups = MapTexGroups_get_count(&textures->groups);
   bool const include_mask = Session_has_data(Editor_get_session(editor), DataType_OverlayMap);
   if (include_mask) {
     ++num_groups;
   }
-  size_t group_index = 0, member_count = 0;
+  int group_index = 0, member_count = 0;
   int group_start_row = 0, group_max_row = -1;
 
   for (group_index = 0; group_index < num_groups; ++group_index) {
@@ -289,11 +289,11 @@ static size_t grid_to_index(Editor *const editor, Vertex grid_pos, size_t num_co
     }
 
     group_start_row = group_max_row + 1;
-    size_t const rows_per_group = ((member_count + (num_columns - 1))) / num_columns;
+    int const rows_per_group = ((member_count + (num_columns - 1))) / num_columns;
     assert(rows_per_group <= INT_MAX);
-    group_max_row += (int)rows_per_group;
+    group_max_row += rows_per_group;
 
-    DEBUG_VERBOSEF("Group %zu spans rows %d to %d\n",
+    DEBUG_VERBOSEF("Group %d spans rows %d to %d\n",
       group_index, group_start_row, group_max_row);
 
     if (group_max_row >= grid_pos.y) {
@@ -307,50 +307,50 @@ static size_t grid_to_index(Editor *const editor, Vertex grid_pos, size_t num_co
   }
 
   /* Be careful of blank grid locations at tail of group */
-  size_t const member_index = ((size_t)(grid_pos.y - group_start_row) * num_columns) + (size_t)grid_pos.x;
-  unsigned char object_no;
+  int const member_index = ((grid_pos.y - group_start_row) * num_columns) + grid_pos.x;
+  int object_no;
   if (member_index < member_count) {
     object_no = include_mask && (group_index == num_groups - 1) ?
        MapTexBitmaps_get_count(&textures->tiles) :
        map_ref_to_num(MapTexGroups_get_group_member(&textures->groups, group_index, member_index));
 
-    DEBUGF("Grid location is member %zu of group %zu: tile %d\n", member_index,
+    DEBUGF("Grid location is member %d of group %d: tile %d\n", member_index,
       group_index, object_no);
   } else {
-    DEBUGF("Grid location is off the tail of group %zu\n", group_index);
+    DEBUGF("Grid location is off the tail of group %d\n", group_index);
     object_no = NULL_DATA_INDEX;
   }
 
   return object_no;
 }
 
-static Vertex index_to_grid(Editor *const editor, size_t index,
-  size_t const num_columns)
+static Vertex index_to_grid(Editor *const editor, int index,
+  int const num_columns)
 {
   /* Converts an object index (i.e. tile number) to a grid location
      within the palette window's current layout. */
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
 
-  DEBUG("Will find location of tile %zu within palette layout of %zu columns",
+  DEBUG("Will find location of tile %d within palette layout of %d columns",
         index, num_columns);
 
   assert(textures != NULL);
-  size_t const num_objects = MapTexBitmaps_get_count(&textures->tiles);
-  size_t const num_groups = MapTexGroups_get_count(&textures->groups);
+  int const num_objects = MapTexBitmaps_get_count(&textures->tiles);
+  int const num_groups = MapTexGroups_get_count(&textures->groups);
 
   /* Which group is this tile a member of? */
-  size_t const sel_group = (index == NULL_DATA_INDEX || index > num_objects - 1) ?
+  int const sel_group = (index == NULL_DATA_INDEX || index > num_objects - 1) ?
     num_groups :
     MapTexGroups_get_group_of_tile(&textures->groups, map_ref_from_num(index));
-  DEBUG("Group containing tile no. %zu is %zu", index, sel_group);
+  DEBUG("Group containing tile no. %d is %d", index, sel_group);
 
   /* Find starting row for that group */
   Vertex grid_pos = {0, 0};
 
-  size_t group_index;
+  int group_index;
   for (group_index = 0; group_index < num_groups; ++group_index) {
 
-    size_t const member_count = MapTexGroups_get_num_group_members(&textures->groups, group_index);
+    int const member_count = MapTexGroups_get_num_group_members(&textures->groups, group_index);
     /* Skip empty groups (including super-groups) */
     if (member_count == 0) {
       continue;
@@ -360,41 +360,41 @@ static Vertex index_to_grid(Editor *const editor, size_t index,
       break; /* have found start row of group containing selected tile */
     }
 
-    size_t const num_skip = (member_count + (num_columns - 1)) / num_columns;
-    DEBUG("Skipping group %zu (%zu members, %zu rows)", group_index,
+    int const num_skip = (member_count + (num_columns - 1)) / num_columns;
+    DEBUG("Skipping group %d (%d members, %d rows)", group_index,
           member_count, num_skip);
 
     assert(num_skip <= INT_MAX);
-    grid_pos.y += (int)num_skip;
+    grid_pos.y += num_skip;
   }
 
   if (group_index < num_groups) {
     /* find tile's position within group */
-    size_t member_index = 0;
+    int member_index = 0;
     while (map_ref_to_num(MapTexGroups_get_group_member(&textures->groups, group_index, member_index)) != index) {
       ++member_index;
     }
 
-    DEBUG("tile %zu is member %zu of group %zu", index, member_index, sel_group);
+    DEBUG("tile %d is member %d of group %d", index, member_index, sel_group);
 
     assert(member_index <= INT_MAX);
-    grid_pos.y += (int)(member_index / num_columns);
-    grid_pos.x = (int)(member_index % num_columns);
+    grid_pos.y += (member_index / num_columns);
+    grid_pos.x = (member_index % num_columns);
   }
 
   DEBUG("Returning grid location %d,%d", grid_pos.x, grid_pos.y);
   return grid_pos;
 }
 
-static size_t get_max_width(Editor *const editor)
+static int get_max_width(Editor *const editor)
 {
   /* Width of palette may not exceed no. of members of largest tile group */
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
-  size_t const num_groups = MapTexGroups_get_count(&textures->groups);
-  size_t columns_limit = 0;
+  int const num_groups = MapTexGroups_get_count(&textures->groups);
+  int columns_limit = 0;
 
-  for (size_t g = 0; g < num_groups; g++) {
-    size_t const member_count =
+  for (int g = 0; g < num_groups; g++) {
+    int const member_count =
       MapTexGroups_get_num_group_members(&textures->groups, g);
 
     if (columns_limit < member_count) {
@@ -405,20 +405,20 @@ static size_t get_max_width(Editor *const editor)
   return columns_limit;
 }
 
-static size_t get_num_rows(Editor *const editor, size_t const num_columns)
+static int get_num_rows(Editor *const editor, int const num_columns)
 {
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
-  size_t const num_groups = MapTexGroups_get_count(&textures->groups);
-  size_t num_rows = 0;
+  int const num_groups = MapTexGroups_get_count(&textures->groups);
+  int num_rows = 0;
 
-  for (size_t group_num = 0; group_num < num_groups; group_num++)
+  for (int group_num = 0; group_num < num_groups; group_num++)
   {
     /* round up each group to the nearest whole row */
-    size_t const member_count = MapTexGroups_get_num_group_members(
+    int const member_count = MapTexGroups_get_num_group_members(
       &textures->groups, group_num);
 
     num_rows += (member_count + num_columns - 1) / num_columns;
-    DEBUGF("%zu rows after considering group %zu of %zu tiles\n", num_rows, group_num, member_count);
+    DEBUGF("%d rows after considering group %d of %d tiles\n", num_rows, group_num, member_count);
   }
 
   bool const include_mask = Session_has_data(Editor_get_session(editor), DataType_OverlayMap);
@@ -448,26 +448,26 @@ static void edit(Editor *const editor)
   MapTexGroups_edit(filenames_get(filenames, DataType_MapTextures));
 }
 
-static unsigned char index_to_object(Editor *const editor, size_t const index)
+static int index_to_object(Editor *const editor, int const index)
 {
   EditSession *const session = Editor_get_session(editor);
-  unsigned char object_no;
+  int object_no;
   MapTex *const textures = Session_get_textures(session);
 
-  if (index >= (size_t)MapTexBitmaps_get_count(&textures->tiles)) {
+  if (index >= MapTexBitmaps_get_count(&textures->tiles)) {
     assert(Session_has_data(session, DataType_OverlayMap));
     object_no = Map_RefMask;
   } else {
-    object_no = (unsigned char)index;
+    object_no = index;
     assert(object_no == index);
   }
   return object_no;
 }
 
-static size_t object_to_index(Editor *const editor, unsigned char const object_no)
+static int object_to_index(Editor *const editor, int const object_no)
 {
   EditSession *const session = Editor_get_session(editor);
-  size_t index = object_no;
+  int index = object_no;
 
   if (object_no == Map_RefMask)
   {

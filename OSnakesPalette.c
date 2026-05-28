@@ -107,14 +107,14 @@ static void write_mini_map(MapPoint const map_pos, unsigned char const obj_ref,
 }
 
 static void plot_mini_map(ObjSnakesMiniContext *const ctx,
-  ObjSnakes *const snakes_data, size_t const snake,
-  MapPoint const points[], size_t const num_points)
+  ObjSnakes *const snakes_data, int const snake,
+  MapPoint const points[], int const num_points)
 {
   assert(snakes_data);
   assert(points);
   assert(num_points > 0);
 
-  size_t i = 0;
+  int i = 0;
   Snakes_begin_line(&ctx->super, &snakes_data->super, points[i++], snake,
     false, read_mini_map, write_mini_map);
 
@@ -123,7 +123,7 @@ static void plot_mini_map(ObjSnakesMiniContext *const ctx,
   }
 }
 
-static void make_mini_map(ObjSnakes *const snakes_data, size_t const snake,
+static void make_mini_map(ObjSnakes *const snakes_data, int const snake,
   ObjRef (*const thumb_obj_refs)[THUMB_TILE_SIZE][THUMB_TILE_WIDTH])
 {
   for (int y = 0; y < THUMB_TILE_SIZE; ++y) {
@@ -161,7 +161,7 @@ static void make_mini_map(ObjSnakes *const snakes_data, size_t const snake,
   }
 }
 
-static bool init(PaletteData *const pal_data, Editor *const editor, size_t *num_indices, bool const reinit)
+static bool init(PaletteData *const pal_data, Editor *const editor, int *num_indices, bool const reinit)
 {
   NOT_USED(reinit);
   EditSession *const session = Editor_get_session(editor);
@@ -202,7 +202,7 @@ static void start_redraw(Editor *const editor, bool const labels)
 }
 
 static void redraw_label(Editor *const editor, Vertex const origin,
-  BBox const *const bbox, size_t const object_no, bool const selected)
+  BBox const *const bbox, int const object_no, bool const selected)
 {
   NOT_USED(editor);
   NOT_USED(origin);
@@ -292,7 +292,7 @@ static void draw_snake(ObjGfxMeshes *const meshes, PolyColData const *const poly
 }
 
 static void redraw_object(Editor *const editor, Vertex const origin,
-  BBox const *const bbox, size_t const object_no, bool const selected)
+  BBox const *const bbox, int const object_no, bool const selected)
 {
   NOT_USED(origin);
   NOT_USED(editor);

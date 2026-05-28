@@ -128,7 +128,7 @@ static BBox bbox_for_object(PaletteData const *const pal_data, Vertex const grid
                 X_BORDER + object_max.x, -Y_BORDER - object_min.y};
 }
 
-static Vertex grid_from_index(PaletteData *const pal_data, size_t const index)
+static Vertex grid_from_index(PaletteData *const pal_data, int const index)
 {
   assert(pal_data != NULL);
   assert(index <= pal_data->num_indices); /* intentional for deletion of last object */
@@ -140,20 +140,20 @@ static Vertex grid_from_index(PaletteData *const pal_data, size_t const index)
   {
     DEBUGF("Calling index-to-grid function for custom layout\n");
     grid_pos = pal_data->client_functions->index_to_grid(pal_data->parent_editor,
-               index, (size_t)pal_data->grid_size.x);
+               index, (int)pal_data->grid_size.x);
   }
   else
   {
     grid_pos = (Vertex){(int)index % pal_data->grid_size.x, (int)index / pal_data->grid_size.x};
   }
 
-  DEBUGF("Object with index %zu is at %d,%d in palette\n",
+  DEBUGF("Object with index %d is at %d,%d in palette\n",
          index, grid_pos.x, grid_pos.y);
 
   return grid_pos;
 }
 
-static size_t index_to_object(PaletteData const *const pal_data, size_t const index)
+static int index_to_object(PaletteData const *const pal_data, int const index)
 {
   assert(pal_data);
   if (index == NULL_DATA_INDEX) {
@@ -161,7 +161,7 @@ static size_t index_to_object(PaletteData const *const pal_data, size_t const in
   }
   assert(index < pal_data->num_indices);
 
-  size_t object = index;
+  int object = index;
 
   if (pal_data->client_functions != NULL &&
       pal_data->client_functions->index_to_object != NULL)
@@ -170,7 +170,7 @@ static size_t index_to_object(PaletteData const *const pal_data, size_t const in
       pal_data->parent_editor, index);
   }
 
-  DEBUGF("Object is %zu from index %zu, count %zu\n", object, index, pal_data->num_indices);
+  DEBUGF("Object is %d from index %d, count %d\n", object, index, pal_data->num_indices);
   return object;
 }
 
@@ -185,11 +185,11 @@ static void update_menus(PaletteData *const pal_data)
 }
 
 
-static size_t p_object_to_index(PaletteData const *const pal_data, int const object)
+static int p_object_to_index(PaletteData const *const pal_data, int const object)
 {
   assert(pal_data);
 
-  size_t index = object;
+  int index = object;
 
   if (pal_data->client_functions != NULL &&
       pal_data->client_functions->object_to_index != NULL)
@@ -198,15 +198,15 @@ static size_t p_object_to_index(PaletteData const *const pal_data, int const obj
       pal_data->parent_editor, object);
   }
 
-  DEBUGF("Index is %zu from object %d, count %zu\n", index, object, pal_data->num_indices);
+  DEBUGF("Index is %d from object %d, count %d\n", index, object, pal_data->num_indices);
   assert(index < pal_data->num_indices);
   return index;
 }
 
-static void select_index_at_pos(PaletteData *const pal_data, Vertex const grid_pos, size_t const index,
+static void select_index_at_pos(PaletteData *const pal_data, Vertex const grid_pos, int const index,
                    bool scroll, bool redraw, bool const hint)
 {
-  DEBUGF("Selecting item %zu at %d,%d\n", index, grid_pos.x, grid_pos.y);
+  DEBUGF("Selecting item %d at %d,%d\n", index, grid_pos.x, grid_pos.y);
   BBox object_bbox = bbox_for_object(pal_data, grid_pos);
   int window_handle;
   if (E(window_get_wimp_handle(0, pal_data->my_object, &window_handle)))
@@ -268,25 +268,25 @@ static void select_index_at_pos(PaletteData *const pal_data, Vertex const grid_p
   Editor_palette_selection(pal_data->parent_editor, index_to_object(pal_data, index));
 }
 
-static size_t index_from_grid(PaletteData *const pal_data, Vertex grid_pos)
+static int index_from_grid(PaletteData *const pal_data, Vertex grid_pos)
 {
   /*
      Given a grid location in the palette, find the corresponding object number
      returns NULL_DATA_INDEX if grid location empty
   */
   assert(pal_data != NULL);
-  size_t index = NULL_DATA_INDEX;
+  int index = NULL_DATA_INDEX;
 
   if (!pal_data->numeric_order && pal_data->client_functions != NULL &&
       pal_data->client_functions->grid_to_index != NULL)
   {
     DEBUGF("Calling grid-to-index function for custom layout\n");
     index = pal_data->client_functions->grid_to_index(pal_data->parent_editor,
-                grid_pos, (size_t)pal_data->grid_size.x);
+                grid_pos, (int)pal_data->grid_size.x);
   }
   else
   {
-    index = (size_t)((grid_pos.y * pal_data->grid_size.x) + grid_pos.x);
+    index = (int)((grid_pos.y * pal_data->grid_size.x) + grid_pos.x);
     if (index >= pal_data->num_indices)
       index = NULL_DATA_INDEX; /* off the end (final row?) */
   }
@@ -297,7 +297,7 @@ static size_t index_from_grid(PaletteData *const pal_data, Vertex grid_pos)
   }
   else
   {
-    DEBUG("Item at grid location %d,%d has index %zu", grid_pos.x, grid_pos.y,
+    DEBUG("Item at grid location %d,%d has index %d", grid_pos.x, grid_pos.y,
           index);
   }
 
@@ -317,9 +317,9 @@ static bool calcmaxcolumns(PaletteData *const pal_data, int const new_width)
   get_scrollbar_sizes(&sbar_width, NULL);
   DEBUG("Vertical scrollbar width: %d", sbar_width);
 
-  size_t new_max_columns = (size_t)((new_width - sbar_width - X_BORDER * 2) /
+  int new_max_columns = (int)((new_width - sbar_width - X_BORDER * 2) /
                                      pal_data->object_size.x);
-  size_t columns_limit = 1;
+  int columns_limit = 1;
 
   if (pal_data->client_functions == NULL || pal_data->numeric_order ||
       pal_data->client_functions->get_max_columns == NULL) {
@@ -337,7 +337,7 @@ static bool calcmaxcolumns(PaletteData *const pal_data, int const new_width)
 
   if (new_max_columns != pal_data->max_columns) {
     pal_data->max_columns = new_max_columns;
-    DEBUG("New max no. of columns: %zu", pal_data->max_columns);
+    DEBUG("New max no. of columns: %d", pal_data->max_columns);
     return true; /* maximum no. of columns changed */
   }
   return false; /* maximum no. of columns unchanged */
@@ -351,7 +351,7 @@ static BBox calc_extent(PaletteData *const pal_data)
   assert(pal_data != NULL);
 
   /* Calculate work area extent (maximum width & height of palette) */
-  DEBUG("Calculating work area extent for %d rows and up to %zu columns",
+  DEBUG("Calculating work area extent for %d rows and up to %d columns",
         pal_data->grid_size.y, pal_data->max_columns);
 
   Vertex max_layout_size = Vertex_mul(
@@ -447,7 +447,7 @@ static void redraw_below_pos(PaletteData *const pal_data, Vertex start_pos)
 }
 
 static bool reformat_visible(PaletteData *const pal_data, BBox const *const visible_area,
-                             ReformatAction const action, size_t const change_pos)
+                             ReformatAction const action, int const change_pos)
 {
   /* Reformat window contents to fit given visible area coordinates and clip
      work area Y extent. 'change_pos' is the index of the object at which to
@@ -457,13 +457,13 @@ static bool reformat_visible(PaletteData *const pal_data, BBox const *const visi
      re-formatted. */
   assert(pal_data != NULL);
   assert(visible_area->xmin <= visible_area->xmax);
-  DEBUGF("Visible area will be xmin:%d xmax:%d (change_pos:%zu)\n", visible_area->xmin, visible_area->xmax,
+  DEBUGF("Visible area will be xmin:%d xmax:%d (change_pos:%d)\n", visible_area->xmin, visible_area->xmax,
          change_pos);
 
   /* Calculate number of columns for this window width */
-  size_t new_num_columns = (size_t)(((visible_area->xmax - X_BORDER) - (visible_area->xmin + X_BORDER)) /
+  int new_num_columns = (int)(((visible_area->xmax - X_BORDER) - (visible_area->xmin + X_BORDER)) /
                                     pal_data->object_size.x);
-  DEBUGF("Calculated no. of columns as %zu\n", new_num_columns);
+  DEBUGF("Calculated no. of columns as %d\n", new_num_columns);
 
   /* Some sanity checking */
   if (new_num_columns < 1) {
@@ -477,7 +477,7 @@ static bool reformat_visible(PaletteData *const pal_data, BBox const *const visi
   bool full_reformat = false;
   if (action == ReformatAction_Force) {
     full_reformat = true;
-  } else if (new_num_columns != (size_t)pal_data->grid_size.x) {
+  } else if (new_num_columns != (int)pal_data->grid_size.x) {
     full_reformat = true;
   } else if (action == ReformatAction_OnlyIfWidthChanged) {
     return false; /* display not reformatted */
@@ -485,7 +485,7 @@ static bool reformat_visible(PaletteData *const pal_data, BBox const *const visi
 
   pal_data->grid_size.x = (int)new_num_columns;
 
-  DEBUG("Reformatting window for width of %d (%zu objects across)", visible_area->xmax - visible_area->xmin,
+  DEBUG("Reformatting window for width of %d (%d objects across)", visible_area->xmax - visible_area->xmin,
         new_num_columns);
 
   /* Predict number of rows in display */
@@ -497,8 +497,8 @@ static bool reformat_visible(PaletteData *const pal_data, BBox const *const visi
   }
   else
   {
-    pal_data->grid_size.y = (int)((pal_data->num_indices + (size_t)new_num_columns - 1) /
-                                  (size_t)new_num_columns);
+    pal_data->grid_size.y = (int)((pal_data->num_indices + (int)new_num_columns - 1) /
+                                  (int)new_num_columns);
   }
   if (pal_data->grid_size.y < 1) {
     pal_data->grid_size.y = 1;
@@ -512,7 +512,7 @@ static bool reformat_visible(PaletteData *const pal_data, BBox const *const visi
   {
     pal_data->sel_pos = grid_from_index(pal_data, pal_data->sel_index);
 
-    DEBUG("Selected object %zu is now at %d,%d", pal_data->sel_index,
+    DEBUG("Selected object %d is now at %d,%d", pal_data->sel_index,
           pal_data->sel_pos.x, pal_data->sel_pos.y);
   }
 
@@ -653,7 +653,7 @@ static void redraw_loop(PaletteData *const pal_data, WimpRedrawWindowBlock *cons
            grid_pos.x <= grid_max.x;
            grid_pos.x++)
       {
-        size_t const index = index_from_grid(pal_data, grid_pos);
+        int const index = index_from_grid(pal_data, grid_pos);
 
         if (index == NULL_DATA_INDEX)
         {
@@ -663,7 +663,7 @@ static void redraw_loop(PaletteData *const pal_data, WimpRedrawWindowBlock *cons
 
         if (client_functions->redraw_object != NULL)
         {
-          DEBUGF("Calling client function to redraw item %zu (bbox %d,%d,%d,%d)\n",
+          DEBUGF("Calling client function to redraw item %d (bbox %d,%d,%d,%d)\n",
                  index, image_bbox.xmin, image_bbox.ymin, image_bbox.xmax,
                  image_bbox.ymax);
 
@@ -674,7 +674,7 @@ static void redraw_loop(PaletteData *const pal_data, WimpRedrawWindowBlock *cons
 
         if (pal_data->labels && client_functions->redraw_label != NULL)
         {
-          DEBUGF("Calling client function to redraw label %zu (bbox %d,%d,%d,%d)\n",
+          DEBUGF("Calling client function to redraw label %d (bbox %d,%d,%d,%d)\n",
                  index, label_bbox.xmin, label_bbox.ymin,
                  label_bbox.xmax, label_bbox.ymax);
 
@@ -687,7 +687,7 @@ static void redraw_loop(PaletteData *const pal_data, WimpRedrawWindowBlock *cons
             pal_data->sel_index == index)
         {
           /* Plot a thick red rectangle around the selected object */
-          DEBUGF("Drawing selection rectangle around item %zu\n", index);
+          DEBUGF("Drawing selection rectangle around item %d\n", index);
           BBox plot_bbox;
           BBox_translate(&image_bbox, wa_origin, &plot_bbox);
 
@@ -903,7 +903,7 @@ static int mouse_click(int const event_code, WimpPollBlock *const event,
   Vertex const grid_pos = Vertex_div(click_pos, pal_data->object_size);
   DEBUG("row=%d col=%d\n", grid_pos.y, grid_pos.x);
 
-  size_t const index = index_from_grid(pal_data, grid_pos);
+  int const index = index_from_grid(pal_data, grid_pos);
   if (index != NULL_DATA_INDEX &&
       index != pal_data->sel_index) {
     select_index_at_pos(pal_data, grid_pos, index, false, true, true);
@@ -913,7 +913,7 @@ static int mouse_click(int const event_code, WimpPollBlock *const event,
 }
 
 static bool reformat(PaletteData *const pal_data, ReformatAction const action,
-                     size_t const change_pos)
+                     int const change_pos)
 {
   /* Reformat contents to fit current window width and clip the work area
      Y extent. 'change_pos' is the index of the object at which to start redraw
@@ -1144,7 +1144,7 @@ static void setselrowcol(PaletteData *const pal_data)
   pal_data->sel_pos.y = (int)pal_data->sel_index / pal_data->grid_size.x;
   pal_data->sel_pos.x = (int)pal_data->sel_index % pal_data->grid_size.x;
 
-  DEBUG ("Selected item %zu is now at %d,%d", pal_data->sel_index,
+  DEBUG ("Selected item %d is now at %d,%d", pal_data->sel_index,
          pal_data->sel_pos.x, pal_data->sel_pos.y);
 }
 
@@ -1261,7 +1261,7 @@ static bool do_init(PaletteData *const pal_data,
     calcmaxcolumns(pal_data, desktop_size.x);
     reformat(pal_data, ReformatAction_Force, 0);
 
-    size_t index = index_from_grid(pal_data, default_selected);
+    int index = index_from_grid(pal_data, default_selected);
     if (index != NULL_DATA_INDEX)
       select_index_at_pos(pal_data, default_selected, index, true, false,
                       false);
@@ -1433,14 +1433,14 @@ void Palette_destroy(PaletteData *const pal_data)
   E(remove_event_handlers_delete(pal_data->my_object));
 }
 
-void Palette_object_moved(PaletteData *const pal_data, unsigned char const old_object,
-                          unsigned char const new_object)
+void Palette_object_moved(PaletteData *const pal_data, int const old_object,
+                          int const new_object)
 {
   DEBUG ("Palette object %p notified that item moved from %d to %d",
          (void *)pal_data, old_object, new_object);
   assert(pal_data != NULL);
 
-  unsigned char const old_index = p_object_to_index(pal_data, old_object),
+  int const old_index = p_object_to_index(pal_data, old_object),
                       new_index = p_object_to_index(pal_data, new_object);
 
   if (pal_data->sel_index != NULL_DATA_INDEX) {
@@ -1476,12 +1476,12 @@ void Palette_object_moved(PaletteData *const pal_data, unsigned char const old_o
   redraw_below_pos(pal_data, start_pos);
 }
 
-void Palette_redraw_object(PaletteData *const pal_data, unsigned char object)
+void Palette_redraw_object(PaletteData *const pal_data, int object)
 {
   assert(pal_data != NULL);
   DEBUG ("Redrawing item %d in palette %p (object 0x%x)", object, (void *)pal_data, pal_data->my_object);
   assert(pal_data->client_functions != NULL);
-  size_t const index = p_object_to_index(pal_data, object);
+  int const index = p_object_to_index(pal_data, object);
 
   // FIXME: only draw inside
   Vertex const grid_min = grid_from_index(pal_data, index);
@@ -1507,7 +1507,7 @@ void Palette_redraw_object(PaletteData *const pal_data, unsigned char object)
   }
 }
 
-void Palette_redraw_name(PaletteData *const pal_data, unsigned char const object)
+void Palette_redraw_name(PaletteData *const pal_data, int const object)
 {
   assert(pal_data != NULL);
   if (!pal_data->labels)
@@ -1515,8 +1515,8 @@ void Palette_redraw_name(PaletteData *const pal_data, unsigned char const object
     return;
   }
 
-  size_t const index = p_object_to_index(pal_data, object);
-  DEBUG ("Redrawing label %zu in palette %p (object 0x%x)", index, (void *)pal_data, pal_data->my_object);
+  int const index = p_object_to_index(pal_data, object);
+  DEBUG ("Redrawing label %d in palette %p (object 0x%x)", index, (void *)pal_data, pal_data->my_object);
   if (pal_data->client_functions->overlay_labels)
   {
     Palette_redraw_object(pal_data, index);
@@ -1529,7 +1529,7 @@ void Palette_redraw_name(PaletteData *const pal_data, unsigned char const object
   }
 }
 
-void Palette_object_deleted(PaletteData *const pal_data, unsigned char const object)
+void Palette_object_deleted(PaletteData *const pal_data, int const object)
 {
   /* Notification that an object (at position 'index') has been deleted, so we
      must reformat our display. Call with index == NULL_DATA_INDEX if all
@@ -1537,7 +1537,7 @@ void Palette_object_deleted(PaletteData *const pal_data, unsigned char const obj
   assert(pal_data != NULL);
   DEBUG ("Palette object %p notified that item %d was deleted", (void *)pal_data,
          object);
-  size_t const index = p_object_to_index(pal_data, object);
+  int const index = p_object_to_index(pal_data, object);
 
   if (pal_data->num_indices == 0)
     return; /* nothing to do! */
@@ -1552,7 +1552,7 @@ void Palette_object_deleted(PaletteData *const pal_data, unsigned char const obj
 
   /* Prevent reformat_visible from recalculating the grid coordinates of
      the selected object in its old position... */
-  size_t const old_sel_index = pal_data->sel_index;
+  int const old_sel_index = pal_data->sel_index;
   pal_data->sel_index = NULL_DATA_INDEX;
 
   /* Reformat the display and redraw it below the index of the deleted object */
@@ -1581,14 +1581,14 @@ void Palette_object_deleted(PaletteData *const pal_data, unsigned char const obj
   update_menus(pal_data);
 }
 
-void Palette_object_added(PaletteData *const pal_data, unsigned char const object)
+void Palette_object_added(PaletteData *const pal_data, int const object)
 {
   /* Notification that an object is being added so that we can reformat our
      display. */
   DEBUG ("Palette object %p notified that item was added at %d", (void *)pal_data,
          object);
   assert(pal_data != NULL);
-  size_t const index = p_object_to_index(pal_data, object);
+  int const index = p_object_to_index(pal_data, object);
 
   pal_data->num_indices ++;
   assert(pal_data->num_indices > 0);
@@ -1656,22 +1656,22 @@ bool Palette_register_client(PaletteData *const pal_data,
   return do_init(pal_data, client_functions, false);
 }
 
-size_t Palette_get_selection(PaletteData const *const pal_data)
+int Palette_get_selection(PaletteData const *const pal_data)
 {
   DEBUG ("Selected item queried for palette object %p", (void *)pal_data);
   assert(pal_data != NULL);
 
-  size_t const sel_index = index_to_object(pal_data, pal_data->sel_index);
-  DEBUG ("Selected item is %zu", sel_index);
+  int const sel_index = index_to_object(pal_data, pal_data->sel_index);
+  DEBUG ("Selected item is %d", sel_index);
   return sel_index;
 }
 
-void Palette_set_selection(PaletteData *const pal_data, unsigned char const object)
+void Palette_set_selection(PaletteData *const pal_data, int const object)
 {
   DEBUG ("About to select item %d in palette object %p", object, (void *)pal_data);
   assert(pal_data != NULL);
 
-  size_t const index = p_object_to_index(pal_data, object);
+  int const index = p_object_to_index(pal_data, object);
   if (index != pal_data->sel_index) {
     select_index_at_pos(pal_data, grid_from_index(pal_data, index), index, true, true, true);
   }

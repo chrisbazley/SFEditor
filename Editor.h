@@ -131,7 +131,7 @@ typedef enum {
 
 void Editor_set_palette_rotation(Editor *editor, ObjGfxAngle rot);
 ObjGfxAngle Editor_get_palette_rotation(Editor const *editor);
-void Editor_palette_selection(Editor *editor, size_t object);
+void Editor_palette_selection(Editor *editor, int object);
 
 bool Editor_can_select_tool(Editor const *editor, EditorTool tool);
 void Editor_select_tool(Editor *editor, EditorTool tool);

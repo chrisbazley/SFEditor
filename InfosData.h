@@ -11,7 +11,7 @@
 
 struct TargetInfosData
 {
-  size_t count;
+  int count;
   uint8_t next;
   IntDict dict;
 };

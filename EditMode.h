@@ -42,7 +42,7 @@ typedef struct EditModeFuncts
   size_t (*max_selected)(Editor const *editor);
   void (*resource_change)(Editor *editor, EditorChange event,
     EditorChangeParams const *params);
-  void (*palette_selection)(Editor *editor, size_t object);
+  void (*palette_selection)(Editor *editor, int object);
   bool (*can_clip_overlay)(Editor const *editor);
   void (*clip_overlay)(Editor *editor);
   bool (*can_smooth)(Editor const *editor);

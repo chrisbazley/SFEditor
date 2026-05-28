@@ -90,7 +90,7 @@ struct MapTransfer
   struct DFile dfile;
   CoarsePoint2d  size_minus_one;
   void          *tiles, *anims; /* flex anchor */
-  size_t         anim_count, anim_alloc;
+  int         anim_count, anim_alloc;
 };
 
 typedef struct
@@ -101,7 +101,7 @@ typedef struct
 
 /* ---------------- Private functions ---------------- */
 
-static inline size_t uchar_offset(MapTransfer *const transfer,
+static inline int uchar_offset(MapTransfer *const transfer,
   MapPoint const trans_pos)
 {
   assert(transfer != NULL);
@@ -110,9 +110,9 @@ static inline size_t uchar_offset(MapTransfer *const transfer,
   assert(trans_pos.y >= 0);
   assert(trans_pos.y <= transfer->size_minus_one.y);
 
-  size_t const offset = ((size_t)trans_pos.y * ((size_t)transfer->size_minus_one.x + 1)) +
-                         (size_t)trans_pos.x;
-  assert(offset < (size_t)flex_size(&transfer->tiles));
+  int const offset = ((int)trans_pos.y * ((int)transfer->size_minus_one.x + 1)) +
+                         (int)trans_pos.x;
+  assert(offset < flex_size(&transfer->tiles));
   return offset;
 }
 
@@ -255,7 +255,7 @@ static bool make_thumbnails(MapTransfers *const transfers_data,
   assert(textures);
 
   hourglass_on();
-  size_t count = 0;
+  int count = 0;
   bool success = true;
 
   StrDictVIter iter;
@@ -289,7 +289,7 @@ static bool make_thumbnails(MapTransfers *const transfers_data,
 }
 
 static bool add_to_list(MapTransfers *const transfers_data,
-  MapTransfer *const transfer, size_t *const index)
+  MapTransfer *const transfer, int *const index)
 {
   assert(transfers_data != NULL);
   assert(transfer != NULL);
@@ -302,10 +302,10 @@ static bool add_to_list(MapTransfers *const transfers_data,
   }
 
   transfers_data->count ++;
-  DEBUG("MTransfers list now has %zu members", transfers_data->count);
+  DEBUG("MTransfers list now has %d members", transfers_data->count);
   if (index) {
-    assert(new_index <= INT_MAX);
-    *index = new_index;
+    assert(new_index <= (unsigned)INT_MAX);
+    *index = (int)new_index;
   }
   return true;
 }
@@ -320,16 +320,16 @@ static void remove_from_list(MapTransfers *const transfers_data,
   NOT_USED(removed);
   assert(transfers_data->count > 0);
   transfers_data->count --;
-  DEBUG("Number of transfers in list is now %zu", transfers_data->count);
+  DEBUG("Number of transfers in list is now %d", transfers_data->count);
 }
 
-static bool transfer_pre_alloc(MapTransfer *const transfer, size_t const min_alloc)
+static bool transfer_pre_alloc(MapTransfer *const transfer, int const min_alloc)
 {
   assert(transfer);
   assert(transfer->anim_count <= transfer->anim_alloc);
 
   if (transfer->anim_alloc < min_alloc) {
-    size_t const nbytes = sizeof(MapTransferAnim) * min_alloc;
+    int const nbytes = sizeof(MapTransferAnim) * min_alloc;
     if (nbytes > INT_MAX) {
       return false;
     }
@@ -362,7 +362,7 @@ static void transfer_add_anim(MapTransfer *const transfer,
   ((MapTransferAnim *)transfer->anims)[transfer->anim_count++] = *anim;
 }
 
-static MapTransferAnim transfer_get_anim(MapTransfer const *const transfer, size_t const index)
+static MapTransferAnim transfer_get_anim(MapTransfer const *const transfer, int const index)
 {
   assert(transfer);
   assert(transfer->anims);
@@ -389,14 +389,14 @@ static void write_anims(MapTransfer const *const transfer,
   assert(transfer->anim_count <= INT32_MAX);
   writer_fwrite_int32((int32_t)transfer->anim_count, writer);
 
-  for (size_t a = 0; a < transfer->anim_count; ++a)
+  for (int a = 0; a < transfer->anim_count; ++a)
   {
     MapTransferAnim const anim = transfer_get_anim(transfer, a);
 
     CoarsePoint2d_write(anim.coords, writer);
     writer_fwrite_uint16(anim.param.period, writer);
 
-    for (size_t i = 0; i < AnimsNFrames; ++i)
+    for (int i = 0; i < AnimsNFrames; ++i)
     {
       writer_fputc(map_ref_to_num(anim.param.tiles[i]), writer);
     }
@@ -459,7 +459,7 @@ static SFError read_anims(MapTransfer *const transfer, Reader *const reader,
     return SFERROR(BadNumAnims);
   }
 
-  if (!transfer_pre_alloc(transfer, (size_t)anim_count))
+  if (!transfer_pre_alloc(transfer, (int)anim_count))
   {
     return SFERROR(NoMem);
   }
@@ -541,7 +541,7 @@ static SFError read_anims(MapTransfer *const transfer, Reader *const reader,
         frame_num = 0;
       }
 
-      for (size_t i = 0; i < AnimsNFrames; ++i)
+      for (int i = 0; i < AnimsNFrames; ++i)
       {
         int32_t tile;
         if (!reader_fread_int32(&tile, reader))
@@ -571,7 +571,7 @@ static SFError read_anims(MapTransfer *const transfer, Reader *const reader,
       }
       anim.param.period = period;
 
-      for (size_t i = 0; i < AnimsNFrames; ++i)
+      for (int i = 0; i < AnimsNFrames; ++i)
       {
         int const tile = reader_fgetc(reader);
         if (tile == EOF)
@@ -673,7 +673,7 @@ static SFError MapTransfer_read_cb(DFile const *const dfile,
   SFError err = SFERROR(OK);
 
   nobudge_register(PREALLOC_SIZE);
-  if (!reader_fread(transfer->tiles, (size_t)flex_size(&transfer->tiles), 1, reader))
+  if (!reader_fread(transfer->tiles, flex_size(&transfer->tiles), 1, reader))
   {
     err = SFERROR(ReadFail);
   }
@@ -699,7 +699,7 @@ static void MapTransfer_write_cb(DFile const *const dfile,
   writer_fputc(transfer->anim_count > 0 ? TransferHasAnimations : 0, writer);
 
   nobudge_register(PREALLOC_SIZE);
-  writer_fwrite(transfer->tiles, (size_t)flex_size(&transfer->tiles), 1, writer);
+  writer_fwrite(transfer->tiles, flex_size(&transfer->tiles), 1, writer);
   nobudge_deregister();
 
   if (transfer->anim_count > 0) {
@@ -765,7 +765,7 @@ MapTransfer *MapTransfer_create(void)
   return transfer;
 }
 
-size_t MapTransfers_get_count(const MapTransfers *const transfers_data)
+int MapTransfers_get_count(const MapTransfers *const transfers_data)
 {
   assert(transfers_data != NULL);
   DEBUG_VERBOSEF("No. of transfers is %zu\n", transfers_data->count);
@@ -869,7 +869,7 @@ void MapTransfers_load_all(MapTransfers *const transfers_data,
     }
   }
 
-  DEBUG("Number of transfers in list is %zu", transfers_data->count);
+  DEBUG("Number of transfers in list is %d", transfers_data->count);
   diriterator_destroy(iter);
   hourglass_off();
 }
@@ -966,7 +966,7 @@ MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
     write_transfer_tile(transfer, MapPoint_sub(p, bounds.min), tile);
   }
 
-  size_t sel_count = 0;
+  int sel_count = 0;
   if (map->anims != NULL) {
     MapAnimsIter anims_iter;
     for (MapPoint p = MapAnimsIter_get_first(&anims_iter, map->anims, &bounds, NULL);
@@ -1157,13 +1157,13 @@ bool MapTransfers_plot_to_map(const MapEditContext *const map,
   for_each_area(transfer, plot_to_map_cb, &data);
 
   /* Create new animations from transfer (if any) */
-  size_t const num_to_add = transfer->anim_count;
+  int const num_to_add = transfer->anim_count;
   ConvAnimations *const anims = map->anims;
   if (anims == NULL)
     return num_to_add == 0; /* cannot paste new animations nor liquidate old ones */
 
 
-  for (size_t a = 0; a < num_to_add; a++) {
+  for (int a = 0; a < num_to_add; a++) {
     MapTransferAnim const anim = transfer_get_anim(transfer, a);
     if (!MapEdit_write_anim(map, MapPoint_add(bl, map_coords_from_coarse(anim.coords)),
                       anim.param, change_info)) {
@@ -1256,7 +1256,7 @@ MapRef MapTransfers_read_ref(MapTransfer *const transfer, MapPoint const trans_p
 }
 
 MapTransfer *MapTransfers_find_by_name(MapTransfers *const transfers_data,
-  char const *const filename, size_t *const index_out)
+  char const *const filename, int *const index_out)
 {
   assert(filename != NULL);
   DEBUG("Find transfer named '%s' in tiles data %p", filename,
@@ -1264,7 +1264,7 @@ MapTransfer *MapTransfers_find_by_name(MapTransfers *const transfers_data,
 
   assert(transfers_data != NULL);
 
-  size_t index = 0;;
+  size_t index = 0;
   MapTransfer *const transfer = strdict_find_value(&transfers_data->dict, filename, &index);
 
   if (!transfer) {
@@ -1274,17 +1274,17 @@ MapTransfer *MapTransfers_find_by_name(MapTransfers *const transfers_data,
   }
 
   if (index_out != NULL) {
-    assert(index <= INT_MAX);
-    *index_out = index;
+    assert(index <= (unsigned)INT_MAX);
+    *index_out = (int)index;
   }
 
   return transfer;
 }
 
 MapTransfer *MapTransfers_find_by_index(MapTransfers *const transfers_data,
-  size_t const transfer_index)
+  int const transfer_index)
 {
-  DEBUG ("Find transfer at index %zu in tiles data %p",
+  DEBUG ("Find transfer at index %d in tiles data %p",
          transfer_index, (void *)transfers_data);
 
   assert(transfers_data != NULL);
@@ -1294,7 +1294,7 @@ MapTransfer *MapTransfers_find_by_index(MapTransfers *const transfers_data,
 
 bool MapTransfers_add(MapTransfers *const transfers_data,
   MapTransfer *const transfer, char const *const filename,
-  size_t *const new_index_out, MapTexBitmaps *textures)
+  int *const new_index_out, MapTexBitmaps *textures)
 {
   assert(transfers_data);
   assert(transfer);
@@ -1312,7 +1312,7 @@ bool MapTransfers_add(MapTransfers *const transfers_data,
     MapTransfers_remove_and_delete(transfers_data, existing_transfer, false);
   }
 
-  size_t new_index = 0;
+  int new_index = 0;
   bool success = false;
   char *const full_path = make_file_path_in_dir(transfers_data->directory, filename);
 
@@ -1341,7 +1341,7 @@ bool MapTransfers_add(MapTransfers *const transfers_data,
 
 bool MapTransfers_rename(MapTransfers *const transfers_data,
   MapTransfer *const transfer_to_rename,
-  const char *const new_name, size_t *const new_index_out)
+  const char *const new_name, int *const new_index_out)
 {
   assert(transfers_data != NULL);
   assert(transfer_to_rename != NULL);
@@ -1394,8 +1394,8 @@ bool MapTransfers_rename(MapTransfers *const transfers_data,
     NOT_USED(is_inserted);
 
     if (new_index_out != NULL) {
-      assert(new_index <= INT_MAX);
-      *new_index_out = new_index;
+      assert(new_index <= (unsigned)INT_MAX);
+      *new_index_out = (int)new_index;
     }
 
     if (transfers_data->have_thumbnails) {
@@ -1440,7 +1440,7 @@ MapPoint MapTransfers_get_dims(MapTransfer const *const transfer)
   return p;
 }
 
-size_t MapTransfers_get_anim_count(MapTransfer const *const transfer)
+int MapTransfers_get_anim_count(MapTransfer const *const transfer)
 {
   assert(transfer != NULL);
   return transfer->anim_count;

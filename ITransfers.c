@@ -184,8 +184,8 @@ static void InfoTransfer_write_cb(DFile const *const dfile,
 
   target_infos_write(&transfer->infos, writer);
   size_t const num_infos = target_infos_get_count(&transfer->infos);
-  assert(TargetInfoMax <= LONG_MAX);
-  long int const offset = (long)num_infos * TargetInfoTextIndex_Count * BytesPerTextOffset;
+  assert(num_infos <= (unsigned)INT_MAX / TargetInfoTextIndex_Count / BytesPerTextOffset);
+  int const offset = (int)num_infos * TargetInfoTextIndex_Count * BytesPerTextOffset;
   target_infos_write_text_offsets(&transfer->infos, writer, offset);
   target_infos_write_texts(&transfer->infos, writer);
 }

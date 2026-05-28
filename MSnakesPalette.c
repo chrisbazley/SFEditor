@@ -57,7 +57,7 @@ static char spr_name[12];
 
 /* ---------------- Private functions ---------------- */
 
-static bool init(PaletteData *const pal_data, Editor *const editor, size_t *num_indices, bool const reinit)
+static bool init(PaletteData *const pal_data, Editor *const editor, int *num_indices, bool const reinit)
 {
   NOT_USED(reinit);
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
@@ -113,7 +113,7 @@ static void start_redraw(Editor *const editor, bool const labels)
 }
 
 static void redraw_label(Editor *const editor, Vertex const origin,
-  BBox const *const bbox, size_t const object_no, bool const selected)
+  BBox const *const bbox, int const object_no, bool const selected)
 {
   NOT_USED(origin);
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
@@ -145,13 +145,13 @@ static void redraw_label(Editor *const editor, Vertex const origin,
 }
 
 static void redraw_object(Editor *const editor, Vertex const origin,
-  BBox const *const bbox, size_t const object_no, bool const selected)
+  BBox const *const bbox, int const object_no, bool const selected)
 {
   NOT_USED(origin);
   NOT_USED(editor);
 
   /* Set the thumbnail sprite to appear in the icon */
-  sprintf(spr_name, "%zu", object_no);
+  sprintf(spr_name, "%d", object_no);
 
   /* Cover specified bounding box with the sprite icon */
   plot_icon.bbox = *bbox;

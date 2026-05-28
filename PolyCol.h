@@ -21,6 +21,6 @@ PolyColData *polycol_get_shared(char const *filename);
 PolyColData *polycol_create(void);
 bool polycol_share(PolyColData *poly_colours);
 DFile *polycol_get_dfile(PolyColData *poly_colours);
-size_t polycol_get_colour(PolyColData const *poly_colours, size_t index);
+int polycol_get_colour(PolyColData const *poly_colours, int index);
 
 #endif

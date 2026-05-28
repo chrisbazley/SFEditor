@@ -500,7 +500,7 @@ filescan_leafname *filescan_combine_filenames(filescan_leafname *filenames_A, fi
 
   /* loop until we reach the end of BOTH input arrays */
   bool success = true;
-  for (size_t output_pos = 0;
+  for (int output_pos = 0;
        success && (!A_finished || !B_finished);
        ++output_pos)
   {

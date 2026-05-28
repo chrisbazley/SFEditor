@@ -104,7 +104,7 @@ DFile *polycol_get_dfile(PolyColData *const poly_colours)
   return &poly_colours->dfile;
 }
 
-size_t polycol_get_colour(PolyColData const *const poly_colours, size_t const index)
+int polycol_get_colour(PolyColData const *const poly_colours, int const index)
 {
   assert(poly_colours);
   assert(index < PolyColMax);

@@ -80,7 +80,7 @@ static void write_mini_map(MapPoint const map_pos, unsigned char const tile,
 }
 
 static void plot_mini_map(MapSnakesMiniContext *const ctx,
-  MapSnakes *const snakes_data, size_t const snake,
+  MapSnakes *const snakes_data, int const snake,
   MapPoint const points[], size_t const num_points)
 {
   assert(snakes_data);
@@ -96,7 +96,7 @@ static void plot_mini_map(MapSnakesMiniContext *const ctx,
   }
 }
 
-static void make_mini_map(MapSnakes *const snakes_data, size_t const snake,
+static void make_mini_map(MapSnakes *const snakes_data, int const snake,
   MapRef (*const thumb_tiles)[MapSnakesMiniMapHeight][MapSnakesMiniMapWidth])
 {
   for (int y = 0; y < MapSnakesMiniMapHeight; ++y) {
@@ -156,14 +156,14 @@ static bool make_thumbnails(MapSnakes *const snakes_data,
   assert(textures);
 
   hourglass_on();
-  for (size_t snake = 0; snake < snakes_data->super.count; snake++) {
+  for (int snake = 0; snake < snakes_data->super.count; snake++) {
 
     if (snake <= INT_MAX / 100)
-      hourglass_percentage((int)((snake * 100) / snakes_data->super.count));
+      hourglass_percentage((snake * 100) / snakes_data->super.count);
 
     /* Create thumbnail sprite */
     char sprite_name[32];
-    sprintf(sprite_name, "%zu", snake);
+    sprintf(sprite_name, "%d", snake);
 
     static Vertex const thumbnail_size = {
       MapSnakesThumbnailWidth, MapSnakesThumbnailHeight
@@ -208,13 +208,13 @@ static bool make_thumbnails(MapSnakes *const snakes_data,
 
 /* ---------------- Public functions ---------------- */
 
-size_t MapSnakes_get_count(const MapSnakes *const snakes_data)
+int MapSnakes_get_count(const MapSnakes *const snakes_data)
 {
   return Snakes_get_count(&snakes_data->super);
 }
 
-void MapSnakes_get_name(const MapSnakes *const snakes_data, size_t const snake,
-  char *const snake_name, size_t const n)
+void MapSnakes_get_name(const MapSnakes *const snakes_data, int const snake,
+  char *const snake_name, int const n)
 {
   Snakes_get_name(&snakes_data->super, snake, snake_name, n);
 }
@@ -234,7 +234,7 @@ static void write_map(MapPoint const map_pos, unsigned char const tile,
 
 void MapSnakes_begin_line(MapSnakesContext *const ctx,
   MapEditContext const *const map,
-  MapSnakes *const snakes_data, MapPoint const map_pos, size_t const snake,
+  MapSnakes *const snakes_data, MapPoint const map_pos, int const snake,
   bool const inside, MapEditChanges *const change_info)
 {
   assert(ctx != NULL);
@@ -293,7 +293,7 @@ void MapSnakes_init(MapSnakes *const snakes_data)
 }
 
 void MapSnakes_load(MapSnakes *const snakes_data,
-  char const *const tiles_set, size_t const ntiles)
+  char const *const tiles_set, int const ntiles)
 {
   MapSnakes_free(snakes_data);
   MapSnakes_init(snakes_data);

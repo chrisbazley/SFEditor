@@ -103,7 +103,7 @@ DFile *hillcol_get_dfile(HillColData *const hill_colours)
   return &hill_colours->dfile;
 }
 
-size_t hillcol_get_colour(HillColData const *const hill_colours, int const index)
+int hillcol_get_colour(HillColData const *const hill_colours, int const index)
 {
   assert(hill_colours);
   assert(index >= 0);

@@ -425,7 +425,7 @@ static void info_predelete(TargetInfo const *const info, size_t const index, Edi
 }
 
 static void info_moved(TargetInfo const *const info, MapPoint const old_pos,
-  size_t const old_index, size_t const new_index, EditSession *const session)
+                       size_t const old_index, size_t const new_index, EditSession *const session)
 {
   Session_resource_change(session, EDITOR_CHANGE_INFO_MOVED,
     &(EditorChangeParams){.info_moved = {.old_index = old_index, .new_index = new_index, .old_pos = old_pos, .info = info}});
@@ -2715,11 +2715,11 @@ void Session_resource_change(EditSession *const session,
   case EDITOR_CHANGE_GFX_TRANSFER_ADDED:
   case EDITOR_CHANGE_GFX_TRANSFER_DELETED:
   case EDITOR_CHANGE_GFX_TRANSFER_REPLACED:
-    DEBUGF("Transfer index %zu\n", params->transfer_added.index);
+    DEBUGF("Transfer index %d\n", params->transfer_added.index);
     break;
   case EDITOR_CHANGE_TEX_TRANSFER_RENAMED:
   case EDITOR_CHANGE_GFX_TRANSFER_RENAMED:
-    DEBUGF("Transfer index %zu, new index %zu\n",
+    DEBUGF("Transfer index %d, new index %d\n",
            params->transfer_renamed.index, params->transfer_renamed.new_index);
     break;
   case EDITOR_CHANGE_OBJ_PRECHANGE:

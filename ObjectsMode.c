@@ -1074,7 +1074,7 @@ static bool ObjectsMode_start_exclusive_select(Editor *const editor, bool const 
 static ObjRef get_selected_obj(Editor *const editor)
 {
   assert(editor);
-  size_t const pal_index = Palette_get_selection(&editor->palette_data);
+  int const pal_index = Palette_get_selection(&editor->palette_data);
   return objects_ref_from_num(pal_index != NULL_DATA_INDEX ? pal_index : Obj_RefNone);
 }
 
@@ -1300,7 +1300,7 @@ static void ObjectsMode_draw_brush(Editor *const editor, int const brush_size,
 
 static void ObjectsMode_pending_snake(Editor *const editor, MapPoint const map_pos)
 {
-  size_t const snake = Palette_get_selection(&editor->palette_data);
+  int const snake = Palette_get_selection(&editor->palette_data);
   if (snake == NULL_DATA_INDEX) {
     return;
   }
@@ -1322,7 +1322,7 @@ static void ObjectsMode_start_snake(Editor *const editor, MapPoint const map_pos
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
 
-  size_t const snake = Palette_get_selection(&editor->palette_data);
+  int const snake = Palette_get_selection(&editor->palette_data);
   if (snake == NULL_DATA_INDEX) {
     return;
   }
@@ -1345,7 +1345,7 @@ static void ObjectsMode_draw_snake(Editor *const editor, MapPoint const map_pos)
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
 
-  size_t const snake = Palette_get_selection(&editor->palette_data);
+  int const snake = Palette_get_selection(&editor->palette_data);
   if (snake == NULL_DATA_INDEX) {
     return;
   }
@@ -1808,7 +1808,7 @@ static void ObjectsMode_resource_change(Editor *const editor, EditorChange const
 
   case EDITOR_CHANGE_CLOUD_COLOURS:
     if (mode_data->palette_type == OBJPALETTE_TYPE_OBJS) {
-      for (size_t cloud_type = Obj_RefMinCloud; cloud_type < Obj_RefMaxCloud; ++cloud_type)
+      for (int cloud_type = Obj_RefMinCloud; cloud_type < Obj_RefMaxCloud; ++cloud_type)
       {
         Palette_redraw_object(&editor->palette_data, cloud_type);
       }
@@ -1823,8 +1823,8 @@ static void ObjectsMode_resource_change(Editor *const editor, EditorChange const
 
   case EDITOR_CHANGE_POLYGON_COLOURS:
     if (mode_data->palette_type == OBJPALETTE_TYPE_OBJS) {
-      size_t const num_objects = ObjGfxMeshes_get_ground_count(&graphics->meshes);
-      for (size_t obj_ref = Obj_RefMinObject; obj_ref < num_objects; ++obj_ref)
+      int const num_objects = ObjGfxMeshes_get_ground_count(&graphics->meshes);
+      for (int obj_ref = Obj_RefMinObject; obj_ref < num_objects; ++obj_ref)
       {
         Palette_redraw_object(&editor->palette_data, obj_ref);
       }
@@ -1878,7 +1878,7 @@ static void ObjectsMode_resource_change(Editor *const editor, EditorChange const
   }
 }
 
-static void ObjectsMode_palette_selection(Editor *const editor, size_t const object)
+static void ObjectsMode_palette_selection(Editor *const editor, int const object)
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);

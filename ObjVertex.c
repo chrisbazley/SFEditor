@@ -50,16 +50,16 @@ void obj_vertices_free(ObjVertices * const varray)
   }
 }
 
-size_t obj_vertices_get_count(ObjVertices *varray)
+int obj_vertices_get_count(ObjVertices *varray)
 {
   assert(varray != NULL);
   assert(varray->vcount <= ObjVertexMax);
-  assert(varray->vcount * sizeof(ObjVertex) <= (size_t)flex_size(&varray->vertices));
+  assert(varray->vcount * (int)sizeof(ObjVertex) <= flex_size(&varray->vertices));
   return varray->vcount;
 }
 
 SFError obj_vertices_read(ObjVertices * const varray,
-  Reader * const reader, size_t *const nvert)
+  Reader * const reader, int *const nvert)
 {
   assert(!reader_ferror(reader));
   assert(nvert);
@@ -76,35 +76,35 @@ SFError obj_vertices_read(ObjVertices * const varray,
     DEBUGF("Bad vertex count %d\n", tmp);
     return SFERROR(BadNumVertices);
   }
-  size_t vcount = (size_t)tmp;
+  int vcount = tmp;
 
   *nvert = vcount;
 
   long int const pos = reader_ftell(reader);
   NOT_USED(pos);
-  DEBUGF("Found %zu vertices at offset %ld (0x%lx)\n", vcount, pos, pos);
+  DEBUGF("Found %d vertices at offset %ld (0x%lx)\n", vcount, pos, pos);
 
   if (varray)
   {
     obj_vertices_free(varray);
     obj_vertices_init(varray);
 
-    if (!flex_alloc(&varray->vertices, (int)(vcount * sizeof(ObjVertex))))
+    if (!flex_alloc(&varray->vertices, vcount * sizeof(ObjVertex)))
     {
-      DEBUGF("Failed to allocate memory for %zu vertices\n", vcount);
+      DEBUGF("Failed to allocate memory for %d vertices\n", vcount);
       return SFERROR(NoMem);
     }
 
-    for (size_t v = 0; v < vcount; ++v)
+    for (int v = 0; v < vcount; ++v)
     {
       char vbytes[NDims];
       if (reader_fread(vbytes, sizeof(vbytes), 1, reader) != 1) {
-        DEBUGF("Failed to read vertex %zu\n", v);
+        DEBUGF("Failed to read vertex %d\n", v);
         return SFERROR(ReadFail);
       }
 
       ObjVertex const vertex = {vbytes[0], vbytes[1], vbytes[2]};
-      DEBUGF("Add vertex %zu {%d,%d,%d}\n", v, vertex.x, vertex.y, vertex.z);
+      DEBUGF("Add vertex %d {%d,%d,%d}\n", v, vertex.x, vertex.y, vertex.z);
       ((ObjVertex *)varray->vertices)[v] = vertex;
     } /* next vertex */
 
@@ -220,17 +220,17 @@ void obj_vertices_to_coords(ObjVertices * const varray, Vertex3D const *const ce
 
   Vertex3D vertex_pos = *centre;
 
-  size_t const num_vertices = varray->vcount;
-  for (size_t v = 0; v < num_vertices; v++)
+  int const num_vertices = varray->vcount;
+  for (int v = 0; v < num_vertices; v++)
   {
     ObjVertex const coord = ((ObjVertex *)varray->vertices)[v];
-    DEBUG_VERBOSE("Encoded factors for vertex %zu are %d,%d,%d", v,
+    DEBUG_VERBOSE("Encoded factors for vertex %d are %d,%d,%d", v,
                   coord.x, coord.y, coord.z);
 
     obj_vertices_add_scaled_unit(&vertex_pos, unit, coord);
 
     (*out)[v] = vertex_pos;
-    DEBUG("Scaled & rotated vertex %zu is at %ld,%ld,%ld", v, (*out)[v].x,
+    DEBUG("Scaled & rotated vertex %d is at %ld,%ld,%ld", v, (*out)[v].x,
           (*out)[v].y, (*out)[v].z);
   } /* next vertex */
 }

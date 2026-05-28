@@ -138,7 +138,7 @@ static void obj_array_free(ObjGfxMeshArray *const array)
   assert(array);
   assert(array->ocount <= array->oalloc);
 
-  for (size_t n = 0; n < array->ocount; ++n)
+  for (int n = 0; n < array->ocount; ++n)
   {
     ObjGfxMesh *const obj = array->objects[n];
     obj_vertices_free(&obj->varray);
@@ -170,7 +170,7 @@ static ObjGfxMesh *obj_array_add(ObjGfxMeshArray *const array,
 
   if ((array->ocount + 1) > array->oalloc)
   {
-    size_t const new_size = array->oalloc ? (array->oalloc * OAllocGrowth) : OAllocInit;
+    int const new_size = array->oalloc ? (array->oalloc * OAllocGrowth) : OAllocInit;
     assert(new_size > 0);
     ObjGfxMesh **const objects = realloc(array->objects, sizeof(*objects) * new_size);
     if (!objects)
@@ -282,13 +282,13 @@ static bool vector_check(Vertex const *A, Vertex const *B, Vertex const *C)
   return cross_z > 0;
 }
 
-static void to_screen_coords(size_t const num_vertices, int const map_scaler,
+static void to_screen_coords(int const num_vertices, int const map_scaler,
   Vertex3D const *const rot_vertices, Vertex *const screen_coords)
 {
   Vertex3D const *read_ptr = rot_vertices;
   Vertex *write_ptr = screen_coords;
 
-  for (size_t v = 0; v < num_vertices; v++)
+  for (int v = 0; v < num_vertices; v++)
   {
     if (map_scaler) {
       /* Force parallel projection by using a fixed divisor
@@ -302,7 +302,7 @@ static void to_screen_coords(size_t const num_vertices, int const map_scaler,
       if (index > 0) {
         if ((unsigned long)index >= ARRAY_SIZE(divide_table)) {
           /* Vertex is too far away */
-          DEBUG("Vertex %zu is too far for perspective division", v + 1);
+          DEBUG("Vertex %d is too far for perspective division", v + 1);
           write_ptr->x = 0;
           write_ptr->y = 0;
         } else {
@@ -313,7 +313,7 @@ static void to_screen_coords(size_t const num_vertices, int const map_scaler,
         }
       } else {
         /* Vertex is too close, or behind the viewer */
-        DEBUG("Vertex %zu is behind the viewer", v + 1);
+        DEBUG("Vertex %d is behind the viewer", v + 1);
         write_ptr->x = (int)read_ptr->x;
         write_ptr->y = (int)read_ptr->z;
       }
@@ -337,10 +337,10 @@ static void update_bbox(
   Vertex (*const polygon_coords)[ObjPolygonMaxSides],
   Vertex const centre,
   BBox *const bounding_box,
-  size_t const num_sides)
+  int const num_sides)
 {
 
-  DEBUGF("Update bbox for %zu-sided polygon\n", num_sides);
+  DEBUGF("Update bbox for %d-sided polygon\n", num_sides);
 
   assert(num_sides >= 3);
 
@@ -350,7 +350,7 @@ static void update_bbox(
   BBox_expand(bounding_box, first_corner);
   BBox_expand(bounding_box, screen_pos);
 
-  for (size_t side = 2; side < num_sides; side++)
+  for (int side = 2; side < num_sides; side++)
   {
     screen_pos = translate_screen(centre, (*polygon_coords)[side]);
     BBox_expand(bounding_box, screen_pos);
@@ -360,9 +360,9 @@ static void update_bbox(
 static void plot_filled(
   Vertex (*const polygon_coords)[ObjPolygonMaxSides],
   Vertex const centre,
-  size_t const num_sides)
+  int const num_sides)
 {
-  DEBUGF("Plot %zu-sided polygon\n", num_sides);
+  DEBUGF("Plot %d-sided polygon\n", num_sides);
 
   assert(num_sides >= 3);
 
@@ -371,7 +371,7 @@ static void plot_filled(
 
   plot_move(screen_pos);
 
-  for (size_t side = 2; side < num_sides; side++)
+  for (int side = 2; side < num_sides; side++)
   {
     screen_pos = translate_screen(centre, (*polygon_coords)[side]);
 
@@ -383,9 +383,9 @@ static void plot_filled(
 static void plot_wireframe(
   Vertex (*const polygon_coords)[ObjPolygonMaxSides],
   Vertex const centre,
-  size_t const num_sides)
+  int const num_sides)
 {
-  DEBUG("Plot pending %zu-sided polygon", num_sides);
+  DEBUG("Plot pending %d-sided polygon", num_sides);
   assert(num_sides >= 3);
 
   Vertex const first_corner = translate_screen(centre, (*polygon_coords)[0]);
@@ -394,7 +394,7 @@ static void plot_wireframe(
   plot_move(first_corner);
   plot_fg_line_ex_end(screen_pos);
 
-  for (size_t side = 2; side < num_sides; side++)
+  for (int side = 2; side < num_sides; side++)
   {
     screen_pos = translate_screen(centre, (*polygon_coords)[side]);
     plot_fg_line_ex_end(screen_pos);
@@ -411,20 +411,20 @@ static void plot_group(
   PaletteEntry const (*const pal)[NumColours], ObjGfxMeshStyle const style,
   Vertex (*const screen_coords)[ObjVertexMax])
 {
-  size_t const pcount = obj_group_get_polygon_count(group);
-  DEBUGF("Plotting %zu polygons\n", pcount);
+  int const pcount = obj_group_get_polygon_count(group);
+  DEBUGF("Plotting %d polygons\n", pcount);
 
-  for (size_t p = 0; p < pcount; ++p)
+  for (int p = 0; p < pcount; ++p)
   {
     ObjPolygon const polygon = obj_group_get_polygon(group, p);
-    size_t const num_sides = obj_polygon_get_side_count(&polygon);
+    int const num_sides = obj_polygon_get_side_count(&polygon);
 
     Vertex polygon_coords[ObjPolygonMaxSides];
-    size_t side = 0;
+    int side = 0;
 
     /* Get first three coordinates and test for back-facing polygon */
     assert(side < num_sides);
-    size_t vertex = obj_polygon_get_side(&polygon, side);
+    int vertex = obj_polygon_get_side(&polygon, side);
     assert(vertex < ObjVertexMax);
     polygon_coords[side++] = (*screen_coords)[vertex];
 
@@ -441,7 +441,7 @@ static void plot_group(
     if (!plot_all &&
         !vector_check(polygon_coords, polygon_coords + 1, polygon_coords + 2))
     {
-      DEBUGF("Cull back-facing polygon %zu\n", p);
+      DEBUGF("Cull back-facing polygon %d\n", p);
       continue;
     }
 
@@ -461,9 +461,9 @@ static void plot_group(
 
     case ObjGfxMeshStyle_Filled:
       if (pal) {
-        size_t const colour = obj_polygon_get_colour(&polygon);
-        size_t const pindex = polycol_get_colour(colours, colour);
-        assert(pindex < ARRAY_SIZE(*pal));
+        int const colour = obj_polygon_get_colour(&polygon);
+        int const pindex = polycol_get_colour(colours, colour);
+        assert(pindex < (int)ARRAY_SIZE(*pal));
         plot_set_col((*pal)[pindex]);
       }
       plot_filled(&polygon_coords, centre, num_sides);
@@ -486,7 +486,7 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
 
   /* Parse each object definition in turn until finding an end marker.
      There must be at least one. */
-  size_t object_count = 0;
+  int object_count = 0;
   do {
     long int expl_size = 36l * (last_explosion_num + 1l);
 
@@ -496,7 +496,7 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
 
     /* Skip the explosions data */
     if (reader_fseek(reader, expl_size, SEEK_CUR)) {
-      DEBUGF("Failed to seek object attributes (object %zu)\n",
+      DEBUGF("Failed to seek object attributes (object %d)\n",
               object_count);
       return SFERROR(BadSeek);
     }
@@ -505,7 +505,7 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
     int byte = reader_fgetc(reader);
     if (byte == EOF)
     {
-      DEBUGF("Failed to read object type (object %zu)\n",
+      DEBUGF("Failed to read object type (object %d)\n",
               object_count);
       return SFERROR(ReadFail);
     }
@@ -514,19 +514,19 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
         (byte != ObjectType_Ground) &&
         (byte != ObjectType_Bit))
     {
-      DEBUGF("Bad object type %d (object %zu)\n", byte,
+      DEBUGF("Bad object type %d (object %d)\n", byte,
               object_count);
       return SFERROR(BadObjectClass);
     }
     ObjectType const type = (ObjectType)byte;
 
-    DEBUGF("Found object %zu of type %d at offset %ld (0x%lx)\n",
+    DEBUGF("Found object %d of type %d at offset %ld (0x%lx)\n",
            object_count, (int)type, reader_ftell(reader)-1, reader_ftell(reader)-1);
 
     byte = reader_fgetc(reader);
     if (byte == EOF)
     {
-      DEBUGF("Failed to read scale (object %zu)\n", object_count);
+      DEBUGF("Failed to read scale (object %d)\n", object_count);
       return SFERROR(ReadFail);
     }
     CoordinateScale const scale = (CoordinateScale)byte;
@@ -534,7 +534,7 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
     int const rot = reader_fgetc(reader);
     if (rot == EOF)
     {
-      DEBUGF("Failed to read rotator (object %zu)\n",
+      DEBUGF("Failed to read rotator (object %d)\n",
               object_count);
       return SFERROR(ReadFail);
     }
@@ -542,7 +542,7 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
     const int gr_obj_coll_size = reader_fgetc(reader);
     if (gr_obj_coll_size == EOF)
     {
-      DEBUGF("Failed to read packed collision size (object %zu)\n", object_count);
+      DEBUGF("Failed to read packed collision size (object %d)\n", object_count);
       return SFERROR(ReadFail);
     }
 
@@ -555,35 +555,35 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
     if (!reader_fread_uint16(&clip_size_x, reader) ||
         !reader_fread_uint16(&clip_size_y, reader))
     {
-      DEBUGF("Failed to read clip size (object %zu)\n", object_count);
+      DEBUGF("Failed to read clip size (object %d)\n", object_count);
       return SFERROR(ReadFail);
     }
 
     int const score = reader_fgetc(reader);
     if (score == EOF)
     {
-      DEBUGF("Failed to read score (object %zu)\n", object_count);
+      DEBUGF("Failed to read score (object %d)\n", object_count);
       return SFERROR(ReadFail);
     }
 
     int const hits_or_min_z = reader_fgetc(reader);
     if (hits_or_min_z == EOF)
     {
-      DEBUGF("Failed to read hitpoints (object %zu)\n", object_count);
+      DEBUGF("Failed to read hitpoints (object %d)\n", object_count);
       return SFERROR(ReadFail);
     }
 
     int const explosion_style = reader_fgetc(reader);
     if (explosion_style == EOF)
     {
-      DEBUGF("Failed to read explosion style (object %zu)\n", object_count);
+      DEBUGF("Failed to read explosion style (object %d)\n", object_count);
       return SFERROR(ReadFail);
     }
 
     const int plot_type_and_last_group = reader_fgetc(reader);
     if (plot_type_and_last_group == EOF)
     {
-      DEBUGF("Failed to read plot type and max plot group (object %zu)\n",
+      DEBUGF("Failed to read plot type and max plot group (object %d)\n",
              object_count);
       return SFERROR(ReadFail);
     }
@@ -593,7 +593,7 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
 
     if (plot_type >= meshes->num_plot_types + 1)
     {
-      DEBUGF("Bad plot type %d (object %zu)\n", plot_type, object_count);
+      DEBUGF("Bad plot type %d (object %d)\n", plot_type, object_count);
       return SFERROR(BadPlotType);
     }
 
@@ -602,7 +602,7 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
 
     if (expected_max_group >= ObjPolygonFacingCheckGroup)
     {
-      DEBUGF("Bad highest plot group %d (object %zu)\n",
+      DEBUGF("Bad highest plot group %d (object %d)\n",
               expected_max_group, object_count);
       return SFERROR(BadNumGroups);
     }
@@ -610,7 +610,7 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
     if ((expected_max_group > 0) && (plot_type == 0))
     {
       DEBUGF("Highest plot group %d is higher than "
-             "expected for plot type 0 (object %zu)\n",
+             "expected for plot type 0 (object %d)\n",
              expected_max_group, object_count);
       return SFERROR(BadNumGroups);
     }
@@ -638,34 +638,34 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
       }
     }
 
-    size_t vcount;
+    int vcount;
     SFError err = obj_vertices_read(obj ? &obj->varray : NULL, reader, &vcount);
     if (SFError_fail(err))
     {
       return err;
     }
 
-    if ((size_t)rot >= vcount)
+    if ((int)rot >= vcount)
     {
-      DEBUGF("Bad rotator %d >= %zu (object %zu)\n", rot, vcount, object_count);
+      DEBUGF("Bad rotator %d >= %d (object %d)\n", rot, vcount, object_count);
       return SFERROR(BadRotator);
     }
 
     /* Find the first word-aligned offset ahead of the vertex data */
     if (reader_fseek(reader, WORD_ALIGN(reader_ftell(reader)), SEEK_SET))
     {
-      DEBUGF("Failed to seek clip distance (object %zu)\n", object_count);
+      DEBUGF("Failed to seek clip distance (object %d)\n", object_count);
       return SFERROR(BadSeek);
     }
 
     int32_t clip_dist;
     if (!reader_fread_int32(&clip_dist, reader))
     {
-      DEBUGF("Failed to read clip distance (object %zu)\n", object_count);
+      DEBUGF("Failed to read clip distance (object %d)\n", object_count);
       return SFERROR(ReadFail);
     }
 
-    size_t max_group;
+    int max_group;
     err = obj_polygons_read(obj ? &obj->polygons : NULL, reader, vcount, &max_group);
     if (SFError_fail(err))
     {
@@ -675,7 +675,7 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
     /* Can't require and exact match because of a mesh in Graphics.Earth2 */
     if (max_group > expected_max_group)
     {
-      DEBUGF("Bad plot group %zu > %d\n", max_group, expected_max_group);
+      DEBUGF("Bad plot group %d > %d\n", max_group, expected_max_group);
       return SFERROR(BadPolygonGroup);
     }
 
@@ -683,15 +683,15 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
     if (plot_type != 0)
     {
       /* Check that the referenced polygons exist */
-      const size_t max_polygon = meshes->plot_types[plot_type - 1].max_polygon;
+      const int max_polygon = meshes->plot_types[plot_type - 1].max_polygon;
       ObjGroup *const vec = obj_polygons_get_group(&obj->polygons, ObjPolygonFacingCheckGroup);
-      DEBUGF("Plot type %d requires polygon %zu, count is %zu\n",
+      DEBUGF("Plot type %d requires polygon %d, count is %d\n",
         plot_type, max_polygon, obj_group_get_polygon_count(vec));
 
       if (max_polygon > obj_group_get_polygon_count(vec))
       {
-        DEBUGF("Plot type %d is predicated on undefined polygon %zu "
-               "(object %zu)\n", plot_type, max_polygon, object_count);
+        DEBUGF("Plot type %d is predicated on undefined polygon %d "
+               "(object %d)\n", plot_type, max_polygon, object_count);
         //return SFERROR(BadPlotPolygon);
       }
     }
@@ -941,14 +941,14 @@ SFError ObjGfxMeshes_read(ObjGfxMeshes *const meshes, Reader *const reader)
   return check_trunc_or_ext(reader, read_inner(meshes, reader));
 }
 
-size_t ObjGfxMeshes_get_ground_count(const ObjGfxMeshes *const meshes)
+int ObjGfxMeshes_get_ground_count(const ObjGfxMeshes *const meshes)
 {
   assert(meshes);
   assert(meshes->ground.ocount <= meshes->ground.oalloc);
   return meshes->ground.ocount;
 }
 
-size_t ObjGfxMeshes_get_ships_count(const ObjGfxMeshes *const meshes)
+int ObjGfxMeshes_get_ships_count(const ObjGfxMeshes *const meshes)
 {
   assert(meshes);
   assert(meshes->ships.ocount <= meshes->ships.oalloc);
@@ -991,7 +991,7 @@ static void calc_ground_bboxes(ObjGfxMeshes *const meshes, MapAngle const angle)
 
   meshes->max_bounding_box[angle] = MapArea_make_invalid();
 
-  for (size_t n = 0; n < meshes->ground.ocount; ++n)
+  for (int n = 0; n < meshes->ground.ocount; ++n)
   {
     ObjRef const obj_ref = objects_ref_from_num(n);
     ObjGfxMesh *const obj = obj_array_get(&meshes->ground, obj_ref);
@@ -1082,7 +1082,7 @@ TrigTable const *ObjGfxMeshes_get_trig_table(void)
 
 static void plot_lines(ObjGfxMeshesView const *const ctx, Vertex const centre,
                        long int const distance, Vertex3D const pos,
-                       ObjVertex const vertices[], size_t const n)
+                       ObjVertex const vertices[], int const n)
 {
   assert(vertices);
 
@@ -1091,7 +1091,7 @@ static void plot_lines(ObjGfxMeshesView const *const ctx, Vertex const centre,
   obj_pos.y += distance;
 
   static Vertex3D rot_vertices[ObjVertexMax];
-  for (size_t i = 0; i < n; ++i)
+  for (int i = 0; i < n; ++i)
   {
     obj_vertices_add_scaled_unit(&obj_pos, &ctx->rotated, vertices[i]);
     rot_vertices[i] = obj_pos;
@@ -1100,7 +1100,7 @@ static void plot_lines(ObjGfxMeshesView const *const ctx, Vertex const centre,
   static Vertex screen_coords[ObjVertexMax];
   to_screen_coords(n, ctx->map_scaler, rot_vertices, screen_coords);
 
-  for (size_t k = 0; k + 1 < n; k += 2)
+  for (int k = 0; k + 1 < n; k += 2)
   {
     plot_move(translate_screen(centre, screen_coords[k]));
     plot_fg_line(translate_screen(centre, screen_coords[k + 1]));
@@ -1214,7 +1214,7 @@ void ObjGfxMeshes_plot(ObjGfxMeshes const *const meshes,
 
   obj_vertices_to_coords(&obj->varray, &obj_pos, &scaled, &rot_vertices);
 
-  size_t const num_vertices = obj_vertices_get_count(&obj->varray);
+  int const num_vertices = obj_vertices_get_count(&obj->varray);
   static Vertex screen_coords[ObjVertexMax];
   to_screen_coords(num_vertices, ctx->map_scaler, rot_vertices, screen_coords);
 
@@ -1245,16 +1245,16 @@ void ObjGfxMeshes_plot(ObjGfxMeshes const *const meshes,
        plot commands are facing the camera or not. */
     bool vector_results[PlotCommands_OperandMask >> PlotCommands_OperandShift] = {false};
     ObjGroup *const group = obj_polygons_get_group(&obj->polygons, ObjPolygonFacingCheckGroup);
-    size_t const pcount = LOWEST(obj_group_get_polygon_count(group), ARRAY_SIZE(vector_results));
+    int const pcount = LOWEST(obj_group_get_polygon_count(group), (int)ARRAY_SIZE(vector_results));
 
-    for (size_t p = 0; p < pcount; p++)
+    for (int p = 0; p < pcount; p++)
     {
       ObjPolygon const polygon = obj_group_get_polygon(group, p);
       Vertex polygon_coords[ObjPolygonMaxSides];
-      size_t side = 0;
+      int side = 0;
 
       /* Get first three coordinates and do facing test */
-      size_t vertex = obj_polygon_get_side(&polygon, side);
+      int vertex = obj_polygon_get_side(&polygon, side);
       assert(vertex < num_vertices);
       polygon_coords[side++] = screen_coords[vertex];
 
@@ -1268,7 +1268,7 @@ void ObjGfxMeshes_plot(ObjGfxMeshes const *const meshes,
 
       vector_results[p] = vector_check(polygon_coords, polygon_coords + 1, polygon_coords + 2);
 
-      DEBUG("Facing check %zu is %s", p, vector_results[p] ? "true" : "false");
+      DEBUG("Facing check %d is %s", p, vector_results[p] ? "true" : "false");
     }
 
     /* Plot the polygon groups in the order indicated by the sequence of
@@ -1371,8 +1371,8 @@ static void plot_hill(
 
   case ObjGfxMeshStyle_Filled:
     if (pal) {
-      size_t const pindex = hillcol_get_colour(hill_colours, colour);
-      assert(pindex <= ARRAY_SIZE(*pal));
+      int const pindex = hillcol_get_colour(hill_colours, colour);
+      assert(pindex <= (int)ARRAY_SIZE(*pal));
       plot_set_col((*pal)[pindex]);
     }
     plot_filled(&polygon_coords, centre, Hill_PolygonNumSides);
@@ -1448,7 +1448,7 @@ void ObjGfxMeshes_plot_poly_hill(ObjGfxMeshesView const *const ctx,
     [HillType_CDAC] = {{HillCorner_C, HillCorner_D, HillCorner_A}},
   };
 
-  size_t p = 0;
+  int p = 0;
   int colour = colours ? (*colours)[p] : 0;
   plot_hill(centre, hill_colours, bounding_box, &sides[type][p++], colour, pal, style, &screen_coords);
 
@@ -1527,7 +1527,7 @@ MapPoint ObjGfxMeshes_get_max_collision_size(ObjGfxMeshes *const meshes)
     meshes->have_max_collision_size = true;
     meshes->max_collision_size = (MapPoint){0,0};
 
-    for (size_t n = 0; n < meshes->ground.ocount; ++n) {
+    for (int n = 0; n < meshes->ground.ocount; ++n) {
       MapPoint const size = ObjGfxMeshes_get_collision_size(meshes, objects_ref_from_num(n));
       meshes->max_collision_size =
         MapPoint_max(meshes->max_collision_size, size);

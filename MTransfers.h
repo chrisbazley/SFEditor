@@ -30,7 +30,7 @@ struct DFile;
 
 void MapTransfers_init(MapTransfers *transfers_data);
 
-size_t MapTransfers_get_count(
+int MapTransfers_get_count(
   const MapTransfers *transfers_data);
 
 bool MapTransfers_ensure_thumbnails(MapTransfers *transfers_data,
@@ -48,7 +48,7 @@ MapTransfer *MapTransfers_grab_selection(struct MapEditContext const *map,
 
 MapPoint MapTransfers_get_dims(MapTransfer const *transfer);
 
-size_t MapTransfers_get_anim_count(MapTransfer const *transfer);
+int MapTransfers_get_anim_count(MapTransfer const *transfer);
 
 bool MapTransfers_plot_to_map(const struct MapEditContext *map, MapPoint bl,
   MapTransfer *transfer,
@@ -67,16 +67,16 @@ MapRef MapTransfers_read_ref(MapTransfer *transfer,
   MapPoint trans_pos);
 
 MapTransfer *MapTransfers_find_by_name(MapTransfers *transfers_data,
-  const char *name, size_t *index_out);
+  const char *name, int *index_out);
 
 MapTransfer *MapTransfers_find_by_index(MapTransfers *transfers_data,
-  size_t transfer_index);
+  int transfer_index);
 
 MapTransfer *MapTransfer_create(void);
 
 bool MapTransfers_add(MapTransfers *transfers_data,
   MapTransfer *transfer, char const *filename,
-  size_t *new_index_out, MapTexBitmaps *textures);
+  int *new_index_out, MapTexBitmaps *textures);
 
 void MapTransfers_remove_and_delete_all(MapTransfers *transfers_data);
 
@@ -85,7 +85,7 @@ void MapTransfers_remove_and_delete(MapTransfers *transfers_data,
 
 bool MapTransfers_rename(MapTransfers *transfers_data,
   MapTransfer *transfer_to_rename,
-  const char *new_name, size_t *new_index_out);
+  const char *new_name, int *new_index_out);
 
 struct DFile *MapTransfer_get_dfile(MapTransfer *transfer);
 

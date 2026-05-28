@@ -26,7 +26,7 @@ typedef enum {
 typedef struct SnakeContext {
   Snakes *snakes_data;
   MapPoint map_pos;
-  size_t snake;
+  int snake;
   unsigned int default_piece;
   Direction major_direct;
   SnakesReadFunction *read;
@@ -35,23 +35,23 @@ typedef struct SnakeContext {
 
 void Snakes_init(Snakes *snakes_data);
 
-size_t Snakes_get_count(const Snakes *snakes_data);
+int Snakes_get_count(const Snakes *snakes_data);
 
-void Snakes_get_name(const Snakes *snakes_data, size_t snake,
-  char *snake_name, size_t n);
+void Snakes_get_name(const Snakes *snakes_data, int snake,
+  char *snake_name, int n);
 
-bool Snakes_has_junctions(const Snakes *snakes_data, size_t snake);
-bool Snakes_has_bends(const Snakes *snakes_data, size_t snake);
+bool Snakes_has_junctions(const Snakes *snakes_data, int snake);
+bool Snakes_has_bends(const Snakes *snakes_data, int snake);
 
 enum {
   ErrBufferSize = 64,
 };
 
 SFError Snakes_load(FILE *const file, Snakes *const snakes_data,
-  size_t const nobj, char *const err_buf);
+  int const nobj, char *const err_buf);
 
-size_t Snakes_begin_line(SnakeContext *ctx,
-  Snakes *snakes_data, MapPoint map_pos, size_t snake,
+int Snakes_begin_line(SnakeContext *ctx,
+  Snakes *snakes_data, MapPoint map_pos, int snake,
   bool inside, SnakesReadFunction *read,
   SnakesWriteFunction *write);
 

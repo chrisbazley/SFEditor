@@ -57,7 +57,7 @@ static char truncated_name[sizeof(Filename) + sizeof("...") - 1];
 /* ---------------- Private functions ---------------- */
 
 static bool init(PaletteData *const pal_data, Editor *const editor,
-  size_t *const num_indices, bool const reinit)
+  int *const num_indices, bool const reinit)
 {
   NOT_USED(reinit);
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
@@ -118,7 +118,7 @@ static void start_redraw(Editor *const editor, bool const labels)
 }
 
 static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
-  size_t object_no, bool const selected)
+  int object_no, bool const selected)
 {
   NOT_USED(origin);
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
@@ -153,7 +153,7 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
 }
 
 static void redraw_object(Editor *const editor, Vertex const origin,
-  BBox const *bbox, size_t const object_no, bool const selected)
+  BBox const *bbox, int const object_no, bool const selected)
 {
   NOT_USED(origin);
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
@@ -226,7 +226,7 @@ static void delete_all(Editor *const editor)
   }
 }
 
-static void delete(Editor *const editor, size_t const object_no)
+static void delete(Editor *const editor, int const object_no)
 {
   EditSession *const session = Editor_get_session(editor);
   MapTex *const textures = Session_get_textures(session);

@@ -57,10 +57,10 @@ char const *EditorChange_to_string(EditorChange event);
 
 typedef union {
   struct {
-    size_t index;
+    int index;
   } transfer_added, transfer_deleted, transfer_replaced;
   struct {
-    size_t index, new_index;
+    int index, new_index;
   } transfer_renamed;
   struct {
     MapArea bbox;
@@ -75,8 +75,7 @@ typedef union {
   } info_added, info_predelete;
   struct {
     struct TargetInfo const *info;
-    size_t old_index;
-    size_t new_index;
+    size_t old_index, new_index;
     MapPoint old_pos;
   } info_moved;
 } EditorChangeParams;

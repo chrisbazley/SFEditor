@@ -45,7 +45,7 @@ static ObjectId trans_menu_2_id = NULL_ObjectId;
 
 static void update_trans_menu_2(PaletteData *const pal_data)
 {
-  size_t const selected = Palette_get_selection(pal_data);
+  int const selected = Palette_get_selection(pal_data);
 
   E(menu_set_fade(0, trans_menu_2_id, TRANSMENU2_INFO,
              selected == NULL_DATA_INDEX));
