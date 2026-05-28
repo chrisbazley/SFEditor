@@ -198,7 +198,7 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
     return err;
   }
 
-  unsigned int red_total = 0, green_total = 0, blue_total = 0;
+  int red_total = 0, green_total = 0, blue_total = 0;
 
   /* Total the R,G,B components across all pixels */
   for (int y = 0; y < MapTexSize; ++y)
@@ -221,14 +221,14 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
   green_total /= MapTexSize * MapTexSize;
   blue_total /= MapTexSize * MapTexSize;
 
-  unsigned int const bright =
+  int const bright =
     rgb_brightness(red_total, green_total, blue_total);
 
-  DEBUG("Average colour for sprite %zu is %u,%u,%u (brightness %u)",
+  DEBUG("Average colour for sprite %zu is %d,%d,%d (brightness %d)",
         map_ref_to_num(tile_num), red_total, green_total, blue_total, bright);
 
   size_t const index = map_ref_to_num(tile_num);
-  size_t const bit = 1u << (index % CHAR_BIT);
+  size_t const bit = (size_t)1 << (index % CHAR_BIT);
   char *const bw_table = tiles->bw_table;
   if (bright > MaxBrightness/2)
   {
@@ -242,10 +242,12 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
   /* Find nearest colour and write to table */
   unsigned char *const avcols_table = tiles->avcols_table;
   assert(index < tiles->count);
-  avcols_table[index] = nearest_palette_entry_rgb(
+  int const nearest = nearest_palette_entry_rgb(
     *palette, ARRAY_SIZE(*palette),
-    (unsigned int)red_total, (unsigned int)green_total, (unsigned int)blue_total);
+    red_total, green_total, blue_total);
 
+  avcols_table[index] = (unsigned char)nearest;
+  assert(nearest == avcols_table[index]);
   return SFERROR(OK);
 }
 
@@ -384,7 +386,7 @@ static bool make_mip_level(MapTexBitmaps *const tiles, MapAngle const angle, int
   int const dst_stride = WORD_ALIGN(size.x);
   int const src_stride = WORD_ALIGN(MapTexSize);
   Vertex const pix_size = {1 << level, 1 << level};
-  unsigned int const sample_count = 1u << (2 * level);
+  int const sample_count = 1 << (2 * level);
 
   SprMem *const sm = &tiles->sprites[angle][level];
 
@@ -432,7 +434,7 @@ static bool make_mip_level(MapTexBitmaps *const tiles, MapAngle const angle, int
     for (int y = 0; y < size.y; ++y) {
       int ox = 0;
       for (int x = 0; x < size.x; ++x) {
-        unsigned int red_total = 0, green_total = 0, blue_total = 0;
+        int red_total = 0, green_total = 0, blue_total = 0;
 
         for (int py = 0; py < pix_size.y; ++py) {
           for (int px = 0; px < pix_size.x; ++px) {
@@ -450,9 +452,12 @@ static bool make_mip_level(MapTexBitmaps *const tiles, MapAngle const angle, int
         green_total /= sample_count;
         blue_total /= sample_count;
 
-        dst[(y * dst_stride) + x] = nearest_palette_entry_rgb(
+        int const nearest = nearest_palette_entry_rgb(
           *palette, ARRAY_SIZE(*palette),
           red_total, green_total, blue_total);
+
+        assert((unsigned char)nearest == nearest);
+        dst[(y * dst_stride) + x] = (unsigned char)nearest;
 
         ox += pix_size.x;
       }
