@@ -1198,7 +1198,8 @@ SFError Snakes_load(FILE *const file, Snakes *const snakes_data,
     unsigned int const part = (n ? SNAKE_NORTH : 0) | (e ? SNAKE_EAST : 0) |
                               (s ? SNAKE_SOUTH : 0) | (w ? SNAKE_WEST : 0) |
                               (i ? SNAKE_INSIDE : 0);
-    snake.read_parts[part] = tile;
+    assert(tile <= UCHAR_MAX);
+    snake.read_parts[part] = (unsigned char)tile;
 
       DEBUG("From file: %d is part %u (N:%u: E:%u S:%u W:%u I:%u",
             tile, part, TEST_BITS(part, SNAKE_NORTH), TEST_BITS(part, SNAKE_EAST),
