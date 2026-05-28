@@ -903,7 +903,7 @@ static void cb_status(Editor *const editor, bool const copy)
   InfoModeData *const mode_data = get_mode_data(editor);
   size_t const infos_count = SelectionBitmask_size(&mode_data->selection);
   char infos_count_str[16];
-  sprintf(infos_count_str, "%ld", infos_count);
+  sprintf(infos_count_str, "%zu", infos_count);
 
   Editor_display_msg(editor, msgs_lookup_subn(copy ? "IStatusCopy1" :
                      "IStatusCut1", 1, infos_count_str), true);
