@@ -162,8 +162,8 @@ static ObjGfxMesh *obj_array_get(ObjGfxMeshArray const *const array, ObjRef cons
 static ObjGfxMesh *obj_array_add(ObjGfxMeshArray *const array,
   CoordinateScale const scale,
   unsigned char const plot_type,
-  unsigned long const clip_size_x,
-  unsigned long const clip_size_y)
+  unsigned short const clip_size_x,
+  unsigned short const clip_size_y)
 {
   assert(array);
   assert(array->ocount <= array->oalloc);
@@ -700,7 +700,9 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
     {
       if (type == ObjectType_Ground || type == ObjectType_Ship)
       {
-        obj->misc.score = score * ScoreMultiplier;
+        assert(score >= 0);
+        assert(score <= USHRT_MAX / ScoreMultiplier);
+        obj->misc.score = (unsigned short)(score * ScoreMultiplier);
       }
       obj->misc.clip_dist = clip_dist;
 
@@ -770,7 +772,7 @@ static SFError parse_plot_types(ObjGfxMeshes *const meshes,
      There must be at least one. */
   int plot_type_count = 0;
   do {
-    int command_count = 0;
+    unsigned char command_count = 0;
 
     if (plot_type_count >= MaxPlotType) {
       DEBUGF("Too many plot types (max %d)\n", MaxPlotType);
@@ -793,10 +795,16 @@ static SFError parse_plot_types(ObjGfxMeshes *const meshes,
         return SFERROR(TooManyPlotComs);
       }
 
-      int const operand = (command & PlotCommands_OperandMask) >> PlotCommands_OperandShift;
+      assert(command >= 0);
+      assert(command <= UCHAR_MAX);
+
+      unsigned char const operand = (command & PlotCommands_OperandMask) >> PlotCommands_OperandShift;
+
       PlotAction const action = (PlotAction)
           ((command & PlotCommands_ActionMask) >> PlotCommands_ActionShift);
-      int group = operand, polygon = 0;
+
+      int group = operand;
+      unsigned char polygon = 0;
 
       if (action != PlotAction_FacingAlways)
       {
@@ -855,8 +863,14 @@ static SFError parse_plot_types(ObjGfxMeshes *const meshes,
            return SFERROR(BadPlotAction);
       }
 
+      assert(group >= 0);
+      assert(group <= UCHAR_MAX);
+
       pt->commands[command_count++] = (PlotCommand){
-        .action = action, .group = group, .polygon = polygon};
+        .action = action,
+        .group = (unsigned char)group,
+        .polygon = polygon,
+      };
 
       command = reader_fgetc(reader);
       if (command == EOF) {
