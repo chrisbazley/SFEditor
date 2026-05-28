@@ -443,6 +443,4 @@ bool filepaths_rename_map(char const *source_name, char const *dest_name, bool c
     }
   }
   return success;
-
-  return true; /* success */
 }

@@ -748,6 +748,7 @@ static bool init_edit_win(EditSession *const session,
     }
     Editor_destroy(editor);
   }
+  return false;
 #else
   if (!session->has_editor) {
     session->has_editor = Editor_init(&session->editor, session, NULL);
@@ -761,7 +762,6 @@ static bool init_edit_win(EditSession *const session,
   }
   return EditWin_init(&new_record->edit_win, &session->editor, edit_win_to_copy);
 #endif
-  return false;
 }
 
 bool Session_new_edit_win(EditSession *const session, EditWin const *const edit_win_to_copy)
