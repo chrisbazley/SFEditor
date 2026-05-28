@@ -118,8 +118,11 @@ static void write_transfer_ref(ObjTransfer *const transfer,
     trans_pos.x, trans_pos.y,
     ObjTransfers_get_dims(transfer).x, ObjTransfers_get_dims(transfer).y);
 
+  size_t const num = objects_ref_to_num(ref);
+  assert(num <= UCHAR_MAX);
+
   ((unsigned char *)transfer->refs)[
-    uchar_offset(transfer, trans_pos)] = objects_ref_to_num(ref);
+    uchar_offset(transfer, trans_pos)] = (unsigned char)num;
 }
 
 static bool add_to_list(ObjTransfers *const transfers_data,
