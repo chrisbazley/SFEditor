@@ -164,7 +164,7 @@ void redraw_gadget(ObjectId const window, ComponentId const gadget)
   }
 }
 
-flex_ptr memset_flex(flex_ptr ptr, int c, size_t n)
+flex_ptr memset_flex(flex_ptr ptr, unsigned char c, size_t n)
 {
   /* Version of memset() that doesn't need to be called with flex budge
   disabled */
@@ -173,7 +173,7 @@ flex_ptr memset_flex(flex_ptr ptr, int c, size_t n)
 
   if (n % 4) {
     /* Must write one byte at a time */
-    char *write_ptr = (char *)*ptr; /* careful - flex block must stay put */
+    unsigned char *write_ptr = *ptr; /* careful - flex block must stay put */
     size_t i = 0;
     while (i < n) { /* unrolled loop (8 writes per iteration) */
       write_ptr[i] = c;
@@ -208,8 +208,11 @@ flex_ptr memset_flex(flex_ptr ptr, int c, size_t n)
     }
   } else {
     /* Optimisation - can write words instead of bytes */
-    long *write_ptr = (long int *)*ptr; /* careful - flex block must stay put */
-    long int wide = (long)c | (long)c<<8 | (long)c<<16 | (long)c<<24;
+    uint32_t *write_ptr = *ptr; /* careful - flex block must stay put */
+    const uint32_t wide = c |
+                          (uint32_t)c << CHAR_BIT |
+                          (uint32_t)c << (CHAR_BIT * 2) |
+                          (uint32_t)c << (CHAR_BIT * 3);
     size_t i = 0;
     while (i < n/sizeof(*write_ptr)) {
       /* unrolled loop (8 writes per iteration) */
