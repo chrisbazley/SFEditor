@@ -61,7 +61,7 @@ static SFError map_read_cb(DFile const *const dfile, Reader *const reader)
       return SFERROR(BadTileRef);
     }
 
-    MapRef const tile = map_ref_from_num((size_t)byte);
+    MapRef const tile = map_ref_from_num((unsigned char)byte);
     if (!map_ref_is_valid(map, tile)) {
       DEBUGF("Invalid tile ref %d at %" PRIMapCoord ",%" PRIMapCoord "\n", byte, p.x, p.y);
       return SFERROR(BadTileRef);

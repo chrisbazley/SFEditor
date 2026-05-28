@@ -130,7 +130,7 @@ static inline MapRef map_get_tile(MapData const *const map,
   MapPoint const pos)
 {
   assert(map);
-  size_t const value = ((unsigned char *)map->flex)[map_coords_to_index(pos)];
+  unsigned char const value = ((unsigned char *)map->flex)[map_coords_to_index(pos)];
   /* If you're thinking of converting values here, don't! It's more
      efficient to do so when reading/writing the file. */
   MapRef const tile = map_ref_from_num(value);

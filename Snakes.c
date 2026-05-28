@@ -631,7 +631,7 @@ static size_t plot_tile(SnakeContext *const ctx, unsigned int const part_spec)
   }
   if (tile_num != -1 && ctx->write) {
     DEBUG("Plotting snake tile %d", tile_num);
-    ctx->write(ctx->map_pos, (size_t)tile_num, ctx);
+    ctx->write(ctx->map_pos, (unsigned char)tile_num, ctx);
   }
   return (size_t)tile_num;
 }
