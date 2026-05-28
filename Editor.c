@@ -390,7 +390,7 @@ static char *get_plot_cancel_msg(Editor *const editor)
   sprintf(shape_name, "Plot%d", editor->shape_to_plot);
 
   STRCPY_SAFE(shape_name, msgs_lookup(shape_name));
-  *shape_name = toupper(*shape_name);
+  *shape_name = (char)toupper(*shape_name);
 
   return msgs_lookup_subn("StatusNoShape", 1, shape_name);
 }
@@ -2229,7 +2229,7 @@ char const *Editor_get_tool_msg(Editor *const editor,
   STRCPY_SAFE(desc_string, msgs_lookup_subn(token, 1, parameter));
 
   /* Ensure initial letter is correct case */
-  *desc_string = caps ? toupper(*desc_string) : tolower(*desc_string);
+  *desc_string = (char)(caps ? toupper(*desc_string) : tolower(*desc_string));
 
   return desc_string;
 }
