@@ -62,11 +62,11 @@ typedef struct {
         (((dividend) - ((divisor) - 1)) / (divisor)) \
   )
 
-static int get_hill_height(HillsData const *const hills, MapPoint const pos)
+static unsigned char get_hill_height(HillsData const *const hills, MapPoint const pos)
 {
   size_t const index = hill_coords_to_index(pos);
   Hill const *const data = (Hill *)hills->data;
-  int const height = data[index].height;
+  unsigned char const height = data[index].height;
   DEBUGF("Got hill height %d at %" PRIMapCoord ",%" PRIMapCoord "\n", height, pos.x, pos.y);
   return height;
 }
@@ -287,7 +287,7 @@ typedef struct {
  bool north:1;
 } CornerFlags;
 
-static inline int get_hill_colour(CornerFlags const flags, int const corner,
+static inline unsigned char get_hill_colour(CornerFlags const flags, int const corner,
   int const left, int const right, int const mixer)
 {
   assert(corner >= 0);
@@ -347,7 +347,7 @@ static inline int get_hill_colour(CornerFlags const flags, int const corner,
   DEBUGF("Get hill colour %d from heights %d,%d,%d and mixer %d\n", colour, corner, left, right, mixer);
   assert(colour >= 0);
   assert(colour < HillNumColours);
-  return colour;
+  return (unsigned char)colour;
 }
 
 static HillType get_hill_metadata_from_heights(unsigned char (*const heights)[HillCorner_Count], int mixer, unsigned char (*const colours)[Hill_MaxPolygons])
