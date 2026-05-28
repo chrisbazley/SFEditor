@@ -22,17 +22,17 @@ void MapTexGroups_smooth(MapEditContext const *map,
 void MapTexGroups_edit(const char *tiles_set);
 
 void MapTexGroups_load(MapTexGroups *groups_data,
-  const char *tiles_set, size_t ntiles);
+  const char *tiles_set, int ntiles);
 
-size_t MapTexGroups_get_count(MapTexGroups const *groups_data);
+int MapTexGroups_get_count(MapTexGroups const *groups_data);
 
-size_t MapTexGroups_get_group_of_tile(MapTexGroups *groups_data,
+int MapTexGroups_get_group_of_tile(MapTexGroups *groups_data,
   MapRef tile);
 
-size_t MapTexGroups_get_num_group_members(MapTexGroups *groups_data, size_t group);
+int MapTexGroups_get_num_group_members(MapTexGroups *groups_data, int group);
 
 MapRef MapTexGroups_get_group_member(MapTexGroups *groups_data,
-  size_t group, size_t index);
+                                     int group, int index);
 
 void MapTexGroups_free(MapTexGroups *groups_data);
 

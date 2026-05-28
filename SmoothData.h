@@ -20,16 +20,15 @@ given group. Each block contains a pointer to a flex array of group members.
 
 typedef struct
 {
-  bool  super;
-  size_t count;
+  bool super;
+  int count;
   /* flex anchor for array of tile or group numbers in definition order */
   void *array_anchor;
 } TexGroupRoot;
 
 struct MapTexGroups {
-  size_t          count;
-  TexGroupRoot   *array; /* malloced array of TexGroupRoots, one for each group */
-  size_t ntiles;
+  int count, ntiles;
+  TexGroupRoot *array; /* malloced array of TexGroupRoots, one for each group */
   void *smooth_anchor; /* flex anchor for an array of
                           TileSmoothData, in tile number order */
 };
