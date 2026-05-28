@@ -41,7 +41,7 @@ void redraw_gadget(ObjectId window, ComponentId gadget);
 bool update_menu_tick(IdBlock *id_block);
 
 /* Version of memset() that doesn't need to be called with flex budge disabled */
-flex_ptr memset_flex(flex_ptr ptr, int c, size_t n);
+flex_ptr memset_flex(flex_ptr ptr, unsigned char c, size_t n);
 
 /* Version of memcpy() that doesn't need to be called with flex budge disabled */
 flex_ptr memcpy_flex(flex_ptr dst, flex_ptr src, size_t n);
