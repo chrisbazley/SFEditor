@@ -77,7 +77,6 @@ static inline void set_hill_height(HillsData const *const hills, MapPoint const 
   DEBUGF("Set hill height %d at %" PRIMapCoord ",%" PRIMapCoord "\n", height, pos.x, pos.y);
   assert(hills);
   assert(hills->data);
-  assert(height >= 0);
   assert(height <= Hill_MaxHeight);
   ((Hill *)hills->data)[hill_coords_to_index(pos)].height = height;
 }
