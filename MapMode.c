@@ -1960,7 +1960,7 @@ static void MapMode_draw_numbers(Editor *const editor,
   Vertex coord = {
     .y = scr_orig.y + (scr_area.min.y * grid_size.y) + (grid_size.y / 2l)
   };
-  int last_tile = SIZE_MAX;
+  int last_tile = -1;
   bool blend = false;
   PaletteEntry const bg_colour = EditWin_get_bg_colour(edit_win);
   PaletteEntry const bg_sel_colour = opposite_col(bg_colour);
