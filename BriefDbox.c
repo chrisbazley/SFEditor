@@ -20,6 +20,7 @@
 
 #include "stdlib.h"
 #include <string.h>
+#include <limits.h>
 
 #include "toolbox.h"
 #include "event.h"
@@ -125,7 +126,9 @@ static void setup_win(BriefingData *const briefing, ObjectId const id)
   for (size_t i = 0; i < tcount; ++i) {
     char const *const text = briefing_get_text(briefing, i);
     E(textarea_insert_text(0, id, ComponentId_TextArea, offset, text));
-    offset += strlen(text);
+    size_t const len = strlen(text);
+    assert(len <= UINT_MAX - offset);
+    offset += (unsigned)offset;
     if (i < tcount - 1) {
       E(textarea_insert_text(0, id, ComponentId_TextArea, offset, ENDPARA));
       offset += sizeof(ENDPARA) - 1;
