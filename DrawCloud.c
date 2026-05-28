@@ -103,11 +103,11 @@ bool DrawCloud_init(DrawCloudContext *const context, CloudColData const *const c
   };
 
   for (DrawCloudSel is_selected = DrawCloudSel_No; is_selected < DrawCloudSel_Count; ++is_selected) {
-    for (size_t cloud_type = 0; cloud_type < Obj_NumCloudTints; ++cloud_type) {
+    for (int cloud_type = 0; cloud_type < Obj_NumCloudTints; ++cloud_type) {
       PaletteEntry cloud_colours[Clouds_NumColours];
 
       for (size_t n = 0; n < Clouds_NumColours; ++n) {
-        unsigned int const cloud_colour = clouds_get_colour(clouds, n) + cloud_type;
+        int const cloud_colour = clouds_get_colour(clouds, n) + cloud_type;
         cloud_colours[n] = ((is_selected == DrawCloudSel_Yes) && sel_palette) ?
                               (*sel_palette)[cloud_colour] : (*unsel_palette)[cloud_colour];
       }

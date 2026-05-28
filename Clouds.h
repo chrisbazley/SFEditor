@@ -22,7 +22,7 @@ SFError clouds_read(CloudColData *clouds, struct Reader *reader);
 
 void clouds_write(CloudColData const *clouds, struct Writer *writer);
 
-unsigned int clouds_get_colour(CloudColData const *clouds, size_t index);
-void clouds_set_colour(CloudColData *clouds, size_t index, unsigned int colour);
+int clouds_get_colour(CloudColData const *clouds, size_t index);
+void clouds_set_colour(CloudColData *clouds, size_t index, int colour);
 
 #endif

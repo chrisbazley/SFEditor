@@ -14,5 +14,5 @@
 extern ObjectId GraphicsFiles_id;
 
 void GraphicsFiles_created(ObjectId window_id);
-int GraphicsFiles_colour_selected(EditSession *session, ComponentId parent_component, unsigned int colour);
+int GraphicsFiles_colour_selected(EditSession *session, ComponentId parent_component, int colour);
 #endif

@@ -11,6 +11,6 @@
 
 void Picker_created(ObjectId id);
 void Picker_set_title(char *title);
-void Picker_set_colour(unsigned int colour);
+void Picker_set_colour(int colour);
 
 #endif

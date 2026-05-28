@@ -63,7 +63,7 @@ void clouds_write(CloudColData const *const clouds,
 }
 
 
-unsigned int clouds_get_colour(CloudColData const *const clouds, size_t const index)
+int clouds_get_colour(CloudColData const *const clouds, size_t const index)
 {
   assert(clouds);
   assert(index < ARRAY_SIZE(clouds->colours));
@@ -71,10 +71,10 @@ unsigned int clouds_get_colour(CloudColData const *const clouds, size_t const in
 }
 
 void clouds_set_colour(CloudColData *const clouds,
-  size_t const index, unsigned int const colour)
+  size_t const index, int const colour)
 {
   assert(clouds);
   assert(index < Clouds_NumColours);
   assert(colour < NumColours);
-  clouds->colours[index] = colour;
+  clouds->colours[index] = (unsigned char)colour;
 }

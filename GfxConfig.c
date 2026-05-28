@@ -93,7 +93,7 @@ static bool interpret_line(GfxConfig *const graphics, char const *const line)
         {
           return false;
         }
-        clouds_set_colour(&graphics->clouds, i, (unsigned)num);
+        clouds_set_colour(&graphics->clouds, i, (unsigned char)num);
         return true;
       }
     }
@@ -190,7 +190,7 @@ static bool write_to_file(FILE *const handle, const GfxConfig *const graphics)
 
   for (size_t i = 0; i < Clouds_NumColours; ++i)
   {
-    num_outputs = fprintf(handle, "%s = %u\n", colour_tags[i],
+    num_outputs = fprintf(handle, "%s = %d\n", colour_tags[i],
                           clouds_get_colour(&graphics->clouds, i));
     if (num_outputs < 0)
     {

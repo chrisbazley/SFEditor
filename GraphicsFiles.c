@@ -96,7 +96,7 @@ static int menu_submenu(int const event_code, ToolboxEvent *const event,
   EditSession *const session = EditWin_get_session(edit_win);
   const CloudColData *const clouds = Session_get_cloud_colours(session);
 
-  unsigned int colour;
+  int colour;
   switch (id_block->self_component) {
     case ComponentId_CLOUDCOLOUR1:
       colour = clouds_get_colour(clouds, 0);
@@ -183,7 +183,7 @@ void GraphicsFiles_created(ObjectId const id)
 
 int GraphicsFiles_colour_selected(EditSession *const session,
                                   ComponentId const parent_component,
-                                  unsigned int const colour)
+                                  int const colour)
 {
   /* User made selection from 256 colour palette */
   CloudColData *const clouds = Session_get_cloud_colours(session);

@@ -74,7 +74,7 @@ void Picker_set_title(char *const title)
   E(window_set_title(0, picker_id, title));
 }
 
-void Picker_set_colour(unsigned int const colour)
+void Picker_set_colour(int const colour)
 {
   E(Pal256_set_colour(picker_id, colour));
 }
