@@ -323,7 +323,8 @@ SFError MapTexBitmaps_read(MapTexBitmaps *const tiles, Reader *const reader)
   for (int tile_num = 0; tile_num < tiles->count && !SFError_fail(err); ++tile_num)
   {
     hourglass_percentage((tile_num * 100) / tiles->count);
-    err = tile_to_sprite(reader, tiles, map_ref_from_num(tile_num));
+    assert(tile_num <= UCHAR_MAX);
+    err = tile_to_sprite(reader, tiles, map_ref_from_num((unsigned char)tile_num));
   }
 
   dump_sprites(tiles, MapAngle_North, 0);
