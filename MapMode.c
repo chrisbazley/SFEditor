@@ -2921,7 +2921,7 @@ bool MapMode_write_clipboard(struct Writer *const writer,
   return !report_error(write_compressed(MapTransfer_get_dfile(clipboard), writer), filename, "");
 }
 
-int MapMode_estimate_clipboard(DataType const data_type)
+long int MapMode_estimate_clipboard(DataType const data_type)
 {
   NOT_USED(data_type);
   return worst_compressed_size(MapTransfer_get_dfile(clipboard));

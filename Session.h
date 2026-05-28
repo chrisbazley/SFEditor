@@ -130,7 +130,7 @@ char *Session_get_file_name_for_save(EditSession *session, DataType data_type);
 bool Session_save_file(EditSession *session, DataType data_type, char *filename);
 
 bool Session_has_data(const EditSession *session, DataType data_type);
-int Session_get_file_size(EditSession const *session, DataType data_type);
+long int Session_get_file_size(EditSession const *session, DataType data_type);
 char *Session_get_file_name(EditSession *session, DataType data_type);
 int const *Session_get_file_date(EditSession *session, DataType data_type);
 

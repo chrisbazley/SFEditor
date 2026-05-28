@@ -30,7 +30,7 @@ bool InfoMode_write_clipboard(struct Writer *writer,
                               DataType data_type,
                               char const *filename);
 
-int InfoMode_estimate_clipboard(DataType data_type);
+long int InfoMode_estimate_clipboard(DataType data_type);
 
 void InfoMode_free_clipboard(void);
 

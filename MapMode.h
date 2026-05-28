@@ -31,7 +31,7 @@ void MapMode_draw(struct Editor *editor, Vertex map_origin,
 bool MapMode_write_clipboard(struct Writer *writer,
                              DataType data_type, char const *const filename);
 
-int MapMode_estimate_clipboard(DataType data_type);
+long int MapMode_estimate_clipboard(DataType data_type);
 
 void MapMode_free_clipboard(void);
 

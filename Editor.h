@@ -137,7 +137,7 @@ bool Editor_can_select_tool(Editor const *editor, EditorTool tool);
 void Editor_select_tool(Editor *editor, EditorTool tool);
 EditorTool Editor_get_tool(Editor const *editor);
 
-int Editor_estimate_clipboard(DataType data_type);
+long int Editor_estimate_clipboard(DataType data_type);
 bool Editor_write_clipboard(struct Writer *writer, DataType data_type, char const *filename);
 void Editor_free_clipboard(void);
 

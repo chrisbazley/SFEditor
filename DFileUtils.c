@@ -48,7 +48,7 @@ char *get_leaf_name(DFile *const dfile)
   return pathtail(dfile_get_name(dfile), 1);
 }
 
-int get_compressed_size(DFile *const dfile)
+long int get_compressed_size(DFile *const dfile)
 {
   long int size = 0;
   Writer writer;
@@ -64,9 +64,7 @@ int get_compressed_size(DFile *const dfile)
     return 0;
   }
 
-  assert(size >= 0);
-  assert(size < INT_MAX);
-  return (int)size;
+  return size;
 }
 
 SFError read_compressed(DFile *const dfile, Reader *const reader)
@@ -185,10 +183,10 @@ SFError save_compressed(DFile *const dfile, char *const fname)
 
 /* ----------------------------------------------------------------------- */
 
-int worst_compressed_size(DFile *const dfile)
+long int worst_compressed_size(DFile *const dfile)
 {
   /* Worst-case estimate */
-  int const orig_size = dfile_get_min_size(dfile);
-  return (int)sizeof(int32_t) +
+  long int const orig_size = dfile_get_min_size(dfile);
+  return (long int)sizeof(int32_t) +
     ((orig_size * WorstBitsPerChar) / CHAR_BIT);
 }

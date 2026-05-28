@@ -1590,9 +1590,9 @@ bool Editor_can_smooth(Editor const *const editor)
 
 static EditMode clipboard_mode;
 
-int Editor_estimate_clipboard(DataType const data_type)
+long int Editor_estimate_clipboard(DataType const data_type)
 {
-  int size = 0;
+  long int size = 0;
 
   switch (clipboard_mode) {
     case EDITING_MODE_MAP:

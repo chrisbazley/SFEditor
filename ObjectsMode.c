@@ -2682,7 +2682,7 @@ bool ObjectsMode_write_clipboard(struct Writer *const writer,
   return !report_error(write_compressed(ObjTransfer_get_dfile(clipboard), writer), filename, "");
 }
 
-int ObjectsMode_estimate_clipboard(DataType const data_type)
+long int ObjectsMode_estimate_clipboard(DataType const data_type)
 {
   NOT_USED(data_type);
   return worst_compressed_size(ObjTransfer_get_dfile(clipboard));

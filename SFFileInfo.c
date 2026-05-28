@@ -19,6 +19,7 @@
  */
 
 #include "stdlib.h"
+#include <limits.h>
 
 #include "event.h"
 #include "toolbox.h"
@@ -62,8 +63,10 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
     data_type = MapFiles_get_data_type(grandparent_component);
   }
 
-  E(fileinfo_set_file_size(0, id_block->self_id,
-    Session_get_file_size(session, data_type)));
+  long int const file_size = Session_get_file_size(session, data_type);
+  assert(file_size >= 0);
+  assert(file_size <= INT_MAX);
+  E(fileinfo_set_file_size(0, id_block->self_id, (int)file_size));
 
   E(fileinfo_set_file_type(0, id_block->self_id,
     data_type_to_file_type(data_type)));

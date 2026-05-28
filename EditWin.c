@@ -1184,7 +1184,10 @@ static int estimate_cb(int const file_type, void *const client_handle)
   /* This function is called to estimate the size of the current clipboard
      contents, e.g. before pasting them into a document. */
   NOT_USED(client_handle);
-  return Editor_estimate_clipboard(file_type_to_data_type(file_type, ""));
+  long int const size = Editor_estimate_clipboard(file_type_to_data_type(file_type, ""));
+  assert(size >= 0);
+  assert(size <= INT_MAX);
+  return (int)size;
 }
 
 static bool cb_write(Writer *const writer, int const file_type,

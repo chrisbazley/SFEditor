@@ -22,6 +22,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include <string.h>
+#include <limits.h>
 
 #include "event.h"
 #include "toolbox.h"
@@ -68,8 +69,10 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
                                         &textures->transfers, selected);
   DFile *const dfile = MapTransfer_get_dfile(transfer);
 
-  E(fileinfo_set_file_size(0, id_block->self_id,
-    get_compressed_size(dfile)));
+  long int const file_size = get_compressed_size(dfile);
+  assert(file_size >= 0);
+  assert(file_size <= INT_MAX);
+  E(fileinfo_set_file_size(0, id_block->self_id, (int)file_size));
 
   E(fileinfo_set_file_name(0, id_block->self_id,
     dfile_get_name(dfile)));

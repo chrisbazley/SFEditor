@@ -2962,7 +2962,7 @@ bool Session_has_data(const EditSession *const session, DataType const data_type
   return Session_get_dfile(session, data_type) != NULL;
 }
 
-int Session_get_file_size(EditSession const *const session, DataType const data_type)
+long int Session_get_file_size(EditSession const *const session, DataType const data_type)
 {
   DFile *const dfile = Session_get_dfile(session, data_type);
   return dfile ? get_compressed_size(dfile) : 0;

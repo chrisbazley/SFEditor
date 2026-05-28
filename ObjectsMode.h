@@ -32,7 +32,7 @@ bool ObjectsMode_write_clipboard(struct Writer *writer,
                                  DataType data_type,
                                  char const *filename);
 
-int ObjectsMode_estimate_clipboard(DataType data_type);
+long int ObjectsMode_estimate_clipboard(DataType data_type);
 
 void ObjectsMode_free_clipboard(void);
 

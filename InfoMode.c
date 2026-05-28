@@ -1483,7 +1483,7 @@ bool InfoMode_write_clipboard(struct Writer *writer,
   return !report_error(write_compressed(InfoTransfer_get_dfile(clipboard), writer), filename, "");
 }
 
-int InfoMode_estimate_clipboard(DataType data_type)
+long int InfoMode_estimate_clipboard(DataType data_type)
 {
   NOT_USED(data_type);
   return worst_compressed_size(InfoTransfer_get_dfile(clipboard));
