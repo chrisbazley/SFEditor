@@ -157,10 +157,13 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
   }
   /* Set text colour to black or white, whichever gives greater
       contrast with average colour of this tile */
-  else if (MapTexBitmaps_is_bright(&textures->tiles, map_ref_from_num(object_no))) {
-    font_colour = PAL_BLACK;
-  } else {
-    font_colour = PAL_WHITE;
+  else {
+    assert(object_no <= UCHAR_MAX);
+    if (MapTexBitmaps_is_bright(&textures->tiles, map_ref_from_num((unsigned char)object_no))) {
+      font_colour = PAL_BLACK;
+    } else {
+      font_colour = PAL_WHITE;
+    }
   }
 
   /* We don't use wimp_set_font_colours because cannot rely on
@@ -341,7 +344,7 @@ static Vertex index_to_grid(Editor *const editor, int index,
   /* Which group is this tile a member of? */
   int const sel_group = (index == NULL_DATA_INDEX || index > num_objects - 1) ?
     num_groups :
-    MapTexGroups_get_group_of_tile(&textures->groups, map_ref_from_num(index));
+    MapTexGroups_get_group_of_tile(&textures->groups, map_ref_from_num((unsigned char)index));
   DEBUG("Group containing tile no. %d is %d", index, sel_group);
 
   /* Find starting row for that group */
