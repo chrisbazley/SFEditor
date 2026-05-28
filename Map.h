@@ -97,7 +97,7 @@ static inline size_t map_ref_to_num(MapRef const tile)
 static inline MapRef map_ref_from_num(size_t const tile)
 {
   assert(tile <= Map_RefMax || tile == Map_RefMask);
-  return (MapRef){tile};
+  return (MapRef){(unsigned char)tile};
 }
 
 static inline MapRef map_ref_mask(void)
@@ -144,7 +144,7 @@ static inline void map_set_tile(MapData const *const map,
   assert(map);
   assert(map_ref_is_valid(map, tile));
   size_t const value = map_ref_to_num(tile);
-  ((unsigned char *)map->flex)[map_coords_to_index(pos)] = value;
+  ((unsigned char *)map->flex)[map_coords_to_index(pos)] = (unsigned char)value;
   /* If you're thinking of converting values here, don't! It's more
      efficient to do so when reading/writing the file. */
 }
@@ -164,7 +164,7 @@ static inline MapRef map_update_tile(MapData const *const map,
     size_t const value = map_ref_to_num(tile);
     DEBUG("Changing tile %zu to %zu at grid location %" PRIMapCoord ",%" PRIMapCoord,
           current, value, pos.x, pos.y);
-    ((unsigned char *)map->flex)[index] = value;
+    ((unsigned char *)map->flex)[index] = (unsigned char)value;
   }
   return ctile;
 }
@@ -173,7 +173,8 @@ static inline MapRef map_update_tile(MapData const *const map,
 
 static inline CoarsePoint2d map_coords_to_coarse(MapPoint const pos)
 {
-  return (CoarsePoint2d){map_wrap_coord(pos.x), map_wrap_coord(pos.y)};
+  return (CoarsePoint2d){(CoarseCoord)map_wrap_coord(pos.x),
+                         (CoarseCoord)map_wrap_coord(pos.y)};
 }
 
 static inline MapPoint map_coords_from_coarse(CoarsePoint2d const pos)

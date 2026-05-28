@@ -115,7 +115,7 @@ static inline size_t objects_ref_to_num(ObjRef const obj_ref)
 static inline ObjRef objects_ref_from_num(size_t const obj_ref)
 {
   assert(obj_ref <= Obj_RefHill || obj_ref == Obj_RefMask);
-  return (ObjRef){obj_ref};
+  return (ObjRef){(unsigned char)obj_ref};
 }
 
 static inline ObjRef objects_ref_none(void)
@@ -126,7 +126,7 @@ static inline ObjRef objects_ref_none(void)
 static inline ObjRef objects_ref_object(size_t const normal_type)
 {
   assert(normal_type < Obj_ObjectCount);
-  return (ObjRef){Obj_RefMinObject + normal_type};
+  return (ObjRef){(unsigned char)(Obj_RefMinObject + normal_type)};
 }
 
 static inline ObjRef objects_ref_mask(void)
@@ -137,7 +137,7 @@ static inline ObjRef objects_ref_mask(void)
 static inline ObjRef objects_ref_cloud(size_t const cloud_type)
 {
   assert(cloud_type < Obj_CloudCount);
-  return (ObjRef){Obj_RefMinCloud + cloud_type};
+  return (ObjRef){(unsigned char)(Obj_RefMinCloud + cloud_type)};
 }
 
 static inline ObjRef objects_ref_hill(void)
@@ -239,7 +239,7 @@ static inline void objects_set_ref(ObjectsData const *const objects,
   size_t const value = objects_ref_to_num(ref);
   DEBUG("Set ref %zu at grid location %" PRIMapCoord ",%" PRIMapCoord,
         value, pos.x, pos.y);
-  ((unsigned char *)objects->flex)[objects_coords_to_index(pos)] = value;
+  ((unsigned char *)objects->flex)[objects_coords_to_index(pos)] = (unsigned char)value;
   /* If you're thinking of converting values here, don't! It's more
      efficient to do so when reading/writing the file. */
 }
@@ -259,7 +259,7 @@ static inline ObjRef objects_update_ref(ObjectsData const *const objects,
     size_t const value = objects_ref_to_num(ref);
     DEBUG("Change ref %zu to %zu at grid location %" PRIMapCoord ",%" PRIMapCoord,
           current, value, pos.x, pos.y);
-    ((unsigned char *)objects->flex)[index] = value;
+    ((unsigned char *)objects->flex)[index] = (unsigned char)value;
   }
   return cref;
 }
@@ -270,7 +270,7 @@ static inline CoarsePoint2d objects_coords_to_coarse(MapPoint pos)
 {
   pos = objects_wrap_coords(pos);
   DEBUGF("%" PRIMapCoord" ,%" PRIMapCoord " to coarse coords\n", pos.x, pos.y);
-  return (CoarsePoint2d){pos.x, pos.y};
+  return (CoarsePoint2d){(CoarseCoord)pos.x, (CoarseCoord)pos.y};
 }
 
 static inline MapPoint objects_coords_from_coarse(CoarsePoint2d const pos)
