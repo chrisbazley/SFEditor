@@ -49,9 +49,9 @@ enum {
 };
 
 typedef struct {
-  unsigned int height:6;
-  unsigned int mixer:1;
-  unsigned int type:3;
+  unsigned char height:6;
+  unsigned char mixer:1;
+  unsigned char type:3;
   unsigned char colours[Hill_MaxPolygons];
 } Hill;
 
@@ -217,7 +217,7 @@ static inline int clamp(int f)
 }
 #endif
 
-static int calc_height_for_pos(HillsData const *const hills, MapPoint const p)
+static unsigned char calc_height_for_pos(HillsData const *const hills, MapPoint const p)
 {
   if (!hill_at_coord(hills, p) ||
       !hill_at_coord(hills, (MapPoint){p.x - HillNeighbourDist, p.y}) ||
@@ -279,7 +279,9 @@ static int calc_height_for_pos(HillsData const *const hills, MapPoint const p)
     height = Hill_MaxHeight - (int)((unsigned)upscaled_wave_height % MaxHeightNoiseLimit);
   }
   DEBUGF("Calculated height %d at %" PRIMapCoord ",%" PRIMapCoord "\n", height, p.x, p.y);
-  return height;
+  assert(height >= 0);
+  assert(height <= UCHAR_MAX);
+  return (unsigned char)height;
 }
 
 typedef struct {
@@ -528,7 +530,7 @@ static void generate_heights(HillsData *const hills, MapArea const *const update
       heights[HillCorner_C] = get_hill_height(hills, c_pos);
       heights[HillCorner_D] = get_hill_height(hills, (MapPoint){p.x + 1, p.y});
 
-      int c = heights[HillCorner_C];
+      unsigned char c = heights[HillCorner_C];
       if (p.x < max.x && p.y < max.y) {
         c = calc_height_for_pos(hills, c_pos);
       }
