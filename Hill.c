@@ -509,7 +509,7 @@ static void generate_heights(HillsData *const hills, MapArea const *const update
      A D
    */
   unsigned char heights[HillCorner_Count] = {0};
-  int mixer = 0;
+  unsigned char mixer = 0;
   bool colour_change = false;
   for (MapPoint p = {.y = update_area->min.y}; p.y <= max.y || (colour_change && p.y <= GenerateHillAreaSize); ++p.y) {
     p.x = colour_change ? 0 : update_area->min.x;
