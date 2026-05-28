@@ -72,7 +72,7 @@ static unsigned char get_hill_height(HillsData const *const hills, MapPoint cons
 }
 
 static inline void set_hill_height(HillsData const *const hills, MapPoint const pos,
-  int const height)
+  unsigned char const height)
 {
   DEBUGF("Set hill height %d at %" PRIMapCoord ",%" PRIMapCoord "\n", height, pos.x, pos.y);
   assert(hills);
@@ -93,13 +93,13 @@ static inline bool change_mixer_for_type(HillType const type)
 #endif
 }
 
-static inline int get_hill_mixer(HillsData const *const hills, MapPoint const pos)
+static inline unsigned char get_hill_mixer(HillsData const *const hills, MapPoint const pos)
 {
   assert(hills);
   assert(hills->data);
   assert(hills_coords_in_range(pos));
   Hill *const hill = &((Hill *)hills->data)[hill_coords_to_index(pos)];
-  int mixer = hill->mixer;
+  unsigned char const mixer = hill->mixer;
   assert(mixer == 0 || mixer == 1);
   DEBUGF("Get mixer %d at %"PRIMapCoord",%" PRIMapCoord"\n", mixer, pos.x, pos.y);
   return mixer;
@@ -132,7 +132,7 @@ static inline HillType get_hill_type(HillsData *const hills, MapPoint const pos)
 }
 
 static inline void set_hill_metadata(HillsData *const hills, MapPoint const pos,
-  HillType const type, int mixer, unsigned char (*const colours)[Hill_MaxPolygons])
+  HillType const type, unsigned char mixer, unsigned char (*const colours)[Hill_MaxPolygons])
 {
   assert(hills);
   assert(hills->data);
@@ -352,7 +352,7 @@ static inline unsigned char get_hill_colour(CornerFlags const flags, int const c
   return (unsigned char)colour;
 }
 
-static HillType get_hill_metadata_from_heights(unsigned char (*const heights)[HillCorner_Count], int mixer, unsigned char (*const colours)[Hill_MaxPolygons])
+static HillType get_hill_metadata_from_heights(unsigned char (*const heights)[HillCorner_Count], unsigned char mixer, unsigned char (*const colours)[Hill_MaxPolygons])
 {
   HillType type = HillType_None;
   assert(heights);
@@ -458,7 +458,7 @@ static void check_mixers(HillsData const *const hills)
     }
   }
 
-  int expected_mixer = 0;
+  unsigned char expected_mixer = 0;
   for (MapPoint pos = {.y = 0}; pos.y <= GenerateHillAreaSize; ++pos.y) {
     for (pos.x = 0; pos.x <= GenerateHillAreaSize; ++pos.x) {
       int const mixer = get_hill_mixer(hills, pos);
