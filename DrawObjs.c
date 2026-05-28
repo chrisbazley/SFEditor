@@ -284,7 +284,8 @@ static void get_arrow_ends(MapPoint const line_vec, MapCoord const arrow_len,
   assert(a);
   assert(b);
   double const angle = atan2(line_vec.y, line_vec.x);
-  MapPoint const arrow_vec = {cos(angle) * arrow_len, sin(angle) * arrow_len};
+  MapPoint const arrow_vec = {(MapCoord)(cos(angle) * arrow_len),
+                              (MapCoord)(sin(angle) * arrow_len)};
   MapPoint const arrow_base = MapPoint_sub(line_vec, arrow_vec);
   *a = MapPoint_add(arrow_base, (MapPoint){-arrow_vec.y / 2, arrow_vec.x / 2});
   *b = MapPoint_add(arrow_base, (MapPoint){arrow_vec.y / 2, -arrow_vec.x / 2});
