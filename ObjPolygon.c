@@ -53,15 +53,14 @@ static SFError obj_polygon_read(ObjPolygon * const polygon,
     DEBUGF("Failed to read no. of sides and plot group\n");
     return SFERROR(ReadFail);
   }
-  size_t const num_sides_and_group = (size_t)byte;
-
-  size_t const num_sides = (num_sides_and_group & ObjPolygonNumSidesMask) >>
-                          ObjPolygonNumSidesShift;
-
-  size_t const colour_high = num_sides_and_group & ObjPolygonSpecialColour;
-
-  size_t const group = (num_sides_and_group & ObjPolygonGroupMask) >>
-                        ObjPolygonGroupShift;
+  assert(byte >= 0);
+  assert(byte <= UCHAR_MAX);
+  unsigned char const num_sides_and_group = (unsigned char)byte,
+                      num_sides = (num_sides_and_group & ObjPolygonNumSidesMask) >>
+                                  ObjPolygonNumSidesShift,
+                      colour_high = num_sides_and_group & ObjPolygonSpecialColour,
+                      group = (num_sides_and_group & ObjPolygonGroupMask) >>
+                              ObjPolygonGroupShift;
 
   if (num_sides < ObjPolygonMinSides || num_sides > ObjPolygonMaxSides)
   {
@@ -103,7 +102,7 @@ static SFError obj_polygon_read(ObjPolygon * const polygon,
 
       /* Vertex indices are stored using an offset encoding */
       assert(v - ObjPolygonMinVertex <= UCHAR_MAX);
-      polygon->sides[s] = v - ObjPolygonMinVertex;
+      polygon->sides[s] = (unsigned char)(v - ObjPolygonMinVertex);
     }
 
     const int colour_low = reader_fgetc(reader);
@@ -113,7 +112,16 @@ static SFError obj_polygon_read(ObjPolygon * const polygon,
       return SFERROR(ReadFail);
     }
 
-    polygon->colour = colour_low + (colour_high ? ObjPolygonColourHighBit : 0);
+    assert(colour_low >= 0);
+    assert(colour_low <= UCHAR_MAX);
+    unsigned short colour = (unsigned char)colour_low;
+
+    if (colour_high)
+    {
+      colour |= ObjPolygonColourHighBit;
+    }
+
+    polygon->colour = colour;
     polygon->scount = num_sides;
     polygon->group = group;
   }
