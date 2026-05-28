@@ -78,6 +78,9 @@ Vertex DrawInfo_get_size_os(bool const is_ghost)
   return Vertex_mul_log2_pair(sprite_size_in_px[is_ghost], sprite_eig[is_ghost]);
 }
 
+/* The transfer function can't be written in C because it's not APCS-compliant */
+extern PaletteEntry transfer_func(PaletteEntry);
+
 bool DrawInfo_init(DrawInfoContext *const context,
   PaletteEntry (*const colours)[TargetInfoMax][DrawInfoPaletteSize],
   PaletteEntry (*const sel_colours)[TargetInfoMax][DrawInfoPaletteSize],
@@ -114,9 +117,6 @@ bool DrawInfo_init(DrawInfoContext *const context,
         info_colours[n] = ((is_selected == DrawInfoSel_Yes) && sel_colours) ?
                               (*sel_colours)[p][n] : (*colours)[p][n];
       }
-
-      /* The transfer function can't be written in C because it's not APCS-compliant */
-      extern PaletteEntry transfer_func(PaletteEntry);
 
       ColourTransGenerateTableBlock block = {
         .source = {

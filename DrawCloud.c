@@ -75,6 +75,9 @@ Vertex DrawCloud_get_size_os(void)
   return Vertex_mul_log2_pair(sprite_size_in_px, sprite_eig);
 }
 
+/* The transfer function can't be written in C because it's not APCS-compliant */
+extern PaletteEntry transfer_func(PaletteEntry);
+
 bool DrawCloud_init(DrawCloudContext *const context, CloudColData const *const clouds,
   PaletteEntry const (*const unsel_palette)[NumColours],
   PaletteEntry const (*const sel_palette)[NumColours],
@@ -108,9 +111,6 @@ bool DrawCloud_init(DrawCloudContext *const context, CloudColData const *const c
         cloud_colours[n] = ((is_selected == DrawCloudSel_Yes) && sel_palette) ?
                               (*sel_palette)[cloud_colour] : (*unsel_palette)[cloud_colour];
       }
-
-      /* The transfer function can't be written in C because it's not APCS-compliant */
-      extern PaletteEntry transfer_func(PaletteEntry);
 
       ColourTransGenerateTableBlock block = {
         .source = {

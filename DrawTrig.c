@@ -171,6 +171,9 @@ Vertex DrawTrig_get_max_size_os(void)
   return max_sprite_size_in_os;
 }
 
+/* The transfer function can't be written in C because it's not APCS-compliant */
+extern PaletteEntry transfer_func(PaletteEntry);
+
 bool DrawTrig_init(DrawTrigContext *const context,
   PaletteEntry (*const colours)[DrawTrigNumColours],
   PaletteEntry (*const sel_colours)[DrawTrigNumColours], int const zoom)
@@ -192,9 +195,6 @@ bool DrawTrig_init(DrawTrigContext *const context,
       trig_colours[n] = ((is_selected == DrawTrigSel_Yes) && sel_colours) ?
                             (*sel_colours)[n] : (*colours)[n];
     }
-
-    /* The transfer function can't be written in C because it's not APCS-compliant */
-    extern PaletteEntry transfer_func(PaletteEntry);
 
     ColourTransGenerateTableBlock block = {
       .source = {
