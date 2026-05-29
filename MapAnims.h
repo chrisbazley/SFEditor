@@ -31,7 +31,7 @@ typedef struct ConvAnimations ConvAnimations;
 typedef struct MapAnim MapAnim;
 
 typedef struct {
-  int32_t period;
+  uint16_t period;
   MapRef tiles[AnimsNFrames];
 } MapAnimParam;
 
