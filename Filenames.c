@@ -65,7 +65,8 @@ static SFError read_filename(char *const filename,
     if (c == '\r') {
       c = '\0';
     }
-    filename[nchars] = c;
+    filename[nchars] = (char)c;
+    assert(filename[nchars] == c);
     if (c == '\0') {
       break;
     }

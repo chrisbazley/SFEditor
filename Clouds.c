@@ -42,7 +42,7 @@ SFError clouds_read(CloudColData *const clouds,
     }
     DEBUGF("Cloud colour[%zu]: %d\n", j, colour);
     assert(colour < NumColours);
-    clouds->colours[j] = colour;
+    clouds->colours[j] = (unsigned char)colour;
   }
 
   return SFERROR(OK);
