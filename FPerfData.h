@@ -14,8 +14,8 @@ struct FighterPerform {
   int engine;
   int laser_prob;
   int missile_prob;
-  unsigned char laser_type;
-  unsigned char control;
+  int laser_type;
+  int control;
 };
 
 struct FighterPerformData {
