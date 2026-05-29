@@ -604,7 +604,6 @@ SchedulerTime MapAnims_update(ConvAnimations *const anims,
       if (prev_frame == frame_num) {
         break;
       }
-      assert(prev_frame >= 0);
       assert(prev_frame < AnimsNFrames);
       old_tile = anim->param.tiles[prev_frame];
     }
@@ -620,7 +619,6 @@ SchedulerTime MapAnims_update(ConvAnimations *const anims,
 
       /* Advance to next frame of animation */
       frame_num = (frame_num + 1) % AnimsNFrames;
-      assert(frame_num >= 0);
       assert(frame_num < AnimsNFrames);
       MapRef const next_tile = anim->param.tiles[frame_num];
       if (!map_ref_is_mask(next_tile)) {
