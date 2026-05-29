@@ -128,7 +128,7 @@ static void setup_win(BriefingData *const briefing, ObjectId const id)
     E(textarea_insert_text(0, id, ComponentId_TextArea, offset, text));
     size_t const len = strlen(text);
     assert(len <= UINT_MAX - offset);
-    offset += (unsigned)offset;
+    offset += (unsigned)len;
     if (i < tcount - 1) {
       E(textarea_insert_text(0, id, ComponentId_TextArea, offset, ENDPARA));
       offset += sizeof(ENDPARA) - 1;
