@@ -57,7 +57,7 @@ typedef struct ViewConfig {
 typedef struct View {
   ViewConfig config;
   ObjGfxMeshesView plot_ctx;
-  unsigned char map_units_per_os_unit_log2; /* from the zoom factor */
+  int map_units_per_os_unit_log2; /* from the zoom factor */
   Vertex map_size_in_os_units; /* from the zoom factor */
   unsigned char sel_colours[NumColours];
   PaletteEntry sel_palette[NumColours];
