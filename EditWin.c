@@ -177,7 +177,10 @@ static void set_sel_colour(EditWin *const edit_win)
     unsigned int const b = ((PALETTE_GET_BLUE((*palette)[i]) * ObjColourWeight) +
                             (PALETTE_GET_BLUE(colour) * SelColourWeight)) / denom;
     edit_win->view.sel_palette[i] = make_palette_entry(r,g,b);
-    edit_win->view.sel_colours[i] = nearest_palette_entry(*palette, NumColours, edit_win->view.sel_palette[i]);
+    int const nearest = nearest_palette_entry(*palette, NumColours, edit_win->view.sel_palette[i]);
+    assert(nearest >= 0);
+    assert(nearest < NumColours);
+    edit_win->view.sel_colours[i] = (unsigned char)nearest;
   }
 
   gen_sel_tex_bw_table(edit_win);
