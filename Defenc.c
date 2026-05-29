@@ -31,10 +31,6 @@
 #include "DefencData.h"
 
 enum {
-  DefencesMinProb = 0,
-  DefencesMaxProb = 255,
-  DefencesMinLaserType = 0,
-  DefencesMaxLaserType = 8,
   DefencesShipTypeMask = 0xf,
   DefencesShipTypeShift = 0,
   DefencesShipsPerHangarMask = 0xf0,
@@ -105,6 +101,9 @@ SFError defences_read(DefencesData *const defences,
     DefencesShipsPerHangarShift;
   DEBUGF("Defences have %d ships per hangar\n", ships_per_hangar);
 
+  assert(ships_per_hangar >= DefencesMinShipsPerHangar);
+  assert(ships_per_hangar <= DefencesMaxShipsPerHangar);
+
   int const ship_prob = reader_fgetc(reader);
   DEBUGF("Defences ship launch probability %d\n", ship_prob);
 
@@ -113,12 +112,18 @@ SFError defences_read(DefencesData *const defences,
 
   *defences = (DefencesData){
     .timer = timer,
-    .fire_prob = fire_prob,
-    .laser_type = laser_type,
+    .fire_prob = (unsigned char)fire_prob,
+    .laser_type = (unsigned char)laser_type,
     .ship_type = ship_type,
-    .ships_per_hangar = ships_per_hangar,
-    .ship_prob = ship_prob
+    .ships_per_hangar = (unsigned char)ships_per_hangar,
+    .ship_prob = (unsigned char)ship_prob
   };
+
+  assert(defences->fire_prob == fire_prob);
+  assert(defences->laser_type == laser_type);
+  assert(defences->ships_per_hangar == ships_per_hangar);
+  assert(defences->ship_prob == ship_prob);
+
   DEBUGF("Finished reading defences data at %ld\n", reader_ftell(reader));
   return SFERROR(OK);
 }
@@ -181,7 +186,8 @@ ShipType defences_get_ship_type(DefencesData const *const defences)
   return defences->ship_type;
 }
 
-void defences_set_fire_prob(DefencesData *const defences, int const fire_prob)
+void defences_set_fire_prob(DefencesData *const defences,
+                            unsigned char const fire_prob)
 {
   assert(defences);
   assert(fire_prob >= DefencesMinProb);
@@ -189,49 +195,49 @@ void defences_set_fire_prob(DefencesData *const defences, int const fire_prob)
   defences->fire_prob = fire_prob;
 }
 
-int defences_get_fire_prob(DefencesData const *const defences)
+unsigned char defences_get_fire_prob(DefencesData const *const defences)
 {
   assert(defences);
   return defences->fire_prob;
 }
 
-void defences_set_laser_type(DefencesData *const defences, int const laser_type)
+void defences_set_laser_type(DefencesData *const defences,
+                             unsigned char const laser_type)
 {
   assert(defences);
-  assert(laser_type >= DefencesMinLaserType);
   assert(laser_type <= DefencesMaxLaserType);
   defences->laser_type = laser_type;
 }
 
-int defences_get_laser_type(DefencesData const *const defences)
+unsigned char defences_get_laser_type(DefencesData const *const defences)
 {
   assert(defences);
   return defences->laser_type;
 }
 
-void defences_set_ships_per_hangar(DefencesData *const defences, int const ships_per_hangar)
+void defences_set_ships_per_hangar(DefencesData *const defences,
+                                   unsigned char const ships_per_hangar)
 {
   assert(defences);
-  assert(ships_per_hangar >= 0);
-  assert(ships_per_hangar <= (DefencesShipsPerHangarMask >> DefencesShipsPerHangarShift));
+  assert(ships_per_hangar <= DefencesMaxShipsPerHangar);
   defences->ships_per_hangar = ships_per_hangar;
 }
 
-int defences_get_ships_per_hangar(DefencesData const *const defences)
+unsigned char defences_get_ships_per_hangar(DefencesData const *const defences)
 {
   assert(defences);
   return defences->ships_per_hangar;
 }
 
-void defences_set_ship_prob(DefencesData *const defences, int const ship_prob)
+void defences_set_ship_prob(DefencesData *const defences,
+                            unsigned char const ship_prob)
 {
   assert(defences);
-  assert(ship_prob >= DefencesMinProb);
   assert(ship_prob <= DefencesMaxProb);
   defences->ship_prob = ship_prob;
 }
 
-int defences_get_ship_prob(DefencesData const *const defences)
+unsigned char defences_get_ship_prob(DefencesData const *const defences)
 {
   assert(defences);
   return defences->ship_prob;

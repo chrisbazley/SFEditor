@@ -56,22 +56,30 @@ static void read_win(EditSession *const session, ObjectId const dbox_id)
 
   if (!E(numberrange_get_value(0, dbox_id, GROUNDLASER_GUNS_FREQ, &tempint)))
   {
-    defences_set_fire_prob(defences, tempint);
+    tempint = CLAMP(tempint, DefencesMinProb, DefencesMaxProb);
+    assert(tempint == (unsigned char)tempint);
+    defences_set_fire_prob(defences, (unsigned char)tempint);
   }
 
   if (!E(numberrange_get_value(0, dbox_id, GROUNDLASER_GUNS_TYPE, &tempint)))
   {
-    defences_set_laser_type(defences, tempint);
+    tempint = CLAMP(tempint, DefencesMinLaserType, DefencesMaxLaserType);
+    assert(tempint == (unsigned char)tempint);
+    defences_set_laser_type(defences, (unsigned char)tempint);
   }
 
   if (!E(numberrange_get_value(0, dbox_id, GROUNDLASER_HANGAR_CAPACITY, &tempint)))
   {
-    defences_set_ships_per_hangar(defences, tempint);
+    tempint = CLAMP(tempint, DefencesMinShipsPerHangar, DefencesMaxShipsPerHangar);
+    assert(tempint == (unsigned char)tempint);
+    defences_set_ships_per_hangar(defences, (unsigned char)tempint);
   }
 
   if (!E(numberrange_get_value(0, dbox_id, GROUNDLASER_HANGAR_FREQ, &tempint)))
   {
-    defences_set_ship_prob(defences, tempint);
+    tempint = CLAMP(tempint, DefencesMinProb, DefencesMaxProb);
+    assert(tempint == (unsigned char)tempint);
+    defences_set_ship_prob(defences, (unsigned char)tempint);
   }
 
   if (!E(numberrange_get_value(0, dbox_id, GROUNDLASER_DEFENCETIME, &tempint)))
@@ -94,7 +102,6 @@ static void setup_win(EditSession *const session, ObjectId const dbox_id)
 
   E(numberrange_set_value(0, dbox_id, GROUNDLASER_HANGAR_CAPACITY, defences_get_ships_per_hangar(defences)));
   E(numberrange_set_value(0, dbox_id, GROUNDLASER_HANGAR_FREQ, defences_get_ship_prob(defences)));
-
 }
 
 static int actionbutton_selected(int const event_code, ToolboxEvent *const event,
