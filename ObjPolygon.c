@@ -160,7 +160,7 @@ SFError obj_group_add_polygon(ObjGroup *const group, ObjPolygon const polygon)
 {
   assert(group != NULL);
   assert(group->pcount <= group->palloc);
-  assert(!group->polygons || ((group->palloc * sizeof(ObjPolygon)) == flex_size(&group->polygons)));
+  assert(!group->polygons || ((group->palloc * (int)sizeof(ObjPolygon)) == flex_size(&group->polygons)));
 
   if (group->pcount + 1 > group->palloc)
   {
@@ -168,7 +168,7 @@ SFError obj_group_add_polygon(ObjGroup *const group, ObjPolygon const polygon)
     {
       assert(group->palloc > 0);
       int const new_size = group->palloc * PAllocGrowth;
-      if (!flex_extend(&group->polygons, (int)(sizeof(ObjPolygon) * new_size)))
+      if (!flex_extend(&group->polygons, (int)sizeof(ObjPolygon) * new_size))
       {
         return SFERROR(NoMem);
       }
@@ -254,7 +254,7 @@ ObjPolygon obj_group_get_polygon(ObjGroup *const group, int const n)
 {
   assert(group != NULL);
   assert(group->pcount <= group->palloc);
-  assert(!group->polygons || ((group->palloc * sizeof(ObjPolygon)) == flex_size(&group->polygons)));
+  assert(!group->polygons || (group->palloc * (int)sizeof(ObjPolygon) == flex_size(&group->polygons)));
   assert(n < group->pcount);
 
   return ((ObjPolygon *)group->polygons)[n];
