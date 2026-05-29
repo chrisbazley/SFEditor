@@ -11,9 +11,7 @@
 
 typedef struct InfoEditChanges
 {
-  unsigned long int infos_added;
-  unsigned long int infos_changed;
-  unsigned long int infos_deleted;
+  unsigned long int infos_added, infos_changed, infos_deleted;
 }
 InfoEditChanges;
 

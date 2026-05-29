@@ -11,10 +11,7 @@
 
 typedef struct ObjEditChanges
 {
-  unsigned long int refs_changed;
-  unsigned long int triggers_added;
-  unsigned long int triggers_changed;
-  unsigned long int triggers_deleted;
+  unsigned long int refs_changed, triggers_added, triggers_changed, triggers_deleted;
 }
 ObjEditChanges;
 

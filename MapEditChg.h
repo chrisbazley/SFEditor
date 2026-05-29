@@ -11,10 +11,7 @@
 
 typedef struct MapEditChanges
 {
-  unsigned long int tiles_changed;
-  unsigned long int anims_added;
-  unsigned long int anims_changed;
-  unsigned long int anims_deleted;
+  unsigned long int tiles_changed, anims_added, anims_changed, anims_deleted;
 }
 MapEditChanges;
 
