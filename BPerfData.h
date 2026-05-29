@@ -14,8 +14,8 @@ struct BigPerform {
   int laser_prob;
   int missile_prob;
   int ship_prob;
-  unsigned char laser_type;
-  unsigned char ship_count;
+  int laser_type;
+  int ship_count;
   bool remote_shield;
 };
 
