@@ -82,7 +82,7 @@ typedef struct
 
 /* ---------------- Private functions ---------------- */
 
-static int get_group_member(TexGroupRoot *const group, int const index)
+static unsigned char get_group_member(TexGroupRoot *const group, int const index)
 {
   assert(group != NULL);
   assert(index < group->count);
@@ -253,7 +253,9 @@ static void init_smooth_data(MapTexGroups *const groups_data, int const ntiles)
   assert(groups_data);
   groups_data->ntiles = ntiles;
 
-  for (unsigned char tile_number = 0; tile_number < ntiles; tile_number++) {
+  for (int tile = 0; tile < ntiles; tile++) {
+    assert(tile <= UCHAR_MAX);
+    unsigned char const tile_number = (unsigned char)tile;
     init_tile_smooth_data(groups_data, map_ref_from_num(tile_number));
   }
 }
@@ -336,7 +338,10 @@ static bool add_undef_to_group(MapTexGroups *const groups_data,
   */
   TexGroupRoot *const pgroup = &groups_data->array[undef_group];
 
-  for (unsigned char tile_number = 0; tile_number < ntiles; tile_number++) {
+  for (int tile = 0; tile < ntiles; tile++) {
+    assert(tile <= UCHAR_MAX);
+    unsigned char const tile_number = (unsigned char)tile;
+
     TileSmoothData const smooth_data =
       get_tile_smooth_data(groups_data, map_ref_from_num(tile_number));
 
@@ -372,7 +377,7 @@ static SFError read_from_file(FILE *const file,
   char read_line[LineBufferSize];
   bool block = false;
   int line = 0;
-  int group_num = 0;
+  unsigned char group_num = 0;
   TexGroupRoot *pgroup = NULL;
   int const ngroups = groups_data->count;
 
@@ -403,7 +408,9 @@ static SFError read_from_file(FILE *const file,
         sprintf(err_buf, "%d", line);
         return SFERROR(GroupRange);
       }
-      group_num = group;
+
+      assert(group <= UCHAR_MAX);
+      group_num = (unsigned char)group;
       pgroup = &groups_data->array[group_num];
       block = true;
 
@@ -483,7 +490,8 @@ static SFError read_from_file(FILE *const file,
         return SFERROR(GroupRange);
       }
 
-      if (!add_group_member(pgroup, group)) {
+      assert(group <= UCHAR_MAX);
+      if (!add_group_member(pgroup, (unsigned char)group)) {
         sprintf(err_buf, "%d", line);
         return SFERROR(NoMem);
       }
@@ -532,7 +540,8 @@ static SFError read_from_file(FILE *const file,
       return SFERROR(NumRange);
     }
 
-    if (!add_group_member(pgroup, tile)) {
+    assert(tile <= UCHAR_MAX);
+    if (!add_group_member(pgroup, (unsigned char)tile)) {
       sprintf(err_buf, "%d", line);
       return SFERROR(NoMem);
     }
@@ -540,7 +549,9 @@ static SFError read_from_file(FILE *const file,
 
     /* Enter full smoothing data into TileSmoothData array */
     set_tile_smooth_data(groups_data, map_ref_from_num((unsigned char)tile),
-                         no_smooth != 0, group_num, n, e, s, w);
+                         no_smooth != 0, group_num,
+                         (unsigned char)n, (unsigned char)e,
+                         (unsigned char)s, (unsigned char)w);
   } /* endwhile */
 
   if (block) {
@@ -658,7 +669,7 @@ MapRef MapTexGroups_get_group_member(MapTexGroups *const groups_data, int const 
   assert(groups_data != NULL);
   assert(group < groups_data->count);
   TexGroupRoot *const pgroup = &groups_data->array[group];
-  int const tile = get_group_member(pgroup, index);
+  unsigned char const tile = get_group_member(pgroup, index);
   DEBUGF("Member %d of texture group %d is tile %d\n", index, group, tile);
   return map_ref_from_num(tile);
 }
@@ -773,7 +784,7 @@ void MapTexGroups_smooth(MapEditContext const *const map,
     return;
   }
 
-  int num_found = 0,best_score = current_score;
+  int num_found = 0, best_score = current_score;
 
   if (centre_group == NULL)
     return; /* don't know about this group! */

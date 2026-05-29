@@ -139,9 +139,12 @@ static void gen_sel_tex_bw_table(EditWin *const edit_win)
     return;
   }
   MapTex *const textures = Session_get_textures(session);
-  size_t const count = MapTexBitmaps_get_count(&textures->tiles);
+  int const count = MapTexBitmaps_get_count(&textures->tiles);
 
-  for (size_t index = 0; index < count; ++index) {
+  for (int bitmap = 0; bitmap < count; ++bitmap) {
+    assert(bitmap <= UCHAR_MAX);
+    unsigned char const index = (unsigned char)bitmap;
+
     int const av = MapTexBitmaps_get_average_colour(&textures->tiles, map_ref_from_num(index));
 
     unsigned int const bright =
