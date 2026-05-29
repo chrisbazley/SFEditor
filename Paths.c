@@ -47,16 +47,15 @@ struct Waypoint
   CoarsePoint3d coords;
   LinkedList ref_list;
   LinkedListItem ref_link;
-  unsigned char index;
+  int index;
 };
 
 struct Path
 {
   PathsData *paths;
   LinkedListItem link;
-  int count;
+  int index, count;
   LinkedList waypoints;
-  unsigned char index;
 };
 
 void paths_init(PathsData *const paths)
