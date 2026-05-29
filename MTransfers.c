@@ -587,7 +587,8 @@ static SFError read_anims(MapTransfer *const transfer, Reader *const reader,
         {
           return SFERROR(BadAnimFrame);
         }
-        anim.param.tiles[i] = map_ref_from_num((unsigned)tile);
+        assert(tile <= UCHAR_MAX);
+        anim.param.tiles[i] = map_ref_from_num((unsigned char)tile);
       }
     }
 
