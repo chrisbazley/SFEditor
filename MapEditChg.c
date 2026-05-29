@@ -35,8 +35,8 @@ void MapEditChanges_init(MapEditChanges *const change_info)
 
 char *MapEditChanges_get_message(const MapEditChanges *const change_info)
 {
-  char tiles_changed_str[12], anims_added_str[12], anims_changed_str[12],
-       anims_deleted_str[12], token[sizeof(TOKEN_STEM "TACK")];
+  char tiles_changed_str[24], anims_added_str[24], anims_changed_str[24],
+       anims_deleted_str[24], token[sizeof(TOKEN_STEM "TACK")];
   char const *sub[4];
 
   if (!MapEditChanges_is_changed(change_info)) {

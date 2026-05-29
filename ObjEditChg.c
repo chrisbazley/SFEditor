@@ -35,8 +35,8 @@ void ObjEditChanges_init(ObjEditChanges *const change_info)
 
 char *ObjEditChanges_get_message(const ObjEditChanges *const change_info)
 {
-  char refs_changed_str[12], triggers_added_str[12], triggers_changed_str[12],
-       triggers_deleted_str[12], token[sizeof(TOKEN_STEM "OACK")];
+  char refs_changed_str[24], triggers_added_str[24], triggers_changed_str[24],
+       triggers_deleted_str[24], token[sizeof(TOKEN_STEM "OACK")];
   char const *sub[4];
 
   if (!ObjEditChanges_is_changed(change_info)) {
