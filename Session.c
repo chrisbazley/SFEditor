@@ -2335,7 +2335,7 @@ void Session_splat_anims(EditSession *const session)
   if (!change_info.tiles_changed)
     return;
 
-  char num_str[12];
+  char num_str[24];
   sprintf(num_str, "%lu", change_info.tiles_changed);
   err_report(DUMMY_ERRNO, msgs_lookup_subn("AniSplat", 1, num_str));
   Session_notify_changed(session, (Session_get_map(session)->overlay !=
