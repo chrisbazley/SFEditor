@@ -176,10 +176,13 @@ static CoarsePoint2d calc_map_coords(int32_t const map_offset)
   int32_t const byte_offset = map_offset / MapOffsetDivider;
   assert(byte_offset < Map_Area);
 
-  CoarsePoint2d const map_pos = {
-    .y = byte_offset / Map_Size,
-    .x = byte_offset % Map_Size
-  };
+  int32_t const y = byte_offset / Map_Size,
+                x = byte_offset % Map_Size;
+  assert(y < Map_Size);
+
+  CoarsePoint2d const map_pos = {(CoarseCoord)x, (CoarseCoord)y};
+  assert(x == map_pos.x);
+  assert(y == map_pos.y);
   DEBUG("Map coords for word offset %" PRId32 " is %d,%d",
         map_offset, map_pos.x, map_pos.y);
   return map_pos;
@@ -304,7 +307,8 @@ static SFError read_inner(ConvAnimations *const anims, Reader *const reader)
       {
         return SFERROR(BadAnimFrame);
       }
-      param.tiles[i] = map_ref_from_num((uint32_t)tile);
+      assert(tile <= UCHAR_MAX);
+      param.tiles[i] = map_ref_from_num((unsigned char)tile);
     }
 
     SFError err = MapAnims_add(anims, NULL, coords, param);
@@ -588,14 +592,14 @@ SchedulerTime MapAnims_update(ConvAnimations *const anims,
        anim != NULL;
        anim = intdictviter_advance(&iter)) {
     assert(anim);
-    int frame_num = anim->frame_num;
+    unsigned char frame_num = anim->frame_num;
     int32_t const period = anim->param.period;
     int32_t timer_counter = anim->timer_counter;
 
     // Try to find a non-mask previous frame
     MapRef old_tile = anim->param.tiles[frame_num];
 
-    for (int prev_frame = frame_num; map_ref_is_mask(old_tile); ) {
+    for (unsigned char prev_frame = frame_num; map_ref_is_mask(old_tile); ) {
       prev_frame = (AnimsNFrames + prev_frame - 1) % AnimsNFrames;
       if (prev_frame == frame_num) {
         break;

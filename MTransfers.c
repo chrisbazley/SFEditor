@@ -387,7 +387,7 @@ static void write_anims(MapTransfer const *const transfer,
   }
 
   assert(transfer->anim_count <= INT32_MAX);
-  writer_fwrite_int32((int32_t)transfer->anim_count, writer);
+  writer_fwrite_int32(transfer->anim_count, writer);
 
   for (int a = 0; a < transfer->anim_count; ++a)
   {
@@ -503,10 +503,13 @@ static SFError read_anims(MapTransfer *const transfer, Reader *const reader,
         return SFERROR(BadAnimCoord);
       }
 
-      anim.coords = (CoarsePoint2d){
-        .y = map_offset / Map_Size,
-        .x = map_offset % Map_Size,
-      };
+      int32_t const y = map_offset / Map_Size,
+                    x = map_offset % Map_Size;
+      assert(y < Map_Size);
+
+      anim.coords = (CoarsePoint2d){(CoarseCoord)x, (CoarseCoord)y};
+      assert(x == anim.coords.x);
+      assert(y == anim.coords.y);
 
       int32_t timer_counter;
       if (!reader_fread_int32(&timer_counter, reader))
@@ -553,7 +556,8 @@ static SFError read_anims(MapTransfer *const transfer, Reader *const reader,
         {
           return SFERROR(BadAnimFrame);
         }
-        anim.param.tiles[i] = map_ref_from_num((uint32_t)tile);
+        assert(tile <= UCHAR_MAX);
+        anim.param.tiles[i] = map_ref_from_num((unsigned char)tile);
       }
     }
     else
@@ -944,7 +948,10 @@ MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
     return NULL;
   }
 
-  CoarsePoint2d const size_minus_one = {size.x, size.y};
+  CoarsePoint2d const size_minus_one = {(CoarseCoord)size.x, (CoarseCoord)size.y};
+  assert(size_minus_one.x == size.x);
+  assert(size_minus_one.y == size.y);
+
   if (!alloc_transfer(transfer, size_minus_one))
   {
     report_error(SFERROR(NoMem), "", "");
