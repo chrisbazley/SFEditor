@@ -13,6 +13,19 @@ struct Writer;
 #include "Ships.h"
 #include "SFError.h"
 
+enum {
+  PlayerMaxLaserType = 7,
+  PlayerMaxControl = 16,
+  PlayerMaxEngine = 16,
+  PlayerMaxShields = 12,
+  PlayerMaxATA = 255,
+  PlayerMaxATG = 255,
+  PlayerMaxMines = 255,
+  PlayerMaxBombs = 255,
+  PlayerMaxMegaLaser = 255,
+  PlayerMaxMultiATA = 255,
+};
+
 typedef struct PlayerData PlayerData;
 
 SFError player_read(PlayerData *player, struct Reader *reader);

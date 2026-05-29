@@ -29,16 +29,6 @@
 #include "PlayerData.h"
 
 enum {
-  PlayerMaxLaserType = 7,
-  PlayerMaxControl = 16,
-  PlayerMaxEngine = 16,
-  PlayerMaxShields = 12,
-  PlayerMaxATA = 255,
-  PlayerMaxATG = 255,
-  PlayerMaxMines = 255,
-  PlayerMaxBombs = 255,
-  PlayerMaxMegaLaser = 255,
-  PlayerMaxMultiATA = 255,
   PlayerNotDocked = 255,
 };
 

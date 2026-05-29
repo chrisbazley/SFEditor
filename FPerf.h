@@ -10,6 +10,20 @@
 #include "Ships.h"
 #include "SFError.h"
 
+enum
+{
+  FighterPerformMinLaserType = 0,
+  FighterPerformMaxLaserType = 7, /* 8 is never used for fighters */
+  FighterPerformMinProb = -1,     /* P(n)=0.0 */
+  FighterPerformMaxProb = 2047,   /* P(n)=1.0 */
+  FighterPerformMinShields = 50,
+  FighterPerformMaxShields = 1500,
+  FighterPerformMinControl = 2, /* in easy mission 9 */
+  FighterPerformMaxControl = 30,
+  FighterPerformMinEngine = 10, /* in medium mission 9 */
+  FighterPerformMaxEngine = 35000,
+};
+
 struct Reader;
 struct Writer;
 

@@ -32,15 +32,7 @@
 
 enum
 {
-  BigPerformMinLaserType = 0,
-  BigPerformMaxLaserType = 8,
-  BigPerformMinProb = -1,      /* P(n)=0.0 */
-  BigPerformMaxProb = 2047,    /* P(n)=1.0 */
-  BigPerformMinShields = 0,     /* surprisingly common */
-  BigPerformMaxShields = 10000, /* excluding remote generator */
   BigAllowBadMinShips = -1, /* surprisingly common */
-  BigPerformMinShips = 0,
-  BigPerformMaxShips = 10,
   BigPerformPadding = 8,
   BigRemoteShieldGenerator = 999999,
 };
