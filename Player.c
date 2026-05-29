@@ -93,7 +93,7 @@ SFError player_read(PlayerData *const player,
   {
     return SFERROR(BadPlayerLaserType);
   }
-  player->laser_type = laser_type;
+  player->laser_type = (unsigned char)laser_type;
 
   int const engine = reader_fgetc(reader);
   if (engine == EOF)
@@ -104,7 +104,7 @@ SFError player_read(PlayerData *const player,
   {
     return SFERROR(BadPlayerEngine);
   }
-  player->engine = engine;
+  player->engine = (unsigned char)engine;
 
   int const control = reader_fgetc(reader);
   if (control == EOF)
@@ -115,7 +115,7 @@ SFError player_read(PlayerData *const player,
   {
     return SFERROR(BadPlayerControl);
   }
-  player->control = control;
+  player->control = (unsigned char)control;
 
   int const shields = reader_fgetc(reader);
   if (shields == EOF)
@@ -126,7 +126,7 @@ SFError player_read(PlayerData *const player,
   {
     return SFERROR(BadPlayerShields);
   }
-  player->shields = shields;
+  player->shields = (unsigned char)shields;
 
   unsigned char counts[6] = {0};
   if (reader_fread(counts, sizeof(counts), 1, reader) != 1)
@@ -292,7 +292,7 @@ void player_set_laser_type(PlayerData *player, int laser_type)
   assert(player);
   assert(laser_type >= 0);
   assert(laser_type <= PlayerMaxLaserType);
-  player->laser_type = laser_type;
+  player->laser_type = (unsigned char)laser_type;
 }
 
 int player_get_engine(PlayerData const *player)
@@ -306,7 +306,7 @@ void player_set_engine(PlayerData *player, int engine)
   assert(player);
   assert(engine >= 0);
   assert(engine <= PlayerMaxEngine);
-  player->engine = engine;
+  player->engine = (unsigned char)engine;
 }
 
 int player_get_control(PlayerData const *player)
@@ -320,7 +320,7 @@ void player_set_control(PlayerData *player, int control)
   assert(player);
   assert(control >= 0);
   assert(control <= PlayerMaxControl);
-  player->control = control;
+  player->control = (unsigned char)control;
 }
 
 int player_get_shields(PlayerData const *player)
@@ -334,7 +334,7 @@ void player_set_shields(PlayerData *player, int shields)
   assert(player);
   assert(shields >= 0);
   assert(shields <= PlayerMaxShields);
-  player->shields = shields;
+  player->shields = (unsigned char)shields;
 }
 
 int player_get_ata(PlayerData const *player)
@@ -348,7 +348,7 @@ void player_set_ata(PlayerData *player, int ata)
   assert(player);
   assert(ata >= 0);
   assert(ata <= PlayerMaxATA);
-  player->ata = ata;
+  player->ata = (unsigned char)ata;
 }
 
 int player_get_atg(PlayerData const *player)
@@ -362,7 +362,7 @@ void player_set_atg(PlayerData *player, int atg)
   assert(player);
   assert(atg >= 0);
   assert(atg <= PlayerMaxATG);
-  player->atg = atg;
+  player->atg = (unsigned char)atg;
 }
 
 int player_get_mines(PlayerData const *player)
@@ -376,7 +376,7 @@ void player_set_mines(PlayerData *player, int mines)
   assert(player);
   assert(mines >= 0);
   assert(mines <= PlayerMaxMines);
-  player->mines = mines;
+  player->mines = (unsigned char)mines;
 }
 
 int player_get_bombs(PlayerData const *player)
@@ -390,7 +390,7 @@ void player_set_bombs(PlayerData *player, int bombs)
   assert(player);
   assert(bombs >= 0);
   assert(bombs <= PlayerMaxBombs);
-  player->bombs = bombs;
+  player->bombs = (unsigned char)bombs;
 }
 
 int player_get_mega_laser(PlayerData const *player)
@@ -404,7 +404,7 @@ void player_set_mega_laser(PlayerData *player, int mega_laser)
   assert(player);
   assert(mega_laser >= 0);
   assert(mega_laser <= PlayerMaxMegaLaser);
-  player->mega_laser = mega_laser;
+  player->mega_laser = (unsigned char)mega_laser;
 }
 
 int player_get_multi_ata(PlayerData const *player)
@@ -418,5 +418,5 @@ void player_set_multi_ata(PlayerData *player, int multi_ata)
   assert(player);
   assert(multi_ata >= 0);
   assert(multi_ata <= PlayerMaxMultiATA);
-  player->multi_ata = multi_ata;
+  player->multi_ata = (unsigned char)multi_ata;
 }
