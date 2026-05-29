@@ -11,8 +11,12 @@
 
 struct DefencesData
 {
+  int timer;
   ShipType ship_type;
-  int timer, fire_prob, laser_type, ships_per_hangar, ship_prob;
+  unsigned char fire_prob;
+  unsigned char laser_type;
+  unsigned char ships_per_hangar;
+  unsigned char ship_prob;
 };
 
 #endif
