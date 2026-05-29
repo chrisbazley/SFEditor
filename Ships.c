@@ -516,7 +516,7 @@ static void write_ship(Ship const *const ship, Writer *const writer)
 
   assert(ship->mode >= ShipMode_Attack && ship->mode <= ShipMode_FollowShip);
 
-  int flags = ship->mode & ShipFlag_ModeMask;
+  int flags = (int)ship->mode & ShipFlag_ModeMask;
 
   if (ship->flags.is_friendly)
   {
