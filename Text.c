@@ -180,7 +180,9 @@ SFError text_set_string(Text *const text, char const *const string)
   // Round trip to ensure stored string is representative
   for (size_t i = 0; string[i] != '\0'; ++i) {
     assert(i < len);
-    buf[i] = decode_char(encode_char(string[i]));
+    int const c = decode_char(encode_char(string[i]));
+    buf[i] = (char)c;
+    assert(c == buf[i]);
   }
 
   stringbuffer_finish_append(&text->string, len);
@@ -342,14 +344,18 @@ SFError text_read_block(Text *const text, Reader *const reader)
       .duration = duration,
       .delay = delay,
       .speed = speed,
-      .x_pos = x_pos,
+      .x_pos = (unsigned char)x_pos,
       .y_pos = y_pos,
-      .y_clip = y_clip,
+      .y_clip = (unsigned char)y_clip,
       .repeat = repeat,
-      .colour = colour,
+      .colour = (unsigned char)colour,
       .cursor_type = cursor_type,
     }
   };
+
+  assert(x_pos == text->params.x_pos);
+  assert(y_clip == text->params.y_clip);
+  assert(colour == text->params.colour);
 
   stringbuffer_init(&text->string);
 
@@ -362,7 +368,8 @@ SFError text_read_block(Text *const text, Reader *const reader)
       return SFERROR(ReadFail);
     }
 
-    char const tmp[2] = {ch, '\0'};
+    char const tmp[2] = {(char)ch, '\0'};
+    assert(tmp[0] == ch);
     if (!stringbuffer_append_all(&text->string, tmp))
     {
       return SFERROR(NoMem);
