@@ -357,7 +357,10 @@ static void read_win(MapPropDbox *const prop)
 
   int period = 0;
   if (!E(numberrange_get_value(0, prop->my_object, ANIM_NUMRANGE_PERIOD, &period))) {
-    prop->anim.period = period;
+    if (period < 0 || period > UINT16_MAX) {
+      period = 0;
+    }
+    prop->anim.period = (uint16_t)period;
   }
 }
 
