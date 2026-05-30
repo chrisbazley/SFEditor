@@ -187,57 +187,57 @@ ShipType defences_get_ship_type(DefencesData const *const defences)
 }
 
 void defences_set_fire_prob(DefencesData *const defences,
-                            unsigned char const fire_prob)
+                            int const fire_prob)
 {
   assert(defences);
   assert(fire_prob >= DefencesMinProb);
   assert(fire_prob <= DefencesMaxProb);
-  defences->fire_prob = fire_prob;
+  defences->fire_prob = (unsigned char)fire_prob;
 }
 
-unsigned char defences_get_fire_prob(DefencesData const *const defences)
+int defences_get_fire_prob(DefencesData const *const defences)
 {
   assert(defences);
   return defences->fire_prob;
 }
 
 void defences_set_laser_type(DefencesData *const defences,
-                             unsigned char const laser_type)
+                             int const laser_type)
 {
   assert(defences);
   assert(laser_type <= DefencesMaxLaserType);
-  defences->laser_type = laser_type;
+  defences->laser_type = (unsigned char)laser_type;
 }
 
-unsigned char defences_get_laser_type(DefencesData const *const defences)
+int defences_get_laser_type(DefencesData const *const defences)
 {
   assert(defences);
   return defences->laser_type;
 }
 
 void defences_set_ships_per_hangar(DefencesData *const defences,
-                                   unsigned char const ships_per_hangar)
+                                   int const ships_per_hangar)
 {
   assert(defences);
   assert(ships_per_hangar <= DefencesMaxShipsPerHangar);
-  defences->ships_per_hangar = ships_per_hangar;
+  defences->ships_per_hangar = (unsigned char)ships_per_hangar;
 }
 
-unsigned char defences_get_ships_per_hangar(DefencesData const *const defences)
+int defences_get_ships_per_hangar(DefencesData const *const defences)
 {
   assert(defences);
   return defences->ships_per_hangar;
 }
 
 void defences_set_ship_prob(DefencesData *const defences,
-                            unsigned char const ship_prob)
+                            int const ship_prob)
 {
   assert(defences);
   assert(ship_prob <= DefencesMaxProb);
-  defences->ship_prob = ship_prob;
+  defences->ship_prob = (unsigned char)ship_prob;
 }
 
-unsigned char defences_get_ship_prob(DefencesData const *const defences)
+int defences_get_ship_prob(DefencesData const *const defences)
 {
   assert(defences);
   return defences->ship_prob;
