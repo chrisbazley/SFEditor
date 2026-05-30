@@ -96,7 +96,7 @@ static bool draw_bitmap_big(MapTexBitmaps *const textures,
        scr_pos.y <= scr_area->max.y;
        scr_pos.y++, draw_pos.y += tile_size.y) {
 
-    hourglass_percentage(((scr_pos.y - scr_area->min.y) * 100) / nrows);
+    hourglass_percentage((int)(((scr_pos.y - scr_area->min.y) * 100) / nrows));
 
     for (scr_pos.x = scr_area->min.x, draw_pos.x = 0;
          scr_pos.x <= scr_area->max.x;
@@ -151,7 +151,7 @@ static bool draw_bitmap_small(MapTexBitmaps *const textures,
        scr_pos.y <= scr_area->max.y;
        scr_pos.y++, draw_pos.y += 1 << DrawTilesModeYEig) {
 
-    hourglass_percentage(((scr_pos.y - scr_area->min.y) * 100) / nrows);
+    hourglass_percentage((int)(((scr_pos.y - scr_area->min.y) * 100) / nrows));
 
     int current_colour = -1;
     plot_move(draw_pos);
@@ -370,7 +370,7 @@ void DrawTiles_to_bbox(
        scr_pos.y <= scr_area->max.y;
        ++scr_pos.y, draw_pos.y += tile_size.y) {
 
-    hourglass_percentage(((scr_pos.y - scr_area->min.y) * 100) / nrows);
+    hourglass_percentage((int)(((scr_pos.y - scr_area->min.y) * 100) / nrows));
 
     for (scr_pos.x = scr_area->min.x, draw_pos.x = 0;
          scr_pos.x <= scr_area->max.x;
