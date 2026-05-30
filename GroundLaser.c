@@ -170,4 +170,22 @@ void groundlaser_created(ObjectId const id)
     EF(event_register_toolbox_handler(id, handlers[i].event_code,
                                       handlers[i].handler, NULL));
   }
+
+  static const struct {
+    ComponentId number_range;
+    int lower_bound, upper_bound;
+  } bounds[] = {
+    { GROUNDLASER_GUNS_FREQ, DefencesMinProb, DefencesMaxProb },
+    { GROUNDLASER_GUNS_TYPE, DefencesMinLaserType, DefencesMaxLaserType },
+    { GROUNDLASER_HANGAR_CAPACITY, DefencesMinShipsPerHangar, DefencesMaxShipsPerHangar },
+    { GROUNDLASER_HANGAR_FREQ, DefencesMinProb, DefencesMaxProb },
+  };
+
+  for (size_t i = 0; i < ARRAY_SIZE(bounds); ++i) {
+    EF(numberrange_set_bounds(NumberRange_LowerBound | NumberRange_UpperBound,
+                              id,
+                              bounds[i].number_range,
+                              bounds[i].lower_bound,
+                              bounds[i].upper_bound, 1, 0));
+  }
 }

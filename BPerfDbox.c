@@ -244,22 +244,40 @@ bool BPerfDbox_init(BPerfDboxData *const performance_data,
     { OptionButton_StateChanged, optionhandler }
   };
 
-  bool success = true;
-  for (size_t i = 0; success && (i < ARRAY_SIZE(handlers)); ++i)
+  for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
     if (E(event_register_toolbox_handler(performance_data->my_object,
                                          handlers[i].event_code,
                                          handlers[i].handler, performance_data)))
-      success = false;
+    {
+      BPerfDbox_destroy(performance_data);
+      return false;
+    }
   }
 
-  if (success) {
-    BPerfDbox_update_title(performance_data);
-  } else {
-    BPerfDbox_destroy(performance_data);
+  static const struct {
+    ComponentId number_range;
+    int lower_bound, upper_bound;
+  } bounds[] = {
+    { ComponentId_SHIELDSTREN, BigPerformMinShields, BigPerformMaxShields },
+    { ComponentId_LASERFREQ, BigPerformMinProb, BigPerformMaxProb },
+    { ComponentId_LASERTYPE, BigPerformMinLaserType, BigPerformMaxLaserType },
+    { ComponentId_ATAFREQ, BigPerformMinProb, BigPerformMaxProb },
+    { ComponentId_NUMPLEBS, BigPerformMinShips, BigPerformMaxShips },
+    { ComponentId_PLEBFREQ, BigPerformMinProb, BigPerformMaxProb },
+  };
+
+  for (size_t i = 0; i < ARRAY_SIZE(bounds); ++i) {
+    if (E(numberrange_set_bounds(NumberRange_LowerBound|NumberRange_UpperBound,
+                                 performance_data->my_object, bounds[i].number_range,
+                                 bounds[i].lower_bound, bounds[i].upper_bound, 1, 0))) {
+      BPerfDbox_destroy(performance_data);
+      return false;
+    }
   }
 
-  return success;
+  BPerfDbox_update_title(performance_data);
+  return true;
 }
 
 void BPerfDbox_update_title(BPerfDboxData *const performance_data)

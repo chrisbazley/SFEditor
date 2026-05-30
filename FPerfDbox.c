@@ -199,25 +199,40 @@ bool FPerfDbox_init(FPerfDboxData *const performance_data,
     { Window_AboutToBeShown, about_to_be_shown },
   };
 
-  bool success = true;
-  for (size_t i = 0; success && (i < ARRAY_SIZE(handlers)); ++i)
+  for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
     if (E(event_register_toolbox_handler(performance_data->my_object,
                                          handlers[i].event_code,
                                          handlers[i].handler, performance_data)))
-      success = false;
+    {
+      FPerfDbox_destroy(performance_data);
+      return false;
+    }
   }
 
-  if (success)
-  {
-    FPerfDbox_update_title(performance_data);
-  }
-  else
-  {
-    FPerfDbox_destroy(performance_data);
+  static const struct {
+    ComponentId number_range;
+    int lower_bound, upper_bound;
+  } bounds[] = {
+    { ComponentId_SHIELDSTREN, FighterPerformMinShields, FighterPerformMaxShields },
+    { ComponentId_LASERFREQ, FighterPerformMinProb, FighterPerformMaxProb },
+    { ComponentId_LASERTYPE, FighterPerformMinLaserType, FighterPerformMaxLaserType },
+    { ComponentId_ATAFREQ, FighterPerformMinProb, FighterPerformMaxProb },
+    { ComponentId_SPEED, FighterPerformMinEngine, FighterPerformMaxEngine },
+    { ComponentId_MANOEUVRE, FighterPerformMinControl, FighterPerformMaxControl },
+  };
+
+  for (size_t i = 0; i < ARRAY_SIZE(bounds); ++i) {
+    if (E(numberrange_set_bounds(NumberRange_LowerBound|NumberRange_UpperBound,
+                                 performance_data->my_object, bounds[i].number_range,
+                                 bounds[i].lower_bound, bounds[i].upper_bound, 1, 0))) {
+      FPerfDbox_destroy(performance_data);
+      return false;
+    }
   }
 
-  return success;
+  FPerfDbox_update_title(performance_data);
+  return true;
 }
 
 void FPerfDbox_update_title(FPerfDboxData *const performance_data)

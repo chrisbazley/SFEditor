@@ -311,25 +311,43 @@ bool SpecialShip_init(SpecialShipData *const special_ship_data, EditSession *con
     { Window_AboutToBeShown, about_to_be_shown }
   };
 
-  bool success = true;
-  for (size_t i = 0; success && (i < ARRAY_SIZE(handlers)); ++i)
-  {
+  for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i) {
     if (E(event_register_toolbox_handler(special_ship_data->my_object,
                                          handlers[i].event_code,
-                                         handlers[i].handler, special_ship_data)))
-      success = false;
+                                         handlers[i].handler, special_ship_data))) {
+      SpecialShip_destroy(special_ship_data);
+      return false;
+    }
   }
 
-  if (success)
-  {
-    SpecialShip_update_title(special_ship_data);
-  }
-  else
-  {
-    SpecialShip_destroy(special_ship_data);
+  static const struct {
+    ComponentId number_range;
+    int upper_bound;
+  } bounds[] = {
+    { ComponentId_SHIELDS, PlayerMaxShields },
+    { ComponentId_LASERTYPE, PlayerMaxLaserType },
+    { ComponentId_SPEED, PlayerMaxEngine },
+    { ComponentId_MANOEUVRE, PlayerMaxControl },
+    { ComponentId_ATA, PlayerMaxATA },
+    { ComponentId_ATG, PlayerMaxATG },
+    { ComponentId_MINES, PlayerMaxMines },
+    { ComponentId_BOMBS, PlayerMaxBombs },
+    { ComponentId_MEGALASER, PlayerMaxMegaLaser },
+    { ComponentId_MULTI, PlayerMaxMultiATA },
+  };
+
+  for (size_t i = 0; i < ARRAY_SIZE(bounds); ++i) {
+    if (E(numberrange_set_bounds(NumberRange_UpperBound,
+                                 special_ship_data->my_object,
+                                 bounds[i].number_range,
+                                 0, bounds[i].upper_bound, 1, 0))) {
+      SpecialShip_destroy(special_ship_data);
+      return false;
+    }
   }
 
-  return success;
+  SpecialShip_update_title(special_ship_data);
+  return true;
 }
 
 void SpecialShip_update_title(SpecialShipData *const special_ship_data)
