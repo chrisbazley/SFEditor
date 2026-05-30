@@ -185,11 +185,6 @@ target_link_libraries(SFEditor PUBLIC
 
 target_compile_definitions(SFEditor PUBLIC
     $<$<CONFIG:Debug>:DEBUG_OUTPUT>
-    $<$<CONFIG:Release>:NDEBUG>
-)
-
-target_compile_options(SFEditor PUBLIC
-    $<$<CONFIG:Release>:-O3>
 )
 
 string(TOUPPER "${CMAKE_SYSTEM_NAME}" SYSTEM_NAME_UPPER)
