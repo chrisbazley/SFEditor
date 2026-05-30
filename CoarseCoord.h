@@ -9,12 +9,13 @@
 
 #include "Debug.h"
 #include <stdbool.h>
+#include <inttypes.h>
 
 struct Reader;
 struct Writer;
 
-typedef unsigned char CoarseCoord;
-#define PRICoarseCoord "d"
+typedef uint8_t CoarseCoord;
+#define PRICoarseCoord PRIu8
 
 typedef struct
 {
@@ -28,8 +29,8 @@ typedef struct
 }
 CoarsePoint2d;
 
-typedef unsigned long int FineCoord;
-#define PRIFineCoord "lu"
+typedef uint32_t FineCoord;
+#define PRIFineCoord PRIu32
 
 typedef struct
 {
@@ -62,7 +63,9 @@ void CoarsePoint2d_write(CoarsePoint2d point, struct Writer *writer);
 static inline bool CoarsePoint2d_compare(CoarsePoint2d a, CoarsePoint2d b)
 {
   bool const equal = a.x == b.x && a.y == b.y;
-  DEBUGF("%d,%d %s %d,%d\n", a.x, a.y, equal ? "==" : "!=", b.x, b.y);
+  DEBUGF("%" PRICoarseCoord ",%" PRICoarseCoord
+         " %s %" PRICoarseCoord ",%" PRICoarseCoord "\n",
+         a.x, a.y, equal ? "==" : "!=", b.x, b.y);
   return equal;
 }
 
