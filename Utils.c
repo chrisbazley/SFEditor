@@ -425,13 +425,19 @@ void open_topleftofwin(unsigned int const flags, ObjectId const showobj,
   ObjectId const relativeto, ObjectId const parent, ComponentId const parent_component)
 {
   WimpGetWindowStateBlock winstate;
-  ON_ERR_RPT_RTN(window_get_wimp_handle(0, relativeto,
-    &winstate.window_handle));
-
-  WindowShowObjectBlock showblock;
+  ON_ERR_RPT_RTN(window_get_wimp_handle(0, relativeto, &winstate.window_handle));
   ON_ERR_RPT_RTN(wimp_get_window_state(&winstate));
-    showblock.visible_area.xmin = winstate.visible_area.xmin+64;
-    showblock.visible_area.ymin = winstate.visible_area.ymax-64;
+
+  WindowShowObjectBlock showblock = {
+    .visible_area = {
+      .xmin = winstate.visible_area.xmin + 64,
+      .ymin = winstate.visible_area.ymax - 64,
+      .xmax = 0,
+      .ymax = 0,
+    },
+    .xscroll = 0,
+    .yscroll = 0,
+    .behind = -1 };
 
   if (object_is_showing(showobj)) {
     /* Already open (may be iconised) */
