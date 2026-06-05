@@ -488,7 +488,7 @@ MapPoint MapAnimsIter_get_first(MapAnimsIter *const iter,
   assert(anims != NULL);
   assert(MapArea_is_valid(map_area));
 
-  MapCoord min_key, max_key;
+  IntDictKey min_key, max_key;
   map_area_to_key_range(map_area, &min_key, &max_key);
 
   *iter = (MapAnimsIter){
