@@ -496,7 +496,7 @@ size_t TargetInfosIter_get_first(TargetInfosIter *const iter,
   assert(infos != NULL);
   assert(MapArea_is_valid(map_area));
 
-  MapCoord min_key, max_key;
+  IntDictKey min_key, max_key;
   map_area_to_key_range(map_area, &min_key, &max_key);
 
   *iter = (TargetInfosIter){
