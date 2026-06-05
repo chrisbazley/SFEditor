@@ -238,7 +238,7 @@ static void delete_edit_win(EditWinList *const edit_win_record)
   free(edit_win_record);
 }
 
-static void edit_win_destructor(long int const key, void *const value, void *const arg)
+static void edit_win_destructor(IntDictKey const key, void *const value, void *const arg)
 {
   NOT_USED(key);
   NOT_USED(arg);
