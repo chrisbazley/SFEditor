@@ -24,6 +24,27 @@ else()
     add_compile_options(-Wall -Wextra -Wsign-compare -pedantic)
 endif()
 
+if(CMAKE_C_COMPILER_ID MATCHES "Clang|AppleClang")
+    find_program(CLANG_TIDY_EXE
+        NAMES clang-tidy
+        HINTS "/opt/homebrew/opt/llvm/bin"
+    )
+
+    if(CLANG_TIDY_EXE)
+        set(CLANG_TIDY_ARGS "${CLANG_TIDY_EXE};-checks=-*,clang-analyzer-*")
+
+        if(APPLE)
+            execute_process(COMMAND xcrun --show-sdk-path OUTPUT_VARIABLE MAC_SDK_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
+            list(APPEND CLANG_TIDY_ARGS "--extra-arg=-isysroot" "--extra-arg=${MAC_SDK_PATH}")
+        endif()
+
+        set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY_ARGS}")
+        message(STATUS "Clang-Tidy Static Analyzer enabled automatically.")
+    else()
+        message(STATUS "clang-tidy binary not found. Skipping analysis pass.")
+    endif()
+endif()
+
 file(GLOB HEADER_FILES CONFIGURE_DEPENDS "*.h")
 
 set(SOURCES
