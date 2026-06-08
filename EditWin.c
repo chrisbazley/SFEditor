@@ -2434,7 +2434,6 @@ static bool drop_method(bool const shift_held, int const window, int const icon,
 
   if (src_edit_win->wimp_id == window) {
     DEBUGF("Drag terminated within source window\n");
-    dest_edit_win = src_edit_win;
   } else {
     DEBUGF("Drag terminated in another window\n");
     dest_edit_win = Session_edit_win_from_wimp_handle(window);
