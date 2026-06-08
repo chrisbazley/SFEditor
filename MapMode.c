@@ -581,8 +581,9 @@ static void draw_with_tiles(Editor *const editor, MapAngle const angle,
   ScaleFactors scale_factors = {
     .xmul = SIGNED_L_SHIFT(ScaleFactorNumerator, TexelToOSCoordLog2 + diff),
     .ymul = SIGNED_L_SHIFT(ScaleFactorNumerator, TexelToOSCoordLog2 + diff), /* render buffer */
-    .xdiv = ScaleFactorNumerator << eigen_factors.x,
-    .ydiv = ScaleFactorNumerator << eigen_factors.y }; /* screen */
+    .xdiv = SIGNED_L_SHIFT(ScaleFactorNumerator, eigen_factors.x),
+    .ydiv = SIGNED_L_SHIFT(ScaleFactorNumerator, eigen_factors.y), /* screen */
+  };
 
   DEBUG("Dimensions of render buffer (in tiles) : %d,%d",
         sprite_dims.x, sprite_dims.y);
