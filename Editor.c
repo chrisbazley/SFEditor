@@ -107,7 +107,7 @@ static void vertex_msg(Editor *const editor)
         token = "StatusLine";
         break;
     }
-    if (token) {
+    if (*token != '\0') {
       Editor_display_msg(editor, msgs_lookup_subn(token, 1, coords_str), false);
     }
   }
