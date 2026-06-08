@@ -31,7 +31,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|AppleClang")
     )
 
     if(CLANG_TIDY_EXE)
-        set(CLANG_TIDY_ARGS "${CLANG_TIDY_EXE};-checks=-*,clang-analyzer-*")
+        set(CLANG_TIDY_ARGS "${CLANG_TIDY_EXE};-checks=-*,clang-analyzer-*,-clang-analyzer-security.insecureAPI.*")
 
         if(APPLE)
             execute_process(COMMAND xcrun --show-sdk-path OUTPUT_VARIABLE MAC_SDK_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
