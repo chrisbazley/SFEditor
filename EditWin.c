@@ -1560,7 +1560,7 @@ static int useracthandler(int const event_code, ToolboxEvent *const event,
             .yscroll = 0,
           },
         };
-        WimpScrollRequestEvent *const wsre = &event->scroll_request;
+        WimpScrollRequestEvent *const wsre = &event.scroll_request;
         switch (event_code) {
           case EVENT_SCROLL_RHS:
             wsre->xscroll = +4; /* N.B. +/-3 are used by the Ursula Wimp */
