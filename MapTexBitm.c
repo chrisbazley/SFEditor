@@ -175,7 +175,7 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
   int nout = sprintf(numstr, "%d", map_ref_to_num(tile_num));
   assert(nout >= 0); /* no formatting error */
   NOT_USED(nout);
-  strncat(name, numstr, sizeof(name) - 1);
+  strncat(name, numstr, sizeof(name) - strlen(name) - 1);
   DEBUGF("Sprite name is %s\n", name);
 
   if (!SprMem_create_sprite(&tiles->sprites[MapAngle_North][0], name, false,
@@ -407,7 +407,7 @@ static bool make_mip_level(MapTexBitmaps *const tiles, MapAngle const angle, int
     int nout = sprintf(numstr, "%d", tile_num);
     assert(nout >= 0); /* no formatting error */
     NOT_USED(nout);
-    strncat(name, numstr, sizeof(name) - 1);
+    strncat(name, numstr, sizeof(name) - strlen(name) - 1);
 
     if (!SprMem_create_sprite(sm, name, false, size, MapTexModeNumber))
     {
@@ -517,7 +517,7 @@ SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *const tiles, MapAngle angle, in
       int nout = sprintf(numstr, "%d", tile_num);
       assert(nout >= 0); /* no formatting error */
       NOT_USED(nout);
-      strncat(name, numstr, sizeof(name) - 1);
+      strncat(name, numstr, sizeof(name) - strlen(name) - 1);
 
       if (!SprMem_create_sprite(sm, name, false, size, MapTexModeNumber) ||
           !SprMem_output_to_sprite(sm, name))
