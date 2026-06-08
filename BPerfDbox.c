@@ -224,6 +224,7 @@ bool BPerfDbox_init(BPerfDboxData *const performance_data,
   assert(ship_type <= ShipType_Big3);
 
   *performance_data = (BPerfDboxData){
+    .my_object = NULL_ObjectId,
     .ship_type = ship_type,
     .session = session,
   };
