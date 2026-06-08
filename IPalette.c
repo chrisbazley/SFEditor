@@ -100,7 +100,7 @@ static void redraw_label(Editor *const editor, Vertex const origin,
   /* Truncate the file name with a ellipsis if it exceeds the
      width of the object to which it refers */
   *truncated_name = '\0';
-  strncat(truncated_name, msgs_lookup("PalNameI"), sizeof(truncated_name)-1);
+  strncat(truncated_name, msgs_lookup("PalNameI"), sizeof(truncated_name) - strlen(truncated_name) - 1);
   int const width = truncate_string(truncated_name, bbox->xmax - bbox->xmin);
 
   /* Reduce the width of the label icon to fit the truncated text */
