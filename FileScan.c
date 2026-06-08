@@ -348,7 +348,7 @@ DataType filescan_get_data_type(filescan_type const directory)
 
 char const *filescan_get_directory(filescan_type const directory)
 {
-  char const *sub_dir = "";
+  char const *sub_dir;
 
   switch (directory)
   {
