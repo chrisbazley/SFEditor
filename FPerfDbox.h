@@ -20,7 +20,6 @@ typedef struct {
   ObjectId my_object;
   struct EditSession *session;
   ShipType ship_type;
-  Filename graphics_set;
 } FPerfDboxData;
 
 bool FPerfDbox_init(FPerfDboxData *performance_data, struct EditSession *session, ShipType ship_type);
