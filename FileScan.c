@@ -318,7 +318,7 @@ void filescan_init(void)
 
 char const *filescan_get_emh_path(filescan_type const directory)
 {
-  char const *sub_dir = "";
+  char const *sub_dir;
   switch (directory) {
     case FS_MISSION_E:
       sub_dir = E_PATH;
@@ -329,11 +329,9 @@ char const *filescan_get_emh_path(filescan_type const directory)
     case FS_MISSION_H:
       sub_dir = H_PATH;
       break;
-    case FS_MISSION_U:
-      sub_dir = U_PATH;
-      break;
     default:
-      assert("Not EMH" == NULL);
+      assert(directory == FS_MISSION_U);
+      sub_dir = U_PATH;
       break;
   }
   return sub_dir;
