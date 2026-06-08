@@ -932,7 +932,7 @@ static void shallow_to_east(SnakeContext *const ctx, MapPoint end,
   MapCoord p = d.x; /* decision parameter */
   int y_dir = (end.y >= ctx->map_pos.y ? 1 : -1);
 
-  unsigned int snake_piece = ctx->default_piece;
+  unsigned int snake_piece;
 
   do {
     snake_piece = ctx->default_piece |
