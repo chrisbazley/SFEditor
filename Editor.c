@@ -106,19 +106,17 @@ static void vertex_msg(Editor *const editor)
       case PLOTSHAPE_LINE:
         token = "StatusLine";
         break;
-
-      default:
-        assert(false);
-        break;
     }
-    Editor_display_msg(editor, msgs_lookup_subn(token, 1, coords_str), false);
+    if (token) {
+      Editor_display_msg(editor, msgs_lookup_subn(token, 1, coords_str), false);
+    }
   }
 }
 
 static char *get_shapes_help_msg(Editor const *const editor)
 {
   assert(editor);
-  char const *help_msg_token = "";
+  char const *help_msg_token;
 
   switch (editor->shape_to_plot) {
     case PLOTSHAPE_LINE:
