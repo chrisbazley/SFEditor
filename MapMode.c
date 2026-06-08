@@ -1879,8 +1879,7 @@ static void MapMode_palette_selection(Editor *const editor, int const object)
   MapModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
   MapTex *const textures = Session_get_textures(session);
-  char const *msg = "";
-
+  char const *msg;
 
   switch (mode_data->palette_type) {
     case MAPPALETTE_TYPE_SNAKES:
