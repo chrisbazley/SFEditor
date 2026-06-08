@@ -185,7 +185,8 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 bool BriefDbox_init(BriefDboxData *const briefing_data,
                    EditSession *const session)
 {
-  assert(briefing_data);
+  assert(briefing_data != NULL);
+  assert(session != NULL);
 
   *briefing_data = (BriefDboxData){
     .my_object = NULL_ObjectId,
