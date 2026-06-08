@@ -93,7 +93,7 @@ static void vertex_msg(Editor *const editor)
     Editor_display_msg(editor, msgs_lookup_subn("StatusCirc", 2,
       coords_str, radius_str), false);
   } else {
-    char const *token = "";
+    char const *token;
     switch (editor->shape_to_plot) {
       case PLOTSHAPE_TRIANGLE:
         token = "StatusTri1";
@@ -105,6 +105,10 @@ static void vertex_msg(Editor *const editor)
 
       case PLOTSHAPE_LINE:
         token = "StatusLine";
+        break;
+
+      default:
+        token = "";
         break;
     }
     if (*token != '\0') {
