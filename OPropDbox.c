@@ -377,7 +377,7 @@ static ComponentId gadget_from_ui(UITriggerAction const ui_act)
 
 static char const *get_list_text(ObjPropDbox const *const prop, TriggerFullParam const item)
 {
-  char const *text = "";
+  char const *text;
   char token[32];
   EditSession *const session = get_session(prop);
 
