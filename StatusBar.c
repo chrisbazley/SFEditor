@@ -102,7 +102,7 @@ void StatusBar_show_hint(StatusBarData *const statusbar_data, char const *const 
 
   if (strcmp(buf, hint) != 0) {
     buf[0] = '\0';
-    strncat(buf, hint, sizeof(buf)-1);
+    strncat(buf, hint, sizeof(buf) - strlen(buf) - 1);
     E(displayfield_set_value(0, statusbar_data->my_object,
                                       STATUSBAR_HINT, buf));
 
