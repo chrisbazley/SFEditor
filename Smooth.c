@@ -630,8 +630,8 @@ void MapTexGroups_load(MapTexGroups *const groups_data, char const *tiles_set,
             err = read_from_file(file, groups_data, &undef_group, ntiles, err_buf);
           }
         } /* endif (groups_data->count > 0) */
+        fclose(file);
       }
-      fclose(file);
 
       if (!SFError_fail(err) && undef_group != UCHAR_MAX) {
         if (!add_undef_to_group(groups_data, undef_group, ntiles)) {
