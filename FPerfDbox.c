@@ -180,6 +180,7 @@ bool FPerfDbox_init(FPerfDboxData *const performance_data,
   assert(ship_type <= ShipType_Fighter4);
 
   *performance_data = (FPerfDboxData){
+    .my_object = NULL_ObjectId,
     .ship_type = ship_type,
     .session = session,
   };
