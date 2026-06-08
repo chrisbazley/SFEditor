@@ -1857,7 +1857,7 @@ char *Session_get_filename(EditSession *const session)
 
 char *Session_get_save_filename(EditSession *const session)
 {
-  char *main_filename = "";
+  char *main_filename;
 
   assert(session != NULL);
 
