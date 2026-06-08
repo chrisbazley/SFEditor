@@ -1547,69 +1547,69 @@ static int useracthandler(int const event_code, ToolboxEvent *const event,
           .behind = 0,
         };
         ON_ERR_RPT_RTN_V(wimp_get_window_state(&wgwsb), 1);
-        WimpScrollRequestEvent wsre = {
-          .open = {
-            .window_handle = edit_win->wimp_id,
-            .visible_area = wgwsb.visible_area,
-            .xscroll = wgwsb.xscroll,
-            .yscroll = wgwsb.yscroll,
-            .behind = wgwsb.behind,
+        WimpPollBlock event = {
+          .scroll_request = {
+            .open = {
+              .window_handle = edit_win->wimp_id,
+              .visible_area = wgwsb.visible_area,
+              .xscroll = wgwsb.xscroll,
+              .yscroll = wgwsb.yscroll,
+              .behind = wgwsb.behind,
+            },
+            .xscroll = 0,
+            .yscroll = 0,
           },
-          .xscroll = 0,
-          .yscroll = 0,
         };
+        WimpScrollRequestEvent *const wsre = &event->scroll_request;
         switch (event_code) {
           case EVENT_SCROLL_RHS:
-            wsre.xscroll = +4; /* N.B. +/-3 are used by the Ursula Wimp */
+            wsre->xscroll = +4; /* N.B. +/-3 are used by the Ursula Wimp */
             break;
           case EVENT_PAGE_RIGHT:
-            wsre.xscroll = +2;
+            wsre->xscroll = +2;
             break;
           case EVENT_SCROLL_RIGHT:
-            wsre.xscroll = +1;
+            wsre->xscroll = +1;
             break;
           default:
-            wsre.xscroll = 0;
+            wsre->xscroll = 0;
             break;
           case EVENT_SCROLL_LEFT:
-            wsre.xscroll = -1;
+            wsre->xscroll = -1;
             break;
           case EVENT_PAGE_LEFT:
-            wsre.xscroll = -2;
+            wsre->xscroll = -2;
             break;
           case EVENT_SCROLL_LHS:
-            wsre.xscroll = -4;
+            wsre->xscroll = -4;
             break;
         }
 
         switch (event_code) {
           case EVENT_SCROLL_TOP:
-            wsre.yscroll = +4; /* N.B. +/-3 are used by the Ursula Wimp */
+            wsre->yscroll = +4; /* N.B. +/-3 are used by the Ursula Wimp */
             break;
           case EVENT_PAGE_UP:
-            wsre.yscroll = +2;
+            wsre->yscroll = +2;
             break;
           case EVENT_SCROLL_UP:
-            wsre.yscroll = +1;
+            wsre->yscroll = +1;
             break;
           default:
-            wsre.yscroll = 0;
+            wsre->yscroll = 0;
             break;
           case EVENT_SCROLL_DOWN:
-            wsre.yscroll = -1;
+            wsre->yscroll = -1;
             break;
           case EVENT_PAGE_DOWN:
-            wsre.yscroll = -2;
+            wsre->yscroll = -2;
             break;
           case EVENT_SCROLL_BOT:
-            wsre.yscroll = -4;
+            wsre->yscroll = -4;
             break;
         }
 
-        /* Strictly the 'wsre' block is too small for a WimpPollBlock but we
-        know our function doesn't use beyond sizeof(WimpScrollRequestEvent) */
-        scroll_request(Wimp_EScrollRequest, (WimpPollBlock *)&wsre,
-                             id_block, handle);
+        scroll_request(Wimp_EScrollRequest, &event, id_block, handle);
       }
       return 1; /* claim event */
 
