@@ -1547,7 +1547,7 @@ static int useracthandler(int const event_code, ToolboxEvent *const event,
           .behind = 0,
         };
         ON_ERR_RPT_RTN_V(wimp_get_window_state(&wgwsb), 1);
-        WimpPollBlock event = {
+        WimpPollBlock poll_block = {
           .scroll_request = {
             .open = {
               .window_handle = edit_win->wimp_id,
@@ -1560,7 +1560,7 @@ static int useracthandler(int const event_code, ToolboxEvent *const event,
             .yscroll = 0,
           },
         };
-        WimpScrollRequestEvent *const wsre = &event.scroll_request;
+        WimpScrollRequestEvent *const wsre = &poll_block.scroll_request;
         switch (event_code) {
           case EVENT_SCROLL_RHS:
             wsre->xscroll = +4; /* N.B. +/-3 are used by the Ursula Wimp */
@@ -1609,7 +1609,7 @@ static int useracthandler(int const event_code, ToolboxEvent *const event,
             break;
         }
 
-        scroll_request(Wimp_EScrollRequest, &event, id_block, handle);
+        scroll_request(Wimp_EScrollRequest, &poll_block, id_block, handle);
       }
       return 1; /* claim event */
 
