@@ -1,7 +1,7 @@
 # Project:   SFEditor
 
 # Toolflags:
-CCCommonFlags = -c -depend !Depend -IC: -throwback -W -fahi -apcs 3/32/fpe2/swst/fp/nofpr -memaccess -L22-S22-L41 -DPER_VIEW_SELECT=1
+CCCommonFlags = -c -depend !Depend -IC: -throwback -W -fahi -DACORN_C -apcs 3/32/fpe2/swst/fp/nofpr -memaccess -L22-S22-L41 -DPER_VIEW_SELECT=1
 CCflags = $(CCCommonFlags) -DNDEBUG -Otime
 CCDebugFlags = $(CCCommonFlags) -DDEBUG_OUTPUT -DFORTIFY -g
 C++flags = -c -depend !Depend -IC: -throwback
