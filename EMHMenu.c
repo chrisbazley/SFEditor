@@ -40,6 +40,7 @@
 #include "Utils.h"
 #include "FSMenu.h"
 #include "EMHMenu.h"
+#include "FilePaths.h"
 
 static struct
 {
@@ -65,7 +66,8 @@ static int selectionhandler(int const event_code, ToolboxEvent *const event,
   NOT_USED(event);
 
   filescan_type const which = (filescan_type)(intptr_t)handle;
-  Filename leafname, path;
+  Filename leafname;
+  char path[sizeof(leafname) + sizeof(E_PATH) - 1];
 
   /* get filename from menu text */
   ON_ERR_RPT_RTN_V(menu_get_entry_text(0, id_block->self_id,
