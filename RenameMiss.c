@@ -151,7 +151,7 @@ static void setup_win(void)
       DEBUG("Substituting path '%s' for previous source '%s'",
         first_leaf->leaf_name, source_sub_path);
 
-      Filename sub_path;
+      char sub_path[sizeof(Filename) + sizeof(E_PATH) - 1];
       strcpy(sub_path, prefix);
       strncat(sub_path, first_leaf->leaf_name,
               sizeof(sub_path) - 1 - strlen(prefix));
