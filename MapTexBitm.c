@@ -170,15 +170,13 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
 {
   assert(tiles);
 
-  char name[SpriteNameSize] = {0};
-  char numstr[16];
+  char numstr[32];
   int nout = sprintf(numstr, "%d", map_ref_to_num(tile_num));
   assert(nout >= 0); /* no formatting error */
+  assert(nout < SpriteNameSize);
   NOT_USED(nout);
-  strncat(name, numstr, sizeof(name) - strlen(name) - 1);
-  DEBUGF("Sprite name is %s\n", name);
 
-  if (!SprMem_create_sprite(&tiles->sprites[MapAngle_North][0], name, false,
+  if (!SprMem_create_sprite(&tiles->sprites[MapAngle_North][0], numstr, false,
          (Vertex){MapTexSize, MapTexSize}, MapTexModeNumber))
   {
     return SFERROR(AlreadyReported);
@@ -402,22 +400,21 @@ static bool make_mip_level(MapTexBitmaps *const tiles, MapAngle const angle, int
   {
     hourglass_percentage((int)((tile_num * 100) / tiles->count));
 
-    char name[SpriteNameSize] = {0};
     char numstr[32];
     int nout = sprintf(numstr, "%d", tile_num);
     assert(nout >= 0); /* no formatting error */
+    assert(nout < SpriteNameSize);
     NOT_USED(nout);
-    strncat(name, numstr, sizeof(name) - strlen(name) - 1);
 
-    if (!SprMem_create_sprite(sm, name, false, size, MapTexModeNumber))
+    if (!SprMem_create_sprite(sm, numstr, false, size, MapTexModeNumber))
     {
       hourglass_off();
       SprMem_destroy(sm);
       return false;
     }
 
-    SpriteHeader *const src_spr = SprMem_get_sprite_address(&tiles->sprites[angle][0], name);
-    SpriteHeader *const dst_spr = SprMem_get_sprite_address(&tiles->sprites[angle][level], name);
+    SpriteHeader *const src_spr = SprMem_get_sprite_address(&tiles->sprites[angle][0], numstr);
+    SpriteHeader *const dst_spr = SprMem_get_sprite_address(&tiles->sprites[angle][level], numstr);
 
     if (!src_spr || !dst_spr) {
       if (src_spr) {
@@ -512,14 +509,13 @@ SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *const tiles, MapAngle angle, in
     {
       hourglass_percentage((int)((tile_num * 100) / tiles->count));
 
-      char name[SpriteNameSize] = {0};
       char numstr[32];
       int nout = sprintf(numstr, "%d", tile_num);
       assert(nout >= 0); /* no formatting error */
+      assert(nout < SpriteNameSize);
       NOT_USED(nout);
-      strncat(name, numstr, sizeof(name) - strlen(name) - 1);
 
-      if (!SprMem_create_sprite(sm, name, false, size, MapTexModeNumber) ||
+      if (!SprMem_create_sprite(sm, numstr, false, size, MapTexModeNumber) ||
           !SprMem_output_to_sprite(sm, name))
       {
         hourglass_off();
