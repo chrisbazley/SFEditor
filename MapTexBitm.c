@@ -91,19 +91,20 @@ static SFError read_fail(Reader *const reader)
 /* ----------------------------------------------------------------------- */
 
 static inline SFError copy_n_flip(Reader *const reader, uint8_t *dst,
-  int const width, int const height)
+  size_t const width, size_t const height)
 {
-  DEBUGF("Copy and flip %d x %d bitmap\n", width, height);
+  DEBUGF("Copy and flip %zu x %zu bitmap\n", width, height);
 
   /* Append the raw bitmap to the output sprite, one row at a time
      (same pixel format etc).
      Note that the bitmap is flipped vertically during copying. */
-  dst += height * WORD_ALIGN(width);
+  size_t const aligned_width = WORD_ALIGN_SZ(width);
+  dst += height * aligned_width;
 
-  for (int row = 0; row < height; ++row)
+  for (size_t row = 0; row < height; ++row)
   {
-    dst -= WORD_ALIGN(width);
-    if (!reader_fread(dst, (size_t)WORD_ALIGN(width), 1, reader))
+    dst -= aligned_width;
+    if (!reader_fread(dst, aligned_width, 1, reader))
     {
       return read_fail(reader);
     }

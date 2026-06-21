@@ -891,9 +891,9 @@ bool claim_drag(const WimpMessage *const message, int const file_types[],
   size_t const array_len = copy_file_types(dragclaim->file_types, file_types,
     ARRAY_SIZE(dragclaim->file_types) - 1u) + 1u;
 
-  reply.hdr.size = WORD_ALIGN((int)(sizeof(reply.hdr) +
-    offsetof(WimpDragClaimMessage, file_types) +
-    (sizeof(dragclaim->file_types[0]) * array_len)));
+  reply.hdr.size = (int)WORD_ALIGN_SZ(
+    sizeof(reply.hdr) + offsetof(WimpDragClaimMessage, file_types) +
+    (sizeof(dragclaim->file_types[0]) * array_len));
 
   bool success = false;
 

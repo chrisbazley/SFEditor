@@ -221,7 +221,7 @@ void text_write_offset(Text const *const text, Writer *const writer,
   assert(text != NULL);
   assert(offset != NULL);
   writer_fwrite_int32(*offset, writer);
-  *offset += BytesPerTextHeader + WORD_ALIGN((int)stringbuffer_get_length(&text->string) + 1);
+  *offset += BytesPerTextHeader + (int)WORD_ALIGN_SZ(stringbuffer_get_length(&text->string) + 1);
 }
 
 void text_write_block(Text const *const text, Writer *const writer)
@@ -247,7 +247,7 @@ void text_write_block(Text const *const text, Writer *const writer)
     writer_fputc(encode_char(str[i]), writer);
   }
   assert(str_size <= LONG_MAX);
-  writer_fseek(writer, WORD_ALIGN((long)str_size) - (long)str_size, SEEK_CUR);
+  writer_fseek(writer, (long)(WORD_ALIGN_SZ(str_size) - str_size), SEEK_CUR);
 
   DEBUGF("Finished writing %zu-byte string, '%s', at %ld\n",
          str_size, str, writer_ftell(writer));
