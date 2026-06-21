@@ -182,7 +182,7 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
     return SFERROR(AlreadyReported);
   }
 
-  SpriteHeader *const spr = SprMem_get_sprite_address(&tiles->sprites[MapAngle_North][0], name);
+  SpriteHeader *const spr = SprMem_get_sprite_address(&tiles->sprites[MapAngle_North][0], numstr);
   if (!spr)
   {
     return SFERROR(AlreadyReported);
@@ -516,7 +516,7 @@ SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *const tiles, MapAngle angle, in
       NOT_USED(nout);
 
       if (!SprMem_create_sprite(sm, numstr, false, size, MapTexModeNumber) ||
-          !SprMem_output_to_sprite(sm, name))
+          !SprMem_output_to_sprite(sm, numstr))
       {
         hourglass_off();
         SprMem_destroy(sm);
@@ -532,7 +532,7 @@ SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *const tiles, MapAngle angle, in
           .yymul = 0,
           .xadd = (TranslateFixedPointOne << MapTexModeXEig) * size.y,
         };
-        SprMem_plot_trans_matrix_sprite(&tiles->sprites[MapAngle_North][level], name,
+        SprMem_plot_trans_matrix_sprite(&tiles->sprites[MapAngle_North][level], numstr,
                                         NULL,
                                         SPRITE_ACTION_OVERWRITE, &matrix, NULL);
 #else
@@ -553,14 +553,14 @@ SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *const tiles, MapAngle angle, in
                                       SPRITE_ACTION_OVERWRITE, &quad, NULL);
 #endif
       } else {
-        SprMem_plot_sprite(&tiles->sprites[MapAngle_North][level], name,
+        SprMem_plot_sprite(&tiles->sprites[MapAngle_North][level], numstr,
                            (Vertex){0,0}, SPRITE_ACTION_OVERWRITE);
       }
       SprMem_restore_output(sm);
 
       // SpriteExtend doesn't actually seem capable of rotation without distortion
       if (angle == MapAngle_South || angle == MapAngle_West) {
-        SprMem_flip(sm, name);
+        SprMem_flip(sm, numstr);
       }
     }
 
