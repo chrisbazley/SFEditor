@@ -49,13 +49,13 @@ static bool rename_level_file(char const *const dest_sub_path,
   char const *const src_sub_path, char const *const dir_name, bool const copy)
 {
   char const *const write_dir = Config_get_write_dir();
-  char *rename_source_path = NULL, *copy_source_path = NULL;
-  char *const dest_path = make_file_path_in_subdir(
+  _Optional char *rename_source_path = NULL, *copy_source_path = NULL;
+  _Optional char *const dest_path = make_file_path_in_subdir(
     write_dir, dir_name, dest_sub_path);
 
   bool success = false;
   do {
-    if (!dest_path || !ensure_path_exists(dest_path)) {
+    if (!dest_path || !ensure_path_exists(&*dest_path)) {
       break;
     }
 
@@ -68,9 +68,9 @@ static bool rename_level_file(char const *const dest_sub_path,
         break;
       }
 
-      if (file_exists(rename_source_path)) {
+      if (file_exists(&*rename_source_path)) {
         DEBUG("Source file is in writable dir - can rename it");
-        success = verbose_rename(rename_source_path, dest_path);
+        success = verbose_rename(&*rename_source_path, &*dest_path);
         break;
       }
     }
@@ -84,7 +84,7 @@ static bool rename_level_file(char const *const dest_sub_path,
     }
 
     /* Actually we never move (i.e. delete) files from the internal dir */
-    success = verbose_copy(copy_source_path, dest_path, false);
+    success = verbose_copy(&*copy_source_path, &*dest_path, false);
   } while (0);
 
   free(copy_source_path);
@@ -101,13 +101,13 @@ static bool files_exist(DataType const data_types[], char const *const sub_path)
 
   /* Check for existing files on the target paths */
   for (size_t i = 0; !exists && data_types[i] != DataType_Count; ++i) {
-    char *const full_path = make_file_path_in_subdir(
+    _Optional char *const full_path = make_file_path_in_subdir(
       write_dir, data_type_to_sub_dir(data_types[i]), sub_path);
 
     if (!full_path) {
       break;
     }
-    exists = file_exists(full_path);
+    exists = file_exists(&*full_path);
     free(full_path);
   }
 
@@ -116,10 +116,10 @@ static bool files_exist(DataType const data_types[], char const *const sub_path)
 
 static void delete_mission_only(char const *const sub_path)
 {
-  char *const miss_del_path = make_file_path_in_dir_on_path(
+  _Optional char *const miss_del_path = make_file_path_in_dir_on_path(
     Config_get_write_dir(), MISSION_DIR, sub_path);
 
-  if (miss_del_path && verbose_remove(miss_del_path)) {
+  if (miss_del_path && verbose_remove(&*miss_del_path)) {
     filescan_directory_updated(filescan_get_emh_type(sub_path));
   }
   free(miss_del_path);
@@ -130,7 +130,7 @@ static bool rename_mission_only(char const *const source_sub_path,
   int const miss_number, FilenamesData *const old_names)
 {
   /* Load mission file for modification */
-  char *const miss_read_path = make_file_path_in_dir_on_path(
+  _Optional char *const miss_read_path = make_file_path_in_dir_on_path(
     LEVELS_PATH, MISSION_DIR, source_sub_path);
 
   if (!miss_read_path) {
@@ -138,21 +138,21 @@ static bool rename_mission_only(char const *const source_sub_path,
   }
 
   bool success = false;
-  MissionData *const mission = mission_create();
+  _Optional MissionData *const mission = mission_create();
   if (!mission)
   {
-    report_error(SFERROR(NoMem), miss_read_path, "");
+    report_error(SFERROR(NoMem), &*miss_read_path, "");
   }
   else
   {
-    DFile *const dfile = mission_get_dfile(mission);
+    DFile *const dfile = mission_get_dfile(&*mission);
 
-    if (!report_error(load_compressed(dfile, miss_read_path), miss_read_path, ""))
+    if (!report_error(load_compressed(dfile, &*miss_read_path), &*miss_read_path, ""))
     {
-      PyramidData *const pyramid = mission_get_pyramid(mission);
+      PyramidData *const pyramid = mission_get_pyramid(&*mission);
       pyramid_set_position(pyramid, pyramid_number, miss_number);
 
-      FilenamesData *const filenames = mission_get_filenames(mission);
+      FilenamesData *const filenames = mission_get_filenames(&*mission);
       if (old_names) {
         *old_names = *filenames;
       }
@@ -169,13 +169,13 @@ static bool rename_mission_only(char const *const source_sub_path,
       }
 
       char const *const write_dir = Config_get_write_dir();
-      char *const miss_write_path = make_file_path_in_subdir(
+      _Optional char *const miss_write_path = make_file_path_in_subdir(
         write_dir, MISSION_DIR, dest_sub_path);
 
       success = miss_write_path &&
-                ensure_path_exists(miss_write_path) &&
-                !report_error(save_compressed(dfile, miss_write_path), miss_write_path, "") &&
-                set_data_type(miss_write_path, DataType_Mission);
+                ensure_path_exists(&*miss_write_path) &&
+                !report_error(save_compressed(dfile, &*miss_write_path), &*miss_write_path, "") &&
+                set_data_type(&*miss_write_path, DataType_Mission);
 
       free(miss_write_path);
     }
@@ -188,18 +188,18 @@ static bool rename_mission_only(char const *const source_sub_path,
 bool filepaths_get_mission_filenames(char const *const path,
   FilenamesData *const filenames)
 {
-  MissionData *const mission = mission_create();
+  _Optional MissionData *const mission = mission_create();
   if (!mission)
   {
     report_error(SFERROR(NoMem), path, "");
     return false;
   }
 
-  DFile *const dfile = mission_get_dfile(mission);
+  DFile *const dfile = mission_get_dfile(&*mission);
   bool const success = !report_error(load_compressed(dfile, path), path, "");
   if (success)
   {
-    *filenames = *mission_get_filenames(mission);
+    *filenames = *mission_get_filenames(&*mission);
   }
   dfile_release(dfile);
   return success;
@@ -274,7 +274,7 @@ void filepaths_delete_mission(char const *const sub_path)
   DEBUG("Handling request to delete mission %s", sub_path);
   char const *const root_dir = Config_get_write_dir();
 
-  char *const miss_read_path = make_file_path_in_dir_on_path(LEVELS_PATH,
+  _Optional char *const miss_read_path = make_file_path_in_dir_on_path(LEVELS_PATH,
                                   MISSION_DIR, sub_path);
   if (!miss_read_path) {
     return;
@@ -282,7 +282,7 @@ void filepaths_delete_mission(char const *const sub_path)
 
   /* Load mission file */
   struct FilenamesData filenames;
-  bool const success = filepaths_get_mission_filenames(miss_read_path, &filenames);
+  bool const success = filepaths_get_mission_filenames(&*miss_read_path, &filenames);
   free(miss_read_path);
 
   if (!success) {
@@ -300,15 +300,15 @@ void filepaths_delete_mission(char const *const sub_path)
       continue;
     }
 
-    char *const delete_path = make_file_path_in_subdir(
+    _Optional char *const delete_path = make_file_path_in_subdir(
       root_dir, data_type_to_sub_dir(data_types[i]), sub_path);
 
     if (!delete_path) {
       break;
     }
 
-    if (file_exists(delete_path)) {
-      verbose_remove(delete_path);
+    if (file_exists(&*delete_path)) {
+      verbose_remove(&*delete_path);
     }
     free(delete_path);
   }
@@ -327,12 +327,12 @@ void filepaths_delete_map(char const *const sub_path)
     FS_BASE_SPRSCAPE, FS_BASE_FXDOBJ, FS_BASE_ANIMS};
 
   for (size_t i = 0; i < ARRAY_SIZE(dirs); ++i) {
-    char *const delete_path = make_file_path_in_subdir(
+    _Optional char *const delete_path = make_file_path_in_subdir(
       root_dir, filescan_get_directory(dirs[i]), sub_path);
     if (!delete_path) {
       break;
     }
-    if (file_exists(delete_path) && verbose_remove(delete_path)) {
+    if (file_exists(&*delete_path) && verbose_remove(&*delete_path)) {
       filescan_directory_updated(dirs[i]);
     }
     free(delete_path);
@@ -351,13 +351,13 @@ static bool rename_map_file(char const *source_name, char const *dest_name,
   char const *const dir_name, bool const copy)
 {
   char const *const write_dir = Config_get_write_dir();
-  char *rename_source_path = NULL, *copy_source_path = NULL,*blank_path = NULL,
+  _Optional char *rename_source_path = NULL, *copy_source_path = NULL,*blank_path = NULL,
        *dest_read = NULL;
-  char *const dest_path = make_file_path_in_subdir(write_dir, dir_name, dest_name);
+  _Optional char *const dest_path = make_file_path_in_subdir(write_dir, dir_name, dest_name);
 
   bool success = false;
   do {
-    if (!dest_path || !ensure_path_exists(dest_path)) {
+    if (!dest_path || !ensure_path_exists(&*dest_path)) {
       break;
     }
 
@@ -367,11 +367,11 @@ static bool rename_map_file(char const *source_name, char const *dest_name,
       if (!rename_source_path) {
         break;
       }
-      if (file_exists(rename_source_path)) {
+      if (file_exists(&*rename_source_path)) {
         /* Source file is in writable dir, can simply rename it
         (much quicker than copy) */
         DEBUG("Can simply rename source file");
-        success = verbose_rename(rename_source_path, dest_path);
+        success = verbose_rename(&*rename_source_path, &*dest_path);
         break;
       }
     }
@@ -382,10 +382,10 @@ static bool rename_map_file(char const *source_name, char const *dest_name,
       break;
     }
 
-    if (file_exists(copy_source_path)) {
+    if (file_exists(&*copy_source_path)) {
       /* Copy file from internal to external levels dir */
       DEBUG("Must copy source file to external levels dir");
-      success = verbose_copy(copy_source_path, dest_path, false);
+      success = verbose_copy(&*copy_source_path, &*dest_path, false);
       break;
     }
 
@@ -393,17 +393,17 @@ static bool rename_map_file(char const *source_name, char const *dest_name,
     dest_read = make_file_path_in_dir_on_path(
       LEVELS_PATH, dir_name, dest_name);
 
-    if (!dest_read || !file_exists(dest_read)) {
+    if (!dest_read || !file_exists(&*dest_read)) {
       break;
     }
 
     /* Irrelevant file exists on destination path */
     DEBUG("An irrelevant file exists on dest path");
 
-    if (file_exists(dest_path)) {
+    if (file_exists(&*dest_path)) {
       /* Delete irrelevant file from writable dir */
       DEBUG("Will delete irrelevant file");
-      success = verbose_remove(dest_path);
+      success = verbose_remove(&*dest_path);
       break;
     }
 
@@ -418,7 +418,7 @@ static bool rename_map_file(char const *source_name, char const *dest_name,
     if (!blank_path) {
       break;
     }
-    success = verbose_copy(blank_path, dest_path, false);
+    success = verbose_copy(&*blank_path, &*dest_path, false);
   } while (0);
 
   free(blank_path);

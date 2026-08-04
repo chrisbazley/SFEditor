@@ -54,6 +54,12 @@ static int menu_selection(int const event_code, ToolboxEvent *const event,
     &edit_win), 0);
   EditSession *const session = EditWin_get_session(edit_win);
 
+  _Optional MissionData *const m = Session_get_mission(session);
+  assert(m);
+  if (!m) {
+    return 0;
+  }
+
   DEBUG("Mission type menu item %d selected", id_block->self_component);
 
   if (id_block->self_component != which_ticked)
@@ -66,8 +72,7 @@ static int menu_selection(int const event_code, ToolboxEvent *const event,
     which_ticked = id_block->self_component;
     E(menu_set_tick(0, id_block->self_id, which_ticked, 1));
 
-    MissionData *const m = Session_get_mission(session);
-    mission_set_type(m, (MissionType)(MissionType_Normal + which_ticked));
+    mission_set_type(&*m, (MissionType)(MissionType_Normal + which_ticked));
     Session_notify_changed(session, DataType_Mission);
   }
 
@@ -85,8 +90,14 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   ON_ERR_RPT_RTN_V(toolbox_get_client_handle(0, id_block->ancestor_id,
     &edit_win), 0);
   EditSession *const session = EditWin_get_session(edit_win);
-  MissionData const *const m = Session_get_mission(session);
-  MissionType const type = mission_get_type(m);
+
+  _Optional MissionData const *const m = Session_get_mission(session);
+  assert(m);
+  if (!m) {
+    return 0;
+  }
+  
+  MissionType const type = mission_get_type(&*m);
 
   if ((ComponentId)(type - MissionType_Normal) != which_ticked) {
     DEBUG("Moving menu tick from %d to %d", which_ticked, type - MissionType_Normal);

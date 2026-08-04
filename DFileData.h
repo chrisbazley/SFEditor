@@ -25,9 +25,11 @@ typedef void DFileWriteFn(DFile const *dfile, struct Writer *writer);
 typedef long int DFileGetMinSizeFn(DFile const *dfile);
 typedef void DFileDestroyFn(DFile const *dfile);
 
-void dfile_init(DFile *dfile, DFileReadFn *read,
-  DFileWriteFn *write, DFileGetMinSizeFn *get_min_size,
-  DFileDestroyFn *destroy);
+void dfile_init(DFile *dfile,
+                _Optional DFileReadFn *read,
+                _Optional DFileWriteFn *write,
+                _Optional DFileGetMinSizeFn *get_min_size,
+                _Optional DFileDestroyFn *destroy);
 
 void dfile_destroy(DFile *dfile);
 
@@ -37,11 +39,11 @@ struct DFile
   int ref_count;
   bool is_modified;
   int date[2];
-  char *name;
-  DFileReadFn *read;
-  DFileWriteFn *write;
-  DFileGetMinSizeFn *get_min_size;
-  DFileDestroyFn *destroy;
+  _Optional char *name;
+  _Optional DFileReadFn *read;
+  _Optional DFileWriteFn *write;
+  _Optional DFileGetMinSizeFn *get_min_size;
+  _Optional DFileDestroyFn *destroy;
 };
 
 #endif

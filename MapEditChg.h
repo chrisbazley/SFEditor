@@ -21,7 +21,7 @@ MapEditChanges;
 
 void MapEditChanges_init(MapEditChanges *change_info);
 
-static inline bool MapEditChanges_anims_changed(const MapEditChanges *const change_info)
+static inline bool MapEditChanges_anims_changed(_Optional const MapEditChanges *const change_info)
 {
   if (!change_info) {
     return false;
@@ -31,7 +31,7 @@ static inline bool MapEditChanges_anims_changed(const MapEditChanges *const chan
          change_info->anims_deleted;
 }
 
-static inline bool MapEditChanges_anims_increased(const MapEditChanges *const change_info)
+static inline bool MapEditChanges_anims_increased(_Optional const MapEditChanges *const change_info)
 {
   if (!change_info) {
     return false;
@@ -39,7 +39,7 @@ static inline bool MapEditChanges_anims_increased(const MapEditChanges *const ch
   return change_info->anims_added > change_info->anims_deleted;
 }
 
-static inline bool MapEditChanges_anims_decreased(const MapEditChanges *const change_info)
+static inline bool MapEditChanges_anims_decreased(_Optional const MapEditChanges *const change_info)
 {
   if (!change_info) {
     return false;
@@ -47,7 +47,7 @@ static inline bool MapEditChanges_anims_decreased(const MapEditChanges *const ch
   return change_info->anims_added < change_info->anims_deleted;
 }
 
-static inline bool MapEditChanges_map_changed(const MapEditChanges *const change_info)
+static inline bool MapEditChanges_map_changed(_Optional const MapEditChanges *const change_info)
 {
   if (!change_info) {
     return false;
@@ -55,13 +55,13 @@ static inline bool MapEditChanges_map_changed(const MapEditChanges *const change
   return change_info->tiles_changed;
 }
 
-static inline bool MapEditChanges_is_changed(const MapEditChanges *const change_info)
+static inline bool MapEditChanges_is_changed(_Optional const MapEditChanges *const change_info)
 {
   return MapEditChanges_anims_changed(change_info) ||
          MapEditChanges_map_changed(change_info);
 }
 
-static inline void MapEditChanges_change_tiles(MapEditChanges *const change_info,
+static inline void MapEditChanges_change_tiles(_Optional MapEditChanges *const change_info,
   unsigned long int const n)
 {
   if (change_info) {
@@ -69,32 +69,32 @@ static inline void MapEditChanges_change_tiles(MapEditChanges *const change_info
   }
 }
 
-static inline void MapEditChanges_change_tile(MapEditChanges *const change_info)
+static inline void MapEditChanges_change_tile(_Optional MapEditChanges *const change_info)
 {
   MapEditChanges_change_tiles(change_info, 1);
 }
 
-static inline void MapEditChanges_change_anim(MapEditChanges *const change_info)
+static inline void MapEditChanges_change_anim(_Optional MapEditChanges *const change_info)
 {
   if (change_info) {
     ++change_info->anims_changed;
   }
 }
 
-static inline void MapEditChanges_add_anim(MapEditChanges *const change_info)
+static inline void MapEditChanges_add_anim(_Optional MapEditChanges *const change_info)
 {
   if (change_info) {
     ++change_info->anims_added;
   }
 }
 
-static inline void MapEditChanges_delete_anim(MapEditChanges *const change_info)
+static inline void MapEditChanges_delete_anim(_Optional MapEditChanges *const change_info)
 {
   if (change_info) {
     ++change_info->anims_deleted;
   }
 }
 
-char *MapEditChanges_get_message(const MapEditChanges *change_info);
+_Optional char *MapEditChanges_get_message(const MapEditChanges *change_info);
 
 #endif

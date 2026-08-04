@@ -17,8 +17,8 @@
 typedef struct ObjGfx ObjGfx;
 
 void ObjGfx_init(void);
-ObjGfx *ObjGfx_get_shared(char const *filename);
-ObjGfx *ObjGfx_create(void);
+_Optional ObjGfx *ObjGfx_get_shared(char const *filename);
+_Optional ObjGfx *ObjGfx_create(void);
 bool ObjGfx_share(ObjGfx *gfx);
 DFile *ObjGfx_get_dfile(ObjGfx *gfx);
 void ObjGfx_load_metadata(ObjGfx *gfx);

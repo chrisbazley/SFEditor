@@ -326,7 +326,7 @@ static bool calcmaxcolumns(PaletteData *const pal_data, int const new_width)
   int columns_limit = 1;
 
   if (pal_data->client_functions == NULL || pal_data->numeric_order ||
-      pal_data->client_functions->get_max_columns == NULL) {
+      !pal_data->client_functions->get_max_columns) {
     /* Assume the width may not exceed the number of objects to display */
     columns_limit = pal_data->num_indices;
   } else {
@@ -537,7 +537,7 @@ static void redraw_loop(PaletteData *const pal_data, WimpRedrawWindowBlock *cons
   assert(pal_data);
   assert(block);
   assert(BBox_is_valid(&block->redraw_area));
-  const PaletteClientFuncts *const client_functions =
+  _Optional const PaletteClientFuncts *const client_functions =
     pal_data->client_functions;
 
   if (client_functions != NULL && client_functions->start_redraw) {
@@ -827,7 +827,7 @@ static int tools_or_mode_changed(PaletteData *const pal_data)
      new coordinates by the Wimp, at which point we can reformat the display) */
   set_extent(pal_data, &state.visible_area, false);
 #else
-  set_extent(pal_data, NULL, false);
+  set_extent(pal_data, &(BBox){0,0,0,0}, false);
 #endif
 
   return 0; /* pass message on to any other handlers */
@@ -1093,34 +1093,40 @@ static int user_event(int const event_code, ToolboxEvent *const event,
   if (id_block->self_id != pal_data->my_object &&
       id_block->ancestor_id != pal_data->my_object)
     return 0; /* event not for us - pass it on */
+  
+  if (pal_data->client_functions == NULL) {
+    DEBUG ("Palette has no client");
+    return 1; /* no client registered */
+  }
+  const struct PaletteClientFuncts *client_functions = &*pal_data->client_functions;
 
   /* Handle hotkey/menu selection events */
 
   if (pal_data->client_functions != NULL) {
     switch (event_code) {
     case EVENT_PALETTE_DELETE:
-      if (pal_data->client_functions->delete &&
+      if (client_functions->delete &&
           pal_data->sel_index != NULL_DATA_INDEX) {
-        pal_data->client_functions->delete(
+        client_functions->delete(
           pal_data->parent_editor, index_to_object(pal_data, pal_data->sel_index));
       }
       return 1; /* claim event */
 
     case EVENT_PALETTE_DELETE_ALL:
-      if (pal_data->client_functions->delete_all) {
-        pal_data->client_functions->delete_all(pal_data->parent_editor);
+      if (client_functions->delete_all) {
+        client_functions->delete_all(pal_data->parent_editor);
       }
       return 1; /* claim event */
 
     case EVENT_PALETTE_RELOAD:
-      if (pal_data->client_functions->reload) {
-        pal_data->client_functions->reload(pal_data->parent_editor);
+      if (client_functions->reload) {
+        client_functions->reload(pal_data->parent_editor);
       }
       return 1; /* claim event */
 
     case EVENT_PALETTE_EDIT:
-      if (pal_data->client_functions->edit) {
-        pal_data->client_functions->edit(pal_data->parent_editor);
+      if (client_functions->edit) {
+        client_functions->edit(pal_data->parent_editor);
       }
       return 1; /* claim event */
 
@@ -1193,19 +1199,20 @@ static void do_finalise(PaletteData *const pal_data, bool const reinit)
     DEBUG ("Palette has no client");
     return; /* no client registered */
   }
+  const struct PaletteClientFuncts *client_functions = &*pal_data->client_functions;
 
-  DEBUG ("Finalising client %p ('%s')", (void *)pal_data->client_functions,
-         pal_data->client_functions->title_msg);
+  DEBUG ("Finalising client %p ('%s')", (void *)client_functions,
+         client_functions->title_msg);
 
   if (pal_data->is_showing) {
-    if (pal_data->client_functions->animate) {
+    if (client_functions->animate) {
       scheduler_deregister(anim_cb, pal_data);
     }
   }
 
-  if (pal_data->client_functions->finalise) {
+  if (client_functions->finalise) {
     DEBUG ("Calling client finalisation function");
-    pal_data->client_functions->finalise(pal_data, pal_data->parent_editor, reinit);
+    client_functions->finalise(pal_data, pal_data->parent_editor, reinit);
   } else if (!reinit) {
     /* Our default action is to detach any menu */
     ObjectId menu_id;
@@ -1224,7 +1231,7 @@ static void do_finalise(PaletteData *const pal_data, bool const reinit)
 }
 
 static bool do_init(PaletteData *const pal_data,
-  const PaletteClientFuncts *client_functions, bool const reinit)
+  _Optional const PaletteClientFuncts *client_functions, bool const reinit)
 {
   assert(pal_data != NULL);
   DEBUG ("Initialising new client of palette %p (object 0x%x)", (void *)pal_data,
@@ -1272,7 +1279,7 @@ static bool do_init(PaletteData *const pal_data,
 
 
     if (pal_data->is_showing) {
-      if (pal_data->client_functions->animate) {
+      if (client_functions && client_functions->animate) {
         int now;
         EF(os_read_monotonic_time(&now));
         E(scheduler_register(anim_cb, pal_data, now, SchedulerPriority_Min));
@@ -1484,7 +1491,13 @@ void Palette_redraw_object(PaletteData *const pal_data, int object)
 {
   assert(pal_data != NULL);
   DEBUG ("Redrawing item %d in palette %p (object 0x%x)", object, (void *)pal_data, pal_data->my_object);
+
   assert(pal_data->client_functions != NULL);
+  if (pal_data->client_functions == NULL) {
+    return; /* no client registered */
+  }
+  const struct PaletteClientFuncts *client_functions = &*pal_data->client_functions;
+
   int const index = p_object_to_index(pal_data, object);
 
   // FIXME: only draw inside
@@ -1501,9 +1514,9 @@ void Palette_redraw_object(PaletteData *const pal_data, int object)
     .window_handle = window_handle
   };
   block.visible_area.xmin = X_BORDER + object_min.x + OBJECT_X_SPACER;
-  block.visible_area.xmax = block.visible_area.xmin + pal_data->client_functions->object_size.x;
+  block.visible_area.xmax = block.visible_area.xmin + client_functions->object_size.x;
   block.visible_area.ymax = -Y_BORDER - object_min.y -OBJECT_Y_SPACER;
-  block.visible_area.ymin = block.visible_area.ymax - pal_data->client_functions->object_size.y;
+  block.visible_area.ymin = block.visible_area.ymax - client_functions->object_size.y;
 
   int more;
   if (!E(wimp_update_window(&block, &more)) && more) {
@@ -1521,7 +1534,7 @@ void Palette_redraw_name(PaletteData *const pal_data, int const object)
 
   int const index = p_object_to_index(pal_data, object);
   DEBUG ("Redrawing label %d in palette %p (object 0x%x)", index, (void *)pal_data, pal_data->my_object);
-  if (pal_data->client_functions->overlay_labels)
+  if (pal_data->client_functions && pal_data->client_functions->overlay_labels)
   {
     Palette_redraw_object(pal_data, index);
   }
@@ -1624,7 +1637,7 @@ void Palette_reinit(PaletteData *const pal_data)
   /* Finalise and then reinitialise the client of this palette, so that the no.
      of objects is re-evaluated, new thumbnail sprites are generated and the
      palette layout is reformatted. */
-  const PaletteClientFuncts *const client_functions = pal_data->client_functions;
+  _Optional const PaletteClientFuncts *const client_functions = pal_data->client_functions;
   do_finalise(pal_data, true);
   do_init(pal_data, client_functions, true);
 }

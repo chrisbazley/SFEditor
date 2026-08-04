@@ -21,27 +21,29 @@ struct SelectionBitmask;
 
 typedef struct InfoEditContext InfoEditContext;
 
-SFError InfoEdit_add(InfoEditContext const *infos, MapPoint pos,
-  char const *C23_CONST (*strings)[TargetInfoTextIndex_Count],
-  struct InfoEditChanges *change_info, size_t *index);
+SFError InfoEdit_add(InfoEditContext const *infos,
+                     MapPoint pos,
+                     char const *C23_CONST _Optional (*strings)[TargetInfoTextIndex_Count],
+                     _Optional struct InfoEditChanges *change_info,
+                     _Optional size_t *index);
 
 void InfoEdit_move(InfoEditContext const *infos,
                    MapPoint vec,
                    struct SelectionBitmask *selected,
-                   struct InfoEditChanges *change_info);
+                   _Optional struct InfoEditChanges *change_info);
 
-SFError InfoEdit_set_texts(
-  TargetInfo *info,
-  char const *C23_CONST (*strings)[TargetInfoTextIndex_Count],
-  struct InfoEditChanges *change_info);
+SFError InfoEdit_set_texts(TargetInfo *info,
+                           char const *C23_CONST (*strings)[TargetInfoTextIndex_Count],
+                           _Optional struct InfoEditChanges *change_info);
 
-TargetInfo *InfoEdit_get(InfoEditContext const *infos, size_t index);
+_Optional TargetInfo *InfoEdit_get(InfoEditContext const *infos, size_t index);
 
 void InfoEdit_find_occluded(InfoEditContext const *infos, MapPoint pos,
-  struct SelectionBitmask *occluded);
+                            struct SelectionBitmask *occluded);
 
-void InfoEdit_delete(InfoEditContext const *infos, struct SelectionBitmask *selected,
-  struct InfoEditChanges *change_info);
+void InfoEdit_delete(InfoEditContext const *infos,
+                     struct SelectionBitmask *selected,
+                     _Optional struct InfoEditChanges *change_info);
 
 size_t InfoEdit_count(InfoEditContext const *infos);
 

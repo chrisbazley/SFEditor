@@ -73,7 +73,7 @@ int string_lcount(char const *const string, int *const max_width)
   char const *start = string;
   bool finished = false;
   do {
-    char const *end = strchr(start, '\n');
+    _Optional char const *end = strchr(start, '\n');
     if (end == NULL) {
       end = start + strlen(start);
       finished = true;
@@ -121,20 +121,26 @@ bool set_saved_with_stamp(DFile *const dfile, char const *const fname)
   return true;
 }
 
-void get_scrollbar_sizes(int *const width, int *const height)
+void get_scrollbar_sizes(_Optional int *const width, _Optional int *const height)
 {
   int sbar_width = 40, sbar_height = 40; /* standard size */
 
   if (wimp_version >= 400) {
     /* Use new Wimp_Extend reason code (see specification of Ursula Wimp) */
-    int32_t info_block[25]; /* block must be 100 bytes */
+    intptr_t info_block[25]; /* block must be 100 bytes */
     info_block[0] = 0; /* return generic values (no window handle) */
 
     if (!E(_swix(Wimp_Extend, _INR(0,1), 11, info_block))) {
-      DEBUG("Wimp_Extend reports right border %"PRId32", bottom border %"PRId32,
+      DEBUG("Wimp_Extend reports right border %"PRIdPTR", bottom border %"PRIdPTR,
             info_block[3], info_block[2]);
-      sbar_width = info_block[3]; /* right border */
-      sbar_height = info_block[2]; /* bottom border */
+
+      assert(info_block[3] >= 0);
+      assert(info_block[3] <= INT_MAX);
+      sbar_width = (int)info_block[3]; /* right border */
+
+      assert(info_block[2] >= 0);
+      assert(info_block[2] <= INT_MAX);
+      sbar_height = (int)info_block[2]; /* bottom border */
     }
   }
 
@@ -150,7 +156,8 @@ void get_scrollbar_sizes(int *const width, int *const height)
 bool set_ptr_shape(char const *name, int active_x, int active_y)
 {
   /* only allowed to use ptr 2 in the wimp? */
-  return !E(os_sprite_op_set_pointer(tb_sprite_area, name, 2,
+  return tb_sprite_area &&
+         !E(os_sprite_op_set_pointer(&*tb_sprite_area, name, 2,
                active_x, active_y, NULL, NULL));
 }
 
@@ -339,7 +346,7 @@ flex_ptr memcpy_flex(flex_ptr dst, flex_ptr src, size_t n)
 }
 
 char *read_line_comm(char *const s, size_t const n, FILE *const stream,
-                     int *const line_num)
+                     _Optional int *const line_num)
 {
   /* Read string from file into buffer s of length n,
      ignoring comments and blank lines.
@@ -450,9 +457,9 @@ void open_topleftofwin(unsigned int const flags, ObjectId const showobj,
   }
 }
 
-void *get_ancestor_handle_if_showing(ObjectId const self_id)
+_Optional void *get_ancestor_handle_if_showing(ObjectId const self_id)
 {
-  void *handle = NULL;
+  void *handle;
   assert(self_id != NULL_ObjectId);
 
   /* A bit tricky because the ancestor object ID may not be null but
@@ -462,15 +469,19 @@ void *get_ancestor_handle_if_showing(ObjectId const self_id)
   if (E(toolbox_get_ancestor(0, self_id, &ancestor_id, NULL)))
   {
     DEBUG("Failed to get ancestor of object 0x%x", self_id);
+    return NULL;
   }
-  else if (ancestor_id == NULL_ObjectId)
+
+  if (ancestor_id == NULL_ObjectId)
   {
     DEBUG("No ancestor of object 0x%x", self_id);
+    return NULL;
   }
-  else if (toolbox_get_client_handle(0, ancestor_id, &handle) != NULL)
+
+  if (toolbox_get_client_handle(0, ancestor_id, &handle) != NULL)
   {
     DEBUG("Failed to get client handle of ancestor 0x%x", ancestor_id);
-    handle = NULL;
+    return NULL;
   }
 
   return handle;
@@ -560,7 +571,7 @@ bool verbose_copy(char const *old_name, char *new_name, bool const move)
     return false;
   }
   /* No 'copy' function in standard library so call OS_FSControl directly */
-  _kernel_oserror *const e = os_fscontrol_copy(old_name, new_name,
+  _Optional _kernel_oserror *const e = os_fscontrol_copy(old_name, new_name,
     OS_FSControl_Recurse | (move ? OS_FSControl_Delete : 0));
 
   if (e != NULL) {
@@ -670,7 +681,7 @@ static void exec_cmd(char const *const prefix, char const *const file_name)
       !stringbuffer_append_all(&cmd, file_name)) {
     report_error(SFERROR(NoMem), "", "");
   } else if (_kernel_oscli(stringbuffer_get_pointer(&cmd)) == _kernel_ERROR) {
-    err_check_rep(_kernel_last_oserror());
+    E(_kernel_last_oserror());
   }
   stringbuffer_destroy(&cmd);
 }
@@ -728,7 +739,7 @@ void hourglass_and_esc_on(void)
 {
   /* Enable escape key & reset escape detection */
   if (_kernel_osbyte(229, 0, 0) == _kernel_ERROR)
-    err_check_rep(_kernel_last_oserror());
+    E(_kernel_last_oserror());
 
   _kernel_escape_seen();
 
@@ -742,23 +753,23 @@ void hourglass_and_esc_off(void)
   /* Disable escape key & clear any escape condition */
   if (_kernel_osbyte(229, 1, 0) == _kernel_ERROR ||
   _kernel_osbyte(124, 0, 0) == _kernel_ERROR)
-    err_check_rep(_kernel_last_oserror());
+    E(_kernel_last_oserror());
 }
 
 void edit_file(char const *const dir, char const *const tiles_set)
 {
-  char *const path = make_file_path_in_dir_on_path(
+  _Optional char *const path = make_file_path_in_dir_on_path(
     CHOICES_WRITE_PATH, dir, tiles_set);
   if (path) {
-    if (!file_exists(path)) {
-      char *const defaults = make_file_path_in_dir_on_path(
+    if (!file_exists(&*path)) {
+      _Optional char *const defaults = make_file_path_in_dir_on_path(
                                CHOICES_DEFAULTS_PATH, dir, tiles_set);
-      if (defaults && verbose_copy(defaults, path, false)) {
-        open_file(path);
+      if (defaults && verbose_copy(&*defaults, &*path, false)) {
+        open_file(&*path);
       }
       free(defaults);
     } else {
-      open_file(path);
+      open_file(&*path);
     }
     free(path);
   }
@@ -770,13 +781,13 @@ bool append_to_csv(StringBuffer *const csv, char const *const value)
          stringbuffer_append_all(csv, value);
 }
 
-char *make_file_path_in_dir_on_path(char const *const path,
+_Optional char *make_file_path_in_dir_on_path(char const *const path,
   char const *const subdir, char const *const leaf)
 {
   StringBuffer full_path;
   stringbuffer_init(&full_path);
 
-  char *canonical = NULL;
+  _Optional char *canonical = NULL;
   if (stringbuffer_append_all(&full_path, path) &&
       stringbuffer_append_all(&full_path, subdir) &&
       stringbuffer_append_separated(&full_path, PATH_SEPARATOR, leaf))
@@ -791,13 +802,13 @@ char *make_file_path_in_dir_on_path(char const *const path,
   return canonical;
 }
 
-char *make_file_path_in_subdir(char const *const dir,
+_Optional char *make_file_path_in_subdir(char const *const dir,
   char const *const subdir, char const *const leaf)
 {
   StringBuffer path;
   stringbuffer_init(&path);
 
-  char *canonical = NULL;
+  _Optional char *canonical = NULL;
   if (stringbuffer_append_all(&path, dir) &&
       stringbuffer_append_separated(&path, PATH_SEPARATOR, subdir) &&
       stringbuffer_append_separated(&path, PATH_SEPARATOR, leaf))
@@ -813,7 +824,7 @@ char *make_file_path_in_subdir(char const *const dir,
 }
 
 
-char *make_file_path_in_dir(char const *const dir, char const *const leaf)
+_Optional char *make_file_path_in_dir(char const *const dir, char const *const leaf)
 {
   return make_file_path_in_dir_on_path("", dir, leaf);
 }

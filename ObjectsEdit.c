@@ -84,7 +84,7 @@ static void redraw_trigger(ObjEditContext const *const objects, MapPoint const p
   redraw_trigger2(objects, obj_ref, objects_wrap_coords(pos), fparam);
 }
 
-static ObjectsData *get_write_objects(ObjEditContext const *const objects)
+static _Optional ObjectsData *get_write_objects(ObjEditContext const *const objects)
 {
   assert(objects != NULL);
   return objects->overlay != NULL ? objects->overlay : objects->base;
@@ -98,7 +98,7 @@ static ObjRef read_base_core(ObjEditContext const *const objects,
 
   ObjRef ref = objects_ref_mask();
   if (objects->base != NULL) {
-    ref = objects_get_ref(objects->base, pos);
+    ref = objects_get_ref(&*objects->base, pos);
     assert(!objects_ref_is_mask(ref));
   }
   return ref;
@@ -112,7 +112,7 @@ static ObjRef read_overlay_core(ObjEditContext const *const objects,
 
   ObjRef ref = objects_ref_mask();
   if (objects->overlay != NULL) {
-    ref = objects_get_ref(objects->overlay, pos);
+    ref = objects_get_ref(&*objects->overlay, pos);
   }
   return ref;
 }
@@ -132,7 +132,7 @@ static ObjRef read_ref_core(ObjEditContext const *const objects,
 }
 
 static bool write_ref_core(ObjEditContext const *const objects, MapPoint const pos,
-  ObjRef const ref_num, ObjEditChanges *const change_info)
+  ObjRef const ref_num, _Optional ObjEditChanges *const change_info)
 {
   assert(objects->overlay || !objects_ref_is_mask(ref_num));
   MapPoint const wrapped_pos = objects_wrap_coords(pos);
@@ -142,7 +142,12 @@ static bool write_ref_core(ObjEditContext const *const objects, MapPoint const p
   read_ref_core(objects, wrapped_pos);
 
   /* Write to overlay grid (if any) otherwise to base grid, and return the previous ref */
-  ObjRef const old_ref = objects_update_ref(get_write_objects(objects), wrapped_pos, ref_num);
+  _Optional ObjectsData *const wobj = get_write_objects(objects);
+  assert(wobj);
+  if (!wobj) {
+    return false;
+  }
+  ObjRef const old_ref = objects_update_ref(&*wobj, wrapped_pos, ref_num);
   if (objects_ref_is_equal(old_ref, ref_num)) {
     return false;
   }
@@ -150,7 +155,7 @@ static bool write_ref_core(ObjEditContext const *const objects, MapPoint const p
   ObjEditChanges_change_ref(change_info);
 
   if (objects->redraw_obj_cb) {
-    bool const has_triggers = objects->triggers && triggers_check_locn(objects->triggers, wrapped_pos);
+    bool const has_triggers = objects->triggers && triggers_check_locn(&*objects->triggers, wrapped_pos);
     objects->redraw_obj_cb(wrapped_pos, read_base_core(objects, wrapped_pos), old_ref,
                          ref_num, has_triggers, objects->session);
   }
@@ -158,7 +163,7 @@ static bool write_ref_core(ObjEditContext const *const objects, MapPoint const p
 }
 
 static void triggers_wipe_bbox(ObjEditContext const *const objects, MapArea const *const map_area,
-  TriggersWipeAction const wipe_action, ObjEditChanges *const change_info)
+  TriggersWipeAction const wipe_action, _Optional ObjEditChanges *const change_info)
 {
   assert(objects);
   /* Wipe any triggers within a given map area.
@@ -171,11 +176,12 @@ static void triggers_wipe_bbox(ObjEditContext const *const objects, MapArea cons
   if (objects->triggers == NULL || wipe_action == TriggersWipeAction_None) {
     return;
   }
+  TriggersData *const triggers = &*objects->triggers;
 
   if (wipe_action == TriggersWipeAction_BreakChain) {
     TriggersChainIter chain_iter;
     TriggerFullParam fparam;
-    for (MapPoint p = TriggersChainIter_get_first(&chain_iter, objects->triggers, map_area, &fparam);
+    for (MapPoint p = TriggersChainIter_get_first(&chain_iter, triggers, map_area, &fparam);
          !TriggersChainIter_done(&chain_iter);
          p = TriggersChainIter_get_next(&chain_iter, &fparam))
     {
@@ -190,7 +196,7 @@ static void triggers_wipe_bbox(ObjEditContext const *const objects, MapArea cons
 
   TriggersIter iter;
   TriggerFullParam fparam;
-  for (MapPoint p = TriggersIter_get_first(&iter, objects->triggers, map_area, &fparam);
+  for (MapPoint p = TriggersIter_get_first(&iter, triggers, map_area, &fparam);
        !TriggersIter_done(&iter);
        p = TriggersIter_get_next(&iter, &fparam))
   {
@@ -201,18 +207,22 @@ static void triggers_wipe_bbox(ObjEditContext const *const objects, MapArea cons
     redraw_trigger(objects, p, fparam);
   }
 
-  triggers_cleanup(objects->triggers);
+  triggers_cleanup(triggers);
 }
 
-static void triggers_wipe_locn(ObjEditContext const *const objects, MapPoint const map_pos,
-  TriggersWipeAction const wipe_action, ObjEditChanges *const change_info)
+static void triggers_wipe_locn(ObjEditContext const *const objects,
+                               MapPoint const map_pos,
+                               TriggersWipeAction const wipe_action,
+                               _Optional ObjEditChanges *const change_info)
 {
   triggers_wipe_bbox(objects, &(MapArea){map_pos, map_pos}, wipe_action, change_info);
 }
 
 static void clear_overlapped(ObjEditContext const *const objects,
-  MapPoint const grid_pos, ObjRef const value,
-  ObjEditChanges *const change_info, ObjGfxMeshes *const meshes)
+                             MapPoint const grid_pos,
+                             ObjRef const value,
+                             _Optional ObjEditChanges *const change_info,
+                             ObjGfxMeshes *const meshes)
 {
   MapPoint const wrapped_pos = objects_wrap_coords(grid_pos);
   ObjRef const new_disp_ref = filter_overlay_ref(objects, wrapped_pos, value);
@@ -266,7 +276,7 @@ static void clear_overlapped(ObjEditContext const *const objects,
 
 static void write_ref(ObjEditContext const *const objects,
   MapPoint const grid_pos, ObjRef const value, TriggersWipeAction wipe_action,
-  ObjEditChanges *const change_info, ObjGfxMeshes *const meshes)
+  _Optional ObjEditChanges *const change_info, ObjGfxMeshes *const meshes)
 {
   if (objects_ref_is_none(value)) {
     wipe_action = TriggersWipeAction_BreakChain;
@@ -283,7 +293,7 @@ static void write_ref(ObjEditContext const *const objects,
 /* ---------------- Public functions ---------------- */
 
 void ObjectsEdit_crop_overlay(ObjEditContext const *const objects,
-  ObjEditChanges *const change_info)
+  _Optional ObjEditChanges *const change_info)
 {
   /* Removes wastage from ground objects overlay
      (refs equal to those overridden) */
@@ -291,18 +301,20 @@ void ObjectsEdit_crop_overlay(ObjEditContext const *const objects,
 
   if (objects->base != NULL && objects->overlay != NULL) {
     DEBUG("Will crop objects overlay");
+    const ObjectsData *const base = &*objects->base;
+    ObjectsData *const overlay = &*objects->overlay;
     MapAreaIter iter;
     for (MapPoint p = objects_get_first(&iter);
          !MapAreaIter_done(&iter);
          p = MapAreaIter_get_next(&iter))
     {
-      if (objects->triggers && triggers_check_locn(objects->triggers, p)) {
+      if (objects->triggers && triggers_check_locn(&*objects->triggers, p)) {
         continue;
       }
 
-      ObjRef const cur_ref = objects_get_ref(objects->overlay, p);
+      ObjRef const cur_ref = objects_get_ref(overlay, p);
       if (!objects_ref_is_mask(cur_ref) &&
-          objects_ref_is_equal(objects_get_ref(objects->base, p), cur_ref)) {
+          objects_ref_is_equal(objects_get_ref(base, p), cur_ref)) {
         DEBUG("Cropping overlay location at %" PRIMapCoord ",%" PRIMapCoord, p.x, p.y);
         write_ref_core(objects, p, objects_ref_mask(), change_info);
       }
@@ -500,8 +512,8 @@ void ObjectsEdit_fill_area(ObjEditContext const *const objects,
 }
 
 void ObjectsEdit_fill_selected(ObjEditContext const *const objects,
-  ObjEditSelection *const selected, ObjRef const obj_ref, ObjEditChanges *const change_info,
-  ObjGfxMeshes *const meshes)
+  ObjEditSelection *const selected, ObjRef const obj_ref,
+  _Optional ObjEditChanges *const change_info, ObjGfxMeshes *const meshes)
 {
   ObjEditSelIter iter;
   for (MapPoint p = ObjEditSelIter_get_first(&iter, selected);
@@ -535,7 +547,7 @@ void ObjectsEdit_wipe_triggers(ObjEditContext const *const objects,
 
   TriggersIter iter;
   TriggerFullParam fparam;
-  for (MapPoint p = TriggersIter_get_first(&iter, objects->triggers, &sel_area, &fparam);
+  for (MapPoint p = TriggersIter_get_first(&iter, &*objects->triggers, &sel_area, &fparam);
        !TriggersIter_done(&iter);
        p = TriggersIter_get_next(&iter, &fparam))
   {
@@ -555,7 +567,7 @@ bool ObjectsEdit_add_trigger(ObjEditContext const *const objects, MapPoint const
     return true;
   }
 
-  if (report_error(triggers_add(objects->triggers, pos, fparam), "", "")) {
+  if (report_error(triggers_add(&*objects->triggers, pos, fparam), "", "")) {
     return false;
   }
 
@@ -569,6 +581,10 @@ bool ObjectsEdit_write_ref_n_triggers(ObjEditContext const *const objects, MapPo
   ObjEditChanges *const change_info, ObjGfxMeshes *const meshes)
 {
   assert(objects);
+  if (!objects->triggers) {
+    return false;
+  }
+  TriggersData *triggers = &*objects->triggers;
 
   if (!objects_can_place(pos)) {
     return false;
@@ -576,8 +592,8 @@ bool ObjectsEdit_write_ref_n_triggers(ObjEditContext const *const objects, MapPo
 
   bool matching = true;
 
-  if (objects->triggers) {
-    bool *const matched = calloc(nitems, sizeof(*matched));
+  if (triggers) {
+    _Optional bool *const matched = calloc(nitems, sizeof(*matched));
     if (!matched) {
       report_error(SFERROR(NoMem), "", "");
       return false;
@@ -586,7 +602,7 @@ bool ObjectsEdit_write_ref_n_triggers(ObjEditContext const *const objects, MapPo
     TriggersIter iter;
     TriggerFullParam ex_fparam;
     size_t matched_count = 0;
-    for (TriggersIter_get_first(&iter, objects->triggers, &(MapArea){pos, pos}, &ex_fparam);
+    for (TriggersIter_get_first(&iter, triggers, &(MapArea){pos, pos}, &ex_fparam);
          !TriggersIter_done(&iter) && matching;
          TriggersIter_get_next(&iter, &ex_fparam)) {
       assert(ex_fparam.param.action != TriggerAction_Dummy);
@@ -639,10 +655,10 @@ bool ObjectsEdit_write_ref_n_triggers(ObjEditContext const *const objects, MapPo
      triggers at other map locations (if adding new chains), so at best
      this is a heuristic. Assume the best case: no new chains and all
      existing triggers replaced. */
-  if (objects->triggers) {
-    size_t const total_count = triggers_get_count(objects->triggers);
+  if (triggers) {
+    size_t const total_count = triggers_get_count(triggers);
     size_t const free_count = TriggersMax - total_count;
-    size_t const max_del_count = triggers_count_locn(objects->triggers, wrapped_pos);
+    size_t const max_del_count = triggers_count_locn(triggers, wrapped_pos);
     DEBUGF("Add %zu triggers, currently %zu slots free, may reclaim up to %zu\n",
            nitems, free_count, max_del_count);
     if (nitems > free_count + max_del_count) {
@@ -668,11 +684,11 @@ bool ObjectsEdit_write_ref_n_triggers(ObjEditContext const *const objects, MapPo
 
   write_ref(objects, wrapped_pos, ref_num, wipe_action, change_info, meshes);
 
-  if (objects->triggers && (wipe_action != TriggersWipeAction_None)) {
+  if (triggers && (wipe_action != TriggersWipeAction_None)) {
     ObjRef const new_disp_ref = filter_overlay_ref(objects, wrapped_pos, ref_num);
 
     for (size_t i = nitems; i-- > 0; ) {
-      if (report_error(triggers_add(objects->triggers, wrapped_pos, fparam[i]), "", "")) {
+      if (report_error(triggers_add(triggers, wrapped_pos, fparam[i]), "", "")) {
         triggers_wipe_locn(objects, wrapped_pos, TriggersWipeAction_KeepChain, change_info);
         ObjEditChanges_delete_trig(change_info);
         return false;
@@ -740,7 +756,7 @@ bool ObjectsEdit_check_ref_range(ObjEditContext const *const objects,
        p = MapAreaIter_get_next(&iter))
   {
     if (objects->base != NULL) {
-      ObjRef const objects_ref = objects_get_ref(objects->base, p);
+      ObjRef const objects_ref = objects_get_ref(&*objects->base, p);
       if (objects_ref_is_object(objects_ref) &&
           objects_ref_to_num(objects_ref) >= num_refs) {
         DEBUG("Base ref %d at location %" PRIMapCoord ",%" PRIMapCoord
@@ -751,7 +767,7 @@ bool ObjectsEdit_check_ref_range(ObjEditContext const *const objects,
     }
 
     if (objects->overlay != NULL) {
-      ObjRef const objects_ref = objects_get_ref(objects->overlay, p);
+      ObjRef const objects_ref = objects_get_ref(&*objects->overlay, p);
       if (objects_ref_is_object(objects_ref) &&
           objects_ref_to_num(objects_ref) >= num_refs) {
         DEBUG("Overlay ref %d at location %" PRIMapCoord ",%" PRIMapCoord
@@ -766,7 +782,7 @@ bool ObjectsEdit_check_ref_range(ObjEditContext const *const objects,
 
 void ObjectsEdit_copy_to_area(ObjEditContext const *const objects,
   MapArea const *const area, ObjectsEditReadFn *const read, void *const cb_arg,
-  ObjEditChanges *const change_info, ObjGfxMeshes *const meshes)
+  _Optional ObjEditChanges *const change_info, ObjGfxMeshes *const meshes)
 {
   assert(objects != NULL);
   assert(MapArea_is_valid(area));
@@ -792,7 +808,7 @@ void ObjectsEdit_copy_to_area(ObjEditContext const *const objects,
 }
 
 bool ObjectsEdit_can_place(ObjEditContext const *const objects, MapPoint const grid_pos, ObjRef const value,
-  ObjGfxMeshes *const meshes, ObjEditSelection *const occluded)
+  ObjGfxMeshes *const meshes, _Optional ObjEditSelection *const occluded)
 {
   if (!objects_can_place(grid_pos)) {
     DEBUGF("Can't place object %d at %" PRIMapCoord ",%" PRIMapCoord " (map limit)\n",
@@ -836,7 +852,7 @@ bool ObjectsEdit_can_place(ObjEditContext const *const objects, MapPoint const g
                objects_ref_to_num(obj_ref), p.x, p.y);
 
 #if DELETE_OVERLAPPED
-        ObjEditSelection_select(occluded, p);
+        ObjEditSelection_select(&*occluded, p);
 #else
         // None is allowed to be placed anywhere (for deletion)
         if (objects_ref_is_none(value)) {
@@ -861,7 +877,7 @@ bool ObjectsEdit_can_place(ObjEditContext const *const objects, MapPoint const g
 
 bool ObjectsEdit_can_copy_to_area(ObjEditContext const *const objects,
   MapArea const *const area, ObjectsEditReadFn *const read, void *const cb_arg,
-  ObjGfxMeshes *const meshes, ObjEditSelection *const occluded)
+  ObjGfxMeshes *const meshes, _Optional ObjEditSelection *const occluded)
 {
   assert(objects != NULL);
   assert(MapArea_is_valid(area));

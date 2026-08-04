@@ -67,10 +67,9 @@ static void Desktop_destroy(void)
 void Desktop_init(void)
 {
   vars_are_valid = false;
-  trans_table = NULL;
 
-  EF(event_register_message_handler(Wimp_MModeChange, mode_change_handler, NULL));
-  EF(event_register_message_handler(Wimp_MPaletteChange, pal_change_handler, NULL));
+  EF(event_register_message_handler(Wimp_MModeChange, mode_change_handler, trans_table));
+  EF(event_register_message_handler(Wimp_MPaletteChange, pal_change_handler, trans_table));
 
   atexit(Desktop_destroy);
 }

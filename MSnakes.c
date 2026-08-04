@@ -302,7 +302,7 @@ void MapSnakes_load(MapSnakes *const snakes_data,
   MapSnakes_free(snakes_data);
   MapSnakes_init(snakes_data);
 
-  char *const full_path = make_file_path_in_dir(
+  _Optional char *const full_path = make_file_path_in_dir(
     CHOICES_READ_PATH TILESNAKES_DIR, tiles_set);
 
   if (!full_path) {
@@ -314,18 +314,18 @@ void MapSnakes_load(MapSnakes *const snakes_data,
   SFError err = SFERROR(OK);
 
   hourglass_on();
-  if (file_exists(full_path)) {
-    FILE *const file = fopen(full_path, "r");
+  if (file_exists(&*full_path)) {
+    _Optional FILE *const file = fopen(&*full_path, "r");
     if (file == NULL) {
       err = SFERROR(OpenInFail);
     } else {
-      err = Snakes_load(file, &snakes_data->super, ntiles, err_buf);
-      fclose(file);
+      err = Snakes_load(&*file, &snakes_data->super, ntiles, err_buf);
+      fclose(&*file);
     }
   }
   hourglass_off();
 
-  report_error(err, full_path, err_buf);
+  report_error(err, &*full_path, err_buf);
   free(full_path);
 }
 

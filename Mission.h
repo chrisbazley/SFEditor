@@ -33,7 +33,7 @@ typedef enum {
   MissionType_Cyber,
 } MissionType;
 
-MissionData *mission_create(void);
+_Optional MissionData *mission_create(void);
 
 PyramidData *mission_get_pyramid(MissionData *mission);
 PlayerData *mission_get_player(MissionData *mission);

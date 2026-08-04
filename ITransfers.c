@@ -156,17 +156,17 @@ static SFError InfoTransfer_read_cb(DFile const *const dfile,
   }
 
   size_t const num_infos = target_infos_get_count(&transfer->infos);
-  long int *const offsets = malloc(sizeof(*offsets) * TargetInfoTextIndex_Count * num_infos);
+  _Optional long int *const offsets = malloc(sizeof(*offsets) * TargetInfoTextIndex_Count * num_infos);
   if (!offsets)
   {
     return SFERROR(NoMem);
   }
 
-  err = read_offsets(num_infos * TargetInfoTextIndex_Count, offsets, reader);
+  err = read_offsets(num_infos * TargetInfoTextIndex_Count, &*offsets, reader);
   if (!SFError_fail(err))
   {
      err = target_infos_read_texts(&transfer->infos,
-                                   offsets, num_infos, reader);
+                                   &*offsets, num_infos, reader);
   }
   free(offsets);
   return err;
@@ -212,9 +212,9 @@ DFile *InfoTransfer_get_dfile(InfoTransfer *const transfer)
   return &transfer->dfile;
 }
 
-InfoTransfer *InfoTransfer_create(void)
+_Optional InfoTransfer *InfoTransfer_create(void)
 {
-  InfoTransfer *const transfer = malloc(sizeof(*transfer));
+  _Optional InfoTransfer *const transfer = malloc(sizeof(*transfer));
   if (transfer == NULL) {
     report_error(SFERROR(NoMem), "", "");
     return NULL;
@@ -231,12 +231,13 @@ InfoTransfer *InfoTransfer_create(void)
   target_infos_init(&transfer->infos);
 
   dfile_init(&transfer->dfile, InfoTransfer_read_cb,
-             InfoTransfer_write_cb, NULL, InfoTransfer_destroy_cb);
+             InfoTransfer_write_cb, (DFileGetMinSizeFn *)NULL,
+             InfoTransfer_destroy_cb);
 
   return transfer;
 }
 
-InfoTransfer *InfoTransfers_grab_selection(InfoEditContext const *const infos,
+_Optional InfoTransfer *InfoTransfers_grab_selection(InfoEditContext const *const infos,
   SelectionBitmask *const selected)
 {
   if (SelectionBitmask_is_none(selected)) {
@@ -244,7 +245,7 @@ InfoTransfer *InfoTransfers_grab_selection(InfoEditContext const *const infos,
     return NULL; /* nothing selected! */
   }
 
-  InfoTransfer *const transfer = InfoTransfer_create();
+  _Optional InfoTransfer *const transfer = InfoTransfer_create();
   if (transfer == NULL) {
     return NULL;
   }
@@ -257,8 +258,12 @@ InfoTransfer *InfoTransfers_grab_selection(InfoEditContext const *const infos,
        !SelectionBitmaskIter_done(&iter);
        index = SelectionBitmaskIter_get_next(&iter))
   {
-    TargetInfo const *const info = InfoEdit_get(infos, index);
-    MapPoint const pos = target_info_get_pos(info);
+    _Optional TargetInfo const *const info = InfoEdit_get(infos, index);
+    assert(info);
+    if (!info) {
+      break;
+    }
+    MapPoint const pos = target_info_get_pos(&*info);
     MapArea_expand(&bounds, pos);
 
     size_t t_index;
@@ -266,13 +271,23 @@ InfoTransfer *InfoTransfers_grab_selection(InfoEditContext const *const infos,
     if (SFError_fail(err)) {
       break;
     }
-    TargetInfo *const copy = target_info_from_index(&transfer->infos, t_index);
+
+    _Optional TargetInfo *const copy = target_info_from_index(&transfer->infos, t_index);
+    assert(copy);
+    if (!copy) {
+      break;
+    }
 
     for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
          k < TargetInfoTextIndex_Count;
          ++k) {
-      char const *const text = target_info_get_text(info, k);
-      err = target_info_set_text(copy, k, text);
+      _Optional char const *const text = target_info_get_text(&*info, k);
+      assert(text);
+      if (!text) {
+        break;
+      }
+
+      err = target_info_set_text(&*copy, k, &*text);
       if (SFError_fail(err)) {
         break;
       }
@@ -280,7 +295,7 @@ InfoTransfer *InfoTransfers_grab_selection(InfoEditContext const *const infos,
   }
 
   if (report_error(err, "", "")) {
-    dfile_release(InfoTransfer_get_dfile(transfer));
+    dfile_release(InfoTransfer_get_dfile(&*transfer));
     return NULL;
   }
 
@@ -317,8 +332,13 @@ size_t InfoTransfers_get_info_count(InfoTransfer const *const transfer)
 MapPoint InfoTransfers_get_pos(InfoTransfer const *const transfer,
   size_t const index)
 {
-  TargetInfo const *const info = target_info_from_index(&transfer->infos, index);
-  return MapPoint_sub(target_info_get_pos(info), map_coords_from_coarse(transfer->offset));
+  _Optional TargetInfo const *const info = target_info_from_index(&transfer->infos, index);
+  assert(info);
+  if (!info)
+  {
+    return (MapPoint){0,0};
+  }
+  return MapPoint_sub(target_info_get_pos(&*info), map_coords_from_coarse(transfer->offset));
 }
 
 bool InfoTransfers_plot_to_map(InfoEditContext const *const infos,
@@ -335,14 +355,20 @@ bool InfoTransfers_plot_to_map(InfoEditContext const *const infos,
   size_t const count = target_infos_get_count(&transfer->infos);
 
   for (size_t t_index = 0; t_index < count; ++t_index) {
-    TargetInfo const *const info = target_info_from_index(&transfer->infos, t_index);
-    MapPoint const pos = MapPoint_sub(target_info_get_pos(info), map_coords_from_coarse(transfer->offset));
+    _Optional const TargetInfo *const info = target_info_from_index(
+                                                &transfer->infos, t_index);
+    if (!info)
+    {
+      break;
+    }
+    assert(info);
+    MapPoint const pos = MapPoint_sub(target_info_get_pos(&*info), map_coords_from_coarse(transfer->offset));
 
     char const *strings[TargetInfoTextIndex_Count];
     for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
          k < TargetInfoTextIndex_Count;
          ++k) {
-      strings[k] = target_info_get_text(info, k);
+      strings[k] = target_info_get_text(&*info, k);
     }
 
     size_t index;
@@ -370,8 +396,13 @@ void InfoTransfers_find_occluded(InfoEditContext const *const infos,
   size_t const count = target_infos_get_count(&transfer->infos);
 
   for (size_t t_index = 0; t_index < count; ++t_index) {
-    TargetInfo const *const info = target_info_from_index(&transfer->infos, t_index);
-    MapPoint const pos = MapPoint_sub(target_info_get_pos(info), map_coords_from_coarse(transfer->offset));
+    _Optional TargetInfo const *const info = target_info_from_index(&transfer->infos, t_index);
+    assert(info);
+    if (!info)
+    {
+      break;
+    }
+    MapPoint const pos = MapPoint_sub(target_info_get_pos(&*info), map_coords_from_coarse(transfer->offset));
     InfoEdit_find_occluded(infos, MapPoint_add(bl, pos), occluded);
   }
 }

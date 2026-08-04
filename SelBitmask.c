@@ -40,7 +40,8 @@ static void redraw(SelectionBitmask *const selection, size_t const index)
 }
 
 void SelectionBitmask_init(SelectionBitmask *const selection, size_t const num,
-  void (*redraw_cb)(size_t, void *), void *redraw_arg)
+                           _Optional SelectionBitmaskRedrawFn *redraw_cb,
+                           void *redraw_arg)
 {
   assert(selection);
   assert(num <= sizeof(selection->bitmask) * CHAR_BIT);

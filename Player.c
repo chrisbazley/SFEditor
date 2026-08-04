@@ -243,7 +243,7 @@ void player_write_docked(PlayerData const *const player,
   }
   else
   {
-    writer_fputc(ship_get_index(player->docked_in.ship), writer);
+    writer_fputc(ship_get_index(&*player->docked_in.ship), writer);
   }
 }
 

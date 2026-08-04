@@ -76,11 +76,11 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   E(saveas_set_file_type(0, id_block->self_id,
     data_type_to_file_type(data_type)));
 
-  char *const savepath = Session_get_file_name_for_save(
+  _Optional char *const savepath = Session_get_file_name_for_save(
     session, data_type);
 
   if (savepath != NULL) {
-    E(saveas_set_file_name(0, id_block->self_id, savepath));
+    E(saveas_set_file_name(0, id_block->self_id, &*savepath));
     free(savepath);
   }
 
@@ -103,20 +103,20 @@ static int save_to_file(int const event_code, ToolboxEvent *const event,
 
   /* Warn if we are about to save to a different file path and a file of
      that name already exists */
-  char *canonicalised = NULL;
-  if (!E(canonicalise(&canonicalised, NULL, NULL, sastf->filename))) {
-    char *const old_filename = Session_get_file_name(session, data_type);
+  _Optional char *canonicalised = NULL;
+  if (!E(canonicalise(&canonicalised, NULL, NULL, sastf->filename)) && canonicalised) {
+    _Optional char *const old_filename = Session_get_file_name(session, data_type);
 
-    if (old_filename && stricmp(old_filename, canonicalised) != 0 &&
-        file_exists(canonicalised) &&
+    if (old_filename && stricmp(&*old_filename, &*canonicalised) != 0 &&
+        file_exists(&*canonicalised) &&
         stricmp(sastf->filename, "<Wimp$Scrap>") != 0) {
 
-      if (dialogue_confirm(msgs_lookup_subn("FileOv", 1, canonicalised),
+      if (dialogue_confirm(msgs_lookup_subn("FileOv", 1, &*canonicalised),
           "OvBut")) {
-        success = Session_save_file(session, data_type, canonicalised);
+        success = Session_save_file(session, data_type, &*canonicalised);
       }
     } else {
-      success = Session_save_file(session, data_type, canonicalised);
+      success = Session_save_file(session, data_type, &*canonicalised);
     }
     free(canonicalised);
   }
@@ -161,6 +161,6 @@ void sfsaveas_created(ObjectId const id)
 
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i) {
     EF(event_register_toolbox_handler(id, handlers[i].event_code,
-                                      handlers[i].handler, NULL));
+                                      handlers[i].handler, &data_type));
   }
 }

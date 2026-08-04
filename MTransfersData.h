@@ -22,7 +22,7 @@ struct MapTransfers
   StrDict           dict;
   SprMem            thumbnail_sprites; /* flex anchor for sprite area */
   bool              have_thumbnails;
-  char *directory;
+  _Optional char *directory;
 };
 
 #endif

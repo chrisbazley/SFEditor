@@ -87,7 +87,7 @@ typedef union {
 
 bool EditWin_menu_needs_update(EditWin const *edit_win, ObjectId self_id);
 
-bool EditWin_init(EditWin *edit_win, struct Editor *editor, EditWin const *edit_win_to_copy);
+bool EditWin_init(EditWin *edit_win, struct Editor *editor, _Optional EditWin const *edit_win_to_copy);
 void EditWin_destroy(EditWin *edit_win);
 void EditWin_show(EditWin const *edit_win);
 
@@ -144,7 +144,7 @@ void EditWin_show_window_aligned_right(EditWin const *edit_win,
 
 void EditWin_show_toolbar(EditWin const *edit_win, ObjectId tools_id);
 
-void EditWin_set_help_and_ptr(EditWin *edit_win, char *help, PointerType ptr);
+void EditWin_set_help_and_ptr(EditWin *edit_win, _Optional char *help, PointerType ptr);
 
 struct Editor *EditWin_get_editor(EditWin const *edit_win);
 
@@ -152,7 +152,7 @@ void EditWin_update_can_paste(EditWin *edit_win);
 
 int EditWin_get_wimp_handle(EditWin const *edit_win);
 
-struct HillsData const *EditWin_get_hills(EditWin const *edit_win);
+_Optional struct HillsData const *EditWin_get_hills(EditWin const *edit_win);
 
 void EditWin_redraw_map(EditWin *edit_win, MapArea const *area);
 

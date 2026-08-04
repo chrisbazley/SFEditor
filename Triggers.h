@@ -73,16 +73,16 @@ typedef struct
 {
   TriggersData *triggers;
   IntDictVIter viter;
-  Trigger *trigger;
+  _Optional Trigger *trigger;
   MapArea map_area;
   bool done;
 }
 TriggersIter;
 
 MapPoint TriggersIter_get_first(TriggersIter *iter, TriggersData *triggers,
-  MapArea const *map_area, TriggerFullParam *fparam);
+  MapArea const *map_area, _Optional TriggerFullParam *fparam);
 
-MapPoint TriggersIter_get_next(TriggersIter *iter, TriggerFullParam *fparam);
+MapPoint TriggersIter_get_next(TriggersIter *iter, _Optional TriggerFullParam *fparam);
 
 static inline bool TriggersIter_done(TriggersIter const *iter)
 {
@@ -97,7 +97,7 @@ typedef struct
 {
   TriggersData *triggers;
   IntDictVIter viter;
-  Trigger *trigger;
+  _Optional Trigger *trigger;
   Trigger *next_chain;
   MapArea map_area;
   bool done;

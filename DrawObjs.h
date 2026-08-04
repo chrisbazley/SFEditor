@@ -34,18 +34,19 @@ struct ObjGfxMeshes;
 struct CloudColData;
 
 void DrawObjs_to_screen(
-  PolyColData const *poly_colours,
-  struct HillColData const *hill_colours,
+  _Optional PolyColData const *poly_colours,
+  _Optional struct HillColData const *hill_colours,
   struct CloudColData const *clouds,
   struct ObjGfxMeshes *meshes,
   struct View const *view,
   MapArea const *scr_area,
   DrawObjsReadObjFn *read_obj,
   DrawObjsReadHillFn *read_hill, void *cb_arg,
-  struct TriggersData *triggers,
-  struct ObjEditSelection const *selection,
+  _Optional struct TriggersData *triggers,
+  _Optional struct ObjEditSelection const *selection,
   Vertex const scr_orig,
-  bool is_ghost, struct ObjEditSelection const *occluded);
+  bool is_ghost,
+  _Optional struct ObjEditSelection const *occluded);
 
 void DrawObjs_unknown_to_screen(
   struct View const *view,

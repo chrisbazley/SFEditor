@@ -115,7 +115,7 @@ static void objects_write_cb(DFile const *const dfile, Writer *const writer)
 
 static void objects_cleanup(void)
 {
-  strdict_destroy(&file_dict, NULL, NULL);
+  strdict_destroy(&file_dict, (StrDictDestructorFn *)NULL, &file_dict);
 }
 
 void objects_init(void)
@@ -130,9 +130,9 @@ DFile *objects_get_dfile(ObjectsData *const obj)
   return &obj->dfile;
 }
 
-static ObjectsData *objects_create(bool const is_overlay)
+static _Optional ObjectsData *objects_create(bool const is_overlay)
 {
-  ObjectsData *obj = malloc(sizeof(*obj));
+  _Optional ObjectsData *obj = malloc(sizeof(*obj));
   if (obj)
   {
     *obj = (ObjectsData){.is_overlay = is_overlay};
@@ -150,12 +150,12 @@ static ObjectsData *objects_create(bool const is_overlay)
   return obj;
 }
 
-ObjectsData *objects_create_base(void)
+_Optional ObjectsData *objects_create_base(void)
 {
   return objects_create(false);
 }
 
-ObjectsData *objects_create_overlay(void)
+_Optional ObjectsData *objects_create_overlay(void)
 {
   return objects_create(true);
 }
@@ -166,9 +166,9 @@ bool objects_share(ObjectsData *const obj)
   return dfile_set_shared(&obj->dfile, &file_dict);
 }
 
-ObjectsData *objects_get_shared(char const *const filename)
+_Optional ObjectsData *objects_get_shared(char const *const filename)
 {
-  DFile *const dfile = dfile_find_shared(&file_dict, filename);
+  _Optional DFile *const dfile = dfile_find_shared(&file_dict, filename);
   return dfile ? CONTAINER_OF(dfile, ObjectsData, dfile) : NULL;
 }
 

@@ -132,7 +132,7 @@ enum {
   WimpIcon_WorkArea = -1, /* Pseudo icon handle (window's work area) */
 };
 
-static EditWin *drag_claim_edit_win, *drag_origin_edit_win;
+static _Optional EditWin *drag_claim_edit_win, *drag_origin_edit_win;
 
 /* ---------------- Private functions ---------------- */
 
@@ -259,7 +259,7 @@ static void scroll_to(EditWin const *const edit_win, MapPoint const grid_pos, Wi
   window_state->yscroll = new_centre.y + half_vis_size.y;
 }
 
-static void set_extent(EditWin *const edit_win, MapPoint const *const grid_pos)
+static void set_extent(EditWin *const edit_win, _Optional MapPoint const *const grid_pos)
 {
   assert(edit_win);
   DEBUG("Current extent of edit_win %p is %d,%d", (void *)edit_win,
@@ -672,7 +672,7 @@ static void restrict_ptr(EditWin *const edit_win, int const x, int const y)
   }
 }
 
-static void close(EditWin *const edit_win, bool const open_parent)
+static void close_win(EditWin *const edit_win, bool const open_parent)
 {
   /* Attempt to close window */
   int const count = Session_try_delete_edit_win(
@@ -688,8 +688,9 @@ static void close(EditWin *const edit_win, bool const open_parent)
  * type 5 is used for DragBoxOp_Start, drag type 7 for DragBoxOp_Hide and
  * Wimp_DragBox -1 for DragBoxOp_Cancel.
  */
-static const _Optional _kernel_oserror *drag_box_method(DragBoxOp action, bool solid_drags, int mouse_x,
-                                              int mouse_y, void *client_handle)
+static _Optional const _kernel_oserror *drag_box_method(DragBoxOp action,
+                                                        bool solid_drags, int mouse_x,
+                                                        int mouse_y, void *client_handle)
 {
   NOT_USED(solid_drags);
   EditWin *const edit_win = client_handle;
@@ -1066,7 +1067,7 @@ static int select_drag_complete(int const event_code, WimpPollBlock *const event
 
   /* Fake the pointer-leaving-window event we ignored (we will receive a
   pointer-entering-window event shortly if appropriate) */
-  pointer_leave(Wimp_EPointerLeavingWindow, NULL, NULL, edit_win);
+  pointer_leave(Wimp_EPointerLeavingWindow, &(WimpPollBlock){0}, &(IdBlock){0}, edit_win);
 
   return 1; /* claim event */
 }
@@ -1082,7 +1083,7 @@ static void stop_drag(EditWin *const edit_win)
 
     /* Fake the pointer-leaving-window event we ignored (we will receive a
        pointer-entering-window event shortly if appropriate) */
-    pointer_leave(Wimp_EPointerLeavingWindow, NULL, NULL, edit_win);
+    pointer_leave(Wimp_EPointerLeavingWindow, &(WimpPollBlock){0}, &(IdBlock){0}, edit_win);
   }
 }
 
@@ -1240,7 +1241,7 @@ static bool claim_clipboard(Editor *const editor)
   /* Claim the global clipboard
      (a side-effect is to free any clipboard data held by us) */
   return !E(entity2_claim(Wimp_MClaimEntity_Clipboard, export_file_types,
-                          estimate_cb, cb_write, cb_lost, NULL));
+                          estimate_cb, cb_write, cb_lost, editor));
 }
 
 static MapArea drag_bbox_to_grid2(EditWin const *const edit_win, MapPoint const map_pos,
@@ -1396,7 +1397,7 @@ static int useracthandler(int const event_code, ToolboxEvent *const event,
       return 1; /* claim event */
 
     case EVENT_STD_CLOSE:
-      close(edit_win, false);
+      close_win(edit_win, false);
       return 1; /* claim event */
 
     case EVENT_NEWVIEW:
@@ -1855,7 +1856,10 @@ static int gain_caret(int const event_code, WimpPollBlock *const event,
   EditWin *const edit_win = handle;
 
   if (!edit_win->has_input_focus &&
-      !E(entity2_claim(Wimp_MClaimEntity_CaretOrSelection, NULL, NULL, NULL,
+      !E(entity2_claim(Wimp_MClaimEntity_CaretOrSelection,
+                       NULL,
+                       (Entity2EstimateMethod *)NULL,
+                       (Saver2WriteMethod *)NULL,
                        caret_lost, edit_win)))
   {
     edit_win->has_input_focus = true;
@@ -1947,7 +1951,7 @@ static int close_window(int const event_code, WimpPollBlock *const event,
   } else
     open_parent = false; /* no ADJUST click */
 
-  close(edit_win, open_parent);
+  close_win(edit_win, open_parent);
 
   return 1; /* claim event */
 }
@@ -1958,19 +1962,20 @@ static void relinquish_drag(void)
 {
   if (drag_claim_edit_win != NULL)
   {
-    DEBUGF("EditWin %p relinquishing drag\n", (void *)drag_claim_edit_win);
+    EditWin *const edit_win = &*drag_claim_edit_win;
+    DEBUGF("EditWin %p relinquishing drag\n", (void *)edit_win);
 
     /* Undraw the ghost caret, if any */
-    Editor *const drag_claim_editor = drag_claim_edit_win->editor;
+    Editor *const drag_claim_editor = edit_win->editor;
     Editor_hide_ghost_drop(drag_claim_editor);
 
-    if (drag_claim_edit_win->mouse_in)
+    if (edit_win->mouse_in)
     {
-      drag_claim_edit_win->mouse_in = false;
-      StatusBar_show_pos(&drag_claim_edit_win->statusbar_data, true, (MapPoint){0, 0});
+      edit_win->mouse_in = false;
+      StatusBar_show_pos(&edit_win->statusbar_data, true, (MapPoint){0, 0});
     }
 
-    drag_claim_edit_win->dragclaim_msg_ref = 0;
+    edit_win->dragclaim_msg_ref = 0;
     drag_claim_edit_win = NULL;
   }
 }
@@ -2021,11 +2026,12 @@ static int dragging_msg_handler(WimpMessage *const message, void *const handle)
     return 1;
   }
 
-  bool const is_local = (message->hdr.sender == task_handle && drag_origin_edit_win);
-  Editor *const drag_origin_editor = is_local ? drag_origin_edit_win->editor : NULL;
+  _Optional EditWin const *const doew = drag_origin_edit_win;
+  bool const is_local = (message->hdr.sender == task_handle && doew);
+  _Optional Editor *const drag_origin_editor = is_local ? doew->editor : NULL;
 
   if (drag_origin_editor &&
-      Editor_get_edit_mode(drag_origin_editor) != Editor_get_edit_mode(editor)) {
+      Editor_get_edit_mode(&*drag_origin_editor) != Editor_get_edit_mode(editor)) {
     DEBUGF("Editing mode mismatch\n");
     relinquish_drag();
     return 1;
@@ -2106,9 +2112,9 @@ static int dragging_msg_handler(WimpMessage *const message, void *const handle)
   MapArea const grid_bbox = drag_bbox_to_grid2(edit_win, map_pos, &edit_win->drop_bbox);
 
   if (Editor_show_ghost_drop(editor, &grid_bbox, drag_origin_editor) ||
-      (is_local &&
-        (EditWin_get_zoom(drag_origin_edit_win) != EditWin_get_zoom(edit_win) ||
-         EditWin_get_angle(drag_origin_edit_win) != EditWin_get_angle(edit_win)))) {
+      (is_local && doew &&
+        (EditWin_get_zoom(&*doew) != EditWin_get_zoom(edit_win) ||
+         EditWin_get_angle(&*doew) != EditWin_get_angle(edit_win)))) {
     flags |= Wimp_MDragClaim_RemoveDragBox;
   }
 
@@ -2127,7 +2133,7 @@ static int datasave_msg_handler(WimpMessage *const message, void *const handle)
 {
   /* This handler should receive DataSave messages before CBLibrary's Loader
      component. We need to intercept replies to a DragClaim message. */
-  EditWin *edit_win = handle;
+  _Optional EditWin *edit_win = handle;
 
   assert(edit_win != NULL);
   assert(message != NULL);
@@ -2148,7 +2154,7 @@ static int datasave_msg_handler(WimpMessage *const message, void *const handle)
   }
 
   assert(edit_win);
-  if (edit_win->wimp_id != message->data.data_save.destination_window)
+  if (!edit_win || edit_win->wimp_id != message->data.data_save.destination_window)
   {
     DEBUGF("Destination is not in edit_win %p\n", (void *)edit_win);
     return 0; /* message is not intended for this editing window */
@@ -2180,7 +2186,7 @@ static int datasave_msg_handler(WimpMessage *const message, void *const handle)
     return 1;
   }
 
-  E(loader3_receive_data(message, drop_read_cb, paste_failed_cb, edit_win));
+  E(loader3_receive_data(message, drop_read_cb, paste_failed_cb, &*edit_win));
 
   return 1; /* claim message */
 }
@@ -2431,7 +2437,7 @@ static bool drop_method(bool const shift_held, int const window, int const icon,
 {
   bool saved = true;
   EditWin *const src_edit_win = client_handle;
-  EditWin *dest_edit_win = src_edit_win;
+  _Optional EditWin *dest_edit_win = src_edit_win;
 
   assert(src_edit_win->dragging_obj);
   src_edit_win->dragging_obj = false;
@@ -2451,7 +2457,7 @@ static bool drop_method(bool const shift_held, int const window, int const icon,
       relinquish_drag();
     }
 
-    local_drop(dest_edit_win, src_edit_win, shift_held, (Vertex){mouse_x, mouse_y});
+    local_drop(&*dest_edit_win, src_edit_win, shift_held, (Vertex){mouse_x, mouse_y});
 
   } else if (!Session_drag_obj_link(EditWin_get_session(src_edit_win), window, icon, src_edit_win->editor)) {
     DEBUGF("Drag destination is remote\n");
@@ -2471,7 +2477,8 @@ static bool drop_method(bool const shift_held, int const window, int const icon,
     STRCPY_SAFE(msg.data.data_save.leaf_name, msgs_lookup("LeafName"));
 
     if (E(saver2_send_data(claimant_task, &msg, drag_write,
-                           shift_held ? drag_moved : NULL, drag_failed, src_edit_win)))
+                           shift_held ? drag_moved : (Saver2CompleteMethod *)NULL,
+                           drag_failed, src_edit_win)))
     {
       Editor_cancel_drag_obj(src_edit_win->editor);
       saved = false;
@@ -2587,7 +2594,7 @@ static void update_read_info_ctx(EditWin *const edit_win)
 /* ---------------- Public functions ---------------- */
 
 bool EditWin_init(EditWin *const edit_win, Editor *const editor,
-  EditWin const *const edit_win_to_copy)
+                  _Optional EditWin const *const edit_win_to_copy)
 {
   ObjectId status_bar_id = NULL_ObjectId;
   DEBUG("Creating new edit_win (cloned from %p) on editor %p",
@@ -3011,7 +3018,7 @@ void EditWin_set_ghost_colour(EditWin *const edit_win, PaletteEntry const colour
   }
 }
 
-HillsData const *EditWin_get_hills(EditWin const *const edit_win)
+_Optional HillsData const *EditWin_get_hills(EditWin const *const edit_win)
 {
   assert(edit_win != NULL);
   return edit_win->has_hills ? &edit_win->hills : NULL;
@@ -3292,7 +3299,7 @@ void EditWin_display_mode(EditWin *const edit_win)
   redraw_all(edit_win);
 }
 
-void EditWin_set_help_and_ptr(EditWin *const edit_win, char *const help,
+void EditWin_set_help_and_ptr(EditWin *const edit_win, _Optional char *const help,
   PointerType const ptr)
 {
   if (help == NULL || *help != '\0') {
@@ -3309,7 +3316,7 @@ void EditWin_set_help_and_ptr(EditWin *const edit_win, char *const help,
     edit_win->pointer = ptr;
 
     static const struct {
-      char *sprite_name;
+      _Optional char *sprite_name;
       Vertex hot_spot;
     } pointers[] = {
       [Pointer_Standard] = { NULL, {8, 8} },
@@ -3346,7 +3353,7 @@ void EditWin_display_hint(EditWin *const edit_win, char const *hint)
 void EditWin_close(EditWin *const edit_win)
 {
   /* Attempt to close the specified edit_win (prompting for discard if necessary) */
-  close(edit_win, false);
+  close_win(edit_win, false);
 }
 
 int EditWin_get_zoom(EditWin const *const edit_win)

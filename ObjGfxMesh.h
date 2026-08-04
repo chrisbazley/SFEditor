@@ -71,7 +71,7 @@ void ObjGfxMeshes_set_pal_distance(ObjGfxMeshes *meshes, ObjRef obj_no, long int
 
 void ObjGfxMeshes_global_init(void);
 
-TrigTable const *ObjGfxMeshes_get_trig_table(void);
+_Optional TrigTable const *ObjGfxMeshes_get_trig_table(void);
 
 void ObjGfxMeshes_set_direction(ObjGfxMeshesView *ctx, ObjGfxDirection direction, int map_scaler);
 
@@ -82,16 +82,18 @@ typedef enum {
 } ObjGfxMeshStyle;
 
 void ObjGfxMeshes_plot(ObjGfxMeshes const *meshes, ObjGfxMeshesView const *ctx,
-  PolyColData const *colours, ObjRef obj_no,
+  _Optional PolyColData const *colours, ObjRef obj_no,
   Vertex centre, long int distance, Vertex3D pos,
-  PaletteEntry const (*pal)[NumColours], BBox *bounding_box, ObjGfxMeshStyle style);
+  _Optional PaletteEntry const (*pal)[NumColours],
+  _Optional BBox *bounding_box, ObjGfxMeshStyle style);
 
 void ObjGfxMeshes_plot_poly_hill(ObjGfxMeshesView const *ctx,
-  HillColData const *hill_colours,
-  HillType type, unsigned char (*colours)[Hill_MaxPolygons],
+  _Optional HillColData const *hill_colours,
+  HillType type, _Optional unsigned char (*colours)[Hill_MaxPolygons],
   unsigned char (*heights)[HillCorner_Count],
   Vertex centre, long int distance, Vertex3D pos,
-  PaletteEntry const (*pal)[NumColours], BBox *bounding_box, ObjGfxMeshStyle style);
+  _Optional PaletteEntry const (*pal)[NumColours],
+  _Optional BBox *bounding_box, ObjGfxMeshStyle style);
 
 void ObjGfxMeshes_plot_grid(ObjGfxMeshesView const *ctx, Vertex centre, long int distance, Vertex3D pos);
 void ObjGfxMeshes_plot_mask(ObjGfxMeshesView const *ctx, Vertex centre, long int distance, Vertex3D pos);

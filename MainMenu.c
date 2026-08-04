@@ -140,10 +140,10 @@ void MainMenu_hide(void)
 EditSession *MainMenu_get_session(void)
 {
   EditSession *session = NULL;
-  void *const edit_win = get_ancestor_handle_if_showing(MainMenu_id);
+  _Optional EditWin *const edit_win = get_ancestor_handle_if_showing(MainMenu_id);
 
   if (edit_win != NULL) {
-    session = EditWin_get_session(edit_win);
+    session = EditWin_get_session(&*edit_win);
   }
 
   return session;

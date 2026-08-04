@@ -112,9 +112,9 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 
 static bool is_showing_for_session(EditWin const *const edit_win)
 {
-  void *const ancestor_edit_win = get_ancestor_handle_if_showing(UtilsMenu_id);
+  _Optional EditWin *const ancestor_edit_win = get_ancestor_handle_if_showing(UtilsMenu_id);
   const EditSession *const ancestor_session =
-    ancestor_edit_win ? EditWin_get_session(ancestor_edit_win) : NULL;
+    ancestor_edit_win ? EditWin_get_session(&*ancestor_edit_win) : NULL;
 
   return ancestor_session == EditWin_get_session(edit_win);
 }

@@ -68,7 +68,12 @@ static size_t ShipsMode_num_selected(Editor const *const editor)
 
 static size_t ShipsMode_max_selected(Editor const *const editor)
 {
-  return ships_get_count(mission_get_ships(Session_get_mission(Editor_get_session(editor))));
+  _Optional MissionData *const m = Session_get_mission(Editor_get_session(editor));
+  assert(m);
+  if (!m) {
+    return 0;
+  }
+  return ships_get_count(mission_get_ships(&*m));
 }
 
 static bool ShipsMode_auto_select(Editor *const editor, MapPoint const fine_pos, EditWin *const edit_win)
@@ -137,13 +142,13 @@ bool ShipsMode_enter(Editor *const editor)
   DEBUG("Entering ships mode");
   assert(ShipsMode_can_enter(editor));
 
-  ShipsModeData *const mode_data = malloc(sizeof(ShipsModeData));
+  _Optional ShipsModeData *const mode_data = malloc(sizeof(ShipsModeData));
   if (mode_data == NULL) {
     report_error(SFERROR(NoMem), "", "");
     return false;
   }
 
-  editor->editingmode_data = mode_data;
+  editor->editingmode_data = &*mode_data;
 
   static DataType const type_list[] = {DataType_Count};
 

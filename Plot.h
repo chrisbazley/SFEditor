@@ -40,7 +40,7 @@ typedef struct {
 } Plot_FontParams;
 
 void plot_font(int handle, char const *string,
-  BBox const *rubout, Vertex scr_pos, bool blend);
+  _Optional BBox const *rubout, Vertex scr_pos, bool blend);
 
 int plot_get_font_width(int handle, char const *string);
 

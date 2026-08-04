@@ -1051,7 +1051,7 @@ void Snakes_get_name(const Snakes *const snakes_data, int const snake,
 int Snakes_begin_line(SnakeContext *const ctx,
   Snakes *const snakes_data, MapPoint const map_pos, int const snake,
   bool const inside, SnakesReadFunction *const read,
-  SnakesWriteFunction *const write)
+  _Optional SnakesWriteFunction *const write)
 {
   assert(ctx != NULL);
 
@@ -1137,7 +1137,7 @@ SFError Snakes_load(FILE *const file, Snakes *const snakes_data,
         Extract snake name
       */
       {
-        char *snake_name = strtok(read_line, "\"'"); /* start of line */
+        _Optional char *snake_name = strtok(read_line, "\"'"); /* start of line */
         if (snake_name != NULL)
           snake_name = strtok(NULL, "\"'"); /* string between quotes */
 
@@ -1147,13 +1147,13 @@ SFError Snakes_load(FILE *const file, Snakes *const snakes_data,
           return SFERROR(Mistake);
         }
 
-        if (strlen(snake_name) >= sizeof(snake.name)) {
+        if (strlen(&*snake_name) >= sizeof(snake.name)) {
           /* Report name too long and line number */
           sprintf(err_buf, "%d", line);
           return SFERROR(StringTooLong);
         }
         DEBUG("Snake name %d: %s", snakes_data->count, snake_name);
-        strcpy(snake.name, snake_name);
+        strcpy(snake.name, &*snake_name);
       }
 
       in_snake = true;

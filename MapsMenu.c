@@ -46,7 +46,7 @@
 #endif
 
 static ComponentId ticked = NULL_ComponentId;
-static filescan_leafname *combined_list;
+static _Optional filescan_leafname *combined_list;
 
 /* ---------------- Private functions ---------------- */
 
@@ -95,7 +95,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   NOT_USED(event);
   NOT_USED(handle);
 
-  char const *token = NULL;
+  char const *token;
 
   if (id_block->ancestor_id == IbarMenu_id)
   {
@@ -112,13 +112,13 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   hourglass_on();
 
   int new_vsn_sprscape, new_vsn_fxdobj, new_vsn_anims;
-  filescan_leafname *const sprscape_leaves = filescan_get_leaf_names(FS_BASE_SPRSCAPE,
+  _Optional filescan_leafname *const sprscape_leaves = filescan_get_leaf_names(FS_BASE_SPRSCAPE,
     &new_vsn_sprscape);
 
-  filescan_leafname *const fxdobj_leaves = filescan_get_leaf_names(FS_BASE_FXDOBJ,
+  _Optional filescan_leafname *const fxdobj_leaves = filescan_get_leaf_names(FS_BASE_FXDOBJ,
     &new_vsn_fxdobj);
 
-  filescan_leafname *const anims_leaves = filescan_get_leaf_names(FS_BASE_ANIMS,
+  _Optional filescan_leafname *const anims_leaves = filescan_get_leaf_names(FS_BASE_ANIMS,
     &new_vsn_anims);
 
   hourglass_off();
@@ -129,16 +129,16 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 
   /* We must keep the combined list of leafnames for lifetime of the menu
      or risk dangling pointers */
-  filescan_leafname *partial_combined_list =
-    filescan_combine_filenames(sprscape_leaves, fxdobj_leaves);
+  _Optional filescan_leafname *partial_combined_list =
+    filescan_combine_filenames(&*sprscape_leaves, &*fxdobj_leaves);
 
   if (partial_combined_list == NULL)
   {
     return 1; /* error */
   }
 
-  filescan_leafname *const new_combined_list =
-    filescan_combine_filenames(partial_combined_list, anims_leaves);
+  _Optional filescan_leafname *const new_combined_list =
+    filescan_combine_filenames(&*partial_combined_list, &*anims_leaves);
 
   FREE_SAFE(partial_combined_list);
 
@@ -150,7 +150,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   free(combined_list);
   combined_list = new_combined_list;
 
-  char const *leafname_ptr = NULL;
+  _Optional char const *leafname_ptr = NULL;
   Filename leafname_buf;
   bool grey_internal = false;
   static bool intern_greyed;
@@ -179,7 +179,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
     /* Rebuild menu */
     if (wipe_menu(id_block->self_id, next_free - 1))
     {
-      ticked = fsmenu_build(id_block->self_id, combined_list, &next_free,
+      ticked = fsmenu_build(id_block->self_id, &*new_combined_list, &next_free,
                false, false, grey_internal, leafname_ptr); /* exclude "Blank" */
 
       vsn_fxdobj = new_vsn_fxdobj;
@@ -194,7 +194,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   if (intern_greyed != grey_internal)
   {
     /* No need to rebuild menu - just update fading of internal files */
-    fsmenu_grey_internal(id_block->self_id, combined_list, false,
+    fsmenu_grey_internal(id_block->self_id, &*new_combined_list, false,
     grey_internal);
 
     intern_greyed = grey_internal;
@@ -216,7 +216,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
       (char *)&read_name, sizeof(read_name), 0)))
         break;
 
-      if (stricmp(read_name, leafname_ptr) == 0) {
+      if (stricmp(read_name, &*leafname_ptr) == 0) {
         /* Tick menu entry to show it is selected */
         E(menu_set_tick(0, id_block->self_id, entry, 1));
         DEBUG("Ticking entry %d of menu %d", entry, id_block->self_id);
@@ -250,7 +250,7 @@ void mapsmenu_created(ObjectId const id)
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
     EF(event_register_toolbox_handler(id, handlers[i].event_code,
-                                      handlers[i].handler, NULL));
+                                      handlers[i].handler, &ticked));
   }
   atexit(mapsmenu_cleanup);
 }

@@ -17,8 +17,8 @@
 typedef struct MapTex MapTex;
 
 void MapTex_init(void);
-MapTex *MapTex_get_shared(char const *filename);
-MapTex *MapTex_create(void);
+_Optional MapTex *MapTex_get_shared(char const *filename);
+_Optional MapTex *MapTex_create(void);
 bool MapTex_share(MapTex *textures);
 DFile *MapTex_get_dfile(MapTex *textures);
 void MapTex_load_metadata(MapTex *textures);

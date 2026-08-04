@@ -187,7 +187,7 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
     return SFERROR(AlreadyReported);
   }
 
-  SpriteHeader *const spr = SprMem_get_sprite_address(&tiles->sprites[MapAngle_North][0], numstr);
+  _Optional SpriteHeader *const spr = SprMem_get_sprite_address(&tiles->sprites[MapAngle_North][0], numstr);
   if (!spr)
   {
     return SFERROR(AlreadyReported);
@@ -217,7 +217,7 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
     }
   }
 
-  SprMem_put_sprite_address(&tiles->sprites[MapAngle_North][0], spr);
+  SprMem_put_sprite_address(&tiles->sprites[MapAngle_North][0], &*spr);
 
   /* Divide by number of pixels to get averages for tile */
   red_total /= MapTexSize * MapTexSize;
@@ -418,12 +418,12 @@ static bool make_mip_level(MapTexBitmaps *const tiles, MapAngle const angle, int
       return false;
     }
 
-    SpriteHeader *const src_spr = SprMem_get_sprite_address(&tiles->sprites[angle][0], numstr);
-    SpriteHeader *const dst_spr = SprMem_get_sprite_address(&tiles->sprites[angle][level], numstr);
+    _Optional SpriteHeader *const src_spr = SprMem_get_sprite_address(&tiles->sprites[angle][0], numstr);
+    _Optional SpriteHeader *const dst_spr = SprMem_get_sprite_address(&tiles->sprites[angle][level], numstr);
 
     if (!src_spr || !dst_spr) {
       if (src_spr) {
-        SprMem_put_sprite_address(&tiles->sprites[angle][0], src_spr);
+        SprMem_put_sprite_address(&tiles->sprites[angle][0], &*src_spr);
       }
       hourglass_off();
       SprMem_destroy(sm);
@@ -468,8 +468,8 @@ static bool make_mip_level(MapTexBitmaps *const tiles, MapAngle const angle, int
       oy += pix_size.y;
     }
 
-    SprMem_put_sprite_address(&tiles->sprites[angle][level], dst_spr);
-    SprMem_put_sprite_address(&tiles->sprites[angle][0], src_spr);
+    SprMem_put_sprite_address(&tiles->sprites[angle][level], &*dst_spr);
+    SprMem_put_sprite_address(&tiles->sprites[angle][0], &*src_spr);
   }
 
   dump_sprites(tiles, angle, level);

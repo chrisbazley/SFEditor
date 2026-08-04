@@ -32,7 +32,7 @@ typedef struct
 
 struct MapTexGroups {
   int count, ntiles;
-  TexGroupRoot *array; /* malloced array of TexGroupRoots, one for each group */
+  _Optional TexGroupRoot *array; /* malloced array of TexGroupRoots, one for each group */
   void *smooth_anchor; /* flex anchor for an array of
                           TileSmoothData, in tile number order */
 };

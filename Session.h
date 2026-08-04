@@ -63,14 +63,14 @@ typedef struct EditSession EditSession;
 
 void Session_splat_anims (EditSession *session);
 
-struct MissionData *Session_get_mission(const EditSession *session);
+_Optional struct MissionData *Session_get_mission(const EditSession *session);
 
-bool Session_new_edit_win(EditSession *session, struct EditWin const *edit_win_to_copy);
+bool Session_new_edit_win(EditSession *session, _Optional struct EditWin const *edit_win_to_copy);
 
 int Session_try_delete_edit_win(EditSession *session,
   struct EditWin *edit_win_to_delete, bool open_parent);
 
-struct EditWin *Session_edit_win_from_wimp_handle(int window);
+_Optional struct EditWin *Session_edit_win_from_wimp_handle(int window);
 
 void Session_destroy(EditSession *session);
 
@@ -129,19 +129,19 @@ void Session_trig_changed(EditSession *session, MapPoint pos, ObjRef obj_ref, Tr
 
 void Session_redraw_pending(EditSession *session, bool immediate);
 
-char *Session_get_file_name_for_save(EditSession *session, DataType data_type);
+_Optional char *Session_get_file_name_for_save(EditSession *session, DataType data_type);
 
 bool Session_save_file(EditSession *session, DataType data_type, char *filename);
 
 bool Session_has_data(const EditSession *session, DataType data_type);
 long int Session_get_file_size(EditSession const *session, DataType data_type);
-char *Session_get_file_name(EditSession *session, DataType data_type);
+_Optional char *Session_get_file_name(EditSession *session, DataType data_type);
 int const *Session_get_file_date(EditSession *session, DataType data_type);
 
 InterfaceType Session_get_ui_type(const EditSession *session);
 struct MapTex *Session_get_textures(const EditSession *session);
 struct ObjGfx *Session_get_graphics(const EditSession *session);
-struct PolyColData const *Session_get_poly_colours(const EditSession *session);
+_Optional struct PolyColData const *Session_get_poly_colours(const EditSession *session);
 char *Session_get_filename(EditSession *session);
 char *Session_get_save_filename(EditSession *session);
 bool Session_can_save_all(const EditSession *session);
@@ -150,7 +150,7 @@ bool Session_quick_save(EditSession *session);
 struct InfoEditContext const *Session_get_infos(EditSession *session);
 struct FilenamesData *Session_get_filenames(EditSession *session);
 struct CloudColData *Session_get_cloud_colours(EditSession *session);
-struct HillColData const *Session_get_hill_colours(EditSession const *session);
+_Optional struct HillColData const *Session_get_hill_colours(EditSession const *session);
 
 struct ObjEditContext *Session_get_objects(EditSession *session);
 struct MapEditContext const *Session_get_map(EditSession const *session);
@@ -165,10 +165,10 @@ bool Session_get_anims_shown(const EditSession *session);
 void Session_set_anims_shown(EditSession *session, bool shown);
 
 #if !PER_VIEW_SELECT
-Editor *Session_get_editor(EditSession *session);
+_Optional Editor *Session_get_editor(EditSession *session);
 
 void Session_set_help_and_ptr(EditSession *session,
-  char *help, PointerType ptr);
+  _Optional char *help, PointerType ptr);
 
 void Session_display_mode(EditSession *session);
 
@@ -181,7 +181,7 @@ void Session_add_ghost_unknown_obj(EditSession *session, MapArea const *area);
 void Session_add_ghost_unknown_info(EditSession *session, MapArea const *area);
 
 #else
-struct EditWin *Session_editor_to_win(Editor *editor);
+_Optional struct EditWin *Session_editor_to_win(Editor *editor);
 #endif
 
 void Session_display_msg(EditSession *session, const char *hint, bool temp);

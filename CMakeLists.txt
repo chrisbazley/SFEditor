@@ -13,6 +13,18 @@ FetchContent_Declare(SF3K GIT_REPOSITORY https://github.com/chrisbazley/SF3KLib.
 
 FetchContent_MakeAvailable(CBUtil CB CBOS GKey CBDebug SF3K OptionalAcornC)
 
+option(USE_OPTIONAL "Enable the _Optional qualifier" OFF)
+
+if(USE_OPTIONAL)
+    add_compile_definitions(USE_OPTIONAL)
+
+    if(CMAKE_GENERATOR STREQUAL "Xcode")
+        set(CMAKE_XCODE_ATTRIBUTE_RUN_CLANG_STATIC_ANALYZER "YES")
+        set(CMAKE_XCODE_ATTRIBUTE_CLANG_ANALYZER_OTHER_FLAGS
+            "-analyzer-checker optionality,core -analyzer-max-loop 32")
+    endif()
+endif()
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_XCODE_ATTRIBUTE_RUN_CLANG_STATIC_ANALYZER "YES")
 

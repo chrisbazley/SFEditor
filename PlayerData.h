@@ -25,7 +25,7 @@ struct PlayerData
   CoarsePoint3d coords;
   ShipDirection direction;
   union {
-    Ship *ship; /* valid for PlayerDataState_Write */
+    _Optional Ship *ship; /* valid for PlayerDataState_Write */
     int num; /* valid for PlayerDataState_PostRead */
   } docked_in;
   ShipType ship_type;

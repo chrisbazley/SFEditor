@@ -83,7 +83,7 @@ void dfile_set_modified(DFile *const dfile)
          dfile->name ? dfile->name : "");
 }
 
-bool dfile_set_saved(DFile *const dfile, char const *const name,
+bool dfile_set_saved(DFile *const dfile, _Optional char const *const name,
   int const *const date)
 {
   assert(dfile);
@@ -91,7 +91,7 @@ bool dfile_set_saved(DFile *const dfile, char const *const name,
   DEBUGF("Saved dfile %p from %s as %s\n", (void *)dfile,
          dfile->name ? dfile->name : "", name ? name : "");
   assert(date);
-  char *const dup = name ? strdup(name) : NULL;
+  _Optional char *const dup = name ? strdup(&*name) : NULL;
   if (dup || !name)
   {
     for (size_t i = 0; i < ARRAY_SIZE(dfile->date); ++i)
@@ -113,20 +113,20 @@ bool dfile_set_shared(DFile *const dfile, StrDict *const dict)
   assert(!dfile->dict);
 
   // Careful! Key string isn't copied on insertion.
-  if (!strdict_insert(dict, dfile->name, dfile, NULL)) {
+  if (!strdict_insert(dict, dfile->name ? &*dfile->name : "", dfile, NULL)) {
     return false;
   }
   dfile->dict = dict;
   return true;
 }
 
-DFile *dfile_find_shared(StrDict *const file_dict,
+_Optional DFile *dfile_find_shared(StrDict *const file_dict,
   char const *const filename)
 {
-  DFile *const dfile = strdict_find_value(file_dict, filename, NULL);
+  _Optional DFile *const dfile = strdict_find_value(file_dict, filename, NULL);
   if (dfile) {
-    assert(stricmp(filename, dfile->name) == 0);
-    dfile_claim(dfile);
+    assert(stricmp(filename, dfile->name ? &*dfile->name : "") == 0);
+    dfile_claim(&*dfile);
   }
 
   DEBUGF("Got shared data %p for %s\n", (void *)dfile, filename);
@@ -139,7 +139,7 @@ int const *dfile_get_date(DFile const *const dfile)
   return dfile->date;
 }
 
-char *dfile_get_name(DFile const *const dfile)
+_Optional char *dfile_get_name(DFile const *const dfile)
 {
   assert(dfile);
   return dfile->name;
@@ -166,9 +166,10 @@ long int dfile_get_min_size(DFile const *const dfile)
 }
 
 void dfile_init(DFile *const dfile,
-  DFileReadFn *const read, DFileWriteFn *const write,
-  DFileGetMinSizeFn *const get_min_size,
-  DFileDestroyFn *const destroy)
+                _Optional DFileReadFn *const read,
+                _Optional DFileWriteFn *const write,
+                _Optional DFileGetMinSizeFn *const get_min_size,
+                _Optional DFileDestroyFn *const destroy)
 {
   assert(dfile);
   *dfile = (DFile){
@@ -186,7 +187,7 @@ void dfile_destroy(DFile *const dfile)
   assert(dfile);
   if (dfile->dict)
   {
-    DFile *const removed = strdict_remove_value(dfile->dict, dfile->name, NULL);
+    _Optional DFile *const removed = strdict_remove_value(dfile->dict, dfile->name ? &*dfile->name : "", NULL);
     assert(removed == dfile);
     NOT_USED(removed);
   }

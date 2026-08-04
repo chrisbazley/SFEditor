@@ -37,7 +37,7 @@ void MapEditChanges_init(MapEditChanges *const change_info)
   *change_info = (MapEditChanges){0,0,0,0};
 }
 
-char *MapEditChanges_get_message(const MapEditChanges *const change_info)
+_Optional char *MapEditChanges_get_message(const MapEditChanges *const change_info)
 {
   char tiles_changed_str[24], anims_added_str[24], anims_changed_str[24],
        anims_deleted_str[24], token[sizeof(TOKEN_STEM "TACK")];
@@ -61,7 +61,7 @@ char *MapEditChanges_get_message(const MapEditChanges *const change_info)
              change_info->tiles_changed);
     sub[p++] = tiles_changed_str;
   } else {
-    sub[p++] = NULL;
+    sub[p++] = "";
   }
 
   if (change_info->anims_added) {
@@ -69,7 +69,7 @@ char *MapEditChanges_get_message(const MapEditChanges *const change_info)
              change_info->anims_added);
     sub[p++] = anims_added_str;
   } else {
-    sub[p++] = NULL;
+    sub[p++] = "";
   }
 
   if (change_info->anims_changed) {
@@ -77,7 +77,7 @@ char *MapEditChanges_get_message(const MapEditChanges *const change_info)
              change_info->anims_changed);
     sub[p++] = anims_changed_str;
   } else {
-    sub[p++] = NULL;
+    sub[p++] = "";
   }
 
   if (change_info->anims_deleted) {
@@ -85,7 +85,7 @@ char *MapEditChanges_get_message(const MapEditChanges *const change_info)
              change_info->anims_deleted);
     sub[p++] = anims_deleted_str;
   } else {
-    sub[p++] = NULL;
+    sub[p++] = "";
   }
 
   return msgs_lookup_subn(token, p, sub[0], sub[1], sub[2], sub[3]);

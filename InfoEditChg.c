@@ -37,7 +37,7 @@ void InfoEditChanges_init(InfoEditChanges *const change_info)
   *change_info = (InfoEditChanges){0,0,0};
 }
 
-char *InfoEditChanges_get_message(const InfoEditChanges *const change_info)
+_Optional char *InfoEditChanges_get_message(const InfoEditChanges *const change_info)
 {
   char infos_added_str[24], infos_changed_str[24],
        infos_deleted_str[24], token[sizeof(TOKEN_STEM "ACK")];
@@ -60,7 +60,7 @@ char *InfoEditChanges_get_message(const InfoEditChanges *const change_info)
              change_info->infos_added);
     sub[p++] = infos_added_str;
   } else {
-    sub[p++] = NULL;
+    sub[p++] = "";
   }
 
   if (change_info->infos_changed) {
@@ -68,7 +68,7 @@ char *InfoEditChanges_get_message(const InfoEditChanges *const change_info)
              change_info->infos_changed);
     sub[p++] = infos_changed_str;
   } else {
-    sub[p++] = NULL;
+    sub[p++] = "";
   }
 
   if (change_info->infos_deleted) {
@@ -76,7 +76,7 @@ char *InfoEditChanges_get_message(const InfoEditChanges *const change_info)
              change_info->infos_deleted);
     sub[p++] = infos_deleted_str;
   } else {
-    sub[p++] = NULL;
+    sub[p++] = "";
   }
 
   return msgs_lookup_subn(token, p, sub[0], sub[1], sub[2]);

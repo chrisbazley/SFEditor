@@ -277,7 +277,7 @@ void plot_get_string_bbox(int const handle, char const *const string,
 }
 
 void plot_font(int const handle, char const *const string,
-  BBox const *const rubout, Vertex const scr_pos, bool blend)
+  _Optional BBox const *const rubout, Vertex const scr_pos, bool blend)
 {
   assert(string != NULL);
   DEBUG_VERBOSEF("Plotting font handle %d string '%s' at %d,%d (%s blending)\n",

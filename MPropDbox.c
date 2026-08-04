@@ -601,7 +601,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 
   MapEditContext const *const map = Session_get_map(session);
 
-  if (!map->anims || !MapAnims_get(map->anims, prop->pos, &prop->anim)) {
+  if (!map->anims || !MapAnims_get(&*map->anims, prop->pos, &prop->anim)) {
     /* Use single tile at this location as first frame of animation */
     prop->anim = (MapAnimParam){.period = DEFAULT_PERIOD};
 
@@ -634,7 +634,7 @@ static int has_been_hidden(int const event_code, ToolboxEvent *const event,
   NOT_USED(id_block);
   MapPropDbox *const prop = handle;
   assert(prop);
-  MapPropDbox *const removed = intdict_remove_value(&prop->prop_dboxes->sa, map_coords_to_key(prop->pos), NULL);
+  _Optional MapPropDbox *const removed = intdict_remove_value(&prop->prop_dboxes->sa, map_coords_to_key(prop->pos), NULL);
   assert(removed == prop);
   NOT_USED(removed);
   delete_dbox(prop);
@@ -792,11 +792,14 @@ static MapPropDbox *create_dbox(MapPropDboxes *const prop_dboxes, MapPoint const
   return NULL;
 }
 
-static void destroy_cb(IntDictKey const key, void *const data, void *const arg)
+static void destroy_cb(IntDictKey const key, _Optional void *const data, void *const arg)
 {
   NOT_USED(key);
   NOT_USED(arg);
-  delete_dbox(data);
+  _Optional MapPropDbox *const prop = data;
+  if (prop) {
+    delete_dbox(&*prop);
+  }
 }
 
 /* ---------------- Public functions ---------------- */
@@ -819,10 +822,10 @@ void MapPropDboxes_update_title(MapPropDboxes *const prop_dboxes)
 {
   assert(prop_dboxes);
   IntDictVIter iter;
-  for (MapPropDbox *prop_dbox = intdictviter_all_init(&iter, &prop_dboxes->sa);
+  for (_Optional MapPropDbox *prop_dbox = intdictviter_all_init(&iter, &prop_dboxes->sa);
        prop_dbox != NULL;
        prop_dbox = intdictviter_advance(&iter)) {
-    update_title(prop_dbox);
+    update_title(&*prop_dbox);
   }
 }
 
@@ -832,19 +835,19 @@ void MapPropDboxes_update_for_move(MapPropDboxes *const prop_dboxes,
   if (map_coords_compare(old_pos, new_pos)) {
     return;
   }
-  MapPropDbox *const prop_dbox = intdict_remove_value(&prop_dboxes->sa,
+  _Optional MapPropDbox *const prop_dbox = intdict_remove_value(&prop_dboxes->sa,
                                     map_coords_to_key(old_pos), NULL);
   if (!prop_dbox) {
     return;
   }
 
   assert(map_coords_compare(prop_dbox->pos, old_pos));
-  if (intdict_insert(&prop_dboxes->sa, map_coords_to_key(new_pos), prop_dbox, NULL)) {
+  if (intdict_insert(&prop_dboxes->sa, map_coords_to_key(new_pos), &*prop_dbox, NULL)) {
     prop_dbox->pos = new_pos;
-    disp_pos(prop_dbox);
+    disp_pos(&*prop_dbox);
   } else {
     report_error(SFERROR(NoMem), "", "");
-    delete_dbox(prop_dbox);
+    delete_dbox(&*prop_dbox);
   }
 }
 
@@ -857,12 +860,12 @@ static bool split_callback(MapArea const *const bbox, void *const arg)
   assert(min_key <= max_key);
 
   IntDictVIter iter;
-  for (MapPropDbox *prop_dbox = intdictviter_init(&iter, &prop_dboxes->sa, min_key, max_key);
+  for (_Optional MapPropDbox *prop_dbox = intdictviter_init(&iter, &prop_dboxes->sa, min_key, max_key);
        prop_dbox != NULL;
        prop_dbox = intdictviter_advance(&iter)) {
     if (map_bbox_contains(bbox, prop_dbox->pos) && !prop_dbox->keep) {
       intdictviter_remove(&iter);
-      delete_dbox(prop_dbox);
+      delete_dbox(&*prop_dbox);
     }
   }
   return false;
@@ -879,7 +882,7 @@ void MapPropDboxes_open(MapPropDboxes *const prop_dboxes, MapPoint const pos,
                         EditWin *const edit_win)
 {
   IntDictKey const key = map_coords_to_key(pos);
-  MapPropDbox *prop_dbox = intdict_find_value(&prop_dboxes->sa, key, NULL);
+  _Optional MapPropDbox *prop_dbox = intdict_find_value(&prop_dboxes->sa, key, NULL);
   if (!prop_dbox) {
     prop_dbox = create_dbox(prop_dboxes, pos);
   } else {

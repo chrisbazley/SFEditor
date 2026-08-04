@@ -29,9 +29,9 @@ typedef size_t DrawInfosReadInfoFn(void *cb_arg, MapPoint *map_pos, int *id);
 void DrawInfos_to_screen(
   struct View const *view,
   DrawInfosReadInfoFn *read_info, void *cb_arg,
-  struct SelectionBitmask const *selection,
+  _Optional struct SelectionBitmask const *selection,
   Vertex scr_orig,
-  bool is_ghost, struct SelectionBitmask const *occluded);
+  bool is_ghost, _Optional struct SelectionBitmask const *occluded);
 
 MapArea DrawInfos_get_select_bbox(struct View const *view);
 MapArea DrawInfos_get_bbox(struct View const *view);

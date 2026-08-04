@@ -69,9 +69,13 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
     return 1; /* no transfer selected in palette - just claim event */
 
   MapTex *const textures = Session_get_textures(session);
-  MapTransfer *const transfer = MapTransfers_find_by_index(
+  _Optional MapTransfer *const transfer = MapTransfers_find_by_index(
                                         &textures->transfers, selected);
-  DFile *const dfile = MapTransfer_get_dfile(transfer);
+  assert(transfer);
+  if (!transfer) {
+    return 1;
+  }
+  DFile *const dfile = MapTransfer_get_dfile(&*transfer);
 
   long int const file_size = get_compressed_size(dfile);
   assert(file_size >= 0);
@@ -88,12 +92,12 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   if (E(fileinfo_get_window_id(0, id_block->self_id, &window)))
     return 1; /* claim event */
 
-  MapPoint const dims = MapTransfers_get_dims(transfer);
+  MapPoint const dims = MapTransfers_get_dims(&*transfer);
   char dim[32];
   sprintf(dim, "%" PRIMapCoord " x %" PRIMapCoord, dims.x, dims.y);
   E(displayfield_set_value(0, window, TRANSINFO_DIMENSIONS, dim));
 
-  size_t acount = MapTransfers_get_anim_count(transfer);
+  size_t acount = MapTransfers_get_anim_count(&*transfer);
   if (acount > INT_MAX) acount = INT_MAX;
   E(numberrange_set_value(0, window, TRANSINFO_NUMANIMS, (int)acount));
 
@@ -105,5 +109,5 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 void TransInfo_created(ObjectId const id)
 {
   EF(event_register_toolbox_handler(id, FileInfo_AboutToBeShown,
-                                    about_to_be_shown, NULL));
+                                    about_to_be_shown, (void *)NULL));
 }

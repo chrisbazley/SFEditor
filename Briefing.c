@@ -74,6 +74,10 @@ void briefing_init(BriefingData *const briefing)
 void briefing_destroy(BriefingData *const briefing)
 {
   assert(briefing);
+  if (!briefing->texts)
+  {
+    return;
+  }
   for (size_t i = 0; i < briefing->count; ++i) {
     text_destroy(&briefing->texts[i]);
   }
@@ -84,6 +88,10 @@ int briefing_write_text_offsets(BriefingData *const briefing, Writer *const writ
   int offset)
 {
   assert(briefing);
+  if (!briefing->texts)
+  {
+    return offset;
+  }
 
   for (size_t i = 0; i < briefing->count; ++i)
   {
@@ -100,6 +108,10 @@ int briefing_write_text_offsets(BriefingData *const briefing, Writer *const writ
 void briefing_write_texts(BriefingData *const briefing, Writer *const writer)
 {
   assert(briefing);
+  if (!briefing->texts)
+  {
+    return;
+  }
 
   for (size_t i = 0; i < briefing->count; ++i)
   {
@@ -188,7 +200,7 @@ SFError briefing_add_text(BriefingData *const briefing,
     return SFERROR(TooManyBriefingLines);
   }
 
-  Text *const texts = realloc(briefing->texts,
+  _Optional Text *const texts = realloc(briefing->texts,
                         sizeof(briefing->texts[0]) * (briefing->count + 1));
   if (!texts) {
     return SFERROR(NoMem);
@@ -248,7 +260,7 @@ SFError briefing_add_text(BriefingData *const briefing,
 
 static char const *get_prefixed_text(char const *const string)
 {
-  char const *prefix_end = strchr(string, ':');
+  _Optional char const *prefix_end = strchr(string, ':');
   if (!prefix_end) {
     DEBUGF("Prefix not found in '%s'\n", string);
     return "";
@@ -257,7 +269,7 @@ static char const *get_prefixed_text(char const *const string)
   while (*prefix_end == ' ') {
     ++prefix_end;
   }
-  return prefix_end;
+  return &*prefix_end;
 }
 
 static char const *get_text(BriefingData const *const briefing,

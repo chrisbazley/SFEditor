@@ -70,8 +70,12 @@ enum {
 static void read_win(ObjectId const performance_dialogue, FPerfDboxData *const performance_data)
 {
   DEBUG("Reading performance data for ship index %d", performance_data->ship_type);
-  MissionData *const m = Session_get_mission(performance_data->session);
-  FighterPerform *const fperf = fighter_perform_get_ship(mission_get_fighter_perform(m), performance_data->ship_type);
+  _Optional MissionData *const m = Session_get_mission(performance_data->session);
+  assert(m);
+  if (!m) {
+    return;
+  }
+  FighterPerform *const fperf = fighter_perform_get_ship(mission_get_fighter_perform(&*m), performance_data->ship_type);
 
   /* Get general performance data */
   int temp = 0;
@@ -110,8 +114,12 @@ static void read_win(ObjectId const performance_dialogue, FPerfDboxData *const p
 static void setup_win(ObjectId const performance_dialogue, FPerfDboxData *performance_data)
 {
   DEBUG("Displaying performance data for ship index %d", performance_data->ship_type);
-  MissionData *const m = Session_get_mission(performance_data->session);
-  FighterPerform *const fperf = fighter_perform_get_ship(mission_get_fighter_perform(m), performance_data->ship_type);
+  _Optional MissionData *const m = Session_get_mission(performance_data->session);
+  assert(!m);
+  if (!m) {
+    return;
+  }
+  FighterPerform *const fperf = fighter_perform_get_ship(mission_get_fighter_perform(&*m), performance_data->ship_type);
 
   /* Set general performance data */
   E(numberrange_set_value(false, performance_dialogue,

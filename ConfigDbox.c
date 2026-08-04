@@ -408,7 +408,7 @@ void ConfigDbox_created(ObjectId const window_id)
 
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i) {
     EF(event_register_toolbox_handler(window_id, handlers[i].event_code,
-                                      handlers[i].handler, NULL));
+                                      handlers[i].handler, &Config_tboxID));
   }
 
   {
@@ -417,13 +417,13 @@ void ConfigDbox_created(ObjectId const window_id)
       &buttonbar, NULL, NULL, NULL));
 
     EF(event_register_toolbox_handler(buttonbar, ActionButton_Selected,
-       actionbutton_selected, NULL));
+       actionbutton_selected, &Config_tboxID));
   }
 
   /* Register a Wimp message handler to update the relevant file path when a
      directory icon is dragged to the configuration window. */
   EF(event_register_message_handler(Wimp_MDataLoad, dataload_message,
-     NULL));
+                                    &Config_tboxID));
 
   /* Record the Wimp window handle of the dialogue box
      (for later use in identifying relevant DataLoad messages) */

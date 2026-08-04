@@ -47,12 +47,13 @@ char const *filescan_get_emh_path(filescan_type directory);
 const char *filescan_get_directory(filescan_type directory);
 bool filescan_dir_not_empty(filescan_type directory);
 
-filescan_leafname *filescan_get_leaf_names(filescan_type directory, int *vsn);
+_Optional filescan_leafname *filescan_get_leaf_names(filescan_type directory,
+                                                     _Optional int *vsn);
 void filescan_directory_updated(filescan_type directory);
 filescan_type filescan_get_emh_type(char const *filename);
 
 /* combine two arrays of leafnames into one */
-filescan_leafname *filescan_combine_filenames(filescan_leafname *filenames_A, filescan_leafname *filenames_B);
+_Optional filescan_leafname *filescan_combine_filenames(filescan_leafname *filenames_A, filescan_leafname *filenames_B);
 
 DataType filescan_get_data_type(filescan_type directory);
 

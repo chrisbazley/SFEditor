@@ -193,7 +193,7 @@ SFError obj_group_add_polygon(ObjGroup *const group, ObjPolygon const polygon)
   return SFERROR(OK);
 }
 
-SFError obj_polygons_read(ObjPolygons *const polygons, Reader *const reader,
+SFError obj_polygons_read(_Optional ObjPolygons *const polygons, Reader *const reader,
   int const nvertices, int *const max_group)
 {
   assert(!reader_ferror(reader));

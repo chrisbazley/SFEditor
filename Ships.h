@@ -112,7 +112,7 @@ SFError ships_add(ShipsData *ships,
   ShipMission importance,
   ShipFlags flags,
   ShipPilot pilot,
-  Ship **new_ship);
+  _Optional Ship *_Optional *new_ship);
 
 void ship_delete(Ship *ship);
 
@@ -131,7 +131,7 @@ void ships_write_pad(ShipsData *ships, struct Writer *writer);
 
 size_t ships_get_count(ShipsData const *ships);
 
-Ship *ship_from_index(ShipsData *ships, int index);
+_Optional Ship *ship_from_index(ShipsData *ships, int index);
 int ship_get_index(Ship const *ship);
 
 #endif

@@ -21,8 +21,8 @@ enum {
 typedef struct HillColData HillColData;
 
 void hillcol_init(void);
-HillColData *hillcol_create(void);
-HillColData *hillcol_get_shared(char const *filename);
+_Optional HillColData *hillcol_create(void);
+_Optional HillColData *hillcol_get_shared(char const *filename);
 bool hillcol_share(HillColData *hill_colours);
 DFile *hillcol_get_dfile(HillColData *hill_colours);
 int hillcol_get_colour(HillColData const *hill_colours, int index);

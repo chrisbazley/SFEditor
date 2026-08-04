@@ -49,7 +49,9 @@ enum {
 
 char *get_leaf_name(DFile *const dfile)
 {
-  return pathtail(dfile_get_name(dfile), 1);
+  _Optional char *name = dfile_get_name(dfile);
+  static char dummy[] = "";
+  return name ? pathtail(&*name, 1) : dummy;
 }
 
 long int get_compressed_size(DFile *const dfile)
@@ -98,11 +100,11 @@ SFError load_compressed(DFile *const dfile, char const *const fname)
 #endif
 
   SFError err = SFERROR(OpenInFail);
-  FILE *const f = fopen_inc(fname, "rb");
+  _Optional FILE *const f = fopen_inc(fname, "rb");
   if (f)
   {
     Reader reader;
-    if (!reader_gkey_init(&reader, HistoryLog2, f))
+    if (!reader_gkey_init(&reader, HistoryLog2, &*f))
     {
       err = SFERROR(NoMem);
     }
@@ -111,7 +113,7 @@ SFError load_compressed(DFile *const dfile, char const *const fname)
       err = dfile_read(dfile, &reader);
       reader_destroy(&reader);
     }
-    fclose_dec(f);
+    fclose_dec(&*f);
   }
 
 #ifdef FORTIFY
@@ -150,7 +152,7 @@ SFError save_compressed(DFile *const dfile, char *const fname)
 #endif
 
   SFError err = SFERROR(OK);
-  FILE *const f = fopen_inc(fname, "wb");
+  _Optional FILE *const f = fopen_inc(fname, "wb");
   if (!f)
   {
     err = SFERROR(OpenOutFail);
@@ -158,16 +160,16 @@ SFError save_compressed(DFile *const dfile, char *const fname)
   else
   {
     Writer writer;
-    if (!writer_gkey_init(&writer, HistoryLog2, dfile_get_min_size(dfile), f))
+    if (!writer_gkey_init(&writer, HistoryLog2, dfile_get_min_size(dfile), &*f))
     {
       err = SFERROR(NoMem);
-      fclose_dec(f);
+      fclose_dec(&*f);
     }
     else
     {
       dfile_write(dfile, &writer);
       bool success = (writer_destroy(&writer) != -1L);
-      if (fclose_dec(f))
+      if (fclose_dec(&*f))
       {
         success = false;
       }

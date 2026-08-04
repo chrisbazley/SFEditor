@@ -86,7 +86,7 @@ enum {
   ErrBufferSize = 64,
 };
 
-static char const *game_dir; /* points to either <Star3000$Dir> or explicit path */
+static char const *game_dir = ""; /* points to either <Star3000$Dir> or explicit path */
 
 typedef struct {
   char custom_game_dir[MaxPathSize];
@@ -493,12 +493,12 @@ static bool loadfile(char const *const configfile)
   assert(configfile != NULL);
   SFError err = SFERROR(OK);
   char err_buf[ErrBufferSize] = "";
-  FILE * const file = fopen(configfile, "r");
+  _Optional FILE * const file = fopen(configfile, "r");
   if (file == NULL) {
     err = SFERROR(OpenInFail);
   } else {
-    err = read_from_file(file, err_buf);
-    fclose(file);
+    err = read_from_file(&*file, err_buf);
+    fclose(&*file);
   }
 
   return !report_error(err, configfile, err_buf);
@@ -677,12 +677,12 @@ static bool savefile(char const *const configfile)
 {
   assert(configfile != NULL);
   SFError err = SFERROR(OK);
-  FILE *const file = fopen(configfile, "w");
+  _Optional FILE *const file = fopen(configfile, "w");
   if (file == NULL) {
     err = SFERROR(OpenOutFail);
   } else {
-    bool const success = write_to_file(file);
-    if (fclose(file) || !success)
+    bool const success = write_to_file(&*file);
+    if (fclose(&*file) || !success)
     {
       err = SFERROR(WriteFail);
     }
@@ -698,10 +698,10 @@ void Config_init(void)
 
   /* We canonicalise the path so that any error messages are meaningful */
   {
-    char *config_read_file;
+    _Optional char *config_read_file;
     EF(canonicalise(&config_read_file, NULL, NULL, CHOICES_READ_PATH CONFIG_FILE));
 
-    if (!loadfile(config_read_file) || !Config_setup_levels_path()) {
+    if (!config_read_file || !loadfile(&*config_read_file) || !Config_setup_levels_path()) {
       exit(EXIT_FAILURE);
     }
     free(config_read_file);
@@ -718,7 +718,7 @@ void Config_init(void)
   if (!file_exists(game_dir)) {
     /* Main game directory not found */
     WARN("GameNotFoundLoad");
-    game_dir = NULL;
+    game_dir = "";
   }
 
   if (!file_exists(config.transfers_dir)) {
@@ -743,11 +743,11 @@ char const *Config_get_read_dir(void)
 void Config_save(void)
 {
   /* Success - save configuration to file and close window */
-  char *config_write_file;
-  if (!E(canonicalise(&config_write_file, NULL, NULL, CHOICES_WRITE_PATH CONFIG_FILE))) {
+  _Optional char *config_write_file;
+  if (!E(canonicalise(&config_write_file, NULL, NULL, CHOICES_WRITE_PATH CONFIG_FILE)) && config_write_file) {
     /* (we canonicalise the path so that any error messages are meaningful) */
-    if (ensure_path_exists(config_write_file)) {
-      savefile(config_write_file);
+    if (ensure_path_exists(&*config_write_file)) {
+      savefile(&*config_write_file);
     }
 
     free(config_write_file);

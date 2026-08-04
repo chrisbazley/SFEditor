@@ -123,7 +123,7 @@ ObjRef ObjSnakes_get_value(EditSession *const session,
   };
   return objects_ref_from_num(
     Snakes_begin_line(&ctx.super, &snakes_data->super, map_pos, snake, inside,
-                           read_map, NULL));
+                      read_map, (SnakesWriteFunction *)NULL));
 }
 
 void ObjSnakes_begin_line(ObjSnakesContext *const ctx,
@@ -172,7 +172,7 @@ void ObjSnakes_load(ObjSnakes *const snakes_data,
   ObjSnakes_free(snakes_data);
   ObjSnakes_init(snakes_data);
 
-  char *const full_path = make_file_path_in_dir(
+  _Optional char *const full_path = make_file_path_in_dir(
     CHOICES_READ_PATH OBJSNAKES_DIR, tiles_set);
 
   if (!full_path) {
@@ -184,18 +184,18 @@ void ObjSnakes_load(ObjSnakes *const snakes_data,
   SFError err = SFERROR(OK);
 
   hourglass_on();
-  if (file_exists(full_path)) {
-    FILE *const file = fopen(full_path, "r");
+  if (file_exists(&*full_path)) {
+    _Optional FILE *const file = fopen(&*full_path, "r");
     if (file == NULL) {
       err = SFERROR(OpenInFail);
     } else {
-      err = Snakes_load(file, &snakes_data->super, nobj, err_buf);
-      fclose(file);
+      err = Snakes_load(&*file, &snakes_data->super, nobj, err_buf);
+      fclose(&*file);
     }
   }
   hourglass_off();
 
-  report_error(err, full_path, err_buf);
+  report_error(err, &*full_path, err_buf);
   free(full_path);
 }
 

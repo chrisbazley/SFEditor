@@ -80,7 +80,7 @@ struct Ship
   union {
     union {
       int num; /* valid for ShipsDataState_PostRead */
-      Ship *ship; /* null means attack player */
+      _Optional Ship *ship; /* null means attack player */
     } attack;
     struct {
       int path_num; /* valid for ShipsDataState_PostRead */
@@ -92,7 +92,7 @@ struct Ship
     struct {
       union {
         int num; /* valid for ShipsDataState_PostRead */
-        Ship *ship; /* null means follow player */
+        _Optional Ship *ship; /* null means follow player */
       } leader;
       FinePoint3d offset;
     } follow;
@@ -127,18 +127,22 @@ SFError ships_add(ShipsData *const ships,
   ShipMission importance,
   ShipFlags flags,
   ShipPilot pilot,
-  Ship **const new_ship)
+  _Optional Ship *_Optional *const new_ship)
 {
   assert(ships);
   assert(ships->state != ShipsDataState_PostRead);
   assert(ships->count <= ShipsMax);
+  
+  if (new_ship) {
+    *new_ship = NULL;
+  }
 
   if (ships->count == ShipsMax)
   {
     return SFERROR(NumShips);
   }
 
-  Ship *const ship = malloc(sizeof(*ship));
+  _Optional Ship *const ship = malloc(sizeof(*ship));
   if (!ship)
   {
     return SFERROR(NoMem);
@@ -347,10 +351,10 @@ SFError ships_read(ShipsData *const ships, Reader *const reader)
       return SFERROR(BadShipDir);
     }
 
-    Ship *ship = NULL;
+    _Optional Ship *ship = NULL;
     SFError err = ships_add(ships, coords, direction, type,
                             behaviour, importance, sflags, pilot, &ship);
-    if (SFError_fail(err)) {
+    if (SFError_fail(err) || !ship) {
       return err;
     }
 
@@ -389,19 +393,21 @@ static inline SFError post_read_ship_flightpath(Ship *const ship,
 {
   assert(ship);
 
-  Path *const path = path_from_index(paths, ship->mode_data.flightpath.path_num);
+  _Optional Path *const path = path_from_index(paths, ship->mode_data.flightpath.path_num);
   if (!path)
   {
     return SFERROR(BadShipPath);
   }
 
-  ship->mode_data.flightpath.start.waypoint = waypoint_from_index(
-    path, ship->mode_data.flightpath.start.num);
+  _Optional Waypoint *const waypoint = waypoint_from_index(
+    &*path, ship->mode_data.flightpath.start.num);
 
-  if (!ship->mode_data.flightpath.start.waypoint)
+  if (!waypoint)
   {
     return SFERROR(BadShipWaypoint);
   }
+  
+  ship->mode_data.flightpath.start.waypoint = &*waypoint;
 
   return SFERROR(OK);
 }
@@ -546,7 +552,7 @@ static void write_ship(Ship const *const ship, Writer *const writer)
     writer_fputc(0, writer);
     if (ship->mode_data.attack.ship)
     {
-      writer_fputc(ship_get_index(ship->mode_data.attack.ship), writer);
+      writer_fputc(ship_get_index(&*ship->mode_data.attack.ship), writer);
     }
     else
     {
@@ -559,7 +565,7 @@ static void write_ship(Ship const *const ship, Writer *const writer)
     writer_fputc(0, writer);
     if (ship->mode_data.follow.leader.ship)
     {
-      writer_fputc(ship_get_index(ship->mode_data.follow.leader.ship), writer);
+      writer_fputc(ship_get_index(&*ship->mode_data.follow.leader.ship), writer);
     }
     else
     {
@@ -636,7 +642,7 @@ size_t ships_get_count(ShipsData const *const ships)
   return ships->count;
 }
 
-Ship *ship_from_index(ShipsData *const ships, int const index)
+_Optional Ship *ship_from_index(ShipsData *const ships, int const index)
 {
   /* Only expected to be used on mission load, otherwise we should
      substitute an array */

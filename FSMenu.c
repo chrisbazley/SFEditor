@@ -62,7 +62,7 @@ ComponentId fsmenu_build(ObjectId const menu,
                          ComponentId *const ret_next_cid,
                          bool const inc_blank, bool const add_none,
                          bool const grey_internal,
-                         char const *const tick_me)
+                         _Optional char const *const tick_me)
 {
 
   ComponentId ticked = NULL_ComponentId;
@@ -79,7 +79,7 @@ ComponentId fsmenu_build(ObjectId const menu,
 
   for (size_t name_num = 0; *leaf_names[name_num].leaf_name != '\0'; name_num++) {
     if (inc_blank || stricmp(leaf_names[name_num].leaf_name, BLANK_FILE) != 0) {
-      if (tick_me && stricmp(leaf_names[name_num].leaf_name, tick_me) == 0) {
+      if (tick_me && stricmp(leaf_names[name_num].leaf_name, &*tick_me) == 0) {
         new_entry.flags = Menu_Entry_Ticked;
         ticked = new_entry.component_id;
       } else {
@@ -112,7 +112,7 @@ ComponentId fsmenu_build(ObjectId const menu,
   }
 
   if (add_none) {
-    if (ticked == NULL_ComponentId && tick_me && strcmp(NO_FILE, tick_me) == 0) {
+    if (ticked == NULL_ComponentId && tick_me && strcmp(NO_FILE, &*tick_me) == 0) {
       new_entry.flags = Menu_Entry_Ticked;
       ticked = new_entry.component_id;
     } else {

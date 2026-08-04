@@ -70,7 +70,7 @@ typedef struct
 void obj_vertices_init(ObjVertices *varray);
 void obj_vertices_free(ObjVertices *varray);
 
-SFError obj_vertices_read(ObjVertices *varray, struct Reader *reader, int *nvert);
+SFError obj_vertices_read(_Optional ObjVertices *varray, struct Reader *reader, int *nvert);
 
 int obj_vertices_get_count(ObjVertices *varray);
 

@@ -57,13 +57,16 @@ static void read_win(EditSession *const session, ObjectId const dbox_id)
 {
   int tempint = 0;
 
-  MissionData *const m = Session_get_mission(session);
+  _Optional MissionData *const m = Session_get_mission(session);
   assert(m != NULL);
+  if (!m) {
+    return;
+  }
 
   if (!E(numberrange_get_value(0, dbox_id, FAILTHRESH_NUMHITS, &tempint)))
   {
     if (tempint < 0) tempint = 0;
-    triggers_set_max_losses(mission_get_triggers(m), (size_t)tempint);
+    triggers_set_max_losses(mission_get_triggers(&*m), (size_t)tempint);
   }
 
   if (!E(optionbutton_get_state(0, dbox_id, FAILTHRESH_HASTIMELIMIT, &tempint)))
@@ -72,10 +75,10 @@ static void read_win(EditSession *const session, ObjectId const dbox_id)
     {
       if (!E(numberrange_get_value(0, dbox_id, FAILTHRESH_TIMELIMIT, &tempint)))
       {
-        mission_set_time_limit(m, tempint);
+        mission_set_time_limit(&*m, tempint);
       }
     } else {
-      mission_disable_time_limit(m);
+      mission_disable_time_limit(&*m);
     }
   }
 
@@ -84,21 +87,24 @@ static void read_win(EditSession *const session, ObjectId const dbox_id)
 
 static void setup_win(EditSession *const session, ObjectId const dbox_id)
 {
-  MissionData *const m =Session_get_mission(session);
+  _Optional MissionData *const m =Session_get_mission(session);
   assert(m != NULL);
+  if (!m) {
+    return;
+  }
 
-  size_t max_losses = triggers_get_max_losses(mission_get_triggers(m));
+  size_t max_losses = triggers_get_max_losses(mission_get_triggers(&*m));
   if (max_losses > INT_MAX) max_losses = INT_MAX;
   E(numberrange_set_value(0, dbox_id, FAILTHRESH_NUMHITS, (int)max_losses));
 
   E(optionbutton_set_state(0, dbox_id, FAILTHRESH_HASTIMELIMIT,
-    !mission_time_limit_is_disabled(m)));
+    !mission_time_limit_is_disabled(&*m)));
 
   E(set_gadget_faded(dbox_id, FAILTHRESH_TIMELIMIT,
-    mission_time_limit_is_disabled(m)));
+    mission_time_limit_is_disabled(&*m)));
 
   E(numberrange_set_value(0, dbox_id, FAILTHRESH_TIMELIMIT,
-    mission_get_time_limit(m)));
+    mission_get_time_limit(&*m)));
 }
 
 static int optionbutton_state_changed(int const event_code, ToolboxEvent *const event,

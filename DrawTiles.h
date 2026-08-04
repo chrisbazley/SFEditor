@@ -38,9 +38,10 @@ struct SprMem;
 struct MapEditSelection;
 
 bool DrawTiles_to_sprite(struct MapTexBitmaps *tilesdata,
-  struct SprMem *sm, char const *name, MapAngle angle, MapArea const *scr_area,
-  DrawTilesReadFn *read, void *cb_arg, int zoom,
-  unsigned char const (*sel_colours)[NumColours]);
+                         struct SprMem *sm, char const *name, MapAngle angle,
+                         MapArea const *scr_area,
+                         DrawTilesReadFn *read, void *cb_arg, int zoom,
+                         _Optional unsigned char const (*sel_colours)[NumColours]);
 
 typedef void DrawTilesBBoxFn(void *cb_arg, BBox const *bbox, MapRef value);
 

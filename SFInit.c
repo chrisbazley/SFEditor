@@ -167,7 +167,7 @@ PaletteEntry const (*palette)[NumColours];
 char taskname[MaxTaskNameLen + 1] = APP_NAME;
 int  wimp_version, task_handle;
 MessagesFD messages;
-void *tb_sprite_area;
+_Optional void *tb_sprite_area;
 
 /* ---------------- Private functions ---------------- */
 
@@ -246,11 +246,11 @@ static int DataOpen_handler(WimpMessage *const message, void *const handle)
   NOT_USED(handle);
 
   bool claim = false;
-  char *filename = NULL;
-  if (!E(canonicalise(&filename, NULL, NULL, message->data.data_open.path_name)))
+  _Optional char *filename = NULL;
+  if (!E(canonicalise(&filename, NULL, NULL, message->data.data_open.path_name)) && filename)
   {
     DataType const data_type = file_type_to_data_type(
-      message->data.data_open.file_type, filename);
+      message->data.data_open.file_type, &*filename);
 
     switch (data_type) {
     case DataType_BaseMap:
@@ -260,7 +260,7 @@ static int DataOpen_handler(WimpMessage *const message, void *const handle)
     case DataType_OverlayMapAnimations:
     case DataType_BaseMapAnimations:
     case DataType_Mission:
-      claim = Session_open_single_file(filename, data_type);
+      claim = Session_open_single_file(&*filename, data_type);
       break;
 
     default:
@@ -486,13 +486,14 @@ void initialise(void)
 
   static IdBlock id_block;
   int toolbox_events = 0;
-  const _kernel_oserror *e = toolbox_initialise (0, KnownWimpVersion, wimp_messages,
+  _Optional const _kernel_oserror *e = toolbox_initialise (
+                                                 0, KnownWimpVersion, wimp_messages,
                                                  &toolbox_events, "<"APP_NAME"Res$Dir>",
                                                  &messages, &id_block, &wimp_version,
                                                  &task_handle,
                                                  &tb_sprite_area);
   if (e != NULL)
-    simple_exit(e);
+    simple_exit(&*e);
 
   e = messagetrans_lookup(&messages,
                           "_TaskName",
@@ -501,11 +502,11 @@ void initialise(void)
                           NULL,
                           0);
   if (e != NULL)
-    simple_exit(e);
+    simple_exit(&*e);
 
   e = err_initialise(taskname, wimp_version >= MinWimpVersion, &messages);
   if (e != NULL)
-    simple_exit(e);
+    simple_exit(&*e);
 
   /*
    * initialise the flex library
@@ -526,13 +527,13 @@ void initialise(void)
    * register permanent event handlers.
    */
 
-  EF(event_register_toolbox_handler(-1, Toolbox_ObjectAutoCreated, autocreate_handler, NULL));
-  EF(event_register_toolbox_handler(-1, Toolbox_Error, error_handler, NULL));
-  EF(event_register_toolbox_handler(-1, -1, generic_event_handler, NULL));
+  EF(event_register_toolbox_handler(-1, Toolbox_ObjectAutoCreated, autocreate_handler, &id_block));
+  EF(event_register_toolbox_handler(-1, Toolbox_Error, error_handler, &id_block));
+  EF(event_register_toolbox_handler(-1, -1, generic_event_handler, &id_block));
 
-  EF(event_register_message_handler(Wimp_MPreQuit, prequit_wimphandler, NULL));
-  EF(event_register_message_handler(Wimp_MQuit, quit_wimphandler, NULL));
-  EF(event_register_message_handler(Wimp_MDataOpen, DataOpen_handler, NULL));
+  EF(event_register_message_handler(Wimp_MPreQuit, prequit_wimphandler, &id_block));
+  EF(event_register_message_handler(Wimp_MQuit, quit_wimphandler, &id_block));
+  EF(event_register_message_handler(Wimp_MDataOpen, DataOpen_handler, &id_block));
 
   /*
    * initialise the CBLibrary components that we use.

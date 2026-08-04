@@ -31,7 +31,7 @@ typedef enum {
 typedef struct ObjEditContext ObjEditContext;
 
 void ObjectsEdit_crop_overlay(ObjEditContext const *objects,
-  struct ObjEditChanges *change_info);
+  _Optional struct ObjEditChanges *change_info);
 
 void ObjectsEdit_plot_tri(ObjEditContext *objects, MapPoint vertex_A,
   MapPoint vertex_B, MapPoint vertex_C, ObjRef value,
@@ -75,16 +75,16 @@ typedef ObjRef ObjectsEditReadFn(void *cb_arg, MapPoint map_pos);
 
 void ObjectsEdit_copy_to_area(ObjEditContext const *objects,
   MapArea const *area, ObjectsEditReadFn *read, void *cb_arg,
-  struct ObjEditChanges *change_info, struct ObjGfxMeshes *meshes);
+  _Optional struct ObjEditChanges *change_info, struct ObjGfxMeshes *meshes);
 
 bool ObjectsEdit_can_copy_to_area(ObjEditContext const *objects,
   MapArea const *area, ObjectsEditReadFn *read, void *cb_arg,
-  struct ObjGfxMeshes *meshes, struct ObjEditSelection *occluded);
+  struct ObjGfxMeshes *meshes, _Optional struct ObjEditSelection *occluded);
 
 void ObjectsEdit_fill_selected(ObjEditContext const *objects,
-  struct ObjEditSelection *selected, ObjRef obj_ref,
-  struct ObjEditChanges *change_info,
-  struct ObjGfxMeshes *meshes);
+                               struct ObjEditSelection *selected, ObjRef obj_ref,
+                               _Optional struct ObjEditChanges *change_info,
+                               struct ObjGfxMeshes *meshes);
 
 void ObjectsEdit_wipe_triggers(ObjEditContext const *objects,
   struct ObjEditSelection *selected, struct ObjEditChanges *change_info);
@@ -98,7 +98,7 @@ bool ObjectsEdit_add_trigger(ObjEditContext const *objects,
   struct ObjEditChanges *change_info);
 
 bool ObjectsEdit_can_place(ObjEditContext const *objects, MapPoint grid_pos,
-   ObjRef const value, struct ObjGfxMeshes *meshes,
-   struct ObjEditSelection *occluded);
+                           ObjRef const value, struct ObjGfxMeshes *meshes,
+                           _Optional struct ObjEditSelection *occluded);
 
 #endif

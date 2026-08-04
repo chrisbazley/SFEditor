@@ -63,7 +63,7 @@ static void update_trans_menu(PaletteData *const pal_data)
   EditSession *const session = Palette_get_session(pal_data);
   int const selected = Palette_get_selection(pal_data);
 
-  MapTransfer *transfer_to_edit = NULL;
+  _Optional MapTransfer *transfer_to_edit = NULL;
   if (selected != NULL_DATA_INDEX)
   {
     MapTex *const textures = Session_get_textures(session);
@@ -73,7 +73,7 @@ static void update_trans_menu(PaletteData *const pal_data)
 
   E(menu_set_entry_text(0, trans_menu_id, TRANSMENU_TRANSFER,
       msgs_lookup_subn("Transfer", 1, transfer_to_edit == NULL ? "" :
-                       get_leaf_name(MapTransfer_get_dfile(transfer_to_edit)))));
+                       get_leaf_name(MapTransfer_get_dfile(&*transfer_to_edit)))));
 
   E(menu_set_fade(0, trans_menu_id, TRANSMENU_TRANSFER,
                   selected == NULL_DATA_INDEX));
@@ -112,7 +112,7 @@ void TransMenu_created(ObjectId const id)
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
     EF(event_register_toolbox_handler(id, handlers[i].event_code,
-                                      handlers[i].handler, NULL));
+                                      handlers[i].handler, &trans_menu_id));
   }
 }
 

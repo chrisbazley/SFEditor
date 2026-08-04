@@ -47,7 +47,7 @@ void MapTransfers_open_dir(MapTransfers const *transfers_data);
 
 void MapTransfers_free(MapTransfers *transfers_data);
 
-MapTransfer *MapTransfers_grab_selection(struct MapEditContext const *map,
+_Optional MapTransfer *MapTransfers_grab_selection(struct MapEditContext const *map,
   struct MapEditSelection *selected);
 
 MapPoint MapTransfers_get_dims(MapTransfer const *transfer);
@@ -55,9 +55,9 @@ MapPoint MapTransfers_get_dims(MapTransfer const *transfer);
 int MapTransfers_get_anim_count(MapTransfer const *transfer);
 
 bool MapTransfers_plot_to_map(const struct MapEditContext *map, MapPoint bl,
-  MapTransfer *transfer,
-  struct MapEditSelection *selection,
-  struct MapEditChanges *change_info);
+                              MapTransfer *transfer,
+                              _Optional struct MapEditSelection *selection,
+                              _Optional struct MapEditChanges *change_info);
 
 MapArea MapTransfers_get_bbox(MapPoint const bl, MapTransfer *const transfer);
 
@@ -70,13 +70,13 @@ void MapTransfers_select(struct MapEditSelection *selection,
 MapRef MapTransfers_read_ref(MapTransfer *transfer,
   MapPoint trans_pos);
 
-MapTransfer *MapTransfers_find_by_name(MapTransfers *transfers_data,
+_Optional MapTransfer *MapTransfers_find_by_name(MapTransfers *transfers_data,
   const char *name, int *index_out);
 
-MapTransfer *MapTransfers_find_by_index(MapTransfers *transfers_data,
+_Optional MapTransfer *MapTransfers_find_by_index(MapTransfers *transfers_data,
   int transfer_index);
 
-MapTransfer *MapTransfer_create(void);
+_Optional MapTransfer *MapTransfer_create(void);
 
 bool MapTransfers_add(MapTransfers *transfers_data,
   MapTransfer *transfer, char const *filename,

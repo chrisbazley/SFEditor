@@ -18,7 +18,7 @@
 /* Build menu from array of leafnames */
 ComponentId fsmenu_build(ObjectId menu, filescan_leafname *leaf_names,
   ComponentId *ret_next_free, bool inc_blank, bool add_none,
-  bool grey_internal, char const *tick_me);
+  bool grey_internal, _Optional char const *tick_me);
 
 void fsmenu_grey_internal(ObjectId menu,
   const filescan_leafname *leaf_names, bool inc_blank, bool grey_internal);

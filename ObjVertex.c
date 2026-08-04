@@ -62,7 +62,7 @@ int obj_vertices_get_count(ObjVertices *varray)
   return varray->vcount;
 }
 
-SFError obj_vertices_read(ObjVertices * const varray,
+SFError obj_vertices_read(_Optional ObjVertices * const varray,
   Reader * const reader, int *const nvert)
 {
   assert(!reader_ferror(reader));
@@ -90,8 +90,8 @@ SFError obj_vertices_read(ObjVertices * const varray,
 
   if (varray)
   {
-    obj_vertices_free(varray);
-    obj_vertices_init(varray);
+    obj_vertices_free(&*varray);
+    obj_vertices_init(&*varray);
 
     if (!flex_alloc(&varray->vertices, vcount * sizeof(ObjVertex)))
     {

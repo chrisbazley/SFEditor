@@ -126,14 +126,14 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
 {
   NOT_USED(origin);
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
-  MapTransfer *const transfer = MapTransfers_find_by_index(
+  _Optional MapTransfer *const transfer = MapTransfers_find_by_index(
                                        &textures->transfers, object_no);
   if (transfer == NULL)
     return; /* failure */
 
   /* Truncate the file name with a ellipsis if it exceeds the
      width of the object to which it refers */
-  STRCPY_SAFE(truncated_name, get_leaf_name(MapTransfer_get_dfile(transfer)));
+  STRCPY_SAFE(truncated_name, get_leaf_name(MapTransfer_get_dfile(&*transfer)));
   int const width = truncate_string(truncated_name, bbox->xmax - bbox->xmin);
 
   /* Reduce the width of the label icon to fit the truncated text */
@@ -164,13 +164,13 @@ static void redraw_object(Editor *const editor, Vertex const origin,
   if (!textures->transfers.have_thumbnails)
     return; /* failure */
 
-  MapTransfer *const transfer = MapTransfers_find_by_index(
+  _Optional MapTransfer *const transfer = MapTransfers_find_by_index(
                                        &textures->transfers, object_no);
   if (transfer == NULL)
     return; /* failure */
 
   /* Set the thumbnail sprite to appear in the icon */
-  plot_icon.data.is.sprite = get_leaf_name(MapTransfer_get_dfile(transfer));
+  plot_icon.data.is.sprite = get_leaf_name(MapTransfer_get_dfile(&*transfer));
   plot_icon.data.is.sprite_name_length = (int)strlen(plot_icon.data.is.sprite);
 
   /* Cover specified bounding box with the sprite icon */
@@ -207,7 +207,7 @@ static void reload(Editor *const editor)
   MapTex *const textures = Session_get_textures(session);
 
   MapTransfers_load_all(&textures->transfers, filenames_get(filenames, DataType_MapTextures));
-  Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_TRANSFERS_RELOADED, NULL);
+  Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_TRANSFERS_RELOADED, &(EditorChangeParams){0});
 }
 
 static void edit(Editor *const editor)
@@ -226,7 +226,7 @@ static void delete_all(Editor *const editor)
   {
     MapTex *const textures = Session_get_textures(session);
     MapTransfers_remove_and_delete_all(&textures->transfers);
-    Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_TRANSFER_ALL_DELETED, NULL);
+    Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_TRANSFER_ALL_DELETED, &(EditorChangeParams){0});
   }
 }
 
@@ -234,17 +234,17 @@ static void delete(Editor *const editor, int const object_no)
 {
   EditSession *const session = Editor_get_session(editor);
   MapTex *const textures = Session_get_textures(session);
-  MapTransfer *const delete_me = MapTransfers_find_by_index(
+  _Optional MapTransfer *const delete_me = MapTransfers_find_by_index(
     &textures->transfers, object_no);
   assert(delete_me != NULL);
   if (delete_me == NULL)
     return;
 
   if (dialogue_confirm(msgs_lookup_subn("ConfirmDelTran", 1,
-      dfile_get_name(MapTransfer_get_dfile(delete_me))), "DelCanBut"))
+      dfile_get_name(MapTransfer_get_dfile(&*delete_me))), "DelCanBut"))
   {
     MapTransfers_remove_and_delete(&textures->transfers,
-      delete_me, true);
+      &*delete_me, true);
 
     Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_TRANSFER_DELETED,
       &(EditorChangeParams){.transfer_deleted.index = object_no});

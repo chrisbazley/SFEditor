@@ -38,7 +38,7 @@ struct Editor
   MapPoint map_pos, fine_pos, drag_select_start, drag_select_end, vertex[3];
 
   EditMode editing_mode; /* see editing modes defined above */
-  EditModeFuncts const *mode_functions;
+  _Optional EditModeFuncts const *mode_functions;
   void *editingmode_data; /* mode-specific data for selection models etc */
 };
 

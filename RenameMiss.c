@@ -75,10 +75,10 @@ static void config_copy(const char *const source_path)
     directory */
     bool exists;
     {
-      char *const miss_intern_path = make_file_path_in_dir_on_path(
+      _Optional char *const miss_intern_path = make_file_path_in_dir_on_path(
          Config_get_read_dir(), MISSION_DIR, source_path);
 
-      exists = file_exists(miss_intern_path);
+      exists = miss_intern_path && file_exists(&*miss_intern_path);
       free(miss_intern_path);
     }
     if (exists) {
@@ -102,7 +102,7 @@ static void setup_win(void)
 
   struct {
     filescan_type dir;
-    filescan_leafname *leaves;
+    _Optional filescan_leafname *leaves;
   } data[] = {
     { FS_MISSION_E, NULL },
     { FS_MISSION_M, NULL },
@@ -111,7 +111,7 @@ static void setup_win(void)
   };
 
   {
-    filescan_leafname *leaf_list = NULL;
+    _Optional filescan_leafname *leaf_list = NULL;
     bool bad_path = true;
     for (size_t i = 0; bad_path && i < ARRAY_SIZE(data); ++i) {
       char const *const emh_path = filescan_get_emh_path(data[i].dir);
@@ -139,14 +139,14 @@ static void setup_win(void)
 
   /* Have reached end of list without match - substitute 1st known name */
   {
-    filescan_leafname *first_leaf = NULL;
-    char const *prefix = NULL;
+    _Optional filescan_leafname *first_leaf = NULL;
+    char const *prefix;
 
     for (size_t i = 0; !first_leaf && i < ARRAY_SIZE(data); ++i) {
       if (data[i].leaves == NULL) {
         data[i].leaves = filescan_get_leaf_names(data[i].dir, NULL);
       }
-      if (*data[i].leaves[0].leaf_name != '\0') {
+      if (data[i].leaves && *data[i].leaves[0].leaf_name != '\0') {
         first_leaf = data[i].leaves;
         prefix = filescan_get_emh_path(data[i].dir);
       }
@@ -331,7 +331,7 @@ void RenameMiss_created(ObjectId const dbox_id)
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
     EF(event_register_toolbox_handler(dbox_id, handlers[i].event_code,
-                                      handlers[i].handler, NULL));
+                                      handlers[i].handler, &RenameMiss_id));
   }
 }
 

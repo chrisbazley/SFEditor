@@ -52,7 +52,7 @@
 
 struct fs_dir_info {
   DataType data_type;
-  filescan_leafname *leaf_names;
+  _Optional filescan_leafname *leaf_names;
   bool rescan_needed;
   int scan_no;
 };
@@ -80,7 +80,7 @@ enum {
 };
 
 typedef struct {
-  filescan_leafname *names;
+  _Optional filescan_leafname *names;
   size_t used;
   size_t len;
 } fs_array;
@@ -107,7 +107,7 @@ static bool fs_array_push(fs_array *const array, const filescan_leafname *const 
     /* Create/extend output array */
     size_t const new_len = HIGHEST(MIN_EXTEND, array->len * ARRAY_EXTEND_FACTOR);
     DEBUGF("Extending array from %zu to %zu\n", array->len, new_len);
-    void *const new_ptr = realloc(array->names, new_len * sizeof(*array->names));
+    _Optional void *const new_ptr = realloc(array->names, new_len * sizeof(*array->names));
     if (new_ptr == NULL) {
       report_error(SFERROR(NoMem), "", "");
       return false;
@@ -118,6 +118,11 @@ static bool fs_array_push(fs_array *const array, const filescan_leafname *const 
   }
 
   assert(array->used < array->len);
+  assert(array->names);
+  if (!array->names) {
+    return false;
+  }
+
   array->names[array->used] = *name;
   DEBUGF("Have written array entry %zu '%s'%s\n", array->used,
          name->leaf_name, name->is_internal ? " (internal)" : "");
@@ -169,13 +174,13 @@ static bool fs_not_empty(char const *const s, filescan_type const directory)
   DEBUG("Checking for existence of files of type %x in %s", file_type, s);
 
   bool found_object = false;
-  DirIterator *iter = NULL;
-  for (const _kernel_oserror *e = diriterator_make(&iter, 0, s, NULL);
-       !E(e);
-       e = diriterator_advance(iter)) {
+  _Optional DirIterator *iter = NULL;
+  for (_Optional const _kernel_oserror *e = diriterator_make(&iter, 0, s, NULL);
+       !E(e) && iter;
+       e = diriterator_advance(&*iter)) {
 
     DirIteratorObjectInfo info;
-    int const object_type = diriterator_get_object_info(iter, &info);
+    int const object_type = diriterator_get_object_info(&*iter, &info);
     if (object_type == ObjectType_NotFound) {
       break;
     }
@@ -186,7 +191,7 @@ static bool fs_not_empty(char const *const s, filescan_type const directory)
 
     /* Check that filename within length limit */
     filescan_leafname tmp;
-    if (diriterator_get_object_leaf_name(iter, tmp.leaf_name,
+    if (diriterator_get_object_leaf_name(&*iter, tmp.leaf_name,
         sizeof(tmp.leaf_name)) >= sizeof(tmp.leaf_name)) {
       DEBUGF("%s exceeds the character limit\n", tmp.leaf_name);
       continue;
@@ -200,7 +205,7 @@ static bool fs_not_empty(char const *const s, filescan_type const directory)
   return found_object;
 }
 
-static filescan_leafname *fs_dir(char const *const s,
+static _Optional filescan_leafname *fs_dir(char const *const s,
   filescan_type const directory, bool const internal)
 {
   /* Scan directory and build array of 11-character leafnames */
@@ -214,13 +219,13 @@ static filescan_leafname *fs_dir(char const *const s,
     int const file_type = fs_file_type(directory);
 
     hourglass_on();
-    DirIterator *iter = NULL;
-    for (const _kernel_oserror *e = diriterator_make(&iter, 0, s, NULL);
-         !E(e);
-         e = diriterator_advance(iter)) {
+    _Optional DirIterator *iter = NULL;
+    for (_Optional const _kernel_oserror *e = diriterator_make(&iter, 0, s, NULL);
+         !E(e) && iter;
+         e = diriterator_advance(&*iter)) {
 
       DirIteratorObjectInfo info;
-      int const object_type = diriterator_get_object_info(iter, &info);
+      int const object_type = diriterator_get_object_info(&*iter, &info);
       if (object_type == ObjectType_NotFound) {
         success = true;
         break;
@@ -232,7 +237,7 @@ static filescan_leafname *fs_dir(char const *const s,
         /* Check that filename within length limit */
         filescan_leafname tmp = {.is_internal = internal};
 
-        if (diriterator_get_object_leaf_name(iter, tmp.leaf_name, sizeof(tmp.leaf_name)) >=
+        if (diriterator_get_object_leaf_name(&*iter, tmp.leaf_name, sizeof(tmp.leaf_name)) >=
             sizeof(tmp.leaf_name)) {
           DEBUGF("%s exceeds the character limit\n", tmp.leaf_name);
           continue;
@@ -260,20 +265,20 @@ static filescan_leafname *fs_dir(char const *const s,
   return success ? scan_results.names : NULL; /* return finished array */
 }
 
-static filescan_leafname *fs_scanlevelspath(filescan_type const directory)
+static _Optional filescan_leafname *fs_scanlevelspath(filescan_type const directory)
 {
   /* Scan the currently configured levels paths, and combine */
-  filescan_leafname *combined = NULL;
+  _Optional filescan_leafname *combined = NULL;
   StringBuffer full_path;
   stringbuffer_init(&full_path);
 
   /* construct FULL path for internal game directory to scan */
-  filescan_leafname *intern_files = NULL;
+  _Optional filescan_leafname *intern_files = NULL;
   char const *const relative_scanpath = filescan_get_directory(directory);
-  char *const intern_path = make_file_path_in_dir(Config_get_read_dir(), relative_scanpath);
+  _Optional char *const intern_path = make_file_path_in_dir(Config_get_read_dir(), relative_scanpath);
   if (intern_path)
   {
-    intern_files = fs_dir(intern_path, directory, true);
+    intern_files = fs_dir(&*intern_path, directory, true);
     free(intern_path);
   }
 
@@ -285,17 +290,20 @@ static filescan_leafname *fs_scanlevelspath(filescan_type const directory)
   }
   else
   {
-    filescan_leafname *extern_files = NULL;
-    char *const extern_path = make_file_path_in_dir(Config_get_extern_levels_dir(),
+    _Optional filescan_leafname *extern_files = NULL;
+    _Optional char *const extern_path = make_file_path_in_dir(Config_get_extern_levels_dir(),
       relative_scanpath);
 
     if (extern_path)
     {
-      extern_files = fs_dir(extern_path, directory, false);
+      extern_files = fs_dir(&*extern_path, directory, false);
       free(extern_path);
 
-      /* Combine the internal and external scan results together: */
-      combined = filescan_combine_filenames(extern_files, intern_files);
+      if (extern_files)
+      {
+        /* Combine the internal and external scan results together: */
+        combined = filescan_combine_filenames(&*extern_files, &*intern_files);
+      }
     }
     free(extern_files);
     free(intern_files);
@@ -386,22 +394,22 @@ bool filescan_dir_not_empty(filescan_type const directory)
     char const *const sub_dir = filescan_get_directory(directory);
 
     /* construct FULL path for internal game directory to scan */
-    char *const intern_path = make_file_path_in_dir(Config_get_read_dir(), sub_dir);
+    _Optional char *const intern_path = make_file_path_in_dir(Config_get_read_dir(), sub_dir);
     if (intern_path)
     {
       /* Scan internal game directory */
-      not_empty = fs_not_empty(intern_path, directory);
+      not_empty = fs_not_empty(&*intern_path, directory);
       free(intern_path);
 
       /* do we have an external levels directory configured? */
       if (!not_empty && Config_get_use_extern_levels_dir())
       {
         /* construct FULL path for external game directory to scan */
-        char *const extern_path = make_file_path_in_dir(Config_get_extern_levels_dir(), sub_dir);
+        _Optional char *const extern_path = make_file_path_in_dir(Config_get_extern_levels_dir(), sub_dir);
         if (extern_path)
         {
           /* Scan external game directory */
-          not_empty = fs_not_empty(extern_path, directory);
+          not_empty = fs_not_empty(&*extern_path, directory);
           free(extern_path);
         }
       }
@@ -410,12 +418,14 @@ bool filescan_dir_not_empty(filescan_type const directory)
   else
   {
     /* Check cached catalogue of directory contents */
-    not_empty = *knowledge[directory].leaf_names[0].leaf_name != '\0';
+    not_empty = knowledge[directory].leaf_names &&
+                *knowledge[directory].leaf_names[0].leaf_name != '\0';
   }
   return not_empty;
 }
 
-filescan_leafname *filescan_get_leaf_names(filescan_type const directory, int *const vsn)
+_Optional filescan_leafname *filescan_get_leaf_names(filescan_type const directory,
+                                                     _Optional int *const vsn)
 {
   assert(directory >= 0);
   assert(directory < ARRAY_SIZE(knowledge));
@@ -426,12 +436,12 @@ filescan_leafname *filescan_get_leaf_names(filescan_type const directory, int *c
   if (!Config_get_lazydirscan() || knowledge[directory].rescan_needed)
   {
     DEBUG("filescan_get_leaf_names about to scan directory %d", directory);
-    filescan_leafname *const newfiles = fs_scanlevelspath(directory);
+    _Optional filescan_leafname *const newfiles = fs_scanlevelspath(directory);
 
     if (newfiles != NULL)
     {
       free(knowledge[directory].leaf_names);
-      knowledge[directory].leaf_names = newfiles;
+      knowledge[directory].leaf_names = &*newfiles;
 
       knowledge[directory].rescan_needed = false;
 
@@ -485,7 +495,7 @@ filescan_type filescan_get_emh_type(char const *const filename)
   return FS_LAST;
 }
 
-filescan_leafname *filescan_combine_filenames(filescan_leafname *filenames_A, filescan_leafname *filenames_B)
+_Optional filescan_leafname *filescan_combine_filenames(filescan_leafname *filenames_A, filescan_leafname *filenames_B)
 {
   /* Combine two arrays of leafnames into one */
   DEBUGF("Filescan about to combine leafname arrays %p and %p\n",

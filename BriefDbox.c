@@ -62,18 +62,18 @@ enum {
 static bool read_brief_win(BriefingData *const briefing, ObjectId const id)
 {
   int nbytes = 0;
-  if (E(textarea_get_text(0, id, ComponentId_TextArea, NULL, 0, &nbytes)) ||
+  if (E(textarea_get_text(0, id, ComponentId_TextArea, &(char){0}, 0, &nbytes)) ||
       nbytes < 0) {
     return false;
   }
 
-  char *const buffer = malloc((unsigned)nbytes);
+  _Optional char *const buffer = malloc((unsigned)nbytes);
   if (buffer == NULL) {
     report_error(SFERROR(NoMem), "", "");
     return false;
   }
 
-  if (E(textarea_get_text(0, id, ComponentId_TextArea, buffer, nbytes, NULL))) {
+  if (E(textarea_get_text(0, id, ComponentId_TextArea, &*buffer, nbytes, NULL))) {
     free(buffer);
     return false;
   }
@@ -82,7 +82,8 @@ static bool read_brief_win(BriefingData *const briefing, ObjectId const id)
   briefing_init(&new_briefing);
 
   bool success = true;
-  char *string = buffer, *end;
+  char *string = &*buffer;
+  _Optional char *end;
   do {
     end = strchr(string, ENDPARA[0]);
     if (end != NULL) {
@@ -145,19 +146,24 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
 {
   NOT_USED(event_code);
   BriefDboxData *const briefing_data = handle;
+  _Optional MissionData *const m = Session_get_mission(briefing_data->session);
+  assert(m);
+  if (!m) {
+    return 0;
+  }
 
   switch (id_block->self_component) {
     case ComponentId_Cancel:
       if (TEST_BITS(event->hdr.flags, ActionButton_Selected_Adjust)) {
         /* restore settings */
-        setup_win(mission_get_briefing(Session_get_mission(briefing_data->session)), id_block->self_id);
+        setup_win(mission_get_briefing(&*m), id_block->self_id);
       }
       break;
 
     case ComponentId_OK:
       /* read settings from window */
-      if (read_brief_win(mission_get_briefing(Session_get_mission(briefing_data->session)), id_block->self_id)) {
-        Session_resource_change(briefing_data->session, EDITOR_CHANGE_BRIEFING, NULL);
+      if (read_brief_win(mission_get_briefing(&*m), id_block->self_id)) {
+        Session_resource_change(briefing_data->session, EDITOR_CHANGE_BRIEFING, &(EditorChangeParams){0});
         Session_notify_changed(briefing_data->session, DataType_Mission);
         if (TEST_BITS(event->hdr.flags, ActionButton_Selected_Select)) {
           E(toolbox_hide_object(0, id_block->self_id));
@@ -179,7 +185,13 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   NOT_USED(event);
   BriefDboxData *const briefing_data = handle;
 
-  setup_win(mission_get_briefing(Session_get_mission(briefing_data->session)), id_block->self_id);
+  _Optional MissionData *const m = Session_get_mission(briefing_data->session);
+  assert(m);
+  if (!m) {
+    return 0;
+  }
+
+  setup_win(mission_get_briefing(&*m), id_block->self_id);
 
   return 1; /* claim event */
 }

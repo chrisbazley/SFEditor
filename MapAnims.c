@@ -99,7 +99,7 @@ static void update_anims_map(ConvAnimations *const anims, CoarsePoint2d const co
   }
 }
 
-static SFError add_anim(ConvAnimations *const anims, MapData *const write_map,
+static SFError add_anim(ConvAnimations *const anims, _Optional MapData *const write_map,
   const MapAnim *const new_anim)
 {
   /* Copy external animation into our array */
@@ -111,7 +111,7 @@ static SFError add_anim(ConvAnimations *const anims, MapData *const write_map,
     return SFERROR(NumAnims);
   }
 
-  MapAnim *const anim = malloc(sizeof(*anim));
+  _Optional MapAnim *const anim = malloc(sizeof(*anim));
   if (!anim)
   {
     return SFERROR(NoMem);
@@ -219,7 +219,7 @@ static void clear_all(ConvAnimations *const anims)
 {
   assert(anims);
   memset_flex(&anims->bit_map, 0, ANIMS_BIT_MAP_SIZE);
-  intdict_destroy(&anims->sa_coords, anim_destroy_cb, NULL);
+  intdict_destroy(&anims->sa_coords, anim_destroy_cb, anims);
   intdict_init(&anims->sa_coords);
 }
 
@@ -361,7 +361,7 @@ static void MapAnims_destroy_cb(DFile const *const dfile)
     flex_free(&anims->bit_map);
   }
 
-  intdict_destroy(&anims->sa_coords, anim_destroy_cb, NULL);
+  intdict_destroy(&anims->sa_coords, anim_destroy_cb, anims);
   dfile_destroy(&anims->dfile);
   free(anims);
 }
@@ -379,7 +379,7 @@ static void MapAnims_write_cb(DFile const *const dfile, Writer *const writer)
   writer_fseek(writer, BytesPerHdr, SEEK_SET);
 
   IntDictVIter iter;
-  for (MapAnim *anim = intdictviter_all_init(&iter, &anims->sa_coords);
+  for (_Optional MapAnim *anim = intdictviter_all_init(&iter, &anims->sa_coords);
        anim != NULL;
        anim = intdictviter_advance(&iter)) {
     assert(anim);
@@ -397,15 +397,14 @@ static void MapAnims_write_cb(DFile const *const dfile, Writer *const writer)
 
 /* ---------------- Public functions ---------------- */
 
-ConvAnimations *MapAnims_create(void)
+_Optional ConvAnimations *MapAnims_create(void)
 {
-  ConvAnimations *const anims = malloc(sizeof(*anims));
+  _Optional ConvAnimations *const anims = malloc(sizeof(*anims));
   if (anims)
   {
     *anims = (ConvAnimations){
       .dfile = {0},
       .sa_coords = {0},
-      .bit_map = NULL,
       .steps_since_reset = 0,
     };
     intdict_init(&anims->sa_coords);
@@ -429,7 +428,7 @@ DFile *MapAnims_get_dfile(ConvAnimations *const anims)
   return &anims->dfile;
 }
 
-SFError MapAnims_add(ConvAnimations *const anims, MapData *const write_map,
+SFError MapAnims_add(ConvAnimations *const anims, _Optional MapData *const write_map,
   MapPoint const map_pos, MapAnimParam const param)
 {
   MapAnim anim_templ = {
@@ -458,11 +457,11 @@ bool MapAnims_get(ConvAnimations *anims, MapPoint const map_pos,
   return !MapAnimsIter_done(&iter);
 }
 
-static MapPoint iter_loop_core(MapAnimsIter *const iter, MapAnimParam *const param)
+static MapPoint iter_loop_core(MapAnimsIter *const iter, _Optional MapAnimParam *const param)
 {
   assert(iter);
   for (; iter->anim != NULL; iter->anim = intdictviter_advance(&iter->viter)) {
-    MapAnim *const anim = iter->anim;
+    _Optional MapAnim *const anim = iter->anim;
 
     MapPoint const coords = map_coords_from_coarse(anim->coords);
     if (!map_bbox_contains(&iter->map_area, coords)) {
@@ -486,7 +485,7 @@ static MapPoint iter_loop_core(MapAnimsIter *const iter, MapAnimParam *const par
 
 MapPoint MapAnimsIter_get_first(MapAnimsIter *const iter,
   ConvAnimations *const anims, MapArea const *const map_area,
-  MapAnimParam *const param)
+  _Optional MapAnimParam *const param)
 {
   assert(iter != NULL);
   assert(anims != NULL);
@@ -504,7 +503,7 @@ MapPoint MapAnimsIter_get_first(MapAnimsIter *const iter,
   return iter_loop_core(iter, param);
 }
 
-MapPoint MapAnimsIter_get_next(MapAnimsIter *const iter, MapAnimParam *const param)
+MapPoint MapAnimsIter_get_next(MapAnimsIter *const iter, _Optional MapAnimParam *const param)
 {
   assert(iter != NULL);
   assert(!iter->done);
@@ -521,8 +520,11 @@ void MapAnimsIter_del_current(MapAnimsIter *const iter)
   assert(MapArea_is_valid(&iter->map_area));
 
   intdictviter_remove(&iter->viter);
-  delete_anim(iter->anims, iter->anim);
-  iter->anim = NULL;
+  if (iter->anim)
+  {
+    delete_anim(iter->anims, &*iter->anim);
+    iter->anim = NULL;
+  }
 }
 
 void MapAnimsIter_replace_current(MapAnimsIter const *const iter, MapAnimParam const param)
@@ -541,7 +543,7 @@ MapRef MapAnimsIter_get_current(MapAnimsIter const *const iter)
   assert(MapArea_is_valid(&iter->map_area));
 
   /* Find the map tile for the current frame of this animation */
-  MapAnim const *const anim = iter->anim;
+  _Optional MapAnim const *const anim = iter->anim;
   int const current_frame = anim->frame_num;
   MapRef anim_tile = map_ref_mask();
 
@@ -571,7 +573,7 @@ void MapAnims_reset(ConvAnimations *const anims)
   anims->steps_since_reset = 0;
 
   IntDictVIter iter;
-  for (MapAnim *anim = intdictviter_all_init(&iter, &anims->sa_coords);
+  for (_Optional MapAnim *anim = intdictviter_all_init(&iter, &anims->sa_coords);
        anim != NULL;
        anim = intdictviter_advance(&iter)) {
     assert(anim);
@@ -584,7 +586,8 @@ void MapAnims_reset(ConvAnimations *const anims)
 }
 
 SchedulerTime MapAnims_update(ConvAnimations *const anims,
-  MapData *const write_map, int const steps_to_advance, MapAreaColData *const redraw_map)
+                              MapData *const write_map, int const steps_to_advance,
+                              _Optional MapAreaColData *const redraw_map)
 {
   SchedulerTime earliest_next_frame = SchedulerTime_Max;
 
@@ -592,7 +595,7 @@ SchedulerTime MapAnims_update(ConvAnimations *const anims,
   assert(write_map != NULL);
 
   IntDictVIter iter;
-  for (MapAnim *anim = intdictviter_all_init(&iter, &anims->sa_coords);
+  for (_Optional MapAnim *anim = intdictviter_all_init(&iter, &anims->sa_coords);
        anim != NULL;
        anim = intdictviter_advance(&iter)) {
     assert(anim);
@@ -642,7 +645,7 @@ SchedulerTime MapAnims_update(ConvAnimations *const anims,
       if (!map_ref_is_equal(map_update_tile(write_map, pos, new_tile), new_tile))
       {
         if (redraw_map != NULL) {
-          MapAreaCol_add(redraw_map, &(MapArea){pos, pos});
+          MapAreaCol_add(&*redraw_map, &(MapArea){pos, pos});
         }
       }
     }

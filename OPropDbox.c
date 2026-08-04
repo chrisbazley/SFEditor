@@ -644,7 +644,7 @@ static void setup_win(ObjPropDbox *const prop)
   ObjEditContext const *const objects = Session_get_objects(get_session(prop));
 
   if (objects->triggers) {
-    for (MapPoint p = TriggersIter_get_first(&iter, objects->triggers,
+    for (MapPoint p = TriggersIter_get_first(&iter, &*objects->triggers,
                                              &(MapArea){prop->pos, prop->pos}, &item);
          !TriggersIter_done(&iter);
          p = TriggersIter_get_next(&iter, &item))
@@ -1127,7 +1127,7 @@ static void delete_dbox(ObjPropDbox *const prop)
   if (prop->items) {
     flex_free(&prop->items);
   }
-  ObjPropDbox *const removed = intdict_remove_value(&prop->prop_dboxes->sa_window, prop->my_add_window, NULL);
+  _Optional ObjPropDbox *const removed = intdict_remove_value(&prop->prop_dboxes->sa_window, prop->my_add_window, NULL);
   assert(removed == prop);
   NOT_USED(removed);
   free(prop);
@@ -1140,7 +1140,7 @@ static int ObjPropDboxes_has_been_hidden(int const event_code, ToolboxEvent *con
   NOT_USED(event);
   NOT_USED(id_block);
   ObjPropDbox *const prop = handle;
-  ObjPropDbox *const removed = intdict_remove_value(&prop->prop_dboxes->sa_coords, objects_coords_to_key(prop->pos), NULL);
+  _Optional ObjPropDbox *const removed = intdict_remove_value(&prop->prop_dboxes->sa_coords, objects_coords_to_key(prop->pos), NULL);
   assert(removed == prop);
   NOT_USED(removed);
   delete_dbox(prop);
@@ -1279,7 +1279,7 @@ static ObjPropDbox *create_dbox(ObjPropDboxes *const prop_dboxes, MapPoint const
               update_title(prop);
               return prop;
             }
-            ObjPropDbox *const removed = intdict_remove_value(&prop_dboxes->sa_window, prop->my_add_window, NULL);
+            _Optional ObjPropDbox *const removed = intdict_remove_value(&prop_dboxes->sa_window, prop->my_add_window, NULL);
             assert(removed == prop);
             NOT_USED(removed);
           }
@@ -1295,11 +1295,13 @@ static ObjPropDbox *create_dbox(ObjPropDboxes *const prop_dboxes, MapPoint const
   return NULL;
 }
 
-static void destroy_cb(IntDictKey key, void *value, void *arg)
+static void destroy_cb(IntDictKey key, _Optional void *value, void *arg)
 {
   NOT_USED(key);
   NOT_USED(arg);
-  delete_dbox(value);
+  _Optional ObjPropDbox *const prop = value;
+  if (prop)
+    delete_dbox(&*prop);
 }
 
 /* ---------------- Public functions ---------------- */
@@ -1324,10 +1326,10 @@ void ObjPropDboxes_update_title(ObjPropDboxes *const prop_dboxes)
 {
   assert(prop_dboxes);
   IntDictVIter iter;
-  for (ObjPropDbox *prop_dbox = intdictviter_all_init(&iter, &prop_dboxes->sa_coords);
+  for (_Optional ObjPropDbox *prop_dbox = intdictviter_all_init(&iter, &prop_dboxes->sa_coords);
        prop_dbox != NULL;
        prop_dbox = intdictviter_advance(&iter)) {
-    update_title(prop_dbox);
+    update_title(&*prop_dbox);
   }
 }
 
@@ -1338,19 +1340,19 @@ void ObjPropDboxes_update_for_move(ObjPropDboxes *const prop_dboxes,
     return;
   }
 
-  ObjPropDbox *const prop_dbox = intdict_remove_value(&prop_dboxes->sa_coords,
+  _Optional ObjPropDbox *const prop_dbox = intdict_remove_value(&prop_dboxes->sa_coords,
                                    objects_coords_to_key(old_pos), NULL);
   if (!prop_dbox) {
     return;
   }
 
   assert(objects_coords_compare(prop_dbox->pos, old_pos));
-  if (intdict_insert(&prop_dboxes->sa_coords, objects_coords_to_key(new_pos), prop_dbox, NULL)) {
+  if (intdict_insert(&prop_dboxes->sa_coords, objects_coords_to_key(new_pos), &*prop_dbox, NULL)) {
     prop_dbox->pos = new_pos;
-    disp_pos(prop_dbox);
+    disp_pos(&*prop_dbox);
   } else {
     report_error(SFERROR(NoMem), "", "");
-    delete_dbox(prop_dbox);
+    delete_dbox(&*prop_dbox);
   }
 }
 
@@ -1363,12 +1365,12 @@ static bool split_callback(MapArea const *const bbox, void *const arg)
   assert(min_key <= max_key);
 
   IntDictVIter iter;
-  for (ObjPropDbox *prop_dbox = intdictviter_init(&iter, &prop_dboxes->sa_coords, min_key, max_key);
+  for (_Optional ObjPropDbox *prop_dbox = intdictviter_init(&iter, &prop_dboxes->sa_coords, min_key, max_key);
        prop_dbox != NULL;
        prop_dbox = intdictviter_advance(&iter)) {
     if (objects_bbox_contains(bbox, prop_dbox->pos) && !prop_dbox->keep) {
       intdictviter_remove(&iter);
-      delete_dbox(prop_dbox);
+      delete_dbox(&*prop_dbox);
     }
   }
   return false;
@@ -1386,7 +1388,7 @@ void ObjPropDboxes_open(ObjPropDboxes *const prop_dboxes, MapPoint const pos,
 {
   IntDictKey const key = objects_coords_to_key(pos);
 
-  ObjPropDbox *prop_dbox = intdict_find_value(&prop_dboxes->sa_coords, key, NULL);
+  _Optional ObjPropDbox *prop_dbox = intdict_find_value(&prop_dboxes->sa_coords, key, NULL);
   if (!prop_dbox) {
     prop_dbox = create_dbox(prop_dboxes, pos);
   } else {
@@ -1503,13 +1505,13 @@ bool ObjPropDboxes_drag_obj_link(ObjPropDboxes *const prop_dboxes,
 {
   DEBUGF("Drop in icon %d of window %d\n", icon, window);
 
-  ObjPropDbox *const prop_dbox = intdict_find_value(&prop_dboxes->sa_window, window, NULL);
+  _Optional ObjPropDbox *const prop_dbox = intdict_find_value(&prop_dboxes->sa_window, window, NULL);
   if (!prop_dbox) {
     DEBUGF("Drop not in window %d\n", window);
     return false;
   }
 
-  if (dropped_on_icon(prop_dbox, icon)) {
+  if (dropped_on_icon(&*prop_dbox, icon)) {
     TriggerFullParam item = {
       .param = {
         .action = TriggerAction_ChainReaction,
@@ -1520,7 +1522,7 @@ bool ObjPropDboxes_drag_obj_link(ObjPropDboxes *const prop_dboxes,
            ComponentId_ChainDelay, &item.param.value))) {
       return false;
     }
-    write_gadgets(prop_dbox, item);
+    write_gadgets(&*prop_dbox, item);
     return true;
   }
 

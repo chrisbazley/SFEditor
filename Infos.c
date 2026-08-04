@@ -143,7 +143,7 @@ size_t target_info_delete(TargetInfo *const info)
   TargetInfosData *const target_infos = info->infos;
   assert(target_infos);
   size_t index = 0;
-  void *const removed = intdict_remove_value(&target_infos->dict,
+  _Optional void *const removed = intdict_remove_value(&target_infos->dict,
                            map_coarse_coords_to_key(info->coords), &index);
   assert(removed == info);
   NOT_USED(removed);
@@ -155,7 +155,10 @@ static void destroy_cb(IntDictKey const key, _Optional void *const data, void *c
 {
   NOT_USED(key);
   NOT_USED(arg);
-  free_info(data);
+  _Optional TargetInfo *const info = data;
+  if (info) {
+    free_info(&*info);
+  }
 }
 
 void target_infos_init(TargetInfosData *const target_infos)
@@ -172,7 +175,7 @@ void target_infos_destroy(TargetInfosData *const target_infos)
 }
 
 SFError target_infos_add(TargetInfosData *const target_infos,
-  MapPoint const pos, size_t *const index)
+  MapPoint const pos, _Optional size_t *const index)
 {
   assert(target_infos);
   assert(target_infos->count <= TargetInfoMax);
@@ -182,7 +185,7 @@ SFError target_infos_add(TargetInfosData *const target_infos,
     return SFERROR(NumInfos);
   }
 
-  TargetInfo *const info = malloc(sizeof(*info));
+  _Optional TargetInfo *const info = malloc(sizeof(*info));
   if (info)
   {
     *info = (TargetInfo){.coords = map_coords_to_coarse(pos), .infos = target_infos,
@@ -374,7 +377,7 @@ size_t target_infos_get_text_count(TargetInfosData const *const target_infos)
   return target_infos_get_count(target_infos) * TargetInfoTextIndex_Count;
 }
 
-TargetInfo *target_info_from_index(TargetInfosData const *const target_infos,
+_Optional TargetInfo *target_info_from_index(TargetInfosData const *const target_infos,
   size_t const index)
 {
   return intdict_get_value_at(&target_infos->dict, index);
@@ -399,10 +402,10 @@ void target_infos_write(TargetInfosData *const target_infos, Writer *const write
   writer_fwrite_int32((int32_t)target_infos->count, writer);
 
   IntDictVIter iter;
-  for (TargetInfo *info = intdictviter_all_init(&iter, &target_infos->dict);
+  for (_Optional TargetInfo *info = intdictviter_all_init(&iter, &target_infos->dict);
        info != NULL;
        info = intdictviter_advance(&iter)) {
-    write_target_info_coords(info, writer);
+    write_target_info_coords(&*info, writer);
     if (writer_ferror(writer))
     {
       return;
@@ -416,10 +419,10 @@ int target_infos_write_text_offsets(TargetInfosData *const target_infos,
   assert(target_infos);
 
   IntDictVIter iter;
-  for (TargetInfo *info = intdictviter_all_init(&iter, &target_infos->dict);
+  for (_Optional TargetInfo *info = intdictviter_all_init(&iter, &target_infos->dict);
        info != NULL;
        info = intdictviter_advance(&iter)) {
-    write_target_info_offset(info, writer, &offset);
+    write_target_info_offset(&*info, writer, &offset);
     if (writer_ferror(writer))
     {
       break;
@@ -434,10 +437,10 @@ void target_infos_write_texts(TargetInfosData *const target_infos, Writer *const
   assert(target_infos);
 
   IntDictVIter iter;
-  for (TargetInfo *info = intdictviter_all_init(&iter, &target_infos->dict);
+  for (_Optional TargetInfo *info = intdictviter_all_init(&iter, &target_infos->dict);
        info != NULL;
        info = intdictviter_advance(&iter)) {
-    write_target_info_text(info, writer);
+    write_target_info_text(&*info, writer);
     if (writer_ferror(writer))
     {
       return;
@@ -454,7 +457,7 @@ SFError target_infos_read_texts(TargetInfosData *const target_infos,
   SFError err = SFERROR(OK);
 
   IntDictVIter iter;
-  for (TargetInfo *info = intdictviter_all_init(&iter, &target_infos->dict);
+  for (_Optional TargetInfo *info = intdictviter_all_init(&iter, &target_infos->dict);
        info != NULL;
        info = intdictviter_advance(&iter)) {
     assert(i <= count);
@@ -463,7 +466,7 @@ SFError target_infos_read_texts(TargetInfosData *const target_infos,
       break;
     }
 
-    err = read_target_info_text(info, reader, offsets, i++);
+    err = read_target_info_text(&*info, reader, offsets, i++);
     if (SFError_fail(err))
     {
       break;
@@ -478,8 +481,12 @@ static size_t iter_loop_core(TargetInfosIter *const iter)
   assert(iter);
 
   for (; iter->next_index < iter->end; iter->next_index++) {
-    TargetInfo *const info = intdict_get_value_at(iter->dict, iter->next_index);
-
+    _Optional TargetInfo *const info = intdict_get_value_at(iter->dict, iter->next_index);
+    assert(info);
+    if (!info)
+    {
+      break;
+    }
     MapPoint const coords = map_coords_from_coarse(info->coords);
     if (map_bbox_contains(&iter->map_area, coords)) {
       DEBUGF("Getting target info %zu at coordinates %d,%d\n",
@@ -531,6 +538,11 @@ void TargetInfosIter_del_current(TargetInfosIter *const iter)
 
   --iter->end;
   size_t const index = --iter->next_index;
-  free_info(intdict_get_value_at(iter->dict, index));
+  _Optional TargetInfo *const info = intdict_get_value_at(iter->dict, index);
+  if (!info)
+  {
+    return;
+  }
+  free_info(&*info);
   intdict_remove_at(iter->dict, index);
 }

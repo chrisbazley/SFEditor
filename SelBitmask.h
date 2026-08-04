@@ -15,17 +15,19 @@
 #endif
 
 typedef uint32_t SelBitmaskType;
+typedef void SelectionBitmaskRedrawFn(size_t, void *);
 
 typedef struct SelectionBitmask
 {
   SelBitmaskType bitmask;
   size_t num_selected, num_objects;
-  void (*redraw_cb)(size_t, void *);
+  _Optional SelectionBitmaskRedrawFn *redraw_cb;
   void *redraw_arg;
 } SelectionBitmask;
 
 void SelectionBitmask_init(SelectionBitmask *selection, size_t num,
-  void (*redraw_cb)(size_t, void *), void *redraw_arg);
+                           _Optional SelectionBitmaskRedrawFn *redraw_cb,
+                           void *redraw_arg);
 
 static inline void SelectionBitmask_copy(SelectionBitmask *const dst, SelectionBitmask const *const src)
 {

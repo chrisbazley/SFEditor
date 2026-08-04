@@ -359,18 +359,18 @@ void DrawObjs_unknown_to_screen(
 }
 
 void DrawObjs_to_screen(
-  PolyColData const *const poly_colours,
-  HillColData const *const hill_colours,
+  _Optional PolyColData const *const poly_colours,
+  _Optional HillColData const *const hill_colours,
   CloudColData const *const clouds,
   ObjGfxMeshes *const meshes,
   View const *view,
   MapArea const *const scr_area,
   DrawObjsReadObjFn *const read_obj,
   DrawObjsReadHillFn *const read_hill, void *const cb_arg,
-  TriggersData *const triggers,
-  ObjEditSelection const *const selection,
+  _Optional TriggersData *const triggers,
+  _Optional ObjEditSelection const *const selection,
   Vertex const scr_orig,
-  bool const is_ghost, ObjEditSelection const *const occluded)
+  bool const is_ghost, _Optional ObjEditSelection const *const occluded)
 {
   assert(read_obj);
   assert(read_hill);
@@ -412,7 +412,7 @@ void DrawObjs_to_screen(
     {
       MapPoint const map_pos = ObjLayout_derotate_scr_coords_to_map(view->config.angle, scr_grid_pos);
 
-      bool const is_selected = selection && ObjEditSelection_is_selected(selection, map_pos);
+      bool const is_selected = selection && ObjEditSelection_is_selected(&*selection, map_pos);
 
       if ((map_pos.x % Hill_ObjPerHill) == 0 && (map_pos.y % Hill_ObjPerHill) == 0)
       {
@@ -489,7 +489,7 @@ void DrawObjs_to_screen(
 
       if (triggers)
       {
-        found.trigger = found.trigger || triggers_check_locn(triggers, map_pos);
+        found.trigger = found.trigger || triggers_check_locn(&*triggers, map_pos);
       }
     } /* next scr_grid_pos.x */
   } /* next scr_grid_pos.y */
@@ -502,8 +502,8 @@ void DrawObjs_to_screen(
          found.trigger ? "trigger" : "", found.defence ? "defence" : "",
          found.hill ? "hill" : "");
 
-  if ((selection && !ObjEditSelection_is_none(selection)) ||
-      (occluded && !ObjEditSelection_is_none(occluded)) ||
+  if ((selection && !ObjEditSelection_is_none(&*selection)) ||
+      (occluded && !ObjEditSelection_is_none(&*occluded)) ||
        found.cloud || found.trigger || found.defence || found.hill || is_ghost)
   {
     DrawCloudContext clouds_ctx;
@@ -558,8 +558,8 @@ void DrawObjs_to_screen(
       {
         MapPoint const map_pos = ObjLayout_derotate_scr_coords_to_map(view->config.angle, scr_grid_pos);
         ObjRef const obj_ref = read_obj(cb_arg, map_pos);
-        bool const is_occluded = occluded && ObjEditSelection_is_selected(occluded, map_pos);
-        bool const is_selected = selection && ObjEditSelection_is_selected(selection, map_pos);
+        bool const is_occluded = occluded && ObjEditSelection_is_selected(&*occluded, map_pos);
+        bool const is_selected = selection && ObjEditSelection_is_selected(&*selection, map_pos);
         Vertex scr_min = {0,0}, scr_max = {0,0};
 
         if ((!objects_ref_is_none(obj_ref) && is_selected) || found.trigger || found.defence || is_ghost) {
@@ -638,11 +638,11 @@ void DrawObjs_to_screen(
 
         /* Check again for 'none' because it's also used when an object (that may have triggers) is
            outside the redraw rectangle. We must not draw triggers relative to such a 'none' object. */
-        if (found.trigger && !objects_ref_is_none(obj_ref)) {
+        if (triggers && found.trigger && !objects_ref_is_none(obj_ref)) {
           TriggersIter iter;
           TriggerFullParam fparam;
           MapArea const this_pos = {map_pos, map_pos};
-          for (TriggersIter_get_first(&iter, triggers, &this_pos, &fparam);
+          for (TriggersIter_get_first(&iter, &*triggers, &this_pos, &fparam);
                !TriggersIter_done(&iter);
                TriggersIter_get_next(&iter, &fparam))
           {
@@ -692,7 +692,7 @@ void DrawObjs_to_screen(
       .next_coords = {0,0},
     };
     static MapArea const all = {{0,0}, {Obj_Size - 1, Obj_Size - 1}};
-    for (MapPoint p = TriggersChainIter_get_first(&chain_iter, triggers, &all, &fparam);
+    for (MapPoint p = TriggersChainIter_get_first(&chain_iter, &*triggers, &all, &fparam);
          !TriggersChainIter_done(&chain_iter);
          p = TriggersChainIter_get_next(&chain_iter, &fparam))
     {

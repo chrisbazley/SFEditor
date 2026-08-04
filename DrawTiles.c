@@ -61,7 +61,7 @@ static bool draw_bitmap_big(MapTexBitmaps *const textures,
   MapAngle const angle, MapArea const *const scr_area,
   DrawTilesReadFn *const read, void *const cb_arg, int const zoom,
   SprMem const *const sprites,
-  unsigned char const (*const sel_colours)[NumColours])
+  _Optional unsigned char const (*const sel_colours)[NumColours])
 {
   assert(textures != NULL);
   assert(read);
@@ -69,7 +69,7 @@ static bool draw_bitmap_big(MapTexBitmaps *const textures,
   /* White out the sprite (needed for EOR plot if tiles inverted) */
 
   /* Set up some static OS_SpriteOp parameters */
-  ScaleFactors *pscale = NULL;
+  _Optional ScaleFactors *pscale = NULL;
 #if 0
   ScaleFactors scale_factors;
   if (zoom != 0) {
@@ -118,13 +118,14 @@ static bool draw_bitmap_big(MapTexBitmaps *const textures,
         sprintf(tile_name, "%d", map_ref_to_num(tile_ref));
 
         int action = SPRITE_ACTION_OVERWRITE;
-        void const *colours = NULL;
-        if (value.is_selected) {
+        _Optional void const *colours = NULL;
+        if (sel_colours && value.is_selected) {
           //action = SPRITE_ACTION_EOR;
           colours = sel_colours;
         }
         SprMem_plot_scaled_sprite(sprites, tile_name,
-                                  draw_pos, action, pscale, colours);
+                                  draw_pos, action,
+                                  pscale, colours);
       } else {
         needs_mask = true;
       }
@@ -139,7 +140,7 @@ static bool draw_bitmap_big(MapTexBitmaps *const textures,
 static bool draw_bitmap_small(MapTexBitmaps *const textures,
   MapAngle const angle, MapArea const *const scr_area,
   DrawTilesReadFn *const read, void *const cb_arg,
-  unsigned char const (*const sel_colours)[NumColours])
+  _Optional unsigned char const (*const sel_colours)[NumColours])
 {
   assert(textures != NULL);
   assert(read);
@@ -174,7 +175,7 @@ static bool draw_bitmap_small(MapTexBitmaps *const textures,
 
         /* Plot average colour of tile */
         int new_col = MapTexBitmaps_get_average_colour(textures, tile_ref);
-        if (value.is_selected) {
+        if (sel_colours && value.is_selected) {
           //new_col ^= UINT8_MAX; /* invert colour */
           assert(new_col >= 0);
           assert(new_col < NumColours);
@@ -214,7 +215,7 @@ static bool draw_bitmap_small(MapTexBitmaps *const textures,
 bool DrawTiles_to_sprite(MapTexBitmaps *const textures,
   SprMem *const sm, char const *const name, MapAngle const angle, MapArea const *const scr_area,
   DrawTilesReadFn *const read, void *const cb_arg,
-  int const zoom, unsigned char const (*const sel_colours)[NumColours])
+  int const zoom, _Optional unsigned char const (*const sel_colours)[NumColours])
 {
   assert(textures != NULL);
   assert(read);
@@ -259,7 +260,7 @@ bool DrawTiles_to_sprite(MapTexBitmaps *const textures,
   }
   SprMem_put_sprite_address(sm, sprite);
 #else
-  SprMem const *sprites = NULL;
+  _Optional SprMem const *sprites = NULL;
   if (zoom < DrawSmallMinZoom) {
     sprites = MapTexBitmaps_get_sprites(textures, angle, zoom);
     if (!sprites) {
@@ -274,7 +275,7 @@ bool DrawTiles_to_sprite(MapTexBitmaps *const textures,
     return false;
 
   if (zoom < DrawSmallMinZoom) {
-    needs_mask = draw_bitmap_big(textures, angle, scr_area, read, cb_arg, zoom, sprites, sel_colours);
+    needs_mask = draw_bitmap_big(textures, angle, scr_area, read, cb_arg, zoom, &*sprites, sel_colours);
   } else {
     needs_mask = draw_bitmap_small(textures, angle, scr_area, read, cb_arg, sel_colours);
   }
@@ -338,7 +339,7 @@ void DrawTiles_to_mask(SprMem *const sm, char const *const name,
       SIGNED_R_SHIFT(MapTexSize << DrawTilesModeYEig, zoom)};
   }
 
-  DrawTiles_to_bbox(angle, scr_area, read, cb_arg, draw_mask_bbox, NULL, tile_size);
+  DrawTiles_to_bbox(angle, scr_area, read, cb_arg, draw_mask_bbox, cb_arg, tile_size);
 
   SprMem_restore_output(sm);
 #endif

@@ -17,14 +17,19 @@
 
 struct EditSession;
 
+
+typedef void ObjEditPreChangeFn(MapArea const *, struct EditSession *),
+             ObjEditRedrawnObjFn(MapPoint, ObjRef, ObjRef, ObjRef, bool, struct EditSession *),
+             ObjEditRedrawTrigFn(MapPoint, ObjRef, TriggerFullParam, struct EditSession *);
+
 struct ObjEditContext
 {
-  struct ObjectsData *base; /* (Map/Mission) */
-  struct ObjectsData *overlay; /* (Mission only) */
-  TriggersData *triggers; /* (Mission only) */
-  void (*prechange_cb)(MapArea const *, struct EditSession *);
-  void (*redraw_obj_cb)(MapPoint, ObjRef, ObjRef, ObjRef, bool, struct EditSession *);
-  void (*redraw_trig_cb)(MapPoint, ObjRef, TriggerFullParam, struct EditSession *);
+  _Optional struct ObjectsData *base, /* (Map/Mission) */
+                               *overlay; /* (Mission only) */
+  _Optional TriggersData *triggers; /* (Mission only) */
+  _Optional ObjEditPreChangeFn *prechange_cb;
+  _Optional ObjEditRedrawnObjFn *redraw_obj_cb;
+  _Optional ObjEditRedrawTrigFn *redraw_trig_cb;
   struct EditSession *session;
 };
 

@@ -86,7 +86,7 @@ static void MapTex_destroy_cb(DFile const *const dfile)
 
 static void MapTex_cleanup(void)
 {
-  strdict_destroy(&file_dict, NULL, NULL);
+  strdict_destroy(&file_dict, (StrDictDestructorFn *)NULL, &file_dict);
 }
 
 void MapTex_init(void)
@@ -101,9 +101,9 @@ DFile *MapTex_get_dfile(MapTex *const textures)
   return &textures->dfile;
 }
 
-MapTex *MapTex_create(void)
+_Optional MapTex *MapTex_create(void)
 {
-  MapTex *const textures = malloc(sizeof(*textures));
+  _Optional MapTex *const textures = malloc(sizeof(*textures));
   if (textures)
   {
     *textures = (MapTex){
@@ -112,15 +112,15 @@ MapTex *MapTex_create(void)
       {0},
       {
         .super = {0},
-        .thumbnail_sprites = {NULL},
+        .thumbnail_sprites = {(void *)NULL},
         .have_thumbnails = false},
       {0}
     };
 
-    dfile_init(&textures->dfile, MapTex_read_cb, NULL, NULL,
-               MapTex_destroy_cb);
+    dfile_init(&textures->dfile, MapTex_read_cb, (DFileWriteFn *)NULL,
+               (DFileGetMinSizeFn *)NULL, MapTex_destroy_cb);
 
-    init_all(textures);
+    init_all(&*textures);
   }
   return textures;
 }
@@ -129,12 +129,12 @@ void MapTex_load_metadata(MapTex *const textures)
 {
   assert(textures);
 
-  char const *const filename = dfile_get_name(&textures->dfile);
+  _Optional char const *const filename = dfile_get_name(&textures->dfile);
   if (filename == NULL) {
     return;
   }
 
-  char *const leaf_name = pathtail(filename, 1);
+  char *const leaf_name = pathtail(&*filename, 1);
 
   MapTransfers_load_all(&textures->transfers, leaf_name);
 
@@ -151,8 +151,8 @@ bool MapTex_share(MapTex *const textures)
   return dfile_set_shared(&textures->dfile, &file_dict);
 }
 
-MapTex *MapTex_get_shared(char const *const filename)
+_Optional MapTex *MapTex_get_shared(char const *const filename)
 {
-  DFile *const dfile = dfile_find_shared(&file_dict, filename);
+  _Optional DFile *const dfile = dfile_find_shared(&file_dict, filename);
   return dfile ? CONTAINER_OF(dfile, MapTex, dfile) : NULL;
 }

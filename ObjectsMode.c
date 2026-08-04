@@ -94,7 +94,7 @@ typedef struct
   ObjModePaletteType palette_type;
   bool uk_drop_pending:1, lock_selection:1;
   ObjRef ghost_obj_ref;
-  ObjTransfer *pending_transfer, *pending_paste, *pending_drop, *dragged;
+  _Optional ObjTransfer *pending_transfer, *pending_paste, *pending_drop, *dragged;
   ObjEditChanges change_info; /* for accumulation */
   PendingShape pending_shape;
   MapPoint fine_pos, drag_start_pos, pending_vert[3];
@@ -111,6 +111,13 @@ enum {
 
 /* ---------------- Private functions ---------------- */
 
+static inline ObjectsModeData *get_mode_data(Editor const *const editor)
+{
+  assert(Editor_get_edit_mode(editor) == EDITING_MODE_OBJECTS);
+  assert(editor->editingmode_data);
+  return editor->editingmode_data;
+}
+
 static ObjRef read_ref_if_overlap(ObjGfxMeshes *const meshes, View const *const view,
   ObjEditContext const *const objects,
   MapPoint const grid_pos,
@@ -121,7 +128,7 @@ static ObjRef read_ref_if_overlap(ObjGfxMeshes *const meshes, View const *const 
   ObjRef const obj_ref = ObjectsEdit_read_ref(objects, grid_pos);
 
   bool triggers = false;
-  if (objects && objects->triggers && triggers_check_locn(objects->triggers, grid_pos)) {
+  if (objects && objects->triggers && triggers_check_locn(&*objects->triggers, grid_pos)) {
     triggers = true;
   }
   return DrawObjs_touch_ghost_bbox(meshes, view, triggers, obj_ref, grid_pos, map_area) ?
@@ -138,7 +145,7 @@ static ObjRef read_overlay_if_overlap(ObjGfxMeshes *const meshes, View const *co
   ObjRef const obj_ref = ObjectsEdit_read_overlay(objects, grid_pos);
 
   bool triggers = false;
-  if (objects && objects->triggers && triggers_check_locn(objects->triggers, grid_pos)) {
+  if (objects && objects->triggers && triggers_check_locn(&*objects->triggers, grid_pos)) {
     triggers = true;
   }
   return DrawObjs_touch_ghost_bbox(meshes, view, triggers, obj_ref, grid_pos, map_area) ?
@@ -154,14 +161,14 @@ typedef struct {
   MapArea const *overlapping_area;
   ObjEditContext const *objects;
   ObjGfxMeshes *meshes;
-  PolyColData const *poly_colours;
-  HillColData const *hill_colours;
+  _Optional PolyColData const *poly_colours;
+  _Optional HillColData const *hill_colours;
   struct CloudColData const *clouds;
   View const *view;
 } DrawShapeShadow;
 
 static ObjRef filter_ghost_obj(ObjEditContext const *objects, MapPoint const map_pos, ObjRef obj_ref,
-  ObjGfxMeshes *const meshes, ObjEditSelection *const occluded)
+  ObjGfxMeshes *const meshes, _Optional ObjEditSelection *const occluded)
 {
   if (!ObjectsEdit_can_place(objects, map_pos, obj_ref, meshes, occluded)) {
     return objects_ref_mask();
@@ -212,7 +219,7 @@ static void draw_area_as_ghost(MapArea const *const bbox, void *const cb_arg)
 }
 
 typedef struct {
-  HillsData const *hills;
+  _Optional HillsData const *hills;
   ObjEditContext const *objects;
   ObjGfxMeshes *meshes;
   View const *const view;
@@ -303,8 +310,8 @@ static void draw_ghost_paste(ObjTransfer *const transfer,
     },
   };
 
-  PolyColData const *const poly_colours = Session_get_poly_colours(session);
-  HillColData const *const hill_colours = Session_get_hill_colours(session);
+  _Optional PolyColData const *const poly_colours = Session_get_poly_colours(session);
+  _Optional HillColData const *const hill_colours = Session_get_hill_colours(session);
   struct CloudColData const *const clouds = Session_get_cloud_colours(session);
   MapArea const scr_area = ObjLayout_rotate_map_area_to_scr(view->config.angle, overlapping_area);
 
@@ -320,8 +327,12 @@ static void draw_pending(ObjectsModeData const *const mode_data, ObjEditContext 
 {
   DEBUGF("Drawing pending shape type %d\n", mode_data->pending_shape);
   if (mode_data->pending_shape == Pending_Transfer) {
-    draw_ghost_paste(mode_data->pending_transfer, mode_data->pending_vert[0], edit_win,
-                     scr_orig, redraw_area, overlapping_area);
+    assert(mode_data->pending_transfer);
+    if (mode_data->pending_transfer)
+    {
+      draw_ghost_paste(&*mode_data->pending_transfer, mode_data->pending_vert[0], edit_win,
+                       scr_orig, redraw_area, overlapping_area);
+    }
   } else {
     EditSession *const session = EditWin_get_session(edit_win);
     ObjGfx *const graphics = Session_get_graphics(session);
@@ -376,7 +387,7 @@ static HillType read_hill(void *const cb_arg, MapPoint const map_pos,
   unsigned char (*const heights)[HillCorner_Count])
 {
   const ObjReadArgs *const args = cb_arg;
-  return args->hills ? hills_read(args->hills, map_pos, colours, heights) : HillType_None;
+  return args->hills ? hills_read(&*args->hills, map_pos, colours, heights) : HillType_None;
 }
 
 void ObjectsMode_draw(Editor *const editor,
@@ -414,19 +425,19 @@ void ObjectsMode_draw(Editor *const editor,
 
   ObjEditContext const *const read_obj_ctx = EditWin_get_read_obj_ctx(edit_win);
 
-  ObjectsModeData *const mode_data =
+  _Optional ObjectsModeData *const mode_data =
       Editor_get_edit_mode(editor) == EDITING_MODE_OBJECTS ?
       editor->editingmode_data : NULL;
 
-  ObjEditSelection const *const selection = mode_data ? &mode_data->selection : NULL;
-  ObjEditSelection const *const occluded = mode_data && (mode_data->pending_drop ||
-                                                         mode_data->pending_shape != Pending_None) ?
-                                           &mode_data->occluded : NULL;
+  _Optional ObjEditSelection const *const selection = mode_data ? &mode_data->selection : NULL,
+                                   *const occluded = mode_data && (mode_data->pending_drop ||
+                                                                   mode_data->pending_shape != Pending_None) ?
+                                                     &mode_data->occluded : NULL;
 
   ObjReadArgs read_args = {EditWin_get_hills(edit_win), read_obj_ctx, meshes, view, redraw_area};
 
-  PolyColData const *const poly_colours = Session_get_poly_colours(session);
-  HillColData const *const hill_colours = Session_get_hill_colours(session);
+  _Optional PolyColData const *const poly_colours = Session_get_poly_colours(session);
+  _Optional HillColData const *const hill_colours = Session_get_hill_colours(session);
   struct CloudColData const *const clouds = Session_get_cloud_colours(session);
   MapArea const scr_area = ObjLayout_rotate_map_area_to_scr(view->config.angle, &overlapping_area);
 
@@ -438,11 +449,11 @@ void ObjectsMode_draw(Editor *const editor,
 
   if (mode_data && mode_data->pending_shape != Pending_None) {
     plot_set_col(EditWin_get_ghost_colour(edit_win));
-    draw_pending(mode_data, read_obj_ctx, edit_win, scr_orig, redraw_area, &overlapping_area);
+    draw_pending(&*mode_data, read_obj_ctx, edit_win, scr_orig, redraw_area, &overlapping_area);
   }
 
   if (mode_data && mode_data->pending_drop) {
-    draw_ghost_paste(mode_data->pending_drop, mode_data->drop_bbox.min, edit_win,
+    draw_ghost_paste(&*mode_data->pending_drop, mode_data->drop_bbox.min, edit_win,
                      scr_orig, redraw_area, &overlapping_area);
   }
 
@@ -497,8 +508,7 @@ static void occluded_changed(MapPoint const pos, void *const arg)
 
 static void ObjectsMode_wipe_ghost(Editor *const editor)
 {
-  assert(editor);
-  ObjectsModeData *const mode_data = editor->editingmode_data;
+  ObjectsModeData *const mode_data = get_mode_data(editor);
 
   if (mode_data->pending_shape == Pending_None) {
     return;
@@ -535,10 +545,10 @@ static void ObjectsMode_add_ghost_bbox_for_transfer(Editor *const editor, MapPoi
 }
 
 static void ObjectsMode_set_pending(Editor *const editor, PendingShape const pending_shape,
-  ObjRef const obj_ref, ObjTransfer *const pending_transfer, MapPoint const pos, ...)
+  ObjRef const obj_ref, _Optional ObjTransfer *const pending_transfer, MapPoint const pos, ...)
 {
   assert(editor);
-  ObjectsModeData *const mode_data = editor->editingmode_data;
+  ObjectsModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
   ObjGfx *const graphics = Session_get_graphics(session);
   ObjGfxMeshes *const meshes = &graphics->meshes;
@@ -596,11 +606,12 @@ static void ObjectsMode_set_pending(Editor *const editor, PendingShape const pen
       break;
 
     case Pending_Transfer:
-      if (ObjTransfers_can_plot_to_map(objects, pos,
-                                          pending_transfer, meshes,
-                                          &mode_data->occluded)) {
-        ObjectsMode_add_ghost_bbox_for_transfer(editor,
-          pos, pending_transfer);
+      if (pending_transfer &&
+          ObjTransfers_can_plot_to_map(objects, pos,
+                                       &*pending_transfer, meshes,
+                                       &mode_data->occluded)) {
+
+        ObjectsMode_add_ghost_bbox_for_transfer(editor, pos, &*pending_transfer);
         data.any = true;
       }
       break;
@@ -654,13 +665,6 @@ static bool ObjectsMode_can_select_tool(Editor const *const editor, EditorTool c
   return can_select_tool;
 }
 
-static inline ObjectsModeData *get_mode_data(Editor const *const editor)
-{
-  assert(Editor_get_edit_mode(editor) == EDITING_MODE_OBJECTS);
-  assert(editor->editingmode_data);
-  return editor->editingmode_data;
-}
-
 static bool ObjectsMode_has_selection(Editor const *const editor)
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
@@ -710,7 +714,7 @@ static bool ObjectsMode_trigger_is_selected(Editor const *const editor)
   }
 
   TriggersIter iter;
-  for (MapPoint p = TriggersIter_get_first(&iter, objects->triggers, &sel_area, NULL);
+  for (MapPoint p = TriggersIter_get_first(&iter, &*objects->triggers, &sel_area, NULL);
        !TriggersIter_done(&iter);
        p = TriggersIter_get_next(&iter, NULL))
   {
@@ -776,9 +780,9 @@ static Vertex grid_to_os_coords(Vertex origin, MapPoint const map_pos,
 static void display_msg(Editor *const editor,
   ObjEditChanges const *const change_info)
 {
-  char *const msg = ObjEditChanges_get_message(change_info);
+  _Optional char *const msg = ObjEditChanges_get_message(change_info);
   if (msg) {
-    Editor_display_msg(editor, msg, true);
+    Editor_display_msg(editor, &*msg, true);
   }
 }
 
@@ -787,7 +791,7 @@ static void free_pending_paste(ObjectsModeData *const mode_data)
   assert(mode_data);
   if (mode_data->pending_paste) {
     assert(mode_data->pending_paste != mode_data->pending_transfer);
-    dfile_release(ObjTransfer_get_dfile(mode_data->pending_paste));
+    dfile_release(ObjTransfer_get_dfile(&*mode_data->pending_paste));
     mode_data->pending_paste = NULL;
   }
 }
@@ -797,7 +801,7 @@ static void free_dragged(ObjectsModeData *const mode_data)
   assert(mode_data);
   if (mode_data->dragged) {
     assert(mode_data->dragged != mode_data->pending_transfer);
-    dfile_release(ObjTransfer_get_dfile(mode_data->dragged));
+    dfile_release(ObjTransfer_get_dfile(&*mode_data->dragged));
     mode_data->dragged = NULL;
   }
 }
@@ -807,7 +811,7 @@ static void free_pending_drop(ObjectsModeData *const mode_data)
   assert(mode_data);
   if (mode_data->pending_drop) {
     assert(mode_data->pending_drop != mode_data->pending_transfer);
-    dfile_release(ObjTransfer_get_dfile(mode_data->pending_drop));
+    dfile_release(ObjTransfer_get_dfile(&*mode_data->pending_drop));
     mode_data->pending_drop = NULL;
   }
 }
@@ -823,7 +827,7 @@ static ObjEditContext get_no_prechange_cb_ctx(ObjEditContext const *const object
 
   ObjEditContext no_prechange_cb_ctx = *objects;
   // Suppress EDITOR_CHANGE_OBJ_PRECHANGE messages
-  no_prechange_cb_ctx.prechange_cb = NULL;
+  no_prechange_cb_ctx.prechange_cb = (ObjEditPreChangeFn *)NULL;
   return no_prechange_cb_ctx;
 }
 
@@ -903,7 +907,7 @@ static bool drag_select_invert(ObjGfxMeshes *const meshes, View const *const vie
   ObjEditSelection *const selected,
   ObjEditContext const *const objects,
   bool const only_inside, MapArea const *select_box,
-  MapArea *const changed_grid, bool const do_redraw)
+  _Optional MapArea *const changed_grid, bool const do_redraw)
 {
   bool is_changed = false;
   MapArea overlapping_area;
@@ -922,7 +926,7 @@ static bool drag_select_invert(ObjGfxMeshes *const meshes, View const *const vie
       ObjEditSelection_invert(selected, p, do_redraw);
       is_changed = true;
       if (changed_grid) {
-        MapArea_expand(changed_grid, p);
+        MapArea_expand(&*changed_grid, p);
       }
     }
   }
@@ -936,7 +940,7 @@ static void redraw_selection(MapPoint const pos, void *const arg)
   ObjEditContext const *const objects = Session_get_objects(session);
 
   ObjRef const obj_ref = ObjectsEdit_read_ref(objects, pos);
-  bool const has_triggers = objects->triggers && triggers_check_locn(objects->triggers, pos);
+  bool const has_triggers = objects->triggers && triggers_check_locn(&*objects->triggers, pos);
   Editor_redraw_object(editor, pos, obj_ref, has_triggers);
 }
 
@@ -1011,10 +1015,16 @@ static bool paste_generic(Editor *const editor,
     return false;
   }
 
+  assert(mode_data->pending_paste);
+  if (!mode_data->pending_paste) {
+    return false;
+  }
+  ObjTransfer *const pending_paste = &*mode_data->pending_paste;
+
   ObjectsMode_wipe_ghost(editor);
 
   /* Plot transfer at mouse pointer */
-  MapPoint const t_dims = ObjTransfers_get_dims(mode_data->pending_paste);
+  MapPoint const t_dims = ObjTransfers_get_dims(pending_paste);
   map_pos = MapPoint_sub(map_pos, MapPoint_div_log2(t_dims, 1));
 
   ObjEditChanges_init(&mode_data->change_info);
@@ -1376,7 +1386,7 @@ static bool ObjectsMode_start_pending_paste(Editor *const editor, Reader *const 
     return false;
   }
 
-  SFError err = read_compressed(ObjTransfer_get_dfile(mode_data->pending_paste),
+  SFError err = read_compressed(ObjTransfer_get_dfile(&*mode_data->pending_paste),
                                         reader);
   if (err.type == SFErrorType_TransferNot) {
     err = SFERROR(CBWrong);
@@ -1395,9 +1405,9 @@ static void ObjectsMode_pending_paste(Editor *const editor, MapPoint const map_p
   ObjectsModeData *const mode_data = get_mode_data(editor);
   assert(mode_data->pending_paste);
 
-  MapPoint const t_dims = ObjTransfers_get_dims(mode_data->pending_paste);
+  MapPoint const t_dims = ObjTransfers_get_dims(&*mode_data->pending_paste);
 
-  ObjectsMode_set_pending(editor, Pending_Transfer, objects_ref_none(), mode_data->pending_paste,
+  ObjectsMode_set_pending(editor, Pending_Transfer, objects_ref_none(), &*mode_data->pending_paste,
                           MapPoint_sub(map_pos, MapPoint_div_log2(t_dims, 1)));
 }
 
@@ -1406,7 +1416,7 @@ static bool ObjectsMode_draw_paste(Editor *const editor, MapPoint const map_pos)
   ObjectsModeData *const mode_data = get_mode_data(editor);
   assert(mode_data->pending_paste);
 
-  if (!paste_generic(editor, mode_data->pending_paste, map_pos)) {
+  if (!paste_generic(editor, &*mode_data->pending_paste, map_pos)) {
     return false;
   }
   free_pending_paste(mode_data);
@@ -1509,7 +1519,7 @@ static void ObjectsMode_draw_numbers(Editor *const editor,
       BBox combined_bbox = text_bbox;
 
       bool is_underlined = false;
-      if (objects->triggers && triggers_check_locn(objects->triggers, map_pos)) {
+      if (objects->triggers && triggers_check_locn(&*objects->triggers, map_pos)) {
         is_underlined = true;
         size_t const ulen = strlen(string);
         if (ulen != last_ulen) {
@@ -1620,7 +1630,7 @@ static void ObjectsMode_draw_grid(Vertex const scr_orig,
 }
 
 static void delete_core(Editor *const editor, ObjEditContext *const objects,
-  ObjEditChanges *const change_info)
+  _Optional ObjEditChanges *const change_info)
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
@@ -1669,7 +1679,7 @@ static void ObjectsMode_paint_selected(Editor *const editor)
   changed_with_msg(editor);
 }
 
-static ObjTransfer *clipboard;
+static _Optional ObjTransfer *clipboard;
 
 static bool cb_copy_core(Editor *const editor)
 {
@@ -1692,7 +1702,12 @@ static void cb_status(Editor *const editor, bool const copy)
   char refs_count_str[32];
   sprintf(refs_count_str, "%zu", refs_count);
 
-  size_t const trig_count = ObjTransfers_get_trigger_count(clipboard);
+  assert(clipboard);
+  if (!clipboard)
+  {
+    return;
+  }
+  size_t const trig_count = ObjTransfers_get_trigger_count(&*clipboard);
 
   if (trig_count > 0) {
     char trig_count_str[32];
@@ -2021,20 +2036,21 @@ static bool ObjectsMode_start_drag_obj(Editor *const editor,
   mode_data->drag_start_pos = sel_box.min;
 
   free_dragged(mode_data);
-  mode_data->dragged = ObjTransfers_grab_selection(objects, &mode_data->selection);
-  if (!mode_data->dragged) {
+  _Optional ObjTransfer *const dragged = ObjTransfers_grab_selection(objects, &mode_data->selection);
+  if (!dragged) {
     return false;
   }
+  mode_data->dragged = dragged;
 
   MapArea sent_bbox = ObjLayout_map_area_to_centre(EditWin_get_view(edit_win), &sel_box);
   MapArea_translate(&sent_bbox, (MapPoint){-fine_pos.x, -fine_pos.y}, &sent_bbox);
 
   MapArea shown_bbox = MapArea_make_invalid();
-  MapPoint const t_dims = ObjTransfers_get_dims(mode_data->dragged);
+  MapPoint const t_dims = ObjTransfers_get_dims(&*dragged);
 
   for (MapPoint trans_pos = {0,0}; trans_pos.y < t_dims.y; trans_pos.y++) {
     for (trans_pos.x = 0; trans_pos.x < t_dims.x; trans_pos.x++) {
-      ObjRef const obj_ref = ObjTransfers_read_ref(mode_data->dragged, trans_pos);
+      ObjRef const obj_ref = ObjTransfers_read_ref(&*mode_data->dragged, trans_pos);
       if (!objects_ref_is_mask(obj_ref)) {
         MapArea const obj_bbox = EditWin_get_ghost_obj_bbox(edit_win,
                                      MapPoint_add(sel_box.min, trans_pos), obj_ref);
@@ -2057,7 +2073,7 @@ static bool ObjectsMode_drag_obj_remote(Editor *const editor, struct Writer *con
     return false;
   }
 
-  bool success = !report_error(write_compressed(ObjTransfer_get_dfile(mode_data->dragged),
+  bool success = !report_error(write_compressed(ObjTransfer_get_dfile(&*mode_data->dragged),
                                  writer), filename, "");
 
   free_dragged(mode_data);
@@ -2066,11 +2082,11 @@ static bool ObjectsMode_drag_obj_remote(Editor *const editor, struct Writer *con
 
 static bool ObjectsMode_show_ghost_drop(Editor *const editor,
                                         MapArea const *const bbox,
-                                        Editor const *const drag_origin)
+                                        _Optional Editor const *const drag_origin)
 {
   bool hide_origin_bbox = true;
   ObjectsModeData *const mode_data = get_mode_data(editor);
-  ObjectsModeData *const origin_data = drag_origin ? get_mode_data(drag_origin) : NULL;
+  _Optional ObjectsModeData *const origin_data = drag_origin ? get_mode_data(&*drag_origin) : NULL;
   assert(MapArea_is_valid(bbox));
 
   if (origin_data) {
@@ -2086,7 +2102,7 @@ static bool ObjectsMode_show_ghost_drop(Editor *const editor,
     /* If the zoom level mismatches then the origin drag box will be hidden
        automatically but we also don't want to show it unless it accurately
        reflects the dragged objects' outline in the destination graphics set. */
-    if (graphics == Session_get_graphics(Editor_get_session(drag_origin))) {
+    if (graphics == Session_get_graphics(Editor_get_session(&*drag_origin))) {
       hide_origin_bbox = false;
     }
 
@@ -2106,15 +2122,15 @@ static bool ObjectsMode_show_ghost_drop(Editor *const editor,
     ObjEditSelection_copy(&mode_data->tmp, &mode_data->occluded);
     ObjEditSelection_clear(&mode_data->occluded);
 
-    if (ObjTransfers_can_plot_to_map(objects, bbox->min, origin_data->dragged, meshes,
+    if (ObjTransfers_can_plot_to_map(objects, bbox->min, &*origin_data->dragged, meshes,
                                         &mode_data->occluded)) {
-      ObjectsMode_add_ghost_bbox_for_transfer(editor, bbox->min, origin_data->dragged);
+      ObjectsMode_add_ghost_bbox_for_transfer(editor, bbox->min, &*origin_data->dragged);
 
       ObjEditSelection_for_each_changed(&mode_data->occluded, &mode_data->tmp,
                                          NULL, occluded_changed, editor);
 
       mode_data->pending_drop = origin_data->dragged;
-      dfile_claim(ObjTransfer_get_dfile(origin_data->dragged));
+      dfile_claim(ObjTransfer_get_dfile(&*origin_data->dragged));
     } else {
       ObjEditSelection_for_each(&mode_data->tmp, occluded_changed, editor);
     }
@@ -2192,10 +2208,15 @@ static bool ObjectsMode_drag_obj_copy(Editor *const editor,
   ObjectsModeData *const dst_data = get_mode_data(editor);
   ObjectsModeData *const origin_data = get_mode_data(drag_origin);
   EditSession *const session = Editor_get_session(editor);
+  _Optional ObjTransfer *const dragged = origin_data->dragged;
+  assert(dragged);
+  if (!dragged) {
+    return false;
+  }
 
   ObjEditChanges_init(&dst_data->change_info);
 
-  if (!drag_obj_copy_core(editor, bbox, origin_data->dragged,
+  if (!drag_obj_copy_core(editor, bbox, &*dragged,
                           Session_get_objects(session)))
   {
     return false;
@@ -2218,8 +2239,13 @@ static bool ObjectsMode_drag_obj_link(Editor *const editor,
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
   ObjectsModeData *const origin_data = get_mode_data(drag_origin);
+  _Optional ObjTransfer *const dragged = origin_data->dragged;
+  assert(dragged);
+  if (!dragged) {
+    return false;
+  }
 
-  MapPoint const dims = ObjTransfers_get_dims(origin_data->dragged);
+  MapPoint const dims = ObjTransfers_get_dims(&*dragged);
   if (MapPoint_area(dims) > 1) {
     return false;
   }
@@ -2240,8 +2266,12 @@ static void gen_premove_msgs(EditSession *const session, ObjectsModeData *const 
 
   /* Take into account the direction of the move to avoid issues when part of the
      source data is overwritten by the moved data. */
-  ObjTransfer *const transfer = mode_data->dragged;
-  MapPoint const dims = ObjTransfers_get_dims(transfer);
+  _Optional ObjTransfer *const transfer = mode_data->dragged;
+  assert(transfer);
+  if (!transfer) {
+    return;
+  }
+  MapPoint const dims = ObjTransfers_get_dims(&*transfer);
   MapPoint dir = {1, 1}, start = {0, 0}, stop = dims;
 
   if (mode_data->drag_start_pos.x < bbox->min.x) {
@@ -2259,7 +2289,7 @@ static void gen_premove_msgs(EditSession *const session, ObjectsModeData *const 
   for (MapPoint p = {.x = start.x}; p.x != stop.x; p.x += dir.x) {
     for (p.y = start.y; p.y != stop.y; p.y += dir.y) {
       DEBUGF("%" PRIMapCoord ",%" PRIMapCoord " in source area\n", p.x, p.y);
-      ObjRef const obj_ref = ObjTransfers_read_ref(transfer, p);
+      ObjRef const obj_ref = ObjTransfers_read_ref(&*transfer, p);
 
       if (!objects_ref_is_mask(obj_ref)) {
         Session_object_premove(session, MapPoint_add(mode_data->drag_start_pos, p), MapPoint_add(bbox->min, p));
@@ -2279,9 +2309,16 @@ static void ObjectsMode_drag_obj_move(Editor *const editor,
   ObjGfx *const graphics = Session_get_graphics(session);
   ObjGfxMeshes *const meshes = &graphics->meshes;
   ObjEditContext const no_prechange_cb_ctx = get_no_prechange_cb_ctx(Session_get_objects(session));
+  
+  assert(origin_data->dragged);
+  if (!origin_data->dragged)
+  {
+    return;
+  }
+  ObjTransfer *const dragged = &*origin_data->dragged;
 
   if (!ObjTransfers_can_plot_to_map(&no_prechange_cb_ctx, bbox->min,
-                                          origin_data->dragged, meshes, NULL)) {
+                                    dragged, meshes, NULL)) {
     Editor_display_msg(editor, msgs_lookup("StatusNoPlace"), true);
     return;
   }
@@ -2293,11 +2330,11 @@ static void ObjectsMode_drag_obj_move(Editor *const editor,
   gen_premove_msgs(session, origin_data, bbox);
 
   // FIXME: single move call?
-  ObjTransfers_fill_map(&no_prechange_cb_ctx, origin_data->drag_start_pos, origin_data->dragged,
+  ObjTransfers_fill_map(&no_prechange_cb_ctx, origin_data->drag_start_pos, dragged,
                         objects_ref_from_num(Obj_RefNone), meshes, &origin_data->change_info);
 
   ObjEditSelection_clear(&dst_data->selection);
-  ObjTransfers_plot_to_map(&no_prechange_cb_ctx, bbox->min, origin_data->dragged,
+  ObjTransfers_plot_to_map(&no_prechange_cb_ctx, bbox->min, dragged,
                            meshes, &dst_data->selection, &dst_data->change_info);
 
   changed_with_msg(editor);
@@ -2316,23 +2353,23 @@ static bool ObjectsMode_drop(Editor *const editor, MapArea const *const bbox,
   ObjectsModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
 
-  ObjTransfer *const dropped = ObjTransfer_create();
+  _Optional ObjTransfer *const dropped = ObjTransfer_create();
   if (dropped == NULL) {
     return false;
   }
 
-  SFError err = read_compressed(ObjTransfer_get_dfile(dropped), reader);
+  SFError err = read_compressed(ObjTransfer_get_dfile(&*dropped), reader);
   bool success = !report_error(err, filename, "");
   if (success) {
     ObjEditChanges_init(&mode_data->change_info);
 
-    success = drag_obj_copy_core(editor, bbox, dropped, Session_get_objects(session));
+    success = drag_obj_copy_core(editor, bbox, &*dropped, Session_get_objects(session));
     if (success) {
       changed_with_msg(editor);
     }
   }
 
-  dfile_release(ObjTransfer_get_dfile(dropped));
+  dfile_release(ObjTransfer_get_dfile(&*dropped));
   return success;
 }
 
@@ -2449,9 +2486,9 @@ static void ObjectsMode_plot_circ(Editor *const editor, MapPoint const a, MapPoi
   changed_with_msg(editor);
 }
 
-static char *ObjectsMode_get_help_msg(Editor const *const editor)
+static _Optional char *ObjectsMode_get_help_msg(Editor const *const editor)
 {
-  char *msg = NULL; // remove help
+  _Optional char *msg = NULL; // remove help
   ObjectsModeData *const mode_data = get_mode_data(editor);
 
   switch (Editor_get_tool(editor)) {
@@ -2534,7 +2571,7 @@ bool ObjectsMode_enter(Editor *const editor)
   DEBUG("Entering objects mode");
   assert(ObjectsMode_can_enter(editor));
 
-  ObjectsModeData *const mode_data = malloc(sizeof(ObjectsModeData));
+  _Optional ObjectsModeData *const mode_data = malloc(sizeof(ObjectsModeData));
   if (mode_data == NULL) {
     report_error(SFERROR(NoMem), "", "");
     return false;
@@ -2545,7 +2582,7 @@ bool ObjectsMode_enter(Editor *const editor)
     .pending_shape = Pending_None,
   };
 
-  editor->editingmode_data = mode_data;
+  editor->editingmode_data = &*mode_data;
 
   static DataType const type_list[] = {DataType_ObjectsTransfer, DataType_Count};
 
@@ -2653,10 +2690,10 @@ bool ObjectsMode_enter(Editor *const editor)
 
   SFError err = ObjEditSelection_init(&mode_data->selection, redraw_selection, editor);
   if (!SFError_fail(err)) {
-    err = ObjEditSelection_init(&mode_data->tmp, NULL, NULL);
+    err = ObjEditSelection_init(&mode_data->tmp, (ObjEditSelectionRedrawFn *)NULL, editor);
     if (!SFError_fail(err)) {
       // No redraw callback to avoid flickering of objects still occluded from one frame to the next
-      err = ObjEditSelection_init(&mode_data->occluded, NULL, NULL);
+      err = ObjEditSelection_init(&mode_data->occluded, (ObjEditSelectionRedrawFn *)NULL, editor);
       if (!SFError_fail(err)) {
         Editor_display_msg(editor, msgs_lookup("StatusObjMode"), false);
         return true;
@@ -2667,14 +2704,13 @@ bool ObjectsMode_enter(Editor *const editor)
   }
   report_error(err, "", "");
   free(mode_data);
-  editor->editingmode_data = NULL;
   return false;
 }
 
 void ObjectsMode_free_clipboard(void)
 {
   if (clipboard) {
-    dfile_release(ObjTransfer_get_dfile(clipboard));
+    dfile_release(ObjTransfer_get_dfile(&*clipboard));
     clipboard = NULL;
   }
 }
@@ -2683,13 +2719,21 @@ bool ObjectsMode_write_clipboard(struct Writer *const writer,
   DataType const data_type, char const *const filename)
 {
   NOT_USED(data_type);
-  return !report_error(write_compressed(ObjTransfer_get_dfile(clipboard), writer), filename, "");
+  assert(clipboard);
+  if (!clipboard) {
+    return false;
+  }
+  return !report_error(write_compressed(ObjTransfer_get_dfile(&*clipboard), writer), filename, "");
 }
 
 long int ObjectsMode_estimate_clipboard(DataType const data_type)
 {
   NOT_USED(data_type);
-  return worst_compressed_size(ObjTransfer_get_dfile(clipboard));
+  assert(clipboard);
+  if (!clipboard) {
+    return 0;
+  }
+  return worst_compressed_size(ObjTransfer_get_dfile(&*clipboard));
 }
 
 bool ObjectsMode_set_properties(Editor *const editor, MapPoint const pos, ObjRef const obj_ref,
@@ -2727,7 +2771,7 @@ void ObjectsMode_redraw_clouds(Editor *const editor)
   {
     ObjRef const obj_ref = ObjectsEdit_read_ref(objects, p);
     if (objects_ref_is_cloud(obj_ref)) {
-      bool const has_triggers = objects->triggers && triggers_check_locn(objects->triggers, p);
+      bool const has_triggers = objects->triggers && triggers_check_locn(&*objects->triggers, p);
       Editor_redraw_object(editor, p, obj_ref, has_triggers);
     }
   }

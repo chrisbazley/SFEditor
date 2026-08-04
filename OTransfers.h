@@ -37,7 +37,7 @@ void ObjTransfers_open_dir(ObjTransfers const *transfers_data);
 
 void ObjTransfers_free(ObjTransfers *transfers_data);
 
-ObjTransfer *ObjTransfers_grab_selection(struct ObjEditContext const *objects,
+_Optional ObjTransfer *ObjTransfers_grab_selection(struct ObjEditContext const *objects,
   struct ObjEditSelection *selected);
 
 MapPoint ObjTransfers_get_dims(ObjTransfer const *transfer);
@@ -47,7 +47,7 @@ size_t ObjTransfers_get_trigger_count(ObjTransfer const *transfer);
 bool ObjTransfers_can_plot_to_map(struct ObjEditContext const *objects,
                                         MapPoint bl, ObjTransfer *transfer,
                                         struct ObjGfxMeshes *meshes,
-                                        struct ObjEditSelection *occluded);
+                                        _Optional struct ObjEditSelection *occluded);
 
 bool ObjTransfers_plot_to_map(struct ObjEditContext const *objects, MapPoint bl,
   ObjTransfer *transfer, struct ObjGfxMeshes *meshes,
@@ -64,13 +64,13 @@ void ObjTransfers_select(struct ObjEditSelection *selection,
 
 ObjRef ObjTransfers_read_ref(ObjTransfer *transfer, MapPoint trans_pos);
 
-ObjTransfer *ObjTransfers_find_by_name(ObjTransfers *transfers_data,
+_Optional ObjTransfer *ObjTransfers_find_by_name(ObjTransfers *transfers_data,
   const char *name, int *index_out);
 
-ObjTransfer *ObjTransfers_find_by_index(ObjTransfers *transfers_data,
+_Optional ObjTransfer *ObjTransfers_find_by_index(ObjTransfers *transfers_data,
   int transfer_index);
 
-ObjTransfer *ObjTransfer_create(void);
+_Optional ObjTransfer *ObjTransfer_create(void);
 
 bool ObjTransfers_add(ObjTransfers *transfers_data,
   ObjTransfer *transfer, char const *filename,

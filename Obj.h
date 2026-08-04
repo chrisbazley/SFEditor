@@ -43,10 +43,10 @@ enum {
 typedef struct ObjectsData ObjectsData;
 
 void objects_init(void);
-ObjectsData *objects_create_base(void);
-ObjectsData *objects_create_overlay(void);
+_Optional ObjectsData *objects_create_base(void);
+_Optional ObjectsData *objects_create_overlay(void);
 
-ObjectsData *objects_get_shared(char const *filename);
+_Optional ObjectsData *objects_get_shared(char const *filename);
 bool objects_share(ObjectsData *objects);
 DFile *objects_get_dfile(ObjectsData *objects);
 

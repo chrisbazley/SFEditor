@@ -39,12 +39,12 @@ typedef struct {
   MapRef tiles[AnimsNFrames];
 } MapAnimParam;
 
-ConvAnimations *MapAnims_create(void);
+_Optional ConvAnimations *MapAnims_create(void);
 DFile *MapAnims_get_dfile(ConvAnimations *anims);
 
 extern bool fixed_last_anims_load; /* a bit of a hack */
 
-SFError MapAnims_add(ConvAnimations *anims, MapData *write_map,
+SFError MapAnims_add(ConvAnimations *anims, _Optional MapData *write_map,
   MapPoint map_pos, MapAnimParam param);
 
 bool MapAnims_get(ConvAnimations *anims, MapPoint map_pos,
@@ -62,16 +62,16 @@ typedef struct
 {
   ConvAnimations *anims;
   IntDictVIter viter;
-  MapAnim *anim;
+  _Optional MapAnim *anim;
   MapArea map_area;
   bool done;
 }
 MapAnimsIter;
 
 MapPoint MapAnimsIter_get_first(MapAnimsIter *iter, ConvAnimations *anims,
-  MapArea const *map_area, MapAnimParam *param);
+  MapArea const *map_area, _Optional MapAnimParam *param);
 
-MapPoint MapAnimsIter_get_next(MapAnimsIter *iter, MapAnimParam *param);
+MapPoint MapAnimsIter_get_next(MapAnimsIter *iter, _Optional MapAnimParam *param);
 void MapAnimsIter_del_current(MapAnimsIter *iter);
 void MapAnimsIter_replace_current(MapAnimsIter const *iter, MapAnimParam param);
 MapRef MapAnimsIter_get_current(MapAnimsIter const *iter);
@@ -86,7 +86,8 @@ static inline bool MapAnimsIter_done(MapAnimsIter const *iter)
 void MapAnims_reset(ConvAnimations *anims);
 
 SchedulerTime MapAnims_update(ConvAnimations *anims,
-  MapData *write_map, int steps_to_advance, struct MapAreaColData *redraw_map);
+                              MapData *write_map, int steps_to_advance,
+                              _Optional struct MapAreaColData *redraw_map);
 
 size_t MapAnims_count(ConvAnimations const *const anims);
 

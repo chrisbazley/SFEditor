@@ -218,10 +218,10 @@ bool GfxConfig_load(GfxConfig *const graphics, char const *const basemap_filenam
   assert(graphics != NULL);
   assert(basemap_filename != NULL);
 
-  char *path = make_file_path_in_dir(
+  _Optional char *path = make_file_path_in_dir(
                  CHOICES_READ_PATH MAPGFX_DIR, basemap_filename);
 
-  if (path && !file_exists(path)) {
+  if (path && !file_exists(&*path)) {
     /* Map unknown - fall back on default settings */
     free(path);
     path = make_file_path_in_dir(CHOICES_READ_PATH MAPGFX_DIR, UNKNOWN_FILE);
@@ -242,15 +242,15 @@ bool GfxConfig_load(GfxConfig *const graphics, char const *const basemap_filenam
   char err_buf[ErrBufferSize] = "";
   SFError err = SFERROR(OK);
 
-  FILE *const file = fopen(path, "r");
+  _Optional FILE *const file = fopen(&*path, "r");
   if (file == NULL) {
     err = SFERROR(OpenInFail);
   } else {
-    err = read_from_file(file, graphics, err_buf);
-    fclose(file);
+    err = read_from_file(&*file, graphics, err_buf);
+    fclose(&*file);
   }
 
-  bool const ok = !report_error(err, path, err_buf);
+  bool const ok = !report_error(err, &*path, err_buf);
   free(path);
   return ok;
 }
@@ -260,20 +260,20 @@ bool GfxConfig_save(const GfxConfig *const graphics, char const *const basemap_f
   assert(graphics != NULL);
   assert(basemap_filename != NULL);
 
-  char *const full_path = make_file_path_in_dir(CHOICES_WRITE_PATH MAPGFX_DIR,
+  _Optional char *const full_path = make_file_path_in_dir(CHOICES_WRITE_PATH MAPGFX_DIR,
     basemap_filename);
 
-  if (!full_path || !ensure_path_exists(full_path)) {
+  if (!full_path || !ensure_path_exists(&*full_path)) {
     return false;
   }
 
   SFError err = SFERROR(OK);
-  FILE *const file = fopen(full_path, "w");
+  _Optional FILE *const file = fopen(&*full_path, "w");
   if (file == NULL) {
     err = SFERROR(OpenOutFail);
   } else {
-    bool success = write_to_file(file, graphics);
-    if (fclose(file))
+    bool success = write_to_file(&*file, graphics);
+    if (fclose(&*file))
     {
       success = false;
     }
@@ -283,7 +283,7 @@ bool GfxConfig_save(const GfxConfig *const graphics, char const *const basemap_f
     }
   }
 
-  bool const ok = !report_error(err, full_path, "");
+  bool const ok = !report_error(err, &*full_path, "");
   free(full_path);
   return ok;
 }

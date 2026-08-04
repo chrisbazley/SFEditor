@@ -152,7 +152,12 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   DEBUG("Files selection menu %d (for dir %d) opened", id_block->self_id, which);
 
   /* Get pointer to array of leaf names of files within this directory */
-  filescan_leafname *const f = filescan_get_leaf_names(which, &new_vsn);
+  _Optional filescan_leafname *const f = filescan_get_leaf_names(which, &new_vsn);
+  if (!f) {
+    hourglass_off();
+    return 1; /* error - return prematurely (claiming event) */
+  }
+
   FilenamesData const *const filenames = Session_get_filenames(session);
   char const *const selected_name = filenames_get(filenames, filescan_get_data_type(which));
   DEBUG("Leaf name for directory %d is %s", which, selected_name);
@@ -173,7 +178,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
     if (f != NULL) {
       /* Add entries to the menu from the array of filenames
          (don't care about excluding "Blank") */
-      menu_states[which].ticked = fsmenu_build(id_block->self_id, f,
+      menu_states[which].ticked = fsmenu_build(id_block->self_id, &*f,
                                     &menu_states[which].next_cid, true,
                                     data_type_allow_none(data_type), false,
                                     selected_name);

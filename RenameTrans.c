@@ -74,7 +74,7 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
 
   int sel_index, new_index;
   Filename new_name;
-  MapTransfer *transfer_to_rename;
+  _Optional MapTransfer *transfer_to_rename;
 
   switch (id_block->self_component) {
     case RENAMETRANS_OK:
@@ -93,7 +93,7 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
                        1 /* claim event */);
 
       if (!MapTransfers_rename(&textures->transfers,
-             transfer_to_rename, new_name, &new_index))
+             &*transfer_to_rename, new_name, &new_index))
         return 1; /* claim event */
 
       /* Update the palettes */
@@ -128,14 +128,14 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   if (selected == NULL_DATA_INDEX)
     return 1; /* nothing selected - simply claim event */
 
-  MapTransfer *const transfer_to_rename = MapTransfers_find_by_index(
+  _Optional MapTransfer *const transfer_to_rename = MapTransfers_find_by_index(
                                                 &textures->transfers, selected);
   assert(transfer_to_rename != NULL);
   if (transfer_to_rename == NULL)
     return 1; /* erk - fail! */
 
   E(writablefield_set_value(0, id_block->self_id, RENAMETRANS_NAME,
-             transfer_to_rename != NULL ? get_leaf_name(MapTransfer_get_dfile(transfer_to_rename)) : ""));
+             transfer_to_rename != NULL ? get_leaf_name(MapTransfer_get_dfile(&*transfer_to_rename)) : ""));
 
   return 1; /* claim event */
 }
@@ -156,6 +156,6 @@ void RenameTrans_created(ObjectId const id)
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
     EF(event_register_toolbox_handler(id, handlers[i].event_code,
-                                      handlers[i].handler, NULL));
+                                      handlers[i].handler, (void *)NULL));
   }
 }

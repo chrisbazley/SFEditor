@@ -63,7 +63,7 @@ typedef struct
   MapArea ghost_bbox, drop_bbox;
   MapPoint drag_start_pos, pending_vert;
   bool uk_drop_pending:1;
-  InfoTransfer *pending_transfer, *pending_paste, *pending_drop, *dragged;
+  _Optional InfoTransfer *pending_transfer, *pending_paste, *pending_drop, *dragged;
   PendingShape pending_shape;
   InfoEditChanges change_info;
 }
@@ -208,8 +208,9 @@ static void draw_pending(InfoModeData const *const mode_data,
   MapArea const *const redraw_area, MapArea const *overlapping_area)
 {
   DEBUGF("Drawing pending shape type %d\n", mode_data->pending_shape);
-  if (mode_data->pending_shape == Pending_Transfer) {
-    draw_ghost_paste(mode_data->pending_transfer, mode_data->pending_vert, edit_win,
+  if (mode_data->pending_shape == Pending_Transfer &&
+      mode_data->pending_transfer) {
+    draw_ghost_paste(&*mode_data->pending_transfer, mode_data->pending_vert, edit_win,
                      scr_orig, redraw_area);
   } else {
     switch (mode_data->pending_shape) {
@@ -249,9 +250,13 @@ static size_t read_info_from_map(void *const cb_arg, MapPoint *const map_pos, in
     }
     index = data->index;
     data->index = InfoEditIter_get_next(&data->iter);
-    TargetInfo const *const info = InfoEdit_get(data->infos, index);
-    *map_pos = target_info_get_pos(info);
-    *id = target_info_get_id(info);
+    _Optional TargetInfo const *const info = InfoEdit_get(data->infos, index);
+    assert(info);
+    if (!info) {
+      return SIZE_MAX;
+    }
+    *map_pos = target_info_get_pos(&*info);
+    *id = target_info_get_id(&*info);
   } while (!DrawInfos_touch_ghost_bbox(data->view, *map_pos, data->redraw_area));
 
   return index;
@@ -289,14 +294,14 @@ void InfoMode_draw(Editor *const editor,
 
   InfoEditContext const *const infos = EditWin_get_read_info_ctx(edit_win);
 
-  InfoModeData *const mode_data =
+  _Optional InfoModeData *const mode_data =
       Editor_get_edit_mode(editor) == EDITING_MODE_INFO ?
       editor->editingmode_data : NULL;
 
-  SelectionBitmask const *const selection = mode_data ? &mode_data->selection : NULL;
-  SelectionBitmask const *const occluded = mode_data && (mode_data->pending_drop ||
-                                                         mode_data->pending_shape != Pending_None) ?
-                                           &mode_data->occluded : NULL;
+  _Optional SelectionBitmask const *const selection = mode_data ? &mode_data->selection : NULL,
+                                   *const occluded = mode_data && (mode_data->pending_drop ||
+                                                                   mode_data->pending_shape != Pending_None) ?
+                                                     &mode_data->occluded : NULL;
 
   DrawInfoData data = {.view = view, .infos = infos, .redraw_area = redraw_area};
   data.index = InfoEdit_get_first_idx(&data.iter, infos, &overlapping_area);
@@ -305,11 +310,11 @@ void InfoMode_draw(Editor *const editor,
 
   if (mode_data && mode_data->pending_shape != Pending_None) {
     plot_set_col(EditWin_get_ghost_colour(edit_win));
-    draw_pending(mode_data, edit_win, scr_orig, redraw_area, &overlapping_area);
+    draw_pending(&*mode_data, edit_win, scr_orig, redraw_area, &overlapping_area);
   }
 
   if (mode_data && mode_data->pending_drop) {
-    draw_ghost_paste(mode_data->pending_drop, mode_data->drop_bbox.min, edit_win,
+    draw_ghost_paste(&*mode_data->pending_drop, mode_data->drop_bbox.min, edit_win,
                      scr_orig, redraw_area);
   }
 
@@ -329,7 +334,12 @@ static void occluded_changed(size_t const index, void *const arg)
 {
   OccludedData const *const data = arg;
   assert(data);
-  MapPoint const pos = target_info_get_pos(InfoEdit_get(data->infos, index));
+  _Optional TargetInfo *const info = InfoEdit_get(data->infos, index);
+  assert(info);
+  if (!info) {
+    return;
+  }
+  MapPoint const pos = target_info_get_pos(&*info);
   Editor_occluded_info_changed(data->editor, pos);
 }
 
@@ -373,7 +383,7 @@ static void InfoMode_add_ghost_bbox_for_transfer(Editor *const editor,
 }
 
 static void InfoMode_set_pending(Editor *const editor, PendingShape const pending_shape,
-  InfoTransfer *const pending_transfer, MapPoint const pos)
+  _Optional InfoTransfer *const pending_transfer, MapPoint const pos)
 {
   assert(editor);
   InfoModeData *const mode_data = get_mode_data(editor);
@@ -399,10 +409,13 @@ static void InfoMode_set_pending(Editor *const editor, PendingShape const pendin
       break;
 
     case Pending_Transfer:
-      InfoTransfers_find_occluded(infos, pos, pending_transfer, &mode_data->occluded);
-      InfoMode_add_ghost_bbox_for_transfer(editor, infos,
-        pos, pending_transfer, &mode_data->occluded);
-      any = true;
+      if (pending_transfer)
+      {
+        InfoTransfers_find_occluded(infos, pos, &*pending_transfer, &mode_data->occluded);
+        InfoMode_add_ghost_bbox_for_transfer(editor, infos,
+                                             pos, &*pending_transfer, &mode_data->occluded);
+        any = true;
+      }
       break;
 
     default:
@@ -467,8 +480,11 @@ static void InfoMode_edit_properties(Editor *const editor, EditWin *const edit_w
 
   EditSession *const session = Editor_get_session(editor);
   InfoEditContext const *const infos = Session_get_infos(session);
-  TargetInfo *info = InfoEdit_get(infos, index);
-  InfoPropDboxes_open(&mode_data->prop_dboxes, info, edit_win);
+  _Optional TargetInfo *info = InfoEdit_get(infos, index);
+  assert(info);
+  if (info) {
+    InfoPropDboxes_open(&mode_data->prop_dboxes, &*info, edit_win);
+  }
 }
 
 static void InfoMode_update_title(Editor *const editor)
@@ -491,9 +507,9 @@ static void notify_changed(EditSession *const session,
 static void display_msg(Editor *const editor,
   InfoEditChanges const *const change_info)
 {
-  char *const msg = InfoEditChanges_get_message(change_info);
+  _Optional char *const msg = InfoEditChanges_get_message(change_info);
   if (msg) {
-    Editor_display_msg(editor, msg, true);
+    Editor_display_msg(editor, &*msg, true);
   }
 }
 
@@ -502,7 +518,7 @@ static void free_pending_paste(InfoModeData *const mode_data)
   assert(mode_data);
   if (mode_data->pending_paste) {
     assert(mode_data->pending_paste != mode_data->pending_transfer);
-    dfile_release(InfoTransfer_get_dfile(mode_data->pending_paste));
+    dfile_release(InfoTransfer_get_dfile(&*mode_data->pending_paste));
     mode_data->pending_paste = NULL;
   }
 }
@@ -512,7 +528,7 @@ static void free_dragged(InfoModeData *const mode_data)
   assert(mode_data);
   if (mode_data->dragged) {
     assert(mode_data->dragged != mode_data->pending_transfer);
-    dfile_release(InfoTransfer_get_dfile(mode_data->dragged));
+    dfile_release(InfoTransfer_get_dfile(&*mode_data->dragged));
     mode_data->dragged = NULL;
   }
 }
@@ -522,12 +538,12 @@ static void free_pending_drop(InfoModeData *const mode_data)
   assert(mode_data);
   if (mode_data->pending_drop) {
     assert(mode_data->pending_drop != mode_data->pending_transfer);
-    dfile_release(InfoTransfer_get_dfile(mode_data->pending_drop));
+    dfile_release(InfoTransfer_get_dfile(&*mode_data->pending_drop));
     mode_data->pending_drop = NULL;
   }
 }
 
-static TargetInfo *get_info_at_point(View const *const view,
+static _Optional TargetInfo *get_info_at_point(View const *const view,
   InfoEditContext const *const infos,
   MapPoint const fine_pos, size_t *const index_out)
 {
@@ -538,7 +554,7 @@ static TargetInfo *get_info_at_point(View const *const view,
   DEBUG("Will search for an info overlapping point %" PRIMapCoord ",%" PRIMapCoord,
         fine_pos.x, fine_pos.y);
 
-  TargetInfo *info = NULL;
+  _Optional TargetInfo *info = NULL;
   MapArea const sample_point = {.min = fine_pos, .max = fine_pos};
   MapPoint const search_centre = MapLayout_map_coords_from_fine(view, fine_pos);
 
@@ -548,14 +564,17 @@ static TargetInfo *get_info_at_point(View const *const view,
   InfoEditIter iter;
   size_t index = InfoEdit_get_first_idx(&iter, infos, &overlapping_area);
   if (!InfoEditIter_done(&iter)) {
-     TargetInfo *const candidate = InfoEdit_get(infos, index);
-      MapPoint const grid_pos = target_info_get_pos(candidate);
+    _Optional TargetInfo *const candidate = InfoEdit_get(infos, index);
+    assert(candidate);
+    if (candidate) {
+      MapPoint const grid_pos = target_info_get_pos(&*candidate);
 
-     if (DrawInfos_touch_select_bbox(view, grid_pos, &sample_point)) {
-       DEBUG("Found info %p at exact location", (void *)candidate);
-       *index_out = index;
-       info = candidate;
-     }
+      if (DrawInfos_touch_select_bbox(view, grid_pos, &sample_point)) {
+        DEBUG("Found info %p at exact location", (void *)candidate);
+        *index_out = index;
+        info = candidate;
+      }
+    }
   }
 
   if (!info) {
@@ -566,8 +585,12 @@ static TargetInfo *get_info_at_point(View const *const view,
          !InfoEditIter_done(&iter);
          index = InfoEditIter_get_next(&iter))
     {
-      TargetInfo *const candidate = InfoEdit_get(infos, index);
-      MapPoint const grid_pos = target_info_get_pos(candidate);
+      _Optional TargetInfo *const candidate = InfoEdit_get(infos, index);
+      assert(candidate);
+      if (!candidate) {
+        break;
+      }
+      MapPoint const grid_pos = target_info_get_pos(&*candidate);
 
       if (DrawInfos_touch_select_bbox(view, grid_pos, &sample_point)) {
         *index_out = index;
@@ -599,7 +622,12 @@ static bool drag_select_core(View const *const view, SelectionBitmask *const sel
        !InfoEditIter_done(&iter);
        index = InfoEditIter_get_next(&iter))
   {
-    MapPoint const grid_pos = target_info_get_pos(InfoEdit_get(infos, index));
+    _Optional TargetInfo *const info = InfoEdit_get(infos, index);
+    assert(info);
+    if (!info) {
+      break;
+    }
+    MapPoint const grid_pos = target_info_get_pos(&*info);
     bool invert = only_inside ?
       DrawInfos_in_select_bbox(view, grid_pos, select_box) :
       DrawInfos_touch_select_bbox(view, grid_pos, select_box);
@@ -618,8 +646,11 @@ static void redraw_selection(size_t const index, void *const arg)
   Editor *const editor = arg;
   EditSession *const session = Editor_get_session(editor);
   InfoEditContext const *const infos = Session_get_infos(session);
-  TargetInfo *const info = InfoEdit_get(infos, index);
-  Editor_redraw_info(editor, target_info_get_pos(info));
+  _Optional TargetInfo *const info = InfoEdit_get(infos, index);
+  assert(info);
+  if (info) {
+    Editor_redraw_info(editor, target_info_get_pos(&*info));
+  }
 }
 
 static void InfoMode_update_select(Editor *const editor, bool const only_inside,
@@ -674,10 +705,17 @@ static bool paste_generic(Editor *const editor,
   EditSession *const session = Editor_get_session(editor);
   InfoEditContext const *const infos = Session_get_infos(session);
 
+  assert(mode_data->pending_paste);
+  if (!mode_data->pending_paste)
+  {
+    return false;
+  }
+  InfoTransfer *const pending_paste = &*mode_data->pending_paste;
+
   InfoMode_wipe_ghost(editor);
 
   /* Plot transfer at mouse pointer */
-  MapPoint const t_dims = InfoTransfers_get_dims(mode_data->pending_paste);
+  MapPoint const t_dims = InfoTransfers_get_dims(pending_paste);
   map_pos = MapPoint_sub(map_pos, MapPoint_div_log2(t_dims, 1));
 
   InfoEditChanges_init(&mode_data->change_info);
@@ -698,7 +736,7 @@ static bool InfoMode_start_select(Editor *const editor, bool const only_inside,
   View const *const view = EditWin_get_view(edit_win);
 
   size_t index;
-  TargetInfo *const info = get_info_at_point(view, infos, fine_pos, &index);
+  _Optional TargetInfo *const info = get_info_at_point(view, infos, fine_pos, &index);
 
   if (info) {
     SelectionBitmask_invert(&mode_data->selection, index, true);
@@ -715,7 +753,7 @@ static bool InfoMode_start_exclusive_select(Editor *const editor, bool const onl
   InfoEditContext const *const infos = EditWin_get_read_info_ctx(edit_win);
   View const *const view = EditWin_get_view(edit_win);
   size_t index;
-  TargetInfo *const info = get_info_at_point(view, infos, fine_pos, &index);
+  _Optional TargetInfo *const info = get_info_at_point(view, infos, fine_pos, &index);
 
   if (info) {
     if (!SelectionBitmask_is_selected(&mode_data->selection, index)) {
@@ -735,10 +773,10 @@ static void InfoMode_edit_properties_at_pos(Editor *const editor, MapPoint const
   InfoEditContext const *const infos = EditWin_get_read_info_ctx(edit_win);
   View const *const view = EditWin_get_view(edit_win);
   size_t index;
-  TargetInfo *const info = get_info_at_point(view, infos, fine_pos, &index);
+  _Optional TargetInfo *const info = get_info_at_point(view, infos, fine_pos, &index);
 
   if (info) {
-    InfoPropDboxes_open(&mode_data->prop_dboxes, info, edit_win);
+    InfoPropDboxes_open(&mode_data->prop_dboxes, &*info, edit_win);
   }
 }
 
@@ -779,7 +817,7 @@ static bool InfoMode_start_pending_paste(Editor *const editor, Reader *const rea
     return false;
   }
 
-  SFError err = read_compressed(InfoTransfer_get_dfile(mode_data->pending_paste),
+  SFError err = read_compressed(InfoTransfer_get_dfile(&*mode_data->pending_paste),
                                         reader);
   if (err.type == SFErrorType_TransferNot) {
     err = SFERROR(CBWrong);
@@ -797,10 +835,14 @@ static void InfoMode_pending_paste(Editor *const editor, MapPoint const map_pos)
 {
   InfoModeData *const mode_data = get_mode_data(editor);
   assert(mode_data->pending_paste);
+  if (!mode_data->pending_paste)
+  {
+    return;
+  }
 
-  MapPoint const t_dims = InfoTransfers_get_dims(mode_data->pending_paste);
-
-  InfoMode_set_pending(editor, Pending_Transfer, mode_data->pending_paste,
+  InfoTransfer *const pending_paste = &*mode_data->pending_paste;
+  MapPoint const t_dims = InfoTransfers_get_dims(pending_paste);
+  InfoMode_set_pending(editor, Pending_Transfer, pending_paste,
                           MapPoint_sub(map_pos, MapPoint_div_log2(t_dims, 1)));
 }
 
@@ -808,8 +850,12 @@ static bool InfoMode_draw_paste(Editor *const editor, MapPoint const map_pos)
 {
   InfoModeData *const mode_data = get_mode_data(editor);
   assert(mode_data->pending_paste);
+  if (!mode_data->pending_paste)
+  {
+    return false;
+  }
 
-  if (!paste_generic(editor, mode_data->pending_paste, map_pos)) {
+  if (!paste_generic(editor, &*mode_data->pending_paste, map_pos)) {
     return false;
   }
   free_pending_paste(mode_data);
@@ -881,13 +927,13 @@ static void InfoMode_draw_grid(Vertex const scr_orig,
 }
 
 static void delete_core(Editor *const editor, InfoEditContext const *const infos,
-  InfoEditChanges *const change_info)
+  _Optional InfoEditChanges *const change_info)
 {
   InfoModeData *const mode_data = get_mode_data(editor);
   InfoEdit_delete(infos, &mode_data->selection, change_info);
 }
 
-static InfoTransfer *clipboard;
+static _Optional InfoTransfer *clipboard;
 
 static bool cb_copy_core(Editor *const editor)
 {
@@ -942,7 +988,7 @@ static bool InfoMode_auto_select(Editor *const editor, MapPoint const fine_pos, 
   InfoEditContext const *const infos = EditWin_get_read_info_ctx(edit_win);
   View const *const view = EditWin_get_view(edit_win);
   size_t index;
-  TargetInfo *const info = get_info_at_point(view, infos, fine_pos, &index);
+  _Optional TargetInfo *const info = get_info_at_point(view, infos, fine_pos, &index);
 
   if (!info) {
     return false;
@@ -1074,7 +1120,7 @@ static bool InfoMode_start_drag_obj(Editor *const editor,
     return false;
   }
 
-  InfoTransfer *const transfer = InfoTransfers_grab_selection(infos, &mode_data->selection);
+  _Optional InfoTransfer *const transfer = InfoTransfers_grab_selection(infos, &mode_data->selection);
   if (!transfer) {
     return false;
   }
@@ -1083,8 +1129,8 @@ static bool InfoMode_start_drag_obj(Editor *const editor,
   mode_data->dragged = transfer;
 
   MapArea sent_bbox = MapArea_make_invalid(), shown_bbox = MapArea_make_invalid();
-  MapPoint bl = InfoTransfers_get_origin(transfer);
-  MapPoint const t_dims = InfoTransfers_get_dims(transfer);
+  MapPoint bl = InfoTransfers_get_origin(&*transfer);
+  MapPoint const t_dims = InfoTransfers_get_dims(&*transfer);
 
   /* Although the transfer origin may happen to be relative to the drag start
      position, it is not guaranteed (e.g. click on far left, drag on far right). */
@@ -1104,10 +1150,10 @@ static bool InfoMode_start_drag_obj(Editor *const editor,
     bl.y += Map_Size;
   }
 
-  size_t const count = InfoTransfers_get_info_count(transfer);
+  size_t const count = InfoTransfers_get_info_count(&*transfer);
 
   for (size_t index = 0; index < count; ++index) {
-    MapPoint const info_pos = MapPoint_add(bl, InfoTransfers_get_pos(transfer, index));
+    MapPoint const info_pos = MapPoint_add(bl, InfoTransfers_get_pos(&*transfer, index));
     MapArea_expand(&sent_bbox, MapLayout_map_coords_to_centre(EditWin_get_view(edit_win), info_pos));
 
     MapArea const info_bbox = EditWin_get_ghost_info_bbox(edit_win, info_pos);
@@ -1131,7 +1177,7 @@ static bool InfoMode_drag_obj_remote(Editor *const editor, struct Writer *const 
     return false;
   }
 
-  bool success = !report_error(write_compressed(InfoTransfer_get_dfile(mode_data->dragged),
+  bool success = !report_error(write_compressed(InfoTransfer_get_dfile(&*mode_data->dragged),
                                  writer), filename, "");
 
   free_dragged(mode_data);
@@ -1139,12 +1185,12 @@ static bool InfoMode_drag_obj_remote(Editor *const editor, struct Writer *const 
 }
 
 static bool InfoMode_show_ghost_drop(Editor *const editor,
-                                        MapArea const *const bbox,
-                                        Editor const *const drag_origin)
+                                     MapArea const *const bbox,
+                                     _Optional Editor const *const drag_origin)
 {
   bool hide_origin_bbox = true;
   InfoModeData *const mode_data = get_mode_data(editor);
-  InfoModeData *const origin_data = drag_origin ? get_mode_data(drag_origin) : NULL;
+  _Optional InfoModeData *const origin_data = drag_origin ? get_mode_data(&*drag_origin) : NULL;
   assert(MapArea_is_valid(bbox));
 
   if (origin_data) {
@@ -1171,15 +1217,15 @@ static bool InfoMode_show_ghost_drop(Editor *const editor,
     SelectionBitmask_copy(&mode_data->tmp, &mode_data->occluded);
     SelectionBitmask_clear(&mode_data->occluded);
 
-    InfoTransfers_find_occluded(infos, bbox->min, origin_data->dragged, &mode_data->occluded);
-    InfoMode_add_ghost_bbox_for_transfer(editor, infos, bbox->min, origin_data->dragged, &mode_data->occluded);
+    InfoTransfers_find_occluded(infos, bbox->min, &*origin_data->dragged, &mode_data->occluded);
+    InfoMode_add_ghost_bbox_for_transfer(editor, infos, bbox->min, &*origin_data->dragged, &mode_data->occluded);
 
     OccludedData data = {.editor = editor, .infos = infos};
     SelectionBitmask_for_each_changed(&mode_data->occluded, &mode_data->tmp,
                                       occluded_changed, &data);
 
     mode_data->pending_drop = origin_data->dragged;
-    dfile_claim(InfoTransfer_get_dfile(origin_data->dragged));
+    dfile_claim(InfoTransfer_get_dfile(&*origin_data->dragged));
   } else {
     // Dragging from a window belonging to another task
     assert(!mode_data->pending_drop);
@@ -1260,7 +1306,8 @@ static bool InfoMode_drag_obj_copy(Editor *const editor,
 
   InfoEditChanges_init(&dst_data->change_info);
 
-  if (!drag_obj_copy_core(editor, bbox, origin_data->dragged, Session_get_infos(session))) {
+  if (origin_data->dragged &&
+      !drag_obj_copy_core(editor, bbox, &*origin_data->dragged, Session_get_infos(session))) {
     return false;
   }
 
@@ -1314,29 +1361,29 @@ static bool InfoMode_drop(Editor *const editor, MapArea const *const bbox,
   InfoModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
 
-  InfoTransfer *const dropped = InfoTransfer_create();
+  _Optional InfoTransfer *const dropped = InfoTransfer_create();
   if (dropped == NULL) {
     return false;
   }
 
-  SFError err = read_compressed(InfoTransfer_get_dfile(dropped), reader);
+  SFError err = read_compressed(InfoTransfer_get_dfile(&*dropped), reader);
   bool success = !report_error(err, filename, "");
   if (success) {
     InfoEditChanges_init(&mode_data->change_info);
 
-    success = drag_obj_copy_core(editor, bbox, dropped, Session_get_infos(session));
+    success = drag_obj_copy_core(editor, bbox, &*dropped, Session_get_infos(session));
     if (success) {
       changed_with_msg(editor);
     }
   }
 
-  dfile_release(InfoTransfer_get_dfile(dropped));
+  dfile_release(InfoTransfer_get_dfile(&*dropped));
   return success;
 }
 
-static char *InfoMode_get_help_msg(Editor const *const editor)
+static _Optional char *InfoMode_get_help_msg(Editor const *const editor)
 {
-  char *msg = NULL; // remove help
+  _Optional char *msg = NULL; // remove help
   InfoModeData *const mode_data = get_mode_data(editor);
 
   switch (Editor_get_tool(editor)) {
@@ -1389,7 +1436,7 @@ bool InfoMode_enter(Editor *const editor)
   DEBUG("Entering info mode");
   assert(InfoMode_can_enter(editor));
 
-  InfoModeData *const mode_data = malloc(sizeof(InfoModeData));
+  _Optional InfoModeData *const mode_data = malloc(sizeof(InfoModeData));
   if (mode_data == NULL) {
     report_error(SFERROR(NoMem), "", "");
     return false;
@@ -1401,10 +1448,10 @@ bool InfoMode_enter(Editor *const editor)
 
   size_t const count = InfoEdit_count(Session_get_infos(Editor_get_session(editor)));
   SelectionBitmask_init(&mode_data->selection, count, redraw_selection, editor);
-  SelectionBitmask_init(&mode_data->tmp, count, NULL, NULL);
-  SelectionBitmask_init(&mode_data->occluded, count, NULL, NULL);
+  SelectionBitmask_init(&mode_data->tmp, count, (SelectionBitmaskRedrawFn *)NULL, editor);
+  SelectionBitmask_init(&mode_data->occluded, count, (SelectionBitmaskRedrawFn *)NULL, editor);
 
-  editor->editingmode_data = mode_data;
+  editor->editingmode_data = &*mode_data;
 
   static DataType const type_list[] = {DataType_InfosTransfer, DataType_Count};
 
@@ -1474,7 +1521,7 @@ bool InfoMode_enter(Editor *const editor)
 void InfoMode_free_clipboard(void)
 {
   if (clipboard) {
-    dfile_release(InfoTransfer_get_dfile(clipboard));
+    dfile_release(InfoTransfer_get_dfile(&*clipboard));
     clipboard = NULL;
   }
 }
@@ -1484,13 +1531,22 @@ bool InfoMode_write_clipboard(struct Writer *writer,
                               char const *filename)
 {
   NOT_USED(data_type);
-  return !report_error(write_compressed(InfoTransfer_get_dfile(clipboard), writer), filename, "");
+  assert(clipboard);
+  if (!clipboard) {
+    return false;
+  }
+  return !report_error(write_compressed(InfoTransfer_get_dfile(&*clipboard), writer), filename, "");
 }
 
 long int InfoMode_estimate_clipboard(DataType data_type)
 {
   NOT_USED(data_type);
-  return worst_compressed_size(InfoTransfer_get_dfile(clipboard));
+  assert(clipboard);
+  if (!clipboard)
+  {
+    return 0;
+  }
+  return worst_compressed_size(InfoTransfer_get_dfile(&*clipboard));
 }
 
 bool InfoMode_set_properties(Editor *editor, TargetInfo *const info, char const *C23_CONST (*const strings)[TargetInfoTextIndex_Count])

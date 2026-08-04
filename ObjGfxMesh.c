@@ -141,6 +141,10 @@ static void obj_array_free(ObjGfxMeshArray *const array)
 {
   assert(array);
   assert(array->ocount <= array->oalloc);
+  if (!array->objects)
+  {
+    return;
+  }
 
   for (int n = 0; n < array->ocount; ++n)
   {
@@ -163,7 +167,7 @@ static ObjGfxMesh *obj_array_get(ObjGfxMeshArray const *const array, ObjRef cons
   return array->objects[n];
 }
 
-static ObjGfxMesh *obj_array_add(ObjGfxMeshArray *const array,
+static _Optional ObjGfxMesh *obj_array_add(ObjGfxMeshArray *const array,
   CoordinateScale const scale,
   unsigned char const plot_type,
   unsigned short const clip_size_x,
@@ -176,7 +180,7 @@ static ObjGfxMesh *obj_array_add(ObjGfxMeshArray *const array,
   {
     int const new_size = array->oalloc ? (array->oalloc * OAllocGrowth) : OAllocInit;
     assert(new_size > 0);
-    ObjGfxMesh **const objects = realloc(array->objects, sizeof(*objects) * new_size);
+    ObjGfxMesh *_Optional *const objects = realloc(array->objects, sizeof(*objects) * new_size);
     if (!objects)
     {
       return NULL;
@@ -185,7 +189,12 @@ static ObjGfxMesh *obj_array_add(ObjGfxMeshArray *const array,
     array->objects = objects;
   }
 
-  ObjGfxMesh *const new_obj = malloc(sizeof(*new_obj));
+  assert(array->objects);
+  if (!array->objects) {
+    return NULL;
+  }
+
+  _Optional ObjGfxMesh *const new_obj = malloc(sizeof(*new_obj));
   if (!new_obj)
   {
     return NULL;
@@ -206,12 +215,12 @@ static ObjGfxMesh *obj_array_add(ObjGfxMeshArray *const array,
   obj_vertices_init(&new_obj->varray);
   obj_polygons_init(&new_obj->polygons);
 
-  array->objects[array->ocount++] = new_obj;
+  array->objects[array->ocount++] = &*new_obj;
 
   return new_obj;
 }
 
-static TrigTable *trig_table;
+static _Optional TrigTable *trig_table;
 static long int divide_table[DIV_TABLE_SIZE];
 
 /* ---------------- Private functions ---------------- */
@@ -237,10 +246,16 @@ static void rotate(ObjGfxMeshesView const *const ctx, Vertex3D *const vector)
         ObjGfxAngle_get_deg(ctx->direction.y_rot),
         ObjGfxAngle_get_deg(ctx->direction.z_rot));
 
+  assert(trig_table);
+  if (!trig_table) {
+    return;
+  }
+  TrigTable *const tt = &*trig_table;
+
   /* Apply z rotation */
   int const z_rot = ObjGfxAngle_get(ctx->direction.z_rot);
-  int cosine = TrigTable_look_up_cosine(trig_table, z_rot);
-  int sine = TrigTable_look_up_sine(trig_table, z_rot);
+  int cosine = TrigTable_look_up_cosine(tt, z_rot);
+  int sine = TrigTable_look_up_sine(tt, z_rot);
   long int new_x = (vector->x * cosine) / SINE_TABLE_SCALE -
                    (vector->z * sine) / SINE_TABLE_SCALE;
   long int new_z = (vector->x * sine) / SINE_TABLE_SCALE +
@@ -250,8 +265,8 @@ static void rotate(ObjGfxMeshesView const *const ctx, Vertex3D *const vector)
 
   /* Apply x rotation */
   int const x_rot = ObjGfxAngle_get(ctx->direction.x_rot);
-  cosine = TrigTable_look_up_cosine(trig_table, x_rot);
-  sine = TrigTable_look_up_sine(trig_table, x_rot);
+  cosine = TrigTable_look_up_cosine(tt, x_rot);
+  sine = TrigTable_look_up_sine(tt, x_rot);
   new_x = (vector->x * cosine) / SINE_TABLE_SCALE -
           (vector->y * sine) / SINE_TABLE_SCALE;
   long int new_y = (vector->x * sine) / SINE_TABLE_SCALE +
@@ -261,8 +276,8 @@ static void rotate(ObjGfxMeshesView const *const ctx, Vertex3D *const vector)
 
   /* Apply y rotation */
   int const y_rot = ObjGfxAngle_get(ctx->direction.y_rot);
-  cosine = TrigTable_look_up_cosine(trig_table, y_rot);
-  sine = TrigTable_look_up_sine(trig_table, y_rot);
+  cosine = TrigTable_look_up_cosine(tt, y_rot);
+  sine = TrigTable_look_up_sine(tt, y_rot);
   new_y = (vector->y * cosine) / SINE_TABLE_SCALE -
           (vector->z * sine) / SINE_TABLE_SCALE;
   new_z = (vector->y * sine) / SINE_TABLE_SCALE +
@@ -409,10 +424,10 @@ static void plot_wireframe(
 
 static void plot_group(
   Vertex const centre,
-  PolyColData const *const colours,
-  BBox *const bounding_box,
+  _Optional PolyColData const *const colours,
+  _Optional BBox *const bounding_box,
   ObjGroup *const group, bool const plot_all,
-  PaletteEntry const (*const pal)[NumColours], ObjGfxMeshStyle const style,
+  _Optional PaletteEntry const (*const pal)[NumColours], ObjGfxMeshStyle const style,
   Vertex (*const screen_coords)[ObjVertexMax])
 {
   int const pcount = obj_group_get_polygon_count(group);
@@ -464,9 +479,9 @@ static void plot_group(
       break;
 
     case ObjGfxMeshStyle_Filled:
-      if (pal) {
+      if (pal && colours) {
         int const colour = obj_polygon_get_colour(&polygon);
-        int const pindex = polycol_get_colour(colours, colour);
+        int const pindex = polycol_get_colour(&*colours, colour);
         assert(pindex < (int)ARRAY_SIZE(*pal));
         plot_set_col((*pal)[pindex]);
       }
@@ -474,7 +489,9 @@ static void plot_group(
       break;
 
     case ObjGfxMeshStyle_BBox:
-      update_bbox(&polygon_coords, centre, bounding_box, num_sides);
+      if (bounding_box) {
+        update_bbox(&polygon_coords, centre, &*bounding_box, num_sides);
+      }
       break;
     }
   }
@@ -619,7 +636,7 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
       return SFERROR(BadNumGroups);
     }
 
-    ObjGfxMeshArray *array = NULL;
+    _Optional ObjGfxMeshArray *array = NULL;
     switch (type)
     {
       case ObjectType_Ground:
@@ -632,10 +649,10 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
         break;
     }
 
-    ObjGfxMesh *obj = NULL;
+    _Optional ObjGfxMesh *obj = NULL;
     if (array)
     {
-      obj = obj_array_add(array, scale, plot_type, clip_size_x, clip_size_y);
+      obj = obj_array_add(&*array, scale, plot_type, clip_size_x, clip_size_y);
       if (!obj)
       {
         return SFERROR(NoMem);
@@ -684,7 +701,7 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
     }
 
     /* Validate the object's plot type. */
-    if (plot_type != 0)
+    if (obj && plot_type != 0)
     {
       /* Check that the referenced polygons exist */
       const int max_polygon = meshes->plot_types[plot_type - 1].max_polygon;
@@ -1079,7 +1096,7 @@ void ObjGfxMeshes_global_init(void)
     err_complain_fatal(DUMMY_ERRNO, msgs_lookup("NoMem"));
 }
 
-TrigTable const *ObjGfxMeshes_get_trig_table(void)
+_Optional TrigTable const *ObjGfxMeshes_get_trig_table(void)
 {
   return trig_table;
 }
@@ -1189,12 +1206,12 @@ void ObjGfxMeshes_plot_hill(ObjGfxMeshesView const *const ctx,
 
 void ObjGfxMeshes_plot(ObjGfxMeshes const *const meshes,
                        ObjGfxMeshesView const *const ctx,
-                       PolyColData const *const colours,
+                       _Optional PolyColData const *const colours,
                        ObjRef const obj_ref,
                        Vertex const centre,
                        long int const distance, Vertex3D const pos,
-                       PaletteEntry const (*const pal)[NumColours],
-                       BBox *const bounding_box,
+                       _Optional PaletteEntry const (*const pal)[NumColours],
+                       _Optional BBox *const bounding_box,
                        ObjGfxMeshStyle const style)
 {
   assert(meshes);
@@ -1331,11 +1348,11 @@ void ObjGfxMeshes_plot(ObjGfxMeshes const *const meshes,
 
 static void plot_hill(
   Vertex const centre,
-  HillColData const *const hill_colours,
-  BBox *const bounding_box,
+  _Optional HillColData const *const hill_colours,
+  _Optional BBox *const bounding_box,
   HillCorner const (*const sides)[Hill_PolygonNumSides],
   int const colour,
-  PaletteEntry const (*const pal)[NumColours], ObjGfxMeshStyle const style,
+  _Optional PaletteEntry const (*const pal)[NumColours], ObjGfxMeshStyle const style,
   Vertex (*const screen_coords)[ObjVertexMax])
 {
   DEBUGF("Plotting hill polygon\n");
@@ -1374,8 +1391,8 @@ static void plot_hill(
     break;
 
   case ObjGfxMeshStyle_Filled:
-    if (pal) {
-      int const pindex = hillcol_get_colour(hill_colours, colour);
+    if (pal && hill_colours) {
+      int const pindex = hillcol_get_colour(&*hill_colours, colour);
       assert(pindex <= (int)ARRAY_SIZE(*pal));
       plot_set_col((*pal)[pindex]);
     }
@@ -1383,17 +1400,23 @@ static void plot_hill(
     break;
 
   case ObjGfxMeshStyle_BBox:
-    update_bbox(&polygon_coords, centre, bounding_box, Hill_PolygonNumSides);
+    if (bounding_box) {
+      update_bbox(&polygon_coords, centre, &*bounding_box, Hill_PolygonNumSides);
+    }
     break;
   }
 }
 
 void ObjGfxMeshes_plot_poly_hill(ObjGfxMeshesView const *const ctx,
-  HillColData const *hill_colours,
-  HillType const type, unsigned char (*const colours)[Hill_MaxPolygons],
-  unsigned char (*const heights)[HillCorner_Count],
-  Vertex const centre, long int const distance, Vertex3D const pos,
-  PaletteEntry const (*const pal)[NumColours], BBox *const bounding_box, ObjGfxMeshStyle const style)
+                                 _Optional HillColData const *hill_colours,
+                                 HillType const type,
+                                 _Optional unsigned char (*const colours)[Hill_MaxPolygons],
+                                 unsigned char (*const heights)[HillCorner_Count],
+                                 Vertex const centre, long int const distance,
+                                 Vertex3D const pos,
+                                 _Optional PaletteEntry const (*const pal)[NumColours],
+                                 _Optional BBox *const bounding_box,
+                                 ObjGfxMeshStyle const style)
 {
 
   Vertex3D obj_pos = pos;

@@ -51,7 +51,9 @@ typedef enum {
 
 typedef struct Editor Editor;
 
-bool Editor_init(Editor *editor, struct EditSession *session, Editor const *editor_to_copy);
+bool Editor_init(Editor *editor, struct EditSession *session,
+                 _Optional Editor const *editor_to_copy);
+
 void Editor_destroy(Editor *editor);
 void Editor_update_title(Editor *editor);
 
@@ -93,7 +95,7 @@ EditMode Editor_get_edit_mode(Editor const *editor);
 int Editor_get_coord_field_width(Editor const *editor);
 MapPoint Editor_get_coord_limit(Editor const *editor);
 bool Editor_can_set_edit_mode(Editor *editor, EditMode new_mode);
-bool Editor_set_edit_mode(Editor *editor, EditMode new_mode, struct EditWin *edit_win);
+bool Editor_set_edit_mode(Editor *editor, EditMode new_mode, _Optional struct EditWin *edit_win);
 
 bool Editor_get_pal_shown(Editor const *editor);
 void Editor_set_pal_shown(Editor *editor, bool shown, struct EditWin *edit_win);
@@ -163,7 +165,7 @@ void Editor_set_paste_enabled(Editor *editor, bool can_paste);
 bool Editor_allow_paste(Editor const *editor);
 
 bool Editor_show_ghost_drop(Editor *editor, MapArea const *bbox,
-                            Editor const *drag_origin);
+                            _Optional Editor const *drag_origin);
 
 void Editor_hide_ghost_drop(Editor *editor);
 bool Editor_drop(Editor *editor, MapArea const *bbox, struct Reader *reader,
@@ -195,7 +197,7 @@ int Editor_get_brush_size(Editor const *editor);
 void Editor_set_brush_size(Editor *editor, int size);
 int Editor_get_wand_size(Editor const *editor);
 void Editor_set_wand_size(Editor *editor, int size);
-char *Editor_get_help_msg(Editor const *editor);
+_Optional char *Editor_get_help_msg(Editor const *editor);
 PointerType Editor_get_ptr_type(Editor const *editor);
 char const *Editor_get_tool_msg(Editor *editor, EditorTool tool, bool caps);
 

@@ -212,7 +212,7 @@ static int has_been_hidden(int const event_code, ToolboxEvent *const event,
   NOT_USED(id_block);
   InfoPropDbox *const prop = handle;
   assert(prop);
-  InfoPropDbox *const removed = intdict_remove_value(&prop->prop_dboxes->sa,
+  _Optional InfoPropDbox *const removed = intdict_remove_value(&prop->prop_dboxes->sa,
                                    map_coords_to_key(target_info_get_pos(prop->info)), NULL);
   assert(removed == prop);
   NOT_USED(removed);
@@ -291,11 +291,14 @@ static InfoPropDbox *create_dbox(InfoPropDboxes *const prop_dboxes, TargetInfo *
   return NULL;
 }
 
-static void destroy_cb(IntDictKey const key, void *const data, void *const arg)
+static void destroy_cb(IntDictKey const key, _Optional void *const data, void *const arg)
 {
   NOT_USED(key);
   NOT_USED(arg);
-  delete_dbox(data);
+  _Optional InfoPropDbox *const prop = data;
+  if (prop) {
+    delete_dbox(&*prop);
+  }
 }
 
 /* ---------------- Public functions ---------------- */
@@ -318,14 +321,14 @@ void InfoPropDboxes_update_title(InfoPropDboxes *const prop_dboxes)
 {
   assert(prop_dboxes);
   IntDictVIter iter;
-  for (InfoPropDbox *prop_dbox = intdictviter_all_init(&iter, &prop_dboxes->sa);
+  for (_Optional InfoPropDbox *prop_dbox = intdictviter_all_init(&iter, &prop_dboxes->sa);
        prop_dbox != NULL;
        prop_dbox = intdictviter_advance(&iter)) {
-    update_title(prop_dbox);
+    update_title(&*prop_dbox);
   }
 }
 
-static InfoPropDbox *find_dbox_for_info(InfoPropDboxes *const prop_dboxes,
+static _Optional InfoPropDbox *find_dbox_for_info(InfoPropDboxes *const prop_dboxes,
                                         TargetInfo const *const info, MapPoint const pos,
                                         bool const remove)
 {
@@ -334,7 +337,7 @@ static InfoPropDbox *find_dbox_for_info(InfoPropDboxes *const prop_dboxes,
      in most cases. */
   IntDictKey const key = map_coords_to_key(pos);
   IntDictVIter iter;
-  for (InfoPropDbox *prop_dbox = intdictviter_init(&iter, &prop_dboxes->sa, key, key);
+  for (_Optional InfoPropDbox *prop_dbox = intdictviter_init(&iter, &prop_dboxes->sa, key, key);
        prop_dbox != NULL;
        prop_dbox = intdictviter_advance(&iter)) {
     if (prop_dbox->info == info) {
@@ -354,32 +357,32 @@ void InfoPropDboxes_update_for_move(InfoPropDboxes *const prop_dboxes,
     return;
   }
 
-  InfoPropDbox *const prop_dbox = find_dbox_for_info(prop_dboxes, info, old_pos, true);
+  _Optional InfoPropDbox *const prop_dbox = find_dbox_for_info(prop_dboxes, info, old_pos, true);
   if (!prop_dbox) {
     return;
   }
 
-  if (intdict_insert(&prop_dboxes->sa, map_coords_to_key(target_info_get_pos(info)), prop_dbox, NULL)) {
-    disp_pos(prop_dbox);
+  if (intdict_insert(&prop_dboxes->sa, map_coords_to_key(target_info_get_pos(info)), &*prop_dbox, NULL)) {
+    disp_pos(&*prop_dbox);
   } else {
     report_error(SFERROR(NoMem), "", "");
-    delete_dbox(prop_dbox);
+    delete_dbox(&*prop_dbox);
   }
 }
 
 void InfoPropDboxes_update_for_del(InfoPropDboxes *const prop_dboxes, TargetInfo const *const info)
 {
-  InfoPropDbox *const prop_dbox = find_dbox_for_info(prop_dboxes, info, target_info_get_pos(info), true);
+  _Optional InfoPropDbox *const prop_dbox = find_dbox_for_info(prop_dboxes, info, target_info_get_pos(info), true);
   if (!prop_dbox) {
     return;
   }
-  delete_dbox(prop_dbox);
+  delete_dbox(&*prop_dbox);
 }
 
 void InfoPropDboxes_open(InfoPropDboxes *const prop_dboxes, TargetInfo *const info,
                          EditWin *const edit_win)
 {
-  InfoPropDbox *prop_dbox = find_dbox_for_info(prop_dboxes, info, target_info_get_pos(info), false);
+  _Optional InfoPropDbox *prop_dbox = find_dbox_for_info(prop_dboxes, info, target_info_get_pos(info), false);
   if (!prop_dbox) {
     prop_dbox = create_dbox(prop_dboxes, info);
   }

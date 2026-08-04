@@ -74,11 +74,11 @@ static void config_copy(char *const source_name)
       BASEMAP_DIR, BASEGRID_DIR, BASEANIMS_DIR
     };
     for (size_t i = 0; !exists && i < ARRAY_SIZE(subdirs); ++i) {
-      char *const map_intern_path = make_file_path_in_subdir(
+      _Optional char *const map_intern_path = make_file_path_in_subdir(
         Config_get_read_dir(), subdirs[i], source_name);
 
       if (map_intern_path) {
-        exists = file_exists(map_intern_path);
+        exists = file_exists(&*map_intern_path);
         free(map_intern_path);
       }
     }
@@ -98,9 +98,9 @@ static void config_copy(char *const source_name)
 static void setup_win(void)
 {
   hourglass_on();
-  filescan_leafname *const sprscape_leaves = filescan_get_leaf_names(FS_BASE_SPRSCAPE, NULL);
-  filescan_leafname *const fxdobj_leaves = filescan_get_leaf_names(FS_BASE_FXDOBJ, NULL);
-  filescan_leafname *const anims_leaves = filescan_get_leaf_names(FS_BASE_ANIMS, NULL);
+  _Optional filescan_leafname *const sprscape_leaves = filescan_get_leaf_names(FS_BASE_SPRSCAPE, NULL),
+                              *const fxdobj_leaves = filescan_get_leaf_names(FS_BASE_FXDOBJ, NULL),
+                              *const anims_leaves = filescan_get_leaf_names(FS_BASE_ANIMS, NULL);
   hourglass_off();
 
   if (sprscape_leaves == NULL || fxdobj_leaves == NULL || anims_leaves == NULL)
@@ -108,16 +108,16 @@ static void setup_win(void)
     return; /* error */
   }
 
-  filescan_leafname *partial_combined_list =
-    filescan_combine_filenames(sprscape_leaves, fxdobj_leaves);
+  _Optional filescan_leafname *partial_combined_list =
+    filescan_combine_filenames(&*sprscape_leaves, &*fxdobj_leaves);
 
   if (partial_combined_list == NULL)
   {
     return; /* error */
   }
 
-  filescan_leafname *const new_combined_list = filescan_combine_filenames(
-    partial_combined_list, anims_leaves);
+  _Optional filescan_leafname *const new_combined_list =
+    filescan_combine_filenames(&*partial_combined_list, &*anims_leaves);
 
   FREE_SAFE(partial_combined_list);
 
@@ -230,7 +230,7 @@ void RenameMap_created(ObjectId const dbox_id)
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
     EF(event_register_toolbox_handler(dbox_id, handlers[i].event_code,
-                                      handlers[i].handler, NULL));
+                                      handlers[i].handler, &RenameMap_id));
   }
 }
 

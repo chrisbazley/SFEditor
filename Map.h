@@ -28,9 +28,9 @@ enum {
 typedef struct MapData MapData;
 
 void map_init(void);
-MapData *map_create_base(void);
-MapData *map_create_overlay(void);
-MapData *map_get_shared(char const *filename);
+_Optional MapData *map_create_base(void);
+_Optional MapData *map_create_overlay(void);
+_Optional MapData *map_get_shared(char const *filename);
 bool map_share(MapData *map);
 DFile *map_get_dfile(MapData *map);
 

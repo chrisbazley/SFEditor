@@ -86,9 +86,9 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 
 static bool is_showing_for_session(Editor const *const editor)
 {
-  void *const edit_win = get_ancestor_handle_if_showing(EffectMenu_id);
-  Editor const *const ancestor_editor =
-    edit_win ? EditWin_get_editor(edit_win) : NULL;
+  _Optional EditWin const *const edit_win = get_ancestor_handle_if_showing(EffectMenu_id);
+  _Optional Editor const *const ancestor_editor =
+    edit_win ? EditWin_get_editor(&*edit_win) : NULL;
 
   return ancestor_editor == editor;
 }

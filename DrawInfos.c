@@ -256,10 +256,10 @@ void DrawInfos_unknown_to_screen(
 void DrawInfos_to_screen(
   View const *const view,
   DrawInfosReadInfoFn *const read_info, void *const cb_arg,
-  SelectionBitmask const *const selection,
+  _Optional SelectionBitmask const *const selection,
   Vertex const scr_orig,
   bool const is_ghost,
-  SelectionBitmask const *const occluded)
+  _Optional SelectionBitmask const *const occluded)
 {
   assert(read_info);
   PaletteEntry colours[TargetInfoMax][DrawInfoPaletteSize], sel_colours[TargetInfoMax][DrawInfoPaletteSize];
@@ -315,8 +315,8 @@ void DrawInfos_to_screen(
        index != SIZE_MAX;
        index = read_info(cb_arg, &map_pos, &id)) {
 
-    plot_info_args.is_selected = selection && SelectionBitmask_is_selected(selection, index);
-    plot_info_args.is_occluded = occluded && SelectionBitmask_is_selected(occluded, index);
+    plot_info_args.is_selected = selection && SelectionBitmask_is_selected(&*selection, index);
+    plot_info_args.is_occluded = occluded && SelectionBitmask_is_selected(&*occluded, index);
     plot_info_args.id = is_ghost ? 0 : id;
 
     MapPoint scr_tile_pos = MapLayout_rotate_map_coords_to_scr(view->config.angle, map_pos);

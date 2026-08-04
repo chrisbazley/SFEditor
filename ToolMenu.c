@@ -165,9 +165,9 @@ static int menu_selection(int const event_code, ToolboxEvent *const event,
 
 static bool is_showing_for_session(Editor const *const editor)
 {
-  void *const edit_win = get_ancestor_handle_if_showing(ToolMenu_id);
+  _Optional EditWin *const edit_win = get_ancestor_handle_if_showing(ToolMenu_id);
   Editor const *const ancestor_editor =
-    edit_win ? EditWin_get_editor(edit_win) : NULL;
+    edit_win ? EditWin_get_editor(&*edit_win) : NULL;
 
   return ancestor_editor == editor;
 }

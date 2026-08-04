@@ -34,8 +34,9 @@ typedef struct {
 Vertex DrawCloud_get_size_os(void);
 
 bool DrawCloud_init(DrawCloudContext *context, CloudColData const *clouds,
-  PaletteEntry const (*palette)[NumColours], PaletteEntry const (*sel_palette)[NumColours],
-  int zoom, bool is_ghost);
+                    PaletteEntry const (*palette)[NumColours],
+                    _Optional PaletteEntry const (*sel_palette)[NumColours],
+                    int zoom, bool is_ghost);
 
 void DrawCloud_plot(DrawCloudContext const *context, Vertex scr_pos,
   bool is_selected, int cloud_type);

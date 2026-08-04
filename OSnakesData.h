@@ -16,7 +16,7 @@
 struct ObjSnakes
 {
   struct Snakes super;
-  long int *distances;
+  _Optional long int *distances;
 };
 
 #endif

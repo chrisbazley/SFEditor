@@ -83,7 +83,12 @@ static void setup_win(EditSession *const session, ObjectId const dbox_id)
 {
   /* Update state of the dialogue box from the mission data associated with
      an editing session */
-  PlayerData *const s = mission_get_player(Session_get_mission(session));
+  _Optional MissionData *const m = Session_get_mission(session);
+  assert(m);
+  if (!m) {
+    return;
+  }
+  PlayerData *const s = mission_get_player(&*m);
 
   E(stringset_set_selected(StringSet_IndexedSelection,
              dbox_id, ComponentId_SHIPTYPE,
@@ -134,7 +139,14 @@ static void read_win(EditSession *const session, ObjectId const dbox_id)
   /* Update the mission data associated with an editing session from the
      state of the dialogue box */
   int state = 0;
-  PlayerData *const s = mission_get_player(Session_get_mission(session));
+
+  _Optional MissionData *const m = Session_get_mission(session);
+  assert(m);
+  if (!m) {
+    return;
+  }
+
+  PlayerData *const s = mission_get_player(&*m);
 
   if (!E(stringset_get_selected(StringSet_IndexedSelection, dbox_id, ComponentId_SHIPTYPE, &state)))
   {
@@ -259,6 +271,12 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   NOT_USED(event_code);
   NOT_USED(event);
   SpecialShipData *const special_ship_data = handle;
+  
+  _Optional MissionData *const m = Session_get_mission(special_ship_data->session);
+  assert(m);
+  if (!m) {
+    return 0;
+  }
 
   /* Populate string set with list of ships & select appropriate one */
   FilenamesData const *const filenames = Session_get_filenames(special_ship_data->session);
@@ -288,7 +306,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 
   /* Update the default input focus as necessary to avoid an error
      when all the writable gadgets are faded. */
-  PlayerData *const s = mission_get_player(Session_get_mission(special_ship_data->session));
+  PlayerData *const s = mission_get_player(&*m);
 
   E(window_set_default_focus(0, id_block->self_id,
              player_get_equip_enabled(s) ? ComponentId_SHIELDS : ComponentId_Background));

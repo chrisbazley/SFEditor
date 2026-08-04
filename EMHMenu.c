@@ -125,7 +125,7 @@ static int openhandler(int const event_code, ToolboxEvent *const event,
   which);
 
   /* Get pointer to array of leaf names of files within this directory */
-  filescan_leafname *leaves = filescan_get_leaf_names(which, &new_vsn);
+  _Optional filescan_leafname *leaves = filescan_get_leaf_names(which, &new_vsn);
   if (leaves == NULL) {
     hourglass_off();
     return 1; /* error */
@@ -152,7 +152,7 @@ static int openhandler(int const event_code, ToolboxEvent *const event,
     /* Rebuild menu */
     if (wipe_menu(id_block->self_id, menu_states[which].next_cid - 1)) {
       menu_states[which].ticked =
-        fsmenu_build(id_block->self_id, leaves,
+        fsmenu_build(id_block->self_id, &*leaves,
                      &menu_states[which].next_cid, true, false,
                      grey_internal, leafname_ptr);
       /* don't care about excluding "Blank" */
@@ -166,7 +166,7 @@ static int openhandler(int const event_code, ToolboxEvent *const event,
 
   if (menu_states[which].intern_greyed != grey_internal) {
     /* No need to rebuild menu - just update fading of internal files */
-    fsmenu_grey_internal(id_block->self_id, leaves, true, grey_internal);
+    fsmenu_grey_internal(id_block->self_id, &*leaves, true, grey_internal);
 
     menu_states[which].intern_greyed = grey_internal;
   }

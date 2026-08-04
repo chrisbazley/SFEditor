@@ -108,7 +108,7 @@
    body of the loop, we don't need to worry about a null pointer in that block. */
 #define SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) \
 IntDictVIter iter; \
-for (EditWinList *(this_edit_win) = intdictviter_all_init( \
+for (_Optional EditWinList *(this_edit_win) = intdictviter_all_init( \
                                                &iter, &(session)->edit_wins_array); \
      (this_edit_win) != NULL; \
      (this_edit_win) = intdictviter_advance(&iter))
@@ -152,7 +152,10 @@ static void set_edit_win_titles(EditSession *const session)
       char const *misstitle = "";
       if (Session_has_data(session, DataType_Mission))
       {
-        misstitle = briefing_get_title(mission_get_briefing(Session_get_mission(session)));
+        _Optional MissionData *mission = Session_get_mission(session);
+        if (mission) {
+          misstitle = briefing_get_title(mission_get_briefing(&*mission));
+        }
       }
       title_start = msgs_lookup_subn("MissTitle", 2, Session_get_filename(session), misstitle);
     }
@@ -254,7 +257,9 @@ static void edit_win_destructor(IntDictKey const key, _Optional void *const valu
 {
   NOT_USED(key);
   NOT_USED(arg);
-  delete_edit_win(value);
+  _Optional EditWinList *const edit_win_record = value;
+  if (edit_win_record)
+    delete_edit_win(&*edit_win_record);
 }
 
 static void remove_delete_edit_win(EditSession *const session, EditWinList *const edit_win_record)
@@ -262,7 +267,7 @@ static void remove_delete_edit_win(EditSession *const session, EditWinList *cons
   assert(session != NULL);
   assert(edit_win_record != NULL);
   assert(session->number_of_edit_wins > 0);
-  EditWinList *const removed = intdict_remove_value(&session->edit_wins_array,
+  _Optional EditWinList *const removed = intdict_remove_value(&session->edit_wins_array,
                                   EditWin_get_wimp_handle(&edit_win_record->edit_win), NULL);
   assert(removed == edit_win_record);
   NOT_USED(removed);
@@ -336,7 +341,7 @@ static StrDict *dict_for_session(EditSession const *const session)
   return &mission_dict;
 }
 
-static bool set_main_filename(EditSession *const session, char const *filename)
+static bool set_main_filename(EditSession *const session, _Optional char const *filename)
 {
   DEBUG("Changing main file name to '%s' (currently '%s')", STRING_OR_NULL(filename),
         Session_get_filename(session));
@@ -351,15 +356,15 @@ static bool set_main_filename(EditSession *const session, char const *filename)
     session->untitled = true;
   }
 
-  if (strcmp(Session_get_filename(session), filename) != 0)
+  if (filename && strcmp(Session_get_filename(session), &*filename) != 0)
   {
-    EditSession *const removed = strdict_remove_value(dict_for_session(session),
+    _Optional EditSession *const removed = strdict_remove_value(dict_for_session(session),
                                      Session_get_filename(session), NULL);
     assert(removed == NULL || removed == session);
     NOT_USED(removed);
 
     stringbuffer_truncate(&session->filename, 0);
-    if (!stringbuffer_append_all(&session->filename, filename) ||
+    if (!stringbuffer_append_all(&session->filename, &*filename) ||
         !strdict_insert(dict_for_session(session), Session_get_filename(session), session, NULL))
     {
       report_error(SFERROR(NoMem), "", "");
@@ -464,9 +469,9 @@ static void redraw_map(MapArea const *const area, EditSession *const session)
 
 static void session_cleanup(void)
 {
-  strdict_destroy(&single_dict, NULL, NULL);
-  strdict_destroy(&map_dict, NULL, NULL);
-  strdict_destroy(&mission_dict, NULL, NULL);
+  strdict_destroy(&single_dict, (StrDictDestructorFn *)NULL, &single_dict);
+  strdict_destroy(&map_dict, (StrDictDestructorFn *)NULL, &map_dict);
+  strdict_destroy(&mission_dict, (StrDictDestructorFn *)NULL, &mission_dict);
 }
 
 /* ---------------- Public functions ---------------- */
@@ -668,14 +673,14 @@ static void map_prechange(MapArea const *const bbox, EditSession *const session)
 
 static void map_replaced(EditSession *const session)
 {
-  Session_resource_change(session, EDITOR_CHANGE_MAP_ALL_REPLACED, NULL);
+  Session_resource_change(session, EDITOR_CHANGE_MAP_ALL_REPLACED, &(EditorChangeParams){0});
   Session_splat_anims(session);
   check_tile_range(session);
 }
 
 static void objects_replaced(EditSession *const session)
 {
-  Session_resource_change(session, EDITOR_CHANGE_OBJ_ALL_REPLACED, NULL);
+  Session_resource_change(session, EDITOR_CHANGE_OBJ_ALL_REPLACED, &(EditorChangeParams){0});
   check_ref_range(session);
 }
 
@@ -685,10 +690,12 @@ void Session_map_premove(EditSession *const session, MapPoint const old_pos, Map
     &(EditorChangeParams){.map_premove = {.new_pos = new_pos, .old_pos = old_pos}});
 }
 
-static EditSession *create_session(InterfaceType const ui_type, bool const oddball_file, char const *filename)
+static _Optional EditSession *create_session(InterfaceType const ui_type,
+                                             bool const oddball_file,
+                                             _Optional char const *filename)
 {
   DEBUGF("Creating new editing session (UI type %d%s)\n", ui_type, oddball_file ? ", odd" : "");
-  EditSession *const session = malloc(sizeof(*session));
+  _Optional EditSession *const session = malloc(sizeof(*session));
   if (session == NULL)
   {
     report_error(SFERROR(NoMem), "", "");
@@ -700,19 +707,19 @@ static EditSession *create_session(InterfaceType const ui_type, bool const oddba
     .ui_type = ui_type,
     .oddball_file = oddball_file,
     .objects = {.prechange_cb = objects_prechange, .redraw_obj_cb = redraw_obj,
-                .redraw_trig_cb = redraw_trig, .session = session},
+                .redraw_trig_cb = redraw_trig, .session = &*session},
     .map = {.prechange_cb = map_prechange, .redraw_cb = redraw_map,
-            .session = session},
+            .session = &*session},
     .infos = {.added_cb = info_added, .predelete_cb = info_predelete,
               .moved_cb = info_moved,
-              .session = session},
+              .session = &*session},
   };
 
   stringbuffer_init(&session->filename);
   stringbuffer_init(&session->edit_win_titles);
   intdict_init(&session->edit_wins_array);
 
-  if (set_main_filename(session, filename))
+  if (set_main_filename(&*session, filename))
   {
     linkedlist_insert(&all_list, NULL, &session->all_link);
     return session;
@@ -726,7 +733,7 @@ static EditSession *create_session(InterfaceType const ui_type, bool const oddba
 }
 
 static bool init_edit_win(EditSession *const session,
-  EditWinList *const new_record, EditWin const *const edit_win_to_copy)
+  EditWinList *const new_record, _Optional EditWin const *const edit_win_to_copy)
 {
   assert(new_record);
   assert(session);
@@ -761,7 +768,7 @@ static bool init_edit_win(EditSession *const session,
 #endif
 }
 
-bool Session_new_edit_win(EditSession *const session, EditWin const *const edit_win_to_copy)
+bool Session_new_edit_win(EditSession *const session, _Optional EditWin const *const edit_win_to_copy)
 {
   assert(Session_get_ui_type(session) != UI_TYPE_NONE); /*should have decided by now*/
   if (session->number_of_edit_wins == UCHAR_MAX)
@@ -771,7 +778,7 @@ bool Session_new_edit_win(EditSession *const session, EditWin const *const edit_
   }
 
   /* Create new record for linking to list of edit_wins */
-  EditWinList *const new_record = malloc(sizeof(*new_record));
+  _Optional EditWinList *const new_record = malloc(sizeof(*new_record));
   if (new_record == NULL)
   {
     report_error(SFERROR(NoMem), "", "");
@@ -779,7 +786,7 @@ bool Session_new_edit_win(EditSession *const session, EditWin const *const edit_
   }
 
   /* Create new edit_win for this session */
-  if (!init_edit_win(session, new_record, edit_win_to_copy))
+  if (!init_edit_win(session, &*new_record, edit_win_to_copy))
   {
     free(new_record);
     return false;
@@ -789,7 +796,7 @@ bool Session_new_edit_win(EditSession *const session, EditWin const *const edit_
                       EditWin_get_wimp_handle(&new_record->edit_win),
                       new_record, NULL)) {
     report_error(SFERROR(NoMem), "", "");
-    delete_edit_win(new_record);
+    delete_edit_win(&*new_record);
     return false;
   }
 
@@ -842,12 +849,12 @@ int Session_try_delete_edit_win(EditSession *const session,
   return count;
 }
 
-static DFile *Session_get_dfile(EditSession const *const session, DataType const data_type)
+static _Optional DFile *Session_get_dfile(EditSession const *const session, DataType const data_type)
 {
   assert(session);
   assert(data_type >= 0);
   assert(data_type < ARRAY_SIZE(session->dfiles));
-  DFile *const dfile = session->dfiles[data_type];
+  _Optional DFile *const dfile = session->dfiles[data_type];
   DEBUGF("data_type %d dfile %p\n", data_type, (void *)dfile);
   return dfile;
 }
@@ -858,7 +865,7 @@ void Session_destroy(EditSession *const session)
   DEBUGF("Destroying editing session %p (UI type %d%s)\n",
         (void *)session, session->ui_type, session->oddball_file ? ", odd" : "");
 
-  EditSession *const removed = strdict_remove_value(dict_for_session(session), Session_get_filename(session), NULL);
+  _Optional EditSession *const removed = strdict_remove_value(dict_for_session(session), Session_get_filename(session), NULL);
   assert(removed == session);
   NOT_USED(removed);
 
@@ -873,7 +880,7 @@ void Session_destroy(EditSession *const session)
   }
 #endif
 
-  intdict_destroy(&session->edit_wins_array, edit_win_destructor, NULL);
+  intdict_destroy(&session->edit_wins_array, edit_win_destructor, session);
 
   /* Delete associated dialogue boxes */
   for (size_t i = 0; i < ARRAY_SIZE(session->has_fperf); ++i)
@@ -904,10 +911,10 @@ void Session_destroy(EditSession *const session)
 
   for (DataType data_type = DataType_First; data_type < DataType_SessionCount; ++data_type)
   {
-    DFile *const dfile = Session_get_dfile(session, data_type);
+    _Optional DFile *const dfile = Session_get_dfile(session, data_type);
     if (dfile)
     {
-      dfile_release(dfile);
+      dfile_release(&*dfile);
     }
   }
 
@@ -996,7 +1003,7 @@ bool Session_savemission(EditSession *const session,
   };
 
   /* Construct file save paths */
-  char *file_paths[ARRAY_SIZE(data_types)] = {NULL};
+  _Optional char *file_paths[ARRAY_SIZE(data_types)] = {NULL};
   bool any_exists = false;
   bool success = true;
   for (size_t i = 0; success && (i < ARRAY_SIZE(data_types)); ++i)
@@ -1007,7 +1014,7 @@ bool Session_savemission(EditSession *const session,
     {
       success = false;
     }
-    else if (file_exists(file_paths[i]))
+    else if (file_exists(&*file_paths[i]))
     {
       any_exists = true;
     }
@@ -1041,10 +1048,10 @@ bool Session_savemission(EditSession *const session,
       }
       else
       {
-        DFile *const dfile = Session_get_dfile(session, data_types[i]);
+        _Optional DFile *const dfile = Session_get_dfile(session, data_types[i]);
         if (dfile)
         {
-          success = write_comp_typed(dfile, file_paths[i], data_types[i]);
+          success = write_comp_typed(&*dfile, &*file_paths[i], data_types[i]);
           if (success) {
             ++saved_count;
             saved[i] = true;
@@ -1079,13 +1086,13 @@ bool Session_savemission(EditSession *const session,
     DEBUG("Mission data has%s been changed", changed ? "" : " not");
 
     if (force || changed) {
-      DFile *const dfile = Session_get_dfile(session, DataType_Mission);
+      _Optional DFile *const dfile = Session_get_dfile(session, DataType_Mission);
       if (dfile)
       {
-        success = write_comp_typed(dfile, file_paths[0], DataType_Mission);
+        success = write_comp_typed(&*dfile, &*file_paths[0], DataType_Mission);
         if (success) {
           saved_count++;
-          success = set_saved_with_stamp(dfile, file_paths[0]);
+          success = set_saved_with_stamp(&*dfile, &*file_paths[0]);
           filescan_directory_updated(filescan_get_emh_type(path_suffix));
         }
       }
@@ -1096,8 +1103,11 @@ bool Session_savemission(EditSession *const session,
         continue;
       }
       if (success) {
-        DFile *const dfile = Session_get_dfile(session, data_types[i]);
-        success = set_saved_with_stamp(dfile, file_paths[i]);
+        _Optional DFile *const dfile = Session_get_dfile(session, data_types[i]);
+        assert(dfile);
+        if (dfile) {
+          success = set_saved_with_stamp(&*dfile, &*file_paths[i]);
+        }
       } else {
         /* Restore paths to ancillary files stored in mission data */
         filenames_set(f, data_types[i], old_names[i]);
@@ -1159,7 +1169,7 @@ bool Session_savemap(EditSession *const session, char const *const leaf_name, bo
   static DataType const data_types[] = {
     DataType_BaseMap, DataType_BaseObjects, DataType_BaseMapAnimations
   };
-  char *file_paths[ARRAY_SIZE(data_types)] = {NULL};
+  _Optional char *file_paths[ARRAY_SIZE(data_types)] = {NULL};
 
   /* Construct file save paths */
   bool any_exists = false;
@@ -1172,7 +1182,7 @@ bool Session_savemap(EditSession *const session, char const *const leaf_name, bo
     {
       success = false;
     }
-    else if (file_exists(file_paths[i]))
+    else if (file_exists(&*file_paths[i]))
     {
       any_exists = true;
     }
@@ -1196,12 +1206,12 @@ bool Session_savemap(EditSession *const session, char const *const leaf_name, bo
 
     if (force || changed)
     {
-      DFile *const dfile = Session_get_dfile(session, data_types[i]);
+      _Optional DFile *const dfile = Session_get_dfile(session, data_types[i]);
       if (dfile)
       {
-        success = write_comp_typed(dfile, file_paths[i], data_types[i]);
+        success = write_comp_typed(&*dfile, &*file_paths[i], data_types[i]);
         if (success) {
-          success = set_saved_with_stamp(dfile, file_paths[i]);
+          success = set_saved_with_stamp(&*dfile, &*file_paths[i]);
           ++saved_count;
         }
       }
@@ -1232,53 +1242,53 @@ bool Session_savemap(EditSession *const session, char const *const leaf_name, bo
   return success;
 }
 
-static DFile *create_mission(EditSession *const session)
+static _Optional DFile *create_mission(EditSession *const session)
 {
   assert(session);
   session->mission = mission_create();
-  session->objects.triggers = session->mission ? mission_get_triggers(session->mission) : NULL;
-  session->infos.data = session->mission ? mission_get_target_infos(session->mission) : NULL;
-  return session->mission ? mission_get_dfile(session->mission) : NULL;
+  session->objects.triggers = session->mission ? mission_get_triggers(&*session->mission) : NULL;
+  session->infos.data = session->mission ? mission_get_target_infos(&*session->mission) : NULL;
+  return session->mission ? mission_get_dfile(&*session->mission) : NULL;
 }
 
-static DFile *create_base_map(EditSession *const session)
+static _Optional DFile *create_base_map(EditSession *const session)
 {
   assert(session);
   session->map.base = map_create_base();
-  return session->map.base ? map_get_dfile(session->map.base) : NULL;
+  return session->map.base ? map_get_dfile(&*session->map.base) : NULL;
 }
 
-static DFile *create_overlay_map(EditSession *const session)
+static _Optional DFile *create_overlay_map(EditSession *const session)
 {
   assert(session);
   session->map.overlay = map_create_overlay();
-  return session->map.overlay ? map_get_dfile(session->map.overlay) : NULL;
+  return session->map.overlay ? map_get_dfile(&*session->map.overlay) : NULL;
 }
 
-static DFile *create_base_obj(EditSession *const session)
+static _Optional DFile *create_base_obj(EditSession *const session)
 {
   assert(session);
   session->objects.base = objects_create_base();
-  return session->objects.base ? objects_get_dfile(session->objects.base) : NULL;
+  return session->objects.base ? objects_get_dfile(&*session->objects.base) : NULL;
 }
 
-static DFile *create_overlay_obj(EditSession *const session)
+static _Optional DFile *create_overlay_obj(EditSession *const session)
 {
   assert(session);
   session->objects.overlay = objects_create_overlay();
-  return session->objects.overlay ? objects_get_dfile(session->objects.overlay) : NULL;
+  return session->objects.overlay ? objects_get_dfile(&*session->objects.overlay) : NULL;
 }
 
-static DFile *create_anims(EditSession *const session)
+static _Optional DFile *create_anims(EditSession *const session)
 {
   assert(session);
   session->map.anims = MapAnims_create();
-  return session->map.anims ? MapAnims_get_dfile(session->map.anims) : NULL;
+  return session->map.anims ? MapAnims_get_dfile(&*session->map.anims) : NULL;
 }
 
-static DFile *create_dfile(EditSession *const session, DataType const data_type)
+static _Optional DFile *create_dfile(EditSession *const session, DataType const data_type)
 {
-  DFile *dfile = NULL;
+  _Optional DFile *dfile = NULL;
   switch (data_type)
   {
     case DataType_BaseMap:
@@ -1313,7 +1323,7 @@ static DFile *create_dfile(EditSession *const session, DataType const data_type)
 
   if (dfile) {
     if (session->dfiles[data_type]) {
-      dfile_release(session->dfiles[data_type]);
+      dfile_release(&*session->dfiles[data_type]);
     }
     session->dfiles[data_type] = dfile;
   } else {
@@ -1349,9 +1359,9 @@ static bool load_file(EditSession *const session, char const *const full_path,
     return false;
   }
 
-  DFile *const dfile = create_dfile(session, data_type);
+  _Optional DFile *const dfile = create_dfile(session, data_type);
   if (dfile) {
-    if (read_comp_typed(dfile, full_path)) {
+    if (read_comp_typed(&*dfile, full_path)) {
       return true;
     }
   }
@@ -1362,31 +1372,31 @@ static bool load_leaf(EditSession *const session, DataType const data_type,
   char const *const leaf_name)
 {
   char const *const sub_dir = data_type_to_sub_dir(data_type);
-  char *const full_path = make_file_path_in_dir_on_path(LEVELS_PATH, sub_dir, leaf_name);
+  _Optional char *const full_path = make_file_path_in_dir_on_path(LEVELS_PATH, sub_dir, leaf_name);
   if (!full_path) {
     return false;
   }
-  bool const success = load_file(session, full_path, data_type);
+  bool const success = load_file(session, &*full_path, data_type);
   free(full_path);
   return success;
 }
 
-static DFile *get_shared_base_map(EditSession *const session, char const *const filename)
+static _Optional DFile *get_shared_base_map(EditSession *const session, char const *const filename)
 {
   assert(session);
 
-  MapData *map = map_get_shared(filename);
+  _Optional MapData *map = map_get_shared(filename);
   if (map) {
     session->map.base = map;
-    return map_get_dfile(map);
+    return map_get_dfile(&*map);
   }
 
   map = map_create_base();
   if (map) {
-    DFile *const dfile = map_get_dfile(map);
-    if (read_comp_typed(dfile, filename)) {
+    DFile *const dfile = map_get_dfile(&*map);
+    if (read_comp_typed(&*dfile, filename)) {
       session->map.base = map;
-      if (map_share(map)) {
+      if (map_share(&*map)) {
         return dfile;
       }
       report_error(SFERROR(NoMem), "", "");
@@ -1398,22 +1408,22 @@ static DFile *get_shared_base_map(EditSession *const session, char const *const 
   return NULL;
 }
 
-static DFile *get_shared_base_obj(EditSession *const session, char const *const filename)
+static _Optional DFile *get_shared_base_obj(EditSession *const session, char const *const filename)
 {
   assert(session);
 
-  ObjectsData *obj = objects_get_shared(filename);
+  _Optional ObjectsData *obj = objects_get_shared(filename);
   if (obj) {
     session->objects.base = obj;
-    return objects_get_dfile(obj);
+    return objects_get_dfile(&*obj);
   }
 
   obj = objects_create_base();
   if (obj) {
-    DFile *const dfile = objects_get_dfile(obj);
-    if (read_comp_typed(dfile, filename)) {
+    DFile *const dfile = objects_get_dfile(&*obj);
+    if (read_comp_typed(&*dfile, filename)) {
       session->objects.base = obj;
-      if (objects_share(obj)) {
+      if (objects_share(&*obj)) {
         return dfile;
       }
       report_error(SFERROR(NoMem), "", "");
@@ -1425,23 +1435,23 @@ static DFile *get_shared_base_obj(EditSession *const session, char const *const 
   return NULL;
 }
 
-static DFile *get_shared_tiles(EditSession *const session, char const *const filename)
+static _Optional DFile *get_shared_tiles(EditSession *const session, char const *const filename)
 {
   assert(session);
 
-  MapTex *textures = MapTex_get_shared(filename);
+  _Optional MapTex *textures = MapTex_get_shared(filename);
   if (textures) {
-    session->textures = textures;
-    return MapTex_get_dfile(textures);
+    session->textures = &*textures;
+    return MapTex_get_dfile(&*textures);
   }
 
   textures = MapTex_create();
   if (textures) {
-    DFile *const dfile = MapTex_get_dfile(textures);
+    DFile *const dfile = MapTex_get_dfile(&*textures);
     if (read_comp_typed(dfile, filename)) {
-      MapTex_load_metadata(textures);
-      session->textures = textures;
-      if (MapTex_share(textures)) {
+      MapTex_load_metadata(&*textures);
+      session->textures = &*textures;
+      if (MapTex_share(&*textures)) {
         return dfile;
       }
       report_error(SFERROR(NoMem), "", "");
@@ -1453,21 +1463,21 @@ static DFile *get_shared_tiles(EditSession *const session, char const *const fil
   return NULL;
 }
 
-static DFile *get_shared_poly(EditSession *const session, char const *const filename)
+static _Optional DFile *get_shared_poly(EditSession *const session, char const *const filename)
 {
-  ObjGfx *graphics = ObjGfx_get_shared(filename);
+  _Optional ObjGfx *graphics = ObjGfx_get_shared(filename);
   if (graphics) {
-    session->graphics = graphics;
-    return ObjGfx_get_dfile(graphics);
+    session->graphics = &*graphics;
+    return ObjGfx_get_dfile(&*graphics);
   }
 
   graphics = ObjGfx_create();
   if (graphics) {
-    DFile *const dfile = ObjGfx_get_dfile(graphics);
+    DFile *const dfile = ObjGfx_get_dfile(&*graphics);
     if (read_comp_typed(dfile, filename)) {
-      ObjGfx_load_metadata(graphics);
-      session->graphics = graphics;
-      if (ObjGfx_share(graphics)) {
+      ObjGfx_load_metadata(&*graphics);
+      session->graphics = &*graphics;
+      if (ObjGfx_share(&*graphics)) {
         return dfile;
       }
       report_error(SFERROR(NoMem), "", "");
@@ -1479,22 +1489,22 @@ static DFile *get_shared_poly(EditSession *const session, char const *const file
   return NULL;
 }
 
-static DFile *get_shared_polycol(EditSession *const session, char const *const filename)
+static _Optional DFile *get_shared_polycol(EditSession *const session, char const *const filename)
 {
   assert(session);
 
-  PolyColData *poly_colours = polycol_get_shared(filename);
+  _Optional PolyColData *poly_colours = polycol_get_shared(filename);
   if (poly_colours) {
     session->poly_colours = poly_colours;
-    return polycol_get_dfile(poly_colours);
+    return polycol_get_dfile(&*poly_colours);
   }
 
   poly_colours = polycol_create();
   if (poly_colours) {
-    DFile *const dfile = polycol_get_dfile(poly_colours);
+    DFile *const dfile = polycol_get_dfile(&*poly_colours);
     if (read_comp_typed(dfile, filename)) {
       session->poly_colours = poly_colours;
-      if (polycol_share(poly_colours)) {
+      if (polycol_share(&*poly_colours)) {
         return dfile;
       }
       report_error(SFERROR(NoMem), "", "");
@@ -1506,22 +1516,22 @@ static DFile *get_shared_polycol(EditSession *const session, char const *const f
   return NULL;
 }
 
-static DFile *get_shared_hillcol(EditSession *const session, char const *const filename)
+static _Optional DFile *get_shared_hillcol(EditSession *const session, char const *const filename)
 {
   assert(session);
 
-  HillColData *hill_colours = hillcol_get_shared(filename);
+  _Optional HillColData *hill_colours = hillcol_get_shared(filename);
   if (hill_colours) {
     session->hill_colours = hill_colours;
-    return hillcol_get_dfile(hill_colours);
+    return hillcol_get_dfile(&*hill_colours);
   }
 
   hill_colours = hillcol_create();
   if (hill_colours) {
-    DFile *const dfile = hillcol_get_dfile(hill_colours);
+    DFile *const dfile = hillcol_get_dfile(&*hill_colours);
     if (read_comp_typed(dfile, filename)) {
       session->hill_colours = hill_colours;
-      if (hillcol_share(hill_colours)) {
+      if (hillcol_share(&*hill_colours)) {
         return dfile;
       }
       report_error(SFERROR(NoMem), "", "");
@@ -1536,7 +1546,7 @@ static DFile *get_shared_hillcol(EditSession *const session, char const *const f
 static bool get_shared_file(EditSession *const session, char const *const full_path,
   DataType const data_type)
 {
-  DFile *dfile = NULL;
+  _Optional DFile *dfile = NULL;
   bool is_none = false;
 
   if (data_type == DataType_HillColours &&
@@ -1593,7 +1603,7 @@ static bool get_shared_file(EditSession *const session, char const *const full_p
      specified type and replace it */
   if (dfile || is_none) {
     if (session->dfiles[data_type]) {
-      dfile_release(session->dfiles[data_type]);
+      dfile_release(&*session->dfiles[data_type]);
     }
     session->dfiles[data_type] = dfile;
   }
@@ -1607,13 +1617,13 @@ static bool get_shared_leaf(EditSession *const session, DataType const data_type
   assert(leaf_name);
   assert(*leaf_name);
   char const *const sub_dir = data_type_to_sub_dir(data_type);
-  char *const full_path = make_file_path_in_dir_on_path(LEVELS_PATH, sub_dir, leaf_name);
+  _Optional char *const full_path = make_file_path_in_dir_on_path(LEVELS_PATH, sub_dir, leaf_name);
   if (!full_path)
   {
     return false;
   }
 
-  bool const success = get_shared_file(session, full_path, data_type);
+  bool const success = get_shared_file(session, &*full_path, data_type);
   free(full_path);
   return success;
 }
@@ -1699,10 +1709,10 @@ static bool Session_load_base_map(EditSession *const session)
 
   for (size_t i = 0; success && i < ARRAY_SIZE(data_types); ++i) {
     char const *sub_dir = data_type_to_sub_dir(data_types[i]);
-    char *file_path = make_file_path_in_dir_on_path(LEVELS_PATH, sub_dir,
+    _Optional char *file_path = make_file_path_in_dir_on_path(LEVELS_PATH, sub_dir,
                                                     filenames_get(f, data_types[i]));
 
-    if (file_path && !file_exists(file_path)) {
+    if (file_path && !file_exists(&*file_path)) {
       filenames_set(f, data_types[i], BLANK_FILE);
 
       /* Blank base animations file doesn't exist */
@@ -1718,7 +1728,7 @@ static bool Session_load_base_map(EditSession *const session)
       return false;
     }
 
-    success = load_file(session, file_path, data_types[i]);
+    success = load_file(session, &*file_path, data_types[i]);
     free(file_path);
   }
 
@@ -1803,31 +1813,31 @@ static bool load_map_core(EditSession *const session, char const *const leaf_nam
 
 void Session_new_map(void)
 {
-  EditSession *const session = create_session(UI_TYPE_MAP, false, NULL);
+  _Optional EditSession *const session = create_session(UI_TYPE_MAP, false, NULL);
   if (session)
   {
-    if (!load_map_core(session, BLANK_FILE) || !Session_new_edit_win(session, NULL))
+    if (!load_map_core(&*session, BLANK_FILE) || !Session_new_edit_win(&*session, NULL))
     {
-      Session_destroy(session);
+      Session_destroy(&*session);
     }
   }
 }
 
 void Session_open_map(char const *const filename)
 {
-  EditSession *session = strdict_find_value(&map_dict, filename, NULL);
+  _Optional EditSession *session = strdict_find_value(&map_dict, filename, NULL);
   if (session)
   {
-    show_all_edit_wins(session);
+    show_all_edit_wins(&*session);
   }
   else
   {
     session = create_session(UI_TYPE_MAP, false, filename);
     if (session)
     {
-      if (!load_map_core(session, filename) || !Session_new_edit_win(session, NULL))
+      if (!load_map_core(&*session, filename) || !Session_new_edit_win(&*session, NULL))
       {
-        Session_destroy(session);
+        Session_destroy(&*session);
       }
     }
   }
@@ -1839,7 +1849,7 @@ void Session_save_gfx_config(EditSession *const session)
   GfxConfig_save(&session->gfx_config, Session_get_filename(session));
 }
 
-MissionData *Session_get_mission(const EditSession *const session)
+_Optional MissionData *Session_get_mission(const EditSession *const session)
 {
   assert(session != NULL);
   return session->mission;
@@ -1881,10 +1891,10 @@ void Session_notify_changed(EditSession *const session,
   assert(session != NULL);
   DEBUG("Session %p notified that file of type %d has changed", (void *)session, data_type);
 
-  DFile *const dfile = Session_get_dfile(session, data_type);
-  if (dfile && !dfile_get_modified(dfile))
+  _Optional DFile *const dfile = Session_get_dfile(session, data_type);
+  if (dfile && !dfile_get_modified(&*dfile))
   {
-    dfile_set_modified(dfile);
+    dfile_set_modified(&*dfile);
     set_edit_win_titles(session); /* add unsaved indicator to title */
   }
 
@@ -1909,8 +1919,11 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
         "saved as '%s'", (void *)session, data_type, file_name);
 
   /* Canonicalise path file was saved as (for comparison purposes) */
-  char *canon_save_path;
+  _Optional char *canon_save_path;
   ON_ERR_RPT_RTN(canonicalise(&canon_save_path, NULL, NULL, file_name));
+  if (!canon_save_path) {
+    return;
+  }
   DEBUG("Canonicalised save path is '%s'", canon_save_path);
 
   /* We may have affected any of the paths that we have cached catalogue
@@ -1945,13 +1958,13 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
   /* Was file saved to appropriate subdirectory inside game? */
   if (dir_up != FS_LAST)
   {
-    char *const intern_compare_path = make_file_path_in_dir(Config_get_read_dir(), sub_dir);
+    _Optional char *const intern_compare_path = make_file_path_in_dir(Config_get_read_dir(), sub_dir);
     if (intern_compare_path == NULL) {
       free(canon_save_path);
       return;
     }
 
-    if (strnicmp(canon_save_path, intern_compare_path, strlen(intern_compare_path)) == 0) {
+    if (strnicmp(&*canon_save_path, &*intern_compare_path, strlen(&*intern_compare_path)) == 0) {
       DEBUG("Matched save path with int. %s", intern_compare_path);
       free(intern_compare_path);
       filescan_directory_updated(dir_up);
@@ -1962,15 +1975,15 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
       free(intern_compare_path);
 
       if (Config_get_use_extern_levels_dir()) {
-        char *const extern_compare_path = make_file_path_in_dir(
+        _Optional char *const extern_compare_path = make_file_path_in_dir(
                                                    Config_get_extern_levels_dir(), sub_dir);
         if (extern_compare_path == NULL) {
           free(canon_save_path);
           return;
         }
 
-        if (strnicmp(canon_save_path, extern_compare_path,
-                     strlen(extern_compare_path)) == 0) {
+        if (strnicmp(&*canon_save_path, &*extern_compare_path,
+                     strlen(&*extern_compare_path)) == 0) {
           DEBUG("Matched save path with ext. %s", extern_compare_path);
           filescan_directory_updated(dir_up);
         } else {
@@ -1981,22 +1994,22 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
     }
   }
 
-  DFile *const dfile = Session_get_dfile(session, data_type);
+  _Optional DFile *const dfile = Session_get_dfile(session, data_type);
   if (dfile)
   {
     if (session->oddball_file)
     {
       /* For oddball files we don't care where they are saved */
       DEBUG("Is oddball file");
-      (void)set_saved_with_stamp(dfile, canon_save_path);
-      set_main_filename(session, canon_save_path);
+      (void)set_saved_with_stamp(&*dfile, &*canon_save_path);
+      set_main_filename(session, &*canon_save_path);
     }
     else if (Session_can_quick_save(session))
     {
       char const *const main_filename = Session_get_filename(session);
 
       /* Construct expected save path for this component */
-      char *const expect_path = make_file_path_in_subdir(Config_get_write_dir(), sub_dir, main_filename);
+      _Optional char *const expect_path = make_file_path_in_subdir(Config_get_write_dir(), sub_dir, main_filename);
       if (expect_path == NULL)
       {
         free(canon_save_path);
@@ -2004,7 +2017,7 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
       }
       DEBUG("Expected save path for component is '%s'", expect_path);
 
-      if (stricmp(canon_save_path, expect_path) == 0)
+      if (stricmp(&*canon_save_path, &*expect_path) == 0)
       {
         /* File was saved to expected path - treat as if saved via
            main save dbox */
@@ -2023,7 +2036,7 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
           }
         }
 
-        (void)set_saved_with_stamp(dfile, canon_save_path);
+        (void)set_saved_with_stamp(&*dfile, &*canon_save_path);
         set_edit_win_titles(session); /* remove unsaved indicator */
       }
       free(expect_path);
@@ -2041,7 +2054,7 @@ static bool load_single_core(EditSession *const session, char const *const filen
   // File may not be stored on a file system
   assert(session);
   bool success = false;
-  DFile *const dfile = create_dfile(session, data_type);
+  _Optional DFile *const dfile = create_dfile(session, data_type);
   if (!dfile)
   {
     return false;
@@ -2051,7 +2064,7 @@ static bool load_single_core(EditSession *const session, char const *const filen
   Reader gk_reader;
   if (reader_gkey_init_from(&gk_reader, HistoryLog2, reader))
   {
-    err = dfile_read(dfile, &gk_reader);
+    err = dfile_read(&*dfile, &gk_reader);
     reader_destroy(&gk_reader);
   }
 
@@ -2116,15 +2129,15 @@ static InterfaceType data_type_to_ui(DataType const data_type)
 bool Session_open_single_file(char *const filename, DataType const data_type)
 {
   bool success = true;
-  EditSession *session = strdict_find_value(&single_dict, filename, NULL);
+  _Optional EditSession *session = strdict_find_value(&single_dict, filename, NULL);
   if (session)
   {
-    show_all_edit_wins(session);
+    show_all_edit_wins(&*session);
   }
   else
   {
     success = false;
-    FILE *const f = fopen_inc(filename, "rb");
+    _Optional FILE *const f = fopen_inc(filename, "rb");
     if (!f)
     {
       report_error(SFERROR(OpenInFail), filename, "");
@@ -2132,22 +2145,25 @@ bool Session_open_single_file(char *const filename, DataType const data_type)
     else
     {
       Reader reader;
-      reader_raw_init(&reader, f);
+      reader_raw_init(&reader, &*f);
 
       session = create_session(data_type_to_ui(data_type), true, filename);
       if (session)
       {
-        if (load_single_core(session, filename, data_type, &reader) &&
-            Session_new_edit_win(session, NULL))
+        if (load_single_core(&*session, filename, data_type, &reader) &&
+            Session_new_edit_win(&*session, NULL))
         {
-          success = set_saved_with_stamp(Session_get_dfile(session, data_type),
-                                         filename);
+          _Optional DFile *const dfile = Session_get_dfile(&*session, data_type);
+          assert(dfile);
+          if (dfile) {
+            success = set_saved_with_stamp(&*dfile, filename);
+          }
         } else {
-          Session_destroy(session);
+          Session_destroy(&*session);
         }
       }
       reader_destroy(&reader);
-      fclose_dec(f);
+      fclose_dec(&*f);
     }
   }
   return success;
@@ -2157,22 +2173,24 @@ bool Session_load_single(char const *const filename, DataType const data_type,
   Reader *const reader)
 {
   // File may not be stored on a file system
-  EditSession *const session = create_session(
-                                 data_type_to_ui(data_type), true, filename);
+  _Optional EditSession *const session = create_session(
+                                            data_type_to_ui(data_type), true, filename);
   if (session)
   {
-    if (load_single_core(session, filename, data_type, reader) &&
-        Session_new_edit_win(session, NULL))
+    if (load_single_core(&*session, filename, data_type, reader) &&
+        Session_new_edit_win(&*session, NULL))
     {
       OSDateAndTime date_stamp;
-      if (!E(get_current_time(&date_stamp)) &&
-          dfile_set_saved(Session_get_dfile(session, data_type),
-                          NULL /* untitled */, (int *)&date_stamp))
+      _Optional DFile *const dfile = Session_get_dfile(&*session, data_type);
+      assert(dfile);
+
+      if (dfile && !E(get_current_time(&date_stamp)) &&
+          dfile_set_saved(&*dfile, NULL /* untitled */, (int *)&date_stamp))
       {
         return true;
       }
     }
-    Session_destroy(session);
+    Session_destroy(&*session);
   }
   return false;
 }
@@ -2230,10 +2248,10 @@ static bool load_mission_core(EditSession *const session, char const *const file
 
 void Session_open_mission(char const *const filename)
 {
-  EditSession *session = strdict_find_value(&mission_dict, filename, NULL);
+  _Optional EditSession *session = strdict_find_value(&mission_dict, filename, NULL);
   if (session)
   {
-    show_all_edit_wins(session);
+    show_all_edit_wins(&*session);
   }
   else
   {
@@ -2243,17 +2261,17 @@ void Session_open_mission(char const *const filename)
       bool success = false;
 
       /* Filename is in base form: e.g. "E.E_01" or "U.MyMission" */
-      char *const full_path = make_file_path_in_dir_on_path(LEVELS_PATH, MISSION_DIR, filename);
+      _Optional char *const full_path = make_file_path_in_dir_on_path(LEVELS_PATH, MISSION_DIR, filename);
       if (full_path)
       {
-        success = load_mission_core(session, full_path) &&
-                  Session_new_edit_win(session, NULL);
+        success = load_mission_core(&*session, &*full_path) &&
+                  Session_new_edit_win(&*session, NULL);
         free(full_path);
       }
 
       if (!success)
       {
-        Session_destroy(session);
+        Session_destroy(&*session);
       }
     }
   }
@@ -2261,13 +2279,13 @@ void Session_open_mission(char const *const filename)
 
 void Session_new_mission(void)
 {
-  EditSession *const session = create_session(UI_TYPE_MISSION, false, NULL);
+  _Optional EditSession *const session = create_session(UI_TYPE_MISSION, false, NULL);
   if (session)
   {
-    if (!load_mission_core(session, "<"APP_NAME"$dir>.Defaults.Mission") ||
-        !Session_new_edit_win(session, NULL))
+    if (!load_mission_core(&*session, "<"APP_NAME"$dir>.Defaults.Mission") ||
+        !Session_new_edit_win(&*session, NULL))
     {
-      Session_destroy(session);
+      Session_destroy(&*session);
     }
   }
 }
@@ -2281,18 +2299,18 @@ InfoEditContext const *Session_get_infos(EditSession *const session)
 FilenamesData *Session_get_filenames(EditSession *const session)
 {
   assert(session != NULL);
-  return session->mission ? mission_get_filenames(session->mission) :
+  return session->mission ? mission_get_filenames(&*session->mission) :
                                  &session->gfx_config.filenames;
 }
 
 CloudColData *Session_get_cloud_colours(EditSession *const session)
 {
   assert(session != NULL);
-  return session->mission ? mission_get_cloud_colours(session->mission) :
+  return session->mission ? mission_get_cloud_colours(&*session->mission) :
                                  &session->gfx_config.clouds;
 }
 
-HillColData const *Session_get_hill_colours(EditSession const *const session)
+_Optional HillColData const *Session_get_hill_colours(EditSession const *const session)
 {
   assert(session != NULL);
   return session->hill_colours;
@@ -2343,9 +2361,9 @@ static DataType const fnames_to_keep[] = {
 static void keep_fnames(EditSession *const session,
   Filename (*const fnames)[ARRAY_SIZE(fnames_to_keep)])
 {
-  MissionData *const mission = Session_get_mission(session);
+  _Optional MissionData *const mission = Session_get_mission(session);
   if (mission) {
-    FilenamesData *const nf = mission_get_filenames(mission);
+    FilenamesData *const nf = mission_get_filenames(&*mission);
     for (size_t i = 0; i < ARRAY_SIZE(fnames_to_keep); ++i)
     {
       STRCPY_SAFE((*fnames)[i], filenames_get(nf, fnames_to_keep[i]));
@@ -2361,28 +2379,29 @@ static void mission_replaced(EditSession *const session,
      up having to revert those also, which is not what user expects.) */
   for (size_t i = 0; i < ARRAY_SIZE(fnames_to_keep); ++i)
   {
-    MissionData *const mission = Session_get_mission(session);
+    _Optional MissionData *const mission = Session_get_mission(session);
     if (mission) {
-      FilenamesData *const nf = mission_get_filenames(mission);
+      FilenamesData *const nf = mission_get_filenames(&*mission);
       if (stricmp((*fnames)[i], filenames_get(nf, fnames_to_keep[i])))
       {
         filenames_set(nf, fnames_to_keep[i], (*fnames)[i]);
-        dfile_set_modified(mission_get_dfile(mission));
+        dfile_set_modified(mission_get_dfile(&*mission));
       }
     }
   }
 
-  Session_resource_change(session, EDITOR_CHANGE_MISSION_REPLACED, NULL);
+  EditorChangeParams const params = {0};
+  Session_resource_change(session, EDITOR_CHANGE_MISSION_REPLACED, &params);
 
   Session_get_shared_base_map(session);
-  Session_resource_change(session, EDITOR_CHANGE_MAP_ALL_REPLACED, NULL);
-  Session_resource_change(session, EDITOR_CHANGE_OBJ_ALL_REPLACED, NULL);
+  Session_resource_change(session, EDITOR_CHANGE_MAP_ALL_REPLACED, &params);
+  Session_resource_change(session, EDITOR_CHANGE_OBJ_ALL_REPLACED, &params);
 
   Session_loadreqgfx(session);
-  Session_resource_change(session, EDITOR_CHANGE_TEX_ALL_RELOADED, NULL);
-  Session_resource_change(session, EDITOR_CHANGE_GFX_ALL_RELOADED, NULL);
-  Session_resource_change(session, EDITOR_CHANGE_POLYGON_COLOURS, NULL);
-  Session_resource_change(session, EDITOR_CHANGE_HILL_COLOURS, NULL);
+  Session_resource_change(session, EDITOR_CHANGE_TEX_ALL_RELOADED, &params);
+  Session_resource_change(session, EDITOR_CHANGE_GFX_ALL_RELOADED, &params);
+  Session_resource_change(session, EDITOR_CHANGE_POLYGON_COLOURS, &params);
+  Session_resource_change(session, EDITOR_CHANGE_HILL_COLOURS, &params);
 
   Session_splat_anims(session);
   check_tile_range(session);
@@ -2393,11 +2412,11 @@ void Session_reload(EditSession *const session, DataType const data_type)
 {
   assert(session != NULL);
 
-  DFile *const dfile = Session_get_dfile(session, data_type);
+  _Optional DFile *const dfile = Session_get_dfile(session, data_type);
   if (!dfile) {
     return;
   }
-  char const *const fname = dfile_get_name(dfile);
+  _Optional char const *const fname = dfile_get_name(&*dfile);
   if (fname) /* not untitled */
   {
     Filename fnames[ARRAY_SIZE(fnames_to_keep)] = {{0}};
@@ -2407,8 +2426,8 @@ void Session_reload(EditSession *const session, DataType const data_type)
       keep_fnames(session, &fnames);
     }
 
-    if (!check_file_type(fname, data_type) ||
-        !read_comp_typed(dfile, fname)) {
+    if (!check_file_type(&*fname, data_type) ||
+        !read_comp_typed(&*dfile, &*fname)) {
       return;
     }
 
@@ -2442,21 +2461,26 @@ static bool can_revert_individual(EditSession *const session,
   DataType const data_type)
 {
   /* Is this file in our external levels directory? */
-  DFile *const dfile = Session_get_dfile(session, data_type);
-  char const *const file_path = dfile_get_name(dfile);
+  _Optional DFile *const dfile = Session_get_dfile(session, data_type);
+  if (!dfile) {
+    return false;
+  }
+  _Optional char const *const file_path = dfile_get_name(&*dfile);
   if (!file_path) /* untitled */
   {
     return false;
   }
-  DEBUG("Full path of file to revert: '%s'", file_path);
+  DEBUG("Full path of file to revert: '%s'", &*file_path);
 
-  char *canon_ext_dir = NULL;
-  if (E(canonicalise(&canon_ext_dir, NULL, NULL, Config_get_extern_levels_dir())))
+  _Optional char *canon_ext_dir = NULL;
+  if (E(canonicalise(&canon_ext_dir, NULL, NULL, Config_get_extern_levels_dir())) ||
+      !canon_ext_dir) {
     return false;
+  }
 
   DEBUG("Canonicalised path of ext. dir: '%s'", canon_ext_dir);
-  size_t const root_len = strlen(canon_ext_dir);
-  bool const is_external = (strnicmp(canon_ext_dir, file_path, root_len) == 0);
+  size_t const root_len = strlen(&*canon_ext_dir);
+  bool const is_external = (strnicmp(&*canon_ext_dir, &*file_path, root_len) == 0);
   free(canon_ext_dir);
 
   if (!is_external) {
@@ -2469,18 +2493,18 @@ static bool can_revert_individual(EditSession *const session,
   DEBUG("File was loaded from ext. dir - good");
 
   strcpy(original_leaf,
-         pathtail(file_path,
+         pathtail(&*file_path,
            Session_get_ui_type(session) == UI_TYPE_MISSION ? 2 : 1));
 
   bool may_revert = false;
   {
     /* Simply look for a file of the same name in the internal game
        directory */
-    char *const intern_path = make_file_path_in_dir(Config_get_read_dir(), file_path + root_len + 1);
+    _Optional char *const intern_path = make_file_path_in_dir(Config_get_read_dir(), &*file_path + root_len + 1);
     if (intern_path == NULL) {
       return false;
     }
-    may_revert = file_exists(intern_path);
+    may_revert = file_exists(&*intern_path);
     free(intern_path);
   }
 
@@ -2490,37 +2514,37 @@ static bool can_revert_individual(EditSession *const session,
        'reversion' to blank */
     if (data_type != DataType_BaseMap && !may_revert) {
       DEBUG("Checking for base ground map file in int. dir");
-      char *const intern_path = make_file_path_in_subdir(
+      _Optional char *const intern_path = make_file_path_in_subdir(
                                      Config_get_read_dir(), data_type_to_sub_dir(DataType_BaseMap), original_leaf);
       if (intern_path == NULL) {
         return false;
       }
 
-      may_revert = file_exists(intern_path);
+      may_revert = file_exists(&*intern_path);
       free(intern_path);
     }
 
     if (data_type != DataType_BaseObjects && !may_revert) {
       DEBUG("Checking for base objects map file in int. dir");
-      char *const intern_path = make_file_path_in_subdir(
+      _Optional char *const intern_path = make_file_path_in_subdir(
                                      Config_get_read_dir(), data_type_to_sub_dir(DataType_BaseObjects), original_leaf);
       if (intern_path == NULL) {
         return false;
       }
 
-      may_revert = file_exists(intern_path);
+      may_revert = file_exists(&*intern_path);
       free(intern_path);
     }
 
     if (data_type != DataType_OverlayMapAnimations && !may_revert) {
       DEBUG("Checking for base animations file in int. dir");
-      char *const intern_path = make_file_path_in_subdir(Config_get_read_dir(), data_type_to_sub_dir(DataType_BaseMapAnimations),
+      _Optional char *const intern_path = make_file_path_in_subdir(Config_get_read_dir(), data_type_to_sub_dir(DataType_BaseMapAnimations),
                                      original_leaf);
       if (intern_path == NULL) {
         return false;
       }
 
-      may_revert = file_exists(intern_path);
+      may_revert = file_exists(&*intern_path);
       free(intern_path);
     }
 
@@ -2557,8 +2581,13 @@ static bool can_revert_mission_part(EditSession *const session,
   if (!Session_can_quick_save(session))
     return false;
 
-  DFile *const dfile = Session_get_dfile(session, data_type);
-  char const *const file_path = dfile_get_name(dfile);
+  _Optional DFile *const dfile = Session_get_dfile(session, data_type);
+  assert(dfile);
+  if (!dfile) {
+    return false;
+  }
+
+  _Optional char const *const file_path = dfile_get_name(&*dfile);
   if (!file_path)
   {
     return false; /* untitled */
@@ -2566,14 +2595,14 @@ static bool can_revert_mission_part(EditSession *const session,
 
   {
     char const *const main_filename = Session_get_filename(session);
-    char *const miss_read_path = make_file_path_in_subdir(
+    _Optional char *const miss_read_path = make_file_path_in_subdir(
                                          Config_get_read_dir(), MISSION_DIR, main_filename);
     if (!miss_read_path) {
       return false;
     }
 
-    bool got_filename = file_exists(miss_read_path) &&
-                        get_filename_from_miss_file(&original_leaf, miss_read_path, data_type);
+    bool got_filename = file_exists(&*miss_read_path) &&
+                        get_filename_from_miss_file(&original_leaf, &*miss_read_path, data_type);
 
     free(miss_read_path);
 
@@ -2583,18 +2612,18 @@ static bool can_revert_mission_part(EditSession *const session,
 
   /* Construct complete path to internal file to revert to */
   char const *const sub_dir = data_type_to_sub_dir(data_type);
-  char *const intern_path = make_file_path_in_subdir(Config_get_read_dir(), sub_dir, original_leaf);
+  _Optional char *const intern_path = make_file_path_in_subdir(Config_get_read_dir(), sub_dir, original_leaf);
   if (intern_path == NULL) {
     return false;
   }
 
-  DEBUG("Path of internal file to revert to: '%s'", intern_path);
+  DEBUG("Path of internal file to revert to: '%s'", &*intern_path);
 
   /* May only revert if it's a different file */
-  bool const diff_file = (stricmp(intern_path, file_path) != 0);
+  bool const diff_file = (stricmp(&*intern_path, &*file_path) != 0);
 
   /* Check original file still exists */
-  bool const orig_exists = file_exists(intern_path);
+  bool const orig_exists = file_exists(&*intern_path);
   free(intern_path);
 
   return diff_file && orig_exists;
@@ -2669,12 +2698,12 @@ void Session_all_delete(void)
   }
 }
 
-EditWin *Session_edit_win_from_wimp_handle(int const window)
+_Optional EditWin *Session_edit_win_from_wimp_handle(int const window)
 {
   LINKEDLIST_FOR_EACH(&all_list, item)
   {
     EditSession *const session = CONTAINER_OF(item, EditSession, all_link);
-    EditWinList *const this_edit_win = intdict_find_value(&session->edit_wins_array, window, NULL);
+    _Optional EditWinList *const this_edit_win = intdict_find_value(&session->edit_wins_array, window, NULL);
     if (this_edit_win) {
       return &this_edit_win->edit_win;
     }
@@ -2804,13 +2833,13 @@ void Session_revert_to_original(EditSession *const session, DataType const data_
 
   DEBUG("Sub directory is '%s'", sub_dir);
 
-  DFile *const dfile = Session_get_dfile(session, data_type);
+  _Optional DFile *const dfile = Session_get_dfile(session, data_type);
   if (!dfile) {
     return;
   }
 
   /* Load original file (as determined in about_to_be_shown) */
-  char *const new_path = make_file_path_in_subdir(Config_get_read_dir(), sub_dir, original_leaf);
+  _Optional char *const new_path = make_file_path_in_subdir(Config_get_read_dir(), sub_dir, original_leaf);
   if (new_path == NULL) {
     return;
   }
@@ -2822,8 +2851,8 @@ void Session_revert_to_original(EditSession *const session, DataType const data_
     keep_fnames(session, &fnames);
   }
 
-  bool const success = check_file_type(new_path, data_type) &&
-                       read_comp_typed(dfile, new_path);
+  bool const success = check_file_type(&*new_path, data_type) &&
+                       read_comp_typed(&*dfile, &*new_path);
   free(new_path);
 
   if (!success) {
@@ -2878,6 +2907,7 @@ bool Session_switch_file(EditSession *const session, DataType const data_type,
   }
 
   GfxConfig base_map_gfx;
+  EditorChangeParams const params = {0};
   switch (data_type)
   {
   case DataType_BaseObjects:
@@ -2890,7 +2920,7 @@ bool Session_switch_file(EditSession *const session, DataType const data_type,
       {
         if (get_shared_leaf(session, DataType_PolygonMeshes, pname)) {
           filenames_set(filenames, data_type, pname);
-          Session_resource_change(session, EDITOR_CHANGE_GFX_ALL_RELOADED, NULL);
+          Session_resource_change(session, EDITOR_CHANGE_GFX_ALL_RELOADED, &params);
         }
       }
     }
@@ -2909,12 +2939,12 @@ bool Session_switch_file(EditSession *const session, DataType const data_type,
       {
         if (get_shared_leaf(session, DataType_MapTextures, tname)) {
           filenames_set(filenames, DataType_MapTextures, tname);
-          Session_resource_change(session, EDITOR_CHANGE_TEX_ALL_RELOADED, NULL);
+          Session_resource_change(session, EDITOR_CHANGE_TEX_ALL_RELOADED, &params);
         }
 
         if (get_shared_leaf(session, DataType_HillColours, hname)) {
           filenames_set(filenames, DataType_HillColours, hname);
-          Session_resource_change(session, EDITOR_CHANGE_HILL_COLOURS, NULL);
+          Session_resource_change(session, EDITOR_CHANGE_HILL_COLOURS, &params);
         }
       }
     }
@@ -2922,21 +2952,21 @@ bool Session_switch_file(EditSession *const session, DataType const data_type,
     break;
 
   case DataType_MapTextures:
-    Session_resource_change(session, EDITOR_CHANGE_TEX_ALL_RELOADED, NULL);
+    Session_resource_change(session, EDITOR_CHANGE_TEX_ALL_RELOADED, &params);
     check_tile_range(session);
     break;
 
   case DataType_PolygonMeshes:
-    Session_resource_change(session, EDITOR_CHANGE_GFX_ALL_RELOADED, NULL);
+    Session_resource_change(session, EDITOR_CHANGE_GFX_ALL_RELOADED, &params);
     check_ref_range(session);
     break;
 
   case DataType_PolygonColours:
-    Session_resource_change(session, EDITOR_CHANGE_POLYGON_COLOURS, NULL);
+    Session_resource_change(session, EDITOR_CHANGE_POLYGON_COLOURS, &params);
     break;
 
   case DataType_HillColours:
-    Session_resource_change(session, EDITOR_CHANGE_HILL_COLOURS, NULL);
+    Session_resource_change(session, EDITOR_CHANGE_HILL_COLOURS, &params);
     break;
 
   default:
@@ -2957,38 +2987,41 @@ bool Session_has_data(const EditSession *const session, DataType const data_type
 
 long int Session_get_file_size(EditSession const *const session, DataType const data_type)
 {
-  DFile *const dfile = Session_get_dfile(session, data_type);
-  return dfile ? get_compressed_size(dfile) : 0;
+  _Optional DFile *const dfile = Session_get_dfile(session, data_type);
+  return dfile ? get_compressed_size(&*dfile) : 0;
 }
 
 bool Session_file_modified(EditSession const *const session, DataType const data_type)
 {
-  DFile const *const dfile = Session_get_dfile(session, data_type);
-  return dfile ? dfile_get_modified(dfile) : false;
+  _Optional DFile const *const dfile = Session_get_dfile(session, data_type);
+  return dfile ? dfile_get_modified(&*dfile) : false;
 }
 
 int const *Session_get_file_date(EditSession *const session, DataType const data_type)
 {
-  DFile const *const dfile = Session_get_dfile(session, data_type);
+  _Optional DFile const *const dfile = Session_get_dfile(session, data_type);
   static int const dummy[2] = {0, 0};
-  return dfile ? dfile_get_date(dfile) : dummy;
+  return dfile ? dfile_get_date(&*dfile) : dummy;
 }
 
-char *Session_get_file_name(EditSession *const session, DataType const data_type)
+_Optional char *Session_get_file_name(EditSession *const session, DataType const data_type)
 {
-  DFile const *const dfile = Session_get_dfile(session, data_type);
-  return dfile ? dfile_get_name(dfile) : NULL /* untitled */;
+  _Optional DFile const *const dfile = Session_get_dfile(session, data_type);
+  return dfile ? dfile_get_name(&*dfile) : NULL /* untitled */;
 }
 
-char *Session_get_file_name_for_save(EditSession *const session,
+_Optional char *Session_get_file_name_for_save(EditSession *const session,
   DataType const data_type)
 {
-  char *filename = NULL;
+  _Optional char *filename = NULL;
   assert(session != NULL);
   if (session->oddball_file)
   {
     /* We encourage user to save oddball files back to whence they came */
-    filename = strdup(Session_get_file_name(session, data_type));
+    filename = Session_get_file_name(session, data_type);
+    if (filename) {
+      filename = strdup(&*filename);
+    }
   }
   else
   {
@@ -3032,10 +3065,10 @@ bool Session_save_file(EditSession *const session, DataType const data_type,
       return false;
   }
 
-  DFile *const dfile = Session_get_dfile(session, data_type);
+  _Optional DFile *const dfile = Session_get_dfile(session, data_type);
   if (dfile)
   {
-    if (!write_comp_typed(dfile, filename, data_type)) {
+    if (!write_comp_typed(&*dfile, filename, data_type)) {
       return false;
     }
   }
@@ -3062,7 +3095,7 @@ ObjGfx *Session_get_graphics(const EditSession *const session)
   return session->graphics;
 }
 
-PolyColData const *Session_get_poly_colours(const EditSession *const session)
+_Optional PolyColData const *Session_get_poly_colours(const EditSession *const session)
 {
   assert(session != NULL);
   assert(session->poly_colours != NULL);
@@ -3206,14 +3239,14 @@ void Session_show_briefing(EditSession *const session)
 }
 
 #if !PER_VIEW_SELECT
-Editor *Session_get_editor(EditSession *const session)
+_Optional Editor *Session_get_editor(EditSession *const session)
 {
   assert(session != NULL);
   return session->has_editor ? &session->editor : NULL;
 }
 
 void Session_set_help_and_ptr(EditSession *const session,
-  char *const help, PointerType const ptr)
+  _Optional char *const help, PointerType const ptr)
 {
   assert(session != NULL);
   SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
@@ -3229,7 +3262,7 @@ void Session_display_mode(EditSession *const session)
   }
 }
 #else
-EditWin *Session_editor_to_win(Editor *const editor)
+_Optional EditWin *Session_editor_to_win(Editor *const editor)
 {
   assert(editor);
   EditWinList *const this_edit_win = CONTAINER_OF(editor, EditWinList, editor);

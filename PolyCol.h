@@ -21,8 +21,8 @@ enum {
 typedef struct PolyColData PolyColData;
 
 void polycol_init(void);
-PolyColData *polycol_get_shared(char const *filename);
-PolyColData *polycol_create(void);
+_Optional PolyColData *polycol_get_shared(char const *filename);
+_Optional PolyColData *polycol_create(void);
 bool polycol_share(PolyColData *poly_colours);
 DFile *polycol_get_dfile(PolyColData *poly_colours);
 int polycol_get_colour(PolyColData const *poly_colours, int index);

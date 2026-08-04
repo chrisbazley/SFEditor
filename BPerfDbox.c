@@ -74,8 +74,12 @@ enum {
 static void read_win(ObjectId const performance_dbox, BPerfDboxData *const performance_data)
 {
   DEBUGF("Reading performance data for big ship type %d\n", performance_data->ship_type);
-  MissionData *const m = Session_get_mission(performance_data->session);
-  BigPerform *const bperf = big_perform_get_ship(mission_get_big_perform(m), performance_data->ship_type);
+  _Optional MissionData *const m = Session_get_mission(performance_data->session);
+  assert(m);
+  if (!m) {
+    return;
+  }
+  BigPerform *const bperf = big_perform_get_ship(mission_get_big_perform(&*m), performance_data->ship_type);
 
   /* Get general performance data */
   int temp = 0;
@@ -133,8 +137,13 @@ static void fade_shield(ObjectId const performance_dbox, bool const remote_shiel
 static void setup_win(ObjectId const performance_dbox, BPerfDboxData const *const performance_data)
 {
   DEBUGF("Displaying performance data for big ship type %d\n", performance_data->ship_type);
-  MissionData *const m = Session_get_mission(performance_data->session);
-  BigPerform const *const bperf = big_perform_get_ship(mission_get_big_perform(m), performance_data->ship_type);
+  _Optional MissionData *const m = Session_get_mission(performance_data->session);
+  assert(m);
+  if (!m) {
+    return;
+  }
+  BigPerform const *const bperf = big_perform_get_ship(mission_get_big_perform(&*m),
+                                                       performance_data->ship_type);
 
   /* Set general performance data */
   bool const has_remote_shield = big_perform_has_remote_shield(bperf);

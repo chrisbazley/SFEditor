@@ -24,7 +24,7 @@ typedef struct ObjGfxMesh ObjGfxMesh;
 typedef struct
 {
   int ocount, oalloc;
-  ObjGfxMesh **objects;
+  ObjGfxMesh *_Optional *objects;
 } ObjGfxMeshArray;
 
 typedef enum

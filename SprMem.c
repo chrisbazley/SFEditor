@@ -45,7 +45,7 @@ enum {
   PREALLOC_SIZE = 512
 };
 
-static void *save_area = NULL;
+static _Optional void *save_area = NULL;
 static SpriteRestoreOutputBlock old_output_state;
 static bool restore_state = false, restore_output_is_reg = false;
 
@@ -125,7 +125,7 @@ static bool switch_output(SprMem *const sm, char const *const name,
 {
   assert(sm != NULL);
   assert(name != NULL);
-  assert(fn != NULL);
+  assert(fn);
   assert(!flex_set_budge(-1));
 
   restore_output();
@@ -237,14 +237,14 @@ void SprMem_rename(SprMem *const sm, char const *const old_name,
   nobudge_deregister();
 }
 
-SpriteHeader *SprMem_get_sprite_address(SprMem *const sm,
+_Optional SpriteHeader *SprMem_get_sprite_address(SprMem *const sm,
   char const *const name)
 {
   assert(sm != NULL);
   assert(name != NULL);
 
   nobudge_register(PREALLOC_SIZE); /* protect sprite pointer */
-  SpriteHeader *sprite = NULL;
+  _Optional SpriteHeader *sprite = NULL;
   if (E(os_sprite_op_select(sm->mem, name, &sprite)))
     return NULL;
 
@@ -354,8 +354,9 @@ void SprMem_plot_sprite(const SprMem *const sm,
 }
 
 void SprMem_plot_scaled_sprite(const SprMem *const sm, char const *const name,
-      Vertex const coords, int const action, ScaleFactors *const scale,
-      void const *const colours)
+                               Vertex const coords, int const action,
+                               _Optional ScaleFactors *const scale,
+                               _Optional void const *const colours)
 {
   assert(sm != NULL);
   assert(name != NULL);

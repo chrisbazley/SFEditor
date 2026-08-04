@@ -20,7 +20,7 @@ struct InfoEditContext;
 struct InfoEditChanges;
 struct DFile;
 
-InfoTransfer *InfoTransfers_grab_selection(
+_Optional InfoTransfer *InfoTransfers_grab_selection(
   struct InfoEditContext const *infos,
   struct SelectionBitmask *selected);
 
@@ -41,7 +41,7 @@ void InfoTransfers_find_occluded(struct InfoEditContext const *infos,
                                    InfoTransfer *transfer,
                                    struct SelectionBitmask *occluded);
 
-InfoTransfer *InfoTransfer_create(void);
+_Optional InfoTransfer *InfoTransfer_create(void);
 
 struct DFile *InfoTransfer_get_dfile(InfoTransfer *transfer);
 

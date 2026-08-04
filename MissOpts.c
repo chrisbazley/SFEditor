@@ -57,19 +57,24 @@ static int menu_selection(int const event_code, ToolboxEvent *const event,
   ON_ERR_RPT_RTN_V(toolbox_get_client_handle(0, id_block->ancestor_id,
     &edit_win), 0);
   EditSession *const session = EditWin_get_session(edit_win);
-  MissionData *const m = Session_get_mission(session);
+  _Optional MissionData *const m = Session_get_mission(session);
+  assert(m);
+  if (!m)
+  {
+    return 0;
+  }
 
   switch (id_block->self_component) {
     case ComponentId_NOSCANNER:
-      mission_set_scanners_down(m, update_menu_tick(id_block));
+      mission_set_scanners_down(&*m, update_menu_tick(id_block));
       break;
 
     case ComponentId_NOGROUNDDAMAGE:
-      mission_set_impervious_map(m, update_menu_tick(id_block));
+      mission_set_impervious_map(&*m, update_menu_tick(id_block));
       break;
 
     case ComponentId_DOCKTOCOMPLETE:
-      mission_set_dock_to_finish(m, update_menu_tick(id_block));
+      mission_set_dock_to_finish(&*m, update_menu_tick(id_block));
       break;
 
     default:
@@ -91,16 +96,20 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   ON_ERR_RPT_RTN_V(toolbox_get_client_handle(0, id_block->ancestor_id,
     &edit_win), 0);
   EditSession *const session = EditWin_get_session(edit_win);
-  MissionData const *const m = Session_get_mission(session);
+  _Optional MissionData const *const m = Session_get_mission(session);
+  assert(m);
+  if (!m) {
+    return 0;
+  }
 
   E(menu_set_tick(0, id_block->self_id, ComponentId_NOSCANNER,
-             mission_get_scanners_down(m)));
+             mission_get_scanners_down(&*m)));
 
   E(menu_set_tick(0, id_block->self_id, ComponentId_NOGROUNDDAMAGE,
-             mission_get_impervious_map(m)));
+             mission_get_impervious_map(&*m)));
 
   E(menu_set_tick(0, id_block->self_id, ComponentId_DOCKTOCOMPLETE,
-             mission_get_dock_to_finish(m)));
+             mission_get_dock_to_finish(&*m)));
 
   return 1; /* claim event */
 }

@@ -56,7 +56,12 @@ enum {
 static void read_win(EditSession *const session, ObjectId const dbox_id)
 {
   int tempint;
-  DefencesData *const defences = mission_get_defences(Session_get_mission(session));
+  _Optional MissionData *const m = Session_get_mission(session);
+  assert(m);
+  if (!m) {
+    return;
+  }
+  DefencesData *const defences = mission_get_defences(&*m);
 
   if (!E(numberrange_get_value(0, dbox_id, GROUNDLASER_GUNS_FREQ, &tempint)))
   {
@@ -89,7 +94,12 @@ static void read_win(EditSession *const session, ObjectId const dbox_id)
 
 static void setup_win(EditSession *const session, ObjectId const dbox_id)
 {
-  DefencesData const *const defences = mission_get_defences(Session_get_mission(session));
+  _Optional MissionData *const m = Session_get_mission(session);
+  assert(m);
+  if (!m) {
+    return;
+  }
+  DefencesData const *const defences = mission_get_defences(&*m);
 
   E(numberrange_set_value(0, dbox_id, GROUNDLASER_DEFENCETIME, defences_get_timer(defences)));
 

@@ -159,11 +159,13 @@ void triggers_destroy(TriggersData *const triggers)
   }
 
   flex_free(&triggers->bit_map);
-  intdict_destroy(&triggers->all_triggers, NULL, NULL);
-  intdict_destroy(&triggers->chain_triggers, NULL, NULL);
+  intdict_destroy(&triggers->all_triggers, (IntDictDestructorFn *)NULL, triggers);
+  intdict_destroy(&triggers->chain_triggers, (IntDictDestructorFn *)NULL, triggers);
 }
 
-static void insert_trigger(TriggersData *const triggers, Trigger *const prev_trigger, Trigger *const trigger)
+static void insert_trigger(TriggersData *const triggers,
+                           _Optional Trigger *const prev_trigger,
+                           Trigger *const trigger)
 {
   assert(triggers);
   assert(triggers->count < TriggersMax);
@@ -189,18 +191,22 @@ static void remove_trigger(TriggersData *const triggers, Trigger *const trigger)
   linkedlist_remove(&triggers->list, &trigger->link);
 }
 
-static SFError add_trigger(TriggersData *const triggers, Trigger *const prev_trigger,
-  MapPoint const coords, TriggerParam const param, Trigger **const new_trigger)
+static SFError add_trigger(TriggersData *const triggers, _Optional Trigger *const prev_trigger,
+  MapPoint const coords, TriggerParam const param, _Optional Trigger *_Optional *const new_trigger)
 {
   assert(triggers);
   assert(param.action >= TriggerAction_MissionTarget);
   assert(param.action <= TriggerAction_FixScanners);
 
+  if (new_trigger) {
+    *new_trigger = NULL;
+  }
+
   if (triggers->count == TriggersMax) {
     return SFERROR(NumActions);
   }
 
-  Trigger *const trigger = malloc(sizeof(*trigger));
+  _Optional Trigger *const trigger = malloc(sizeof(*trigger));
   if (!trigger) {
     return SFERROR(NoMem);
   }
@@ -227,8 +233,8 @@ static SFError add_trigger(TriggersData *const triggers, Trigger *const prev_tri
     return SFERROR(NoMem);
   }
 
-  insert_trigger(triggers, prev_trigger, trigger);
-  update_triggers_map(triggers, trigger, true);
+  insert_trigger(triggers, prev_trigger, &*trigger);
+  update_triggers_map(triggers, &*trigger, true);
 
   if (new_trigger) {
     *new_trigger = trigger;
@@ -280,7 +286,7 @@ static void remove_chain(TriggersData *const triggers, Trigger *const trigger)
 
   /* The set of chain reactions is indexed by a key generated from the coordinates of the
      next object to be destroyed in the chain reaction (which is previous in the list). */
-  LinkedListItem *const prev = linkedlist_get_prev(&trigger->link);
+  _Optional LinkedListItem *const prev = linkedlist_get_prev(&trigger->link);
   assert(prev);
   Trigger const *const prev_trigger = CONTAINER_OF(prev, Trigger, link);
   MapCoord const chain_key = objects_coarse_coords_to_index(prev_trigger->coords);
@@ -300,10 +306,10 @@ static SFError add_chain(TriggersData *const triggers,
   DEBUGF("Searching for next coordinates %" PRIMapCoord ",%" PRIMapCoord " in chain\n",
          fparam.next_coords.x, fparam.next_coords.y);
 
-  Trigger *prev_trigger = NULL, *next_trigger = NULL;
+  _Optional Trigger *prev_trigger = NULL, *next_trigger = NULL;
   IntDictKey const key = objects_coords_to_key(fparam.next_coords);
   IntDictVIter iter;
-  for (Trigger *t = intdictviter_init(&iter, &triggers->all_triggers, key, key);
+  for (_Optional Trigger *t = intdictviter_init(&iter, &triggers->all_triggers, key, key);
        t != NULL;
        t = intdictviter_advance(&iter)) {
     assert(CoarsePoint2d_compare(t->coords, objects_coords_to_coarse(fparam.next_coords)));
@@ -313,10 +319,10 @@ static SFError add_chain(TriggersData *const triggers,
 
     /* If there is already a chain trigger following the candidate predecessor
        then we can't use it. */
-    LinkedListItem *const next = linkedlist_get_next(&t->link);
+    _Optional LinkedListItem *const next = linkedlist_get_next(&t->link);
     next_trigger = next ? CONTAINER_OF(next, Trigger, link) : NULL;
     if (next_trigger && next_trigger->param.action == TriggerAction_ChainReaction) {
-      assert(linkedlist_get_prev(next));
+      assert(linkedlist_get_prev(&*next));
       continue;
     }
 
@@ -327,13 +333,14 @@ static SFError add_chain(TriggersData *const triggers,
 
   /* If there is no suitable predecessor at the coordinates of the next object to
      destroy then add a dummy trigger at the start of the list. */
-  Trigger *new_dummy = NULL, *replace = NULL;
+  _Optional Trigger *new_dummy = NULL, *replace = NULL;
   if (!prev_trigger) {
     SFError err = add_trigger(triggers, NULL, fparam.next_coords,
                        (TriggerParam){.action = TriggerAction_Dummy}, &new_dummy);
     if (SFError_fail(err)) {
       return err;
     }
+    assert(new_dummy);
     prev_trigger = new_dummy;
   } else {
     /* It's unlikely but possible that an existing dummy trigger after a suitable predecessor
@@ -363,16 +370,19 @@ static SFError add_chain(TriggersData *const triggers,
     DEBUGF("Add a trigger after one that specifies the next object to destroy\n");
     assert(!new_dummy || new_dummy == prev_trigger);
 
-    Trigger *new_trigger = NULL;
+    _Optional Trigger *new_trigger = NULL;
     SFError err = add_trigger(triggers, prev_trigger, coords, fparam.param, &new_trigger);
     if (!SFError_fail(err)) {
-      if (!intdict_insert(&triggers->chain_triggers, chain_key, new_trigger, NULL)) {
-        delete_sorted_trigger(triggers, new_trigger);
+      assert(new_trigger);
+      if (new_trigger && !intdict_insert(&triggers->chain_triggers, chain_key, &*new_trigger, NULL)) {
+        delete_sorted_trigger(triggers, &*new_trigger);
         err = SFERROR(NoMem);
       }
     }
     if (SFError_fail(err)) {
-      delete_sorted_trigger(triggers, new_dummy);
+      if (new_dummy) {
+        delete_sorted_trigger(triggers, &*new_dummy);
+      }
       return err;
     }
   }
@@ -388,10 +398,10 @@ static SFError add_non_chain(TriggersData *const triggers,
   assert(fparam.param.action != TriggerAction_ChainReaction);
 
   /* Can we replace an existing dummy trigger at the same coordinates? */
-  Trigger *replace = NULL;
+  _Optional Trigger *replace = NULL;
   IntDictKey const key = objects_coords_to_key(coords);
   IntDictVIter iter;
-  for (Trigger *trigger = intdictviter_init(&iter, &triggers->all_triggers, key, key);
+  for (_Optional Trigger *trigger = intdictviter_init(&iter, &triggers->all_triggers, key, key);
        trigger != NULL;
        trigger = intdictviter_advance(&iter)) {
     assert(CoarsePoint2d_compare(trigger->coords, objects_coords_to_coarse(coords)));
@@ -411,7 +421,7 @@ static SFError add_non_chain(TriggersData *const triggers,
     replace->param = fparam.param;
   } else {
     DEBUGF("Add a trigger at the start\n");
-    Trigger *new_trigger = NULL;
+    _Optional Trigger *new_trigger = NULL;
     SFError err = add_trigger(triggers, NULL, coords, fparam.param, &new_trigger);
     if (SFError_fail(err)) {
       return err;
@@ -449,10 +459,10 @@ static void defer_delete(TriggersData *const triggers, Trigger *const trigger)
   trigger->param.action = TriggerAction_Dead;
 }
 
-static MapPoint iter_loop_core(TriggersIter *const iter, TriggerFullParam *const fparam)
+static MapPoint iter_loop_core(TriggersIter *const iter, _Optional TriggerFullParam *const fparam)
 {
   for (; iter->trigger != NULL; iter->trigger = intdictviter_advance(&iter->viter)) {
-    Trigger *const trigger = iter->trigger;
+    _Optional Trigger *const trigger = iter->trigger;
     TriggerAction const action = trigger->param.action;
     if (action == TriggerAction_Dummy || action == TriggerAction_Dead) {
       continue;
@@ -470,7 +480,7 @@ static MapPoint iter_loop_core(TriggersIter *const iter, TriggerFullParam *const
       MapPoint next_coords = {0};
 
       if (trigger->param.action == TriggerAction_ChainReaction) {
-        LinkedListItem *const prev = linkedlist_get_prev(&trigger->link);
+        _Optional LinkedListItem *const prev = linkedlist_get_prev(&trigger->link);
         assert(prev);
         Trigger const *const prev_trigger = CONTAINER_OF(prev, Trigger, link);
         next_coords = objects_coords_from_coarse(prev_trigger->coords);
@@ -487,8 +497,8 @@ static MapPoint iter_loop_core(TriggersIter *const iter, TriggerFullParam *const
 }
 
 MapPoint TriggersIter_get_first(TriggersIter *const iter,
-  TriggersData *const triggers, MapArea const *const map_area,
-  TriggerFullParam *const fparam)
+                                TriggersData *const triggers, MapArea const *const map_area,
+                                _Optional TriggerFullParam *const fparam)
 {
   assert(iter);
   assert(triggers);
@@ -505,7 +515,7 @@ MapPoint TriggersIter_get_first(TriggersIter *const iter,
   return iter_loop_core(iter, fparam);
 }
 
-MapPoint TriggersIter_get_next(TriggersIter *const iter, TriggerFullParam *const fparam)
+MapPoint TriggersIter_get_next(TriggersIter *const iter, _Optional TriggerFullParam *const fparam)
 {
   assert(iter);
   assert(!iter->done);
@@ -529,31 +539,31 @@ void TriggersIter_del_current(TriggersIter *const iter)
   assert(MapArea_is_valid(&iter->map_area));
 
   TriggersData *const triggers = iter->triggers;
-  Trigger *const trigger = iter->trigger;
+  _Optional Trigger *const trigger = iter->trigger;
   iter->trigger = NULL;
 
   DEBUGF("Delete current trigger %p:%s with parameter %d at coordinates %d,%d\n",
          (void *)trigger, TriggerAction_to_string(trigger->param.action),
          trigger->param.value, trigger->coords.x, trigger->coords.y);
 
-  LinkedListItem *prev = linkedlist_get_prev(&trigger->link);
-  Trigger *prev_trigger = prev ? CONTAINER_OF(prev, Trigger, link) : NULL;
+  _Optional LinkedListItem *prev = linkedlist_get_prev(&trigger->link);
+  _Optional Trigger *prev_trigger = prev ? CONTAINER_OF(prev, Trigger, link) : NULL;
 
   if (trigger->param.action == TriggerAction_ChainReaction) {
     DEBUGF("Breaking chain reaction from deleted trigger\n");
-    remove_chain(triggers, trigger);
+    remove_chain(triggers, &*trigger);
 
     /* If deleting a chain reaction trigger and the previous trigger is a dummy then it
        serves only to specify the next object to blow up so delete it too. */
     if (prev_trigger && prev_trigger->param.action == TriggerAction_Dummy) {
-      defer_delete(triggers, prev_trigger);
+      defer_delete(triggers, &*prev_trigger);
       prev = linkedlist_get_prev(&prev_trigger->link);
       prev_trigger = prev ? CONTAINER_OF(prev, Trigger, link) : NULL;
     }
   }
 
-  LinkedListItem *const next = linkedlist_get_next(&trigger->link);
-  Trigger *const next_trigger = next ? CONTAINER_OF(next, Trigger, link) : NULL;
+  _Optional LinkedListItem *const next = linkedlist_get_next(&trigger->link);
+  _Optional Trigger *const next_trigger = next ? CONTAINER_OF(next, Trigger, link) : NULL;
 
   bool can_delete = true;
   if (next_trigger && next_trigger->param.action == TriggerAction_ChainReaction) {
@@ -569,14 +579,14 @@ void TriggersIter_del_current(TriggersIter *const iter)
 
   if (can_delete) {
     intdictviter_remove(&iter->viter);
-    delete_trigger(triggers, trigger);
+    delete_trigger(triggers, &*trigger);
 
     /* If deleting any trigger and the next trigger is a dummy with the same
        coordinates as the previous trigger then the next trigger has become redundant. */
     if (next_trigger && next_trigger->param.action == TriggerAction_Dummy &&
         prev_trigger && CoarsePoint2d_compare(prev_trigger->coords, next_trigger->coords))
     {
-      defer_delete(triggers, next_trigger);
+      defer_delete(triggers, &*next_trigger);
     }
 
   } else if (trigger->param.action != TriggerAction_Dummy) {
@@ -592,9 +602,9 @@ static MapPoint chain_iter_loop_core(TriggersChainIter *const iter,
   TriggerFullParam *const fparam)
 {
   for (; iter->trigger != NULL; iter->trigger = intdictviter_advance(&iter->viter)) {
-    Trigger *const trigger = iter->trigger;
+    _Optional Trigger *const trigger = iter->trigger;
     assert(trigger->param.action == TriggerAction_ChainReaction);
-    LinkedListItem *const prev = linkedlist_get_prev(&trigger->link);
+    _Optional LinkedListItem *const prev = linkedlist_get_prev(&trigger->link);
     assert(prev);
     Trigger const *const prev_trigger = CONTAINER_OF(prev, Trigger, link);
     MapPoint const next_coords = objects_coords_from_coarse(prev_trigger->coords);
@@ -660,7 +670,7 @@ void TriggersChainIter_del_current(TriggersChainIter *const iter)
   assert(MapArea_is_valid(&iter->map_area));
 
   TriggersData *const triggers = iter->triggers;
-  Trigger *const trigger = iter->trigger;
+  _Optional Trigger *const trigger = iter->trigger;
   iter->trigger = NULL;
 
   DEBUGF("Delete current trigger %p:%s with parameter %d at coordinates %d,%d\n",
@@ -669,8 +679,8 @@ void TriggersChainIter_del_current(TriggersChainIter *const iter)
 
   assert(linkedlist_get_prev(&trigger->link));
 
-  LinkedListItem *const next = linkedlist_get_next(&trigger->link);
-  Trigger *const next_trigger = next ? CONTAINER_OF(next, Trigger, link) : NULL;
+  _Optional LinkedListItem *const next = linkedlist_get_next(&trigger->link);
+  _Optional Trigger *const next_trigger = next ? CONTAINER_OF(next, Trigger, link) : NULL;
   bool can_delete = true;
 
   if (next_trigger && next_trigger->param.action == TriggerAction_ChainReaction) {
@@ -678,8 +688,8 @@ void TriggersChainIter_del_current(TriggersChainIter *const iter)
        it too specifies the coordinates of an object to be destroyed. Could attempt to
        optimise by anticipating that the previous trigger will be deleted too, but that
        would be fragile/broken because triggers would be in an invalid state until then. */
-    LinkedListItem *const prev = linkedlist_get_prev(&trigger->link);
-    Trigger *const prev_trigger = prev ? CONTAINER_OF(prev, Trigger, link) : NULL;
+    _Optional LinkedListItem *const prev = linkedlist_get_prev(&trigger->link);
+    _Optional Trigger *const prev_trigger = prev ? CONTAINER_OF(prev, Trigger, link) : NULL;
 
     if (!prev_trigger || !CoarsePoint2d_compare(prev_trigger->coords, trigger->coords)) {
       DEBUGF("Can't delete trigger %p without changing the target %d,%d of a chain reaction, %p.\n",
@@ -691,7 +701,7 @@ void TriggersChainIter_del_current(TriggersChainIter *const iter)
   intdictviter_remove(&iter->viter);
 
   if (can_delete) {
-    delete_sorted_trigger(triggers, trigger);
+    delete_sorted_trigger(triggers, &*trigger);
   } else {
     DEBUGF("Replacing trigger %p:%s with parameter %d at coordinates %d,%d with dummy\n",
            (void *)trigger, TriggerAction_to_string(trigger->param.action),
@@ -728,7 +738,7 @@ size_t triggers_count_bbox(TriggersData *const triggers, MapArea const *const ma
   objects_area_to_key_range(map_area, &min_key, &max_key);
 
   IntDictVIter iter;
-  for (Trigger *t = intdictviter_init(&iter, &triggers->all_triggers, min_key, max_key);
+  for (_Optional Trigger *t = intdictviter_init(&iter, &triggers->all_triggers, min_key, max_key);
        t != NULL;
        t = intdictviter_advance(&iter)) {
     if (t->param.action == TriggerAction_Dead) {

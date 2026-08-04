@@ -62,20 +62,20 @@ file ("IDEFS::Tamzin.$.H.H_08") */
   StringBuffer filename;
   StringBuffer edit_win_titles;
 
-  DFile *dfiles[DataType_SessionCount];
+  _Optional DFile *dfiles[DataType_SessionCount];
 
   struct MapEditContext map;
   struct ObjEditContext objects;
   struct InfoEditContext infos;
 
   /* Editable data areas - NULL means edit_win doesn't possess one */
-  struct MissionData *mission;
+  _Optional struct MissionData *mission;
 
   /* Read-only data areas */
   struct ObjGfx *graphics; /* (Map/Mission) */
   struct MapTex *textures; /* (Map/Mission) */
-  struct HillColData *hill_colours; /* (Map/Mission) */
-  struct PolyColData *poly_colours; /* (Map/Mission) */
+  _Optional struct HillColData *hill_colours; /* (Map/Mission) */
+  _Optional struct PolyColData *poly_colours; /* (Map/Mission) */
 
   /* Filenames of graphics to use and cloud colours
      (copied from mission data if any loaded): */

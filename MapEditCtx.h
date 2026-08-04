@@ -14,13 +14,16 @@
 struct EditSession;
 struct MapArea;
 
+typedef void MapEditPreChangeFn(struct MapArea const *, struct EditSession *),
+             MapEditRedrawFn(struct MapArea const *, struct EditSession *);
+
 struct MapEditContext
 {
-  struct MapData *base; /* (Map/Mission) */
-  struct MapData *overlay; /* (Mission only) */
-  struct ConvAnimations *anims; /* (Mission only) */
-  void (*prechange_cb)(struct MapArea const *, struct EditSession *);
-  void (*redraw_cb)(struct MapArea const *, struct EditSession *);
+  _Optional struct MapData *base, /* (Map/Mission) */
+                           *overlay; /* (Mission only) */
+  _Optional struct ConvAnimations *anims; /* (Mission only) */
+  _Optional MapEditPreChangeFn *prechange_cb;
+  _Optional MapEditRedrawFn *redraw_cb;
   struct EditSession *session;
 };
 

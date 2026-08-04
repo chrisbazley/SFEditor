@@ -95,7 +95,7 @@ static int datasave_message(WimpMessage *const message, void *const handle)
     message->data.data_save.leaf_name);
 
   if (data_type != DataType_Count) {
-    E(loader3_receive_data(message, read_file, load_fail, NULL));
+    E(loader3_receive_data(message, read_file, load_fail, handle));
   } else {
     report_error(SFERROR(BadFileType), message->data.data_save.leaf_name, "");
   }
@@ -122,16 +122,16 @@ static int dataload_message(WimpMessage *const message, void *const handle)
     return 0;
   }
 
-  char *filename = NULL;
-  if (!E(canonicalise(&filename, NULL, NULL, message->data.data_load.leaf_name)))
+  _Optional char *filename = NULL;
+  if (!E(canonicalise(&filename, NULL, NULL, message->data.data_load.leaf_name)) && filename)
   {
     DataType const data_type = file_type_to_data_type(
-      message->data.data_load.file_type, filename);
+      message->data.data_load.file_type, &*filename);
 
     if (data_type != DataType_Count) {
-      Session_open_single_file(filename, data_type);
+      Session_open_single_file(&*filename, data_type);
     } else {
-      report_error(SFERROR(BadFileType), filename, "");
+      report_error(SFERROR(BadFileType), &*filename, "");
     }
     free(filename);
   }
@@ -157,6 +157,6 @@ void AppIcon_created(ObjectId const id)
   AppIcon_id = id;
 
   /* Register Wimp message handlers to load files dropped on iconbar icon */
-  EF(event_register_message_handler(Wimp_MDataSave, datasave_message, NULL));
-  EF(event_register_message_handler(Wimp_MDataLoad, dataload_message, NULL));
+  EF(event_register_message_handler(Wimp_MDataSave, datasave_message, &AppIcon_id));
+  EF(event_register_message_handler(Wimp_MDataLoad, dataload_message, &AppIcon_id));
 }

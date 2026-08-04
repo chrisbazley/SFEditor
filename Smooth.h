@@ -21,7 +21,7 @@ void MapTexGroups_init(MapTexGroups *groups_data);
 
 void MapTexGroups_smooth(MapEditContext const *map,
   MapTexGroups *groups_data, MapPoint map_pos,
-  MapEditChanges *change_info);
+  _Optional MapEditChanges *change_info);
 
 void MapTexGroups_edit(const char *tiles_set);
 

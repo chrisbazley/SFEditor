@@ -129,11 +129,10 @@ static void write_transfer_ref(ObjTransfer *const transfer,
 }
 
 static bool add_to_list(ObjTransfers *const transfers_data,
-  ObjTransfer *const transfer, int *const index)
+  ObjTransfer *const transfer, _Optional int *const index)
 {
   assert(transfers_data != NULL);
   assert(transfer != NULL);
-  assert(index != NULL);
   DEBUG("Adding transfer '%s'", get_leaf_name(&transfer->dfile));
   // Careful! Key string isn't copied on insertion.
   size_t pos;
@@ -156,7 +155,7 @@ static void remove_from_list(ObjTransfers *const transfers_data,
 {
   assert(transfers_data != NULL);
   assert(transfer != NULL);
-  ObjTransfer *const removed = strdict_remove_value(
+  _Optional ObjTransfer *const removed = strdict_remove_value(
                                      &transfers_data->dict, get_leaf_name(&transfer->dfile), NULL);
   assert(removed == transfer);
   NOT_USED(removed);
@@ -498,15 +497,20 @@ static void ObjTransfer_destroy_cb(DFile const *const dfile)
 static void free_all_cb(char const *const key, _Optional void *const data, void *const arg)
 {
   NOT_USED(key);
-  ObjTransfer *const transfer_to_delete = data;
+  _Optional ObjTransfer *const transfer_to_delete = data;
   NOT_USED(arg);
-  dfile_release(&transfer_to_delete->dfile);
+  if (transfer_to_delete)
+    dfile_release(&transfer_to_delete->dfile);
 }
 
 static void delete_transfer(ObjTransfer *const transfer_to_delete)
 {
   assert(transfer_to_delete);
-  verbose_remove(dfile_get_name(&transfer_to_delete->dfile));
+  _Optional const char *name = dfile_get_name(&transfer_to_delete->dfile);
+  assert(name);
+  if (name) {
+    verbose_remove(&*name);
+  }
   dfile_release(&transfer_to_delete->dfile);
 }
 
@@ -514,7 +518,8 @@ static void delete_all_cb(char const *const key, _Optional void *const data, voi
 {
   NOT_USED(key);
   NOT_USED(arg);
-  delete_transfer(data);
+  if (data)
+    delete_transfer(&*data);
 }
 
 /* ----------------- Public functions ---------------- */
@@ -525,9 +530,9 @@ DFile *ObjTransfer_get_dfile(ObjTransfer *const transfer)
   return &transfer->dfile;
 }
 
-ObjTransfer *ObjTransfer_create(void)
+_Optional ObjTransfer *ObjTransfer_create(void)
 {
-  ObjTransfer *const transfer = malloc(sizeof(*transfer));
+  _Optional ObjTransfer *const transfer = malloc(sizeof(*transfer));
   if (transfer == NULL) {
     report_error(SFERROR(NoMem), "", "");
     return NULL;
@@ -537,14 +542,12 @@ ObjTransfer *ObjTransfer_create(void)
   *transfer = (ObjTransfer){
     .dfile = {0},
     .size_minus_one = {0,0},
-    .refs = NULL,
-    .triggers = NULL,
     .trigger_count = 0,
     .trigger_alloc = 0,
   };
 
   dfile_init(&transfer->dfile, ObjTransfer_read_cb,
-             ObjTransfer_write_cb, NULL, ObjTransfer_destroy_cb);
+             ObjTransfer_write_cb, (DFileGetMinSizeFn *)NULL, ObjTransfer_destroy_cb);
 
   return transfer;
 }
@@ -573,30 +576,30 @@ void ObjTransfers_load_all(ObjTransfers *const transfers_data,
   char const *const refs_set)
 {
   DEBUG("Loading transfers for refs set '%s'...", refs_set);
-  char *const dir = make_file_path_in_dir(Config_get_transfers_dir(), refs_set);
+  _Optional char *const dir = make_file_path_in_dir(Config_get_transfers_dir(), refs_set);
   if (!dir) {
     return;
   }
 
   ObjTransfers_free(transfers_data);
   ObjTransfers_init(transfers_data);
-  transfers_data->directory = dir;
+  transfers_data->directory = &*dir;
 
-  if (!file_exists(dir)) {
+  if (!file_exists(&*dir)) {
     return;
   }
 
   hourglass_on();
 
-  DirIterator *iter = NULL;
-  const _kernel_oserror *e = diriterator_make(&iter, 0, transfers_data->directory, NULL);
+  _Optional DirIterator *iter = NULL;
+  _Optional const _kernel_oserror *e = diriterator_make(&iter, 0, &*dir, NULL);
   int const expected_ftype = data_type_to_file_type(DataType_ObjectsTransfer);
   for (;
-       !E(e) && !diriterator_is_empty(iter);
-       e = diriterator_advance(iter)) {
+       !E(e) && iter && !diriterator_is_empty(&*iter);
+       e = diriterator_advance(&*iter)) {
 
     DirIteratorObjectInfo info;
-    int const object_type = diriterator_get_object_info(iter, &info);
+    int const object_type = diriterator_get_object_info(&*iter, &info);
 
     /* Check that file is of correct type */
     if ((object_type != ObjectType_File) || (info.file_type != expected_ftype)) {
@@ -605,7 +608,7 @@ void ObjTransfers_load_all(ObjTransfers *const transfers_data,
 
     /* Check that filename is within length limit */
     Filename filename;
-    if (diriterator_get_object_leaf_name(iter, filename, sizeof(filename)) >
+    if (diriterator_get_object_leaf_name(&*iter, filename, sizeof(filename)) >
         sizeof(Filename)-1) {
       DEBUGF("%s exceeds the character limit.\n", filename);
       continue;
@@ -613,22 +616,22 @@ void ObjTransfers_load_all(ObjTransfers *const transfers_data,
     DEBUG("File name is '%s'", filename);
 
     /* Load refs transfer */
-    size_t const n = diriterator_get_object_path_name(iter, NULL, 0);
+    size_t const n = diriterator_get_object_path_name(&*iter, NULL, 0);
     {
-      char *const full_path = malloc(n + 1);
+      _Optional char *const full_path = malloc(n + 1);
       if (!full_path) {
         report_error(SFERROR(NoMem), "", "");
         break;
       }
-      (void)diriterator_get_object_path_name(iter, full_path, n + 1);
+      (void)diriterator_get_object_path_name(&*iter, &*full_path, n + 1);
 
-      ObjTransfer *const transfer = ObjTransfer_create();
+      _Optional ObjTransfer *const transfer = ObjTransfer_create();
       if (!transfer) {
         free(full_path);
         break;
       }
 
-      if (report_error(load_compressed(&transfer->dfile, full_path), full_path, "")) {
+      if (report_error(load_compressed(&transfer->dfile, &*full_path), &*full_path, "")) {
         dfile_release(&transfer->dfile);
         free(full_path);
         break;
@@ -637,7 +640,7 @@ void ObjTransfers_load_all(ObjTransfers *const transfers_data,
       int tmp[2] = {0};
       memcpy(tmp, &info.date_stamp, sizeof(info.date_stamp));
 
-      if (!dfile_set_saved(&transfer->dfile, full_path, tmp)) {
+      if (!dfile_set_saved(&transfer->dfile, &*full_path, tmp)) {
         report_error(SFERROR(NoMem), "", "");
         dfile_release(&transfer->dfile);
         free(full_path);
@@ -646,7 +649,7 @@ void ObjTransfers_load_all(ObjTransfers *const transfers_data,
 
       free(full_path);
 
-      if (!add_to_list(transfers_data, transfer, NULL)) {
+      if (!add_to_list(transfers_data, &*transfer, NULL)) {
         dfile_release(&transfer->dfile);
         break;
       }
@@ -662,7 +665,7 @@ void ObjTransfers_open_dir(ObjTransfers const *const transfers_data)
 {
   assert(transfers_data);
   if (transfers_data->directory) {
-    open_dir(transfers_data->directory);
+    open_dir(&*transfers_data->directory);
   }
 }
 
@@ -730,7 +733,7 @@ static size_t count_triggers(TriggersData *const triggers,
   return trig_count;
 }
 
-ObjTransfer *ObjTransfers_grab_selection(ObjEditContext const *const objects,
+_Optional ObjTransfer *ObjTransfers_grab_selection(ObjEditContext const *const objects,
   ObjEditSelection *const selected)
 {
   /* Find bounding box covering all selected refs */
@@ -740,7 +743,7 @@ ObjTransfer *ObjTransfers_grab_selection(ObjEditContext const *const objects,
     return NULL; /* nothing selected! */
   }
 
-  ObjTransfer *const transfer = ObjTransfer_create();
+  _Optional ObjTransfer *const transfer = ObjTransfer_create();
   if (transfer == NULL) {
     return NULL;
   }
@@ -748,7 +751,7 @@ ObjTransfer *ObjTransfers_grab_selection(ObjEditContext const *const objects,
   MapPoint const size_minus_one = MapPoint_sub(bounds.max, bounds.min);
   assert(objects_coords_in_range(size_minus_one));
 
-  if (!alloc_transfer(transfer, objects_coords_to_coarse(size_minus_one)))
+  if (!alloc_transfer(&*transfer, objects_coords_to_coarse(size_minus_one)))
   {
     report_error(SFERROR(NoMem), "", "");
     dfile_release(&transfer->dfile);
@@ -766,17 +769,17 @@ ObjTransfer *ObjTransfers_grab_selection(ObjEditContext const *const objects,
     if (ObjEditSelection_is_selected(selected, p)) {
       ref = ObjectsEdit_read_ref(objects, p);
     }
-    write_transfer_ref(transfer, MapPoint_sub(p, bounds.min), ref);
+    write_transfer_ref(&*transfer, MapPoint_sub(p, bounds.min), ref);
   }
 
   size_t sel_count = 0;
-  TriggersData *const triggers = objects->triggers;
+  _Optional TriggersData *const triggers = objects->triggers;
   if (triggers != NULL) {
-    sel_count = count_triggers(triggers, selected);
+    sel_count = count_triggers(&*triggers, selected);
   }
 
   if (sel_count > 0) {
-    if (!transfer_pre_alloc(transfer, sel_count)) {
+    if (!transfer_pre_alloc(&*transfer, sel_count)) {
       report_error(SFERROR(NoMem), "", "");
       dfile_release(&transfer->dfile);
       return NULL;
@@ -800,7 +803,7 @@ ObjTransfer *ObjTransfers_grab_selection(ObjEditContext const *const objects,
       },
     };
     TriggersIter trig_iter;
-    for (MapPoint p = TriggersIter_get_first(&trig_iter, triggers, &sel_area, &t_trig.fparam);
+    for (MapPoint p = TriggersIter_get_first(&trig_iter, &*triggers, &sel_area, &t_trig.fparam);
          !TriggersIter_done(&trig_iter);
          p = TriggersIter_get_next(&trig_iter, &t_trig.fparam))
     {
@@ -826,14 +829,14 @@ ObjTransfer *ObjTransfers_grab_selection(ObjEditContext const *const objects,
           t_trig.fparam.next_coords = (MapPoint){0,0};
         }
 
-        transfer_add_trigger(transfer, &t_trig);
+        transfer_add_trigger(&*transfer, &t_trig);
       }
     }
 
     /* Now collect any chain reactions which destroy a selected object some time after an
        unselected object is destroyed. */
     TriggersChainIter chain_iter;
-    for (MapPoint p = TriggersChainIter_get_first(&chain_iter, triggers, &sel_area, &t_trig.fparam);
+    for (MapPoint p = TriggersChainIter_get_first(&chain_iter, &*triggers, &sel_area, &t_trig.fparam);
          !TriggersChainIter_done(&chain_iter);
          p = TriggersChainIter_get_next(&chain_iter, &t_trig.fparam))
     {
@@ -850,7 +853,7 @@ ObjTransfer *ObjTransfers_grab_selection(ObjEditContext const *const objects,
         t_trig.coords = objects_coords_to_coarse(p);
         t_trig.fparam.next_coords = objects_coords_in_area(t_trig.fparam.next_coords, &bounds);
         t_trig.fparam.param.action = TriggerAction_ChainReactionIn;
-        transfer_add_trigger(transfer, &t_trig);
+        transfer_add_trigger(&*transfer, &t_trig);
       }
     }
   }
@@ -1020,8 +1023,8 @@ typedef struct {
   MapPoint const t_pos_on_map;
   ObjTransfer *transfer;
   struct ObjGfxMeshes *meshes;
-  ObjEditSelection *occluded, *selection;
-  struct ObjEditChanges *change_info;
+  _Optional ObjEditSelection *occluded, *selection;
+  _Optional struct ObjEditChanges *change_info;
 } PlotToMapData;
 
 static bool can_plot_to_map_cb(void *const cb_arg, MapArea const *const t_subregion)
@@ -1044,7 +1047,7 @@ bool ObjTransfers_can_plot_to_map(ObjEditContext const *const objects,
                                   MapPoint const bl,
                                   ObjTransfer *const transfer,
                                   struct ObjGfxMeshes *const meshes,
-                                  ObjEditSelection *const occluded)
+                                  _Optional ObjEditSelection *const occluded)
 {
   assert(objects);
   assert(transfer);
@@ -1081,7 +1084,7 @@ static bool plot_to_map_cb(void *const cb_arg, MapArea const *const t_subregion)
     &read_data, data->change_info, data->meshes);
 
   if (data->selection) {
-    ObjEditSelection_select_area(data->selection, &m_subregion);
+    ObjEditSelection_select_area(&*data->selection, &m_subregion);
   }
 
   return true;
@@ -1105,7 +1108,7 @@ bool ObjTransfers_plot_to_map(ObjEditContext const *const objects,
 
   /* Create new triggers from transfer (if any) */
   size_t const num_to_add = transfer->trigger_count;
-  TriggersData *const triggers = objects->triggers;
+  _Optional TriggersData *const triggers = objects->triggers;
   if (triggers == NULL)
     return num_to_add == 0; /* cannot paste new triggers */
 
@@ -1202,7 +1205,7 @@ ObjRef ObjTransfers_read_ref(ObjTransfer *const transfer, MapPoint const trans_p
   return obj_ref;
 }
 
-ObjTransfer *ObjTransfers_find_by_name(ObjTransfers *const transfers_data,
+_Optional ObjTransfer *ObjTransfers_find_by_name(ObjTransfers *const transfers_data,
   char const *const filename, int *const index_out)
 {
   assert(filename != NULL);
@@ -1212,7 +1215,7 @@ ObjTransfer *ObjTransfers_find_by_name(ObjTransfers *const transfers_data,
   assert(transfers_data != NULL);
 
   size_t index = SIZE_MAX;
-  ObjTransfer *const transfer = strdict_find_value(&transfers_data->dict, filename, &index);
+  _Optional ObjTransfer *const transfer = strdict_find_value(&transfers_data->dict, filename, &index);
 
   if (!transfer) {
     DEBUG ("Reached end of transfers list without finding record!");
@@ -1228,7 +1231,7 @@ ObjTransfer *ObjTransfers_find_by_name(ObjTransfers *const transfers_data,
   return transfer;
 }
 
-ObjTransfer *ObjTransfers_find_by_index(ObjTransfers *const transfers_data,
+_Optional ObjTransfer *ObjTransfers_find_by_index(ObjTransfers *const transfers_data,
   int const transfer_index)
 {
   DEBUG ("Find transfer at index %d in tiles data %p",
@@ -1253,24 +1256,25 @@ bool ObjTransfers_add(ObjTransfers *const transfers_data,
   if (!transfers_data->directory) {
     return false;
   }
+  char const *const directory = &*transfers_data->directory;
 
-  ObjTransfer *const existing_transfer = strdict_find_value(&transfers_data->dict, filename, NULL);
+  _Optional ObjTransfer *const existing_transfer = strdict_find_value(&transfers_data->dict, filename, NULL);
   if (existing_transfer) {
-    ObjTransfers_remove_and_delete(transfers_data, existing_transfer);
+    ObjTransfers_remove_and_delete(transfers_data, &*existing_transfer);
   }
 
   int new_index = 0;
   bool success = false;
-  char *const full_path = make_file_path_in_dir(transfers_data->directory, filename);
+  _Optional char *const full_path = make_file_path_in_dir(directory, filename);
 
   if (full_path) {
-    if (ensure_path_exists(full_path) &&
-        !report_error(save_compressed(&transfer->dfile, full_path), full_path, "") &&
-        set_data_type(full_path, DataType_ObjectsTransfer) &&
-        set_saved_with_stamp(&transfer->dfile, full_path)) {
+    if (ensure_path_exists(&*full_path) &&
+        !report_error(save_compressed(&transfer->dfile, &*full_path), &*full_path, "") &&
+        set_data_type(&*full_path, DataType_ObjectsTransfer) &&
+        set_saved_with_stamp(&transfer->dfile, &*full_path)) {
       success = add_to_list(transfers_data, transfer, &new_index);
     } else {
-      remove(full_path);
+      remove(&*full_path);
     }
     free(full_path);
   }
@@ -1292,28 +1296,33 @@ bool ObjTransfers_rename(ObjTransfers *const transfers_data,
   if (!transfers_data->directory) {
     return false;
   }
+  char const *const directory = &*transfers_data->directory;
 
   assert(transfer_to_rename != NULL);
   assert(strdict_find_value(&transfers_data->dict, get_leaf_name(&transfer_to_rename->dfile), NULL) == transfer_to_rename);
 
   if (stricmp(get_leaf_name(&transfer_to_rename->dfile), new_name) != 0) {
-    ObjTransfer *const dup = strdict_find_value(&transfers_data->dict, new_name, NULL);
+    _Optional ObjTransfer *const dup = strdict_find_value(&transfers_data->dict, new_name, NULL);
     if (dup) {
-      ObjTransfers_remove_and_delete(transfers_data, dup);
+      ObjTransfers_remove_and_delete(transfers_data, &*dup);
     }
   }
 
   /* Rename the corresponding file */
   bool success = false;
-  char *const newpath = make_file_path_in_dir(transfers_data->directory, new_name);
+  _Optional char *const newpath = make_file_path_in_dir(directory, new_name);
   if (newpath) {
-    success = verbose_rename(dfile_get_name(&transfer_to_rename->dfile), newpath);
+    _Optional const char *const filename = dfile_get_name(&transfer_to_rename->dfile);
+    assert(filename);
+    if (filename) {
+      success = verbose_rename(&*filename, &*newpath);
+    }
     if (success) {
-      ObjTransfer *const removed = strdict_remove_value(&transfers_data->dict,
+      _Optional ObjTransfer *const removed = strdict_remove_value(&transfers_data->dict,
                                          get_leaf_name(&transfer_to_rename->dfile), NULL);
       assert(removed == transfer_to_rename);
       NOT_USED(removed);
-      (void)set_saved_with_stamp(&transfer_to_rename->dfile, newpath);
+      (void)set_saved_with_stamp(&transfer_to_rename->dfile, &*newpath);
     }
     free(newpath);
   }

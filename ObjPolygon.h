@@ -41,7 +41,7 @@ typedef struct {
 void obj_polygons_init(ObjPolygons *polygons);
 void obj_polygons_free(ObjPolygons *polygons);
 
-SFError obj_polygons_read(ObjPolygons *polygons, struct Reader *reader,
+SFError obj_polygons_read(_Optional ObjPolygons *polygons, struct Reader *reader,
   int num_vertices, int *max_group);
 
 ObjGroup *obj_polygons_get_group(ObjPolygons *polygons, int n);

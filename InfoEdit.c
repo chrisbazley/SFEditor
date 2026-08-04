@@ -46,26 +46,32 @@
 #endif
 
 SFError InfoEdit_add(InfoEditContext const *const infos, MapPoint const pos,
-  char const *C23_CONST (*const strings)[TargetInfoTextIndex_Count],
-  InfoEditChanges *const change_info, size_t *const index)
+                     char const *C23_CONST _Optional (*const strings)[TargetInfoTextIndex_Count],
+                     _Optional InfoEditChanges *const change_info, _Optional size_t *const index)
 {
   assert(infos);
+  assert(infos->data);
+  if (!infos->data) {
+    return SFERROR(OK);
+  }
+  TargetInfosData *const target_infos = &*infos->data;
 
   size_t index2 = 0;
-  SFError err = target_infos_add(infos->data, pos, &index2);
+  SFError err = target_infos_add(target_infos, pos, &index2);
   if (SFError_fail(err)) {
     return err;
   }
 
-  TargetInfo *const info = target_info_from_index(infos->data, index2);
+  _Optional TargetInfo *const info = target_info_from_index(target_infos, index2);
+  assert(info);
 
-  if (strings) {
+  if (strings && info) {
     for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
          k < TargetInfoTextIndex_Count;
          ++k) {
-      err = target_info_set_text(info, k, (*strings)[k]);
+      err = target_info_set_text(&*info, k, (*strings)[k]);
       if (SFError_fail(err)) {
-        target_info_delete(info);
+        target_info_delete(&*info);
         return err;
       }
     }
@@ -73,7 +79,7 @@ SFError InfoEdit_add(InfoEditContext const *const infos, MapPoint const pos,
 
   InfoEditChanges_add(change_info);
   if (infos->added_cb) {
-    infos->added_cb(info, index2, infos->session);
+    infos->added_cb(&*info, index2, infos->session);
   }
 
   if (index) {
@@ -84,10 +90,17 @@ SFError InfoEdit_add(InfoEditContext const *const infos, MapPoint const pos,
 
 void InfoEdit_move(InfoEditContext const *const infos, MapPoint const vec,
                    SelectionBitmask *const selected,
-                   InfoEditChanges *const change_info)
+                   _Optional InfoEditChanges *const change_info)
 {
+  assert(infos->data);
+  if (!infos->data) {
+    return;
+  }
+  TargetInfosData const *const target_infos = &*infos->data;
+
   SelectionBitmask copy;
-  SelectionBitmask_init(&copy, SelectionBitmask_size(selected), NULL, NULL);
+  SelectionBitmask_init(&copy, SelectionBitmask_size(selected),
+                        (SelectionBitmaskRedrawFn *)NULL, selected);
   SelectionBitmask_copy(&copy, selected); // because moved_cb changes the selection
 
   SelectionBitmaskIter iter;
@@ -95,11 +108,16 @@ void InfoEdit_move(InfoEditContext const *const infos, MapPoint const vec,
        !SelectionBitmaskIter_done(&iter);
        index = SelectionBitmaskIter_get_next(&iter))
   {
-    TargetInfo *const info = target_info_from_index(infos->data, index);
-    MapPoint const old_pos = target_info_get_pos(info), new_pos = MapPoint_add(old_pos, vec);
-    size_t const new_index = target_info_set_pos(info, new_pos);
+    _Optional TargetInfo *const info = target_info_from_index(target_infos, index);
+    assert(info);
+    if (!info) {
+      break;
+    }
+
+    MapPoint const old_pos = target_info_get_pos(&*info), new_pos = MapPoint_add(old_pos, vec);
+    size_t const new_index = target_info_set_pos(&*info, new_pos);
     if (infos->moved_cb) {
-      infos->moved_cb(info, old_pos, index, new_index, infos->session);
+      infos->moved_cb(&*info, old_pos, index, new_index, infos->session);
     }
     InfoEditChanges_change(change_info);
     SelectionBitmaskIter_move_current(&iter, new_index);
@@ -110,7 +128,7 @@ void InfoEdit_move(InfoEditContext const *const infos, MapPoint const vec,
 SFError InfoEdit_set_texts(
   TargetInfo *const info,
   char const *C23_CONST (*const strings)[TargetInfoTextIndex_Count],
-  InfoEditChanges *const change_info)
+  _Optional InfoEditChanges *const change_info)
 {
   SFError err = SFERROR(OK);
   for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
@@ -127,10 +145,18 @@ SFError InfoEdit_set_texts(
   return err;
 }
 
-TargetInfo *InfoEdit_get(InfoEditContext const *const infos, size_t const index)
+_Optional TargetInfo *InfoEdit_get(InfoEditContext const *const infos, size_t const index)
 {
   assert(infos);
-  return target_info_from_index(infos->data, index);
+
+  static TargetInfosData empty;
+  TargetInfosData *target_infos = &empty;
+  if (infos && infos->data) {
+    target_infos = &*infos->data;
+  } else {
+    target_infos_init(&empty);
+  }
+  return target_info_from_index(target_infos, index);
 }
 
 void InfoEdit_find_occluded(InfoEditContext const *const infos, MapPoint const pos,
@@ -152,7 +178,12 @@ void InfoEdit_find_occluded(InfoEditContext const *const infos, MapPoint const p
        !InfoEditIter_done(&iter);
        index = InfoEditIter_get_next(&iter))
   {
-    MapPoint const p = target_info_get_pos(InfoEdit_get(infos, index));
+    _Optional TargetInfo *const info = InfoEdit_get(infos, index);
+    assert(info);
+    if (!info) {
+      break;
+    }
+    MapPoint const p = target_info_get_pos(&*info);
     MapArea const info_area = {MapPoint_sub(p, coll_size), MapPoint_add(p, coll_size)};
 
     if (map_overlap(&my_info_area, &info_area)) {
@@ -165,20 +196,30 @@ void InfoEdit_find_occluded(InfoEditContext const *const infos, MapPoint const p
 }
 
 void InfoEdit_delete(InfoEditContext const *const infos, SelectionBitmask *const selected,
-  InfoEditChanges *const change_info)
+  _Optional InfoEditChanges *const change_info)
 {
   assert(infos);
+  assert(infos->data);
+  if (!infos->data) {
+    return;
+  }
+  TargetInfosData const *const target_infos = &*infos->data;
+
   SelectionBitmask copy = *selected;
   SelectionBitmaskIter iter;
   for (size_t index = SelectionBitmaskIter_get_first(&iter, &copy);
        !SelectionBitmaskIter_done(&iter);
        index = SelectionBitmaskIter_get_next(&iter))
   {
-    TargetInfo *const info = target_info_from_index(infos->data, index);
-    if (infos->predelete_cb) {
-      infos->predelete_cb(info, index, infos->session);
+    _Optional TargetInfo *const info = target_info_from_index(target_infos, index);
+    assert(info);
+    if (!info) {
+      break;
     }
-    target_info_delete(info);
+    if (infos->predelete_cb) {
+      infos->predelete_cb(&*info, index, infos->session);
+    }
+    target_info_delete(&*info);
     InfoEditChanges_delete(change_info);
     SelectionBitmaskIter_del_current(&iter);
   }
@@ -187,7 +228,7 @@ void InfoEdit_delete(InfoEditContext const *const infos, SelectionBitmask *const
 size_t InfoEdit_count(InfoEditContext const *const infos)
 {
   assert(infos);
-  return infos->data ? target_infos_get_count(infos->data) : 0;
+  return infos->data ? target_infos_get_count(&*infos->data) : 0;
 }
 
 size_t InfoEdit_get_first_idx(InfoEditIter *const iter,
@@ -197,8 +238,8 @@ size_t InfoEdit_get_first_idx(InfoEditIter *const iter,
   assert(infos);
   static TargetInfosData empty;
   TargetInfosData *target_infos = &empty;
-  if (infos) {
-    target_infos = infos->data;
+  if (infos && infos->data) {
+    target_infos = &*infos->data;
   } else {
     target_infos_init(&empty);
   }

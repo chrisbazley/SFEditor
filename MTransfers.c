@@ -263,7 +263,7 @@ static bool make_thumbnails(MapTransfers *const transfers_data,
   bool success = true;
 
   StrDictVIter iter;
-  for (MapTransfer *transfer = strdictviter_all_init(&iter, &transfers_data->dict);
+  for (_Optional MapTransfer *transfer = strdictviter_all_init(&iter, &transfers_data->dict);
        transfer != NULL;
        transfer = strdictviter_advance(&iter)) {
     if (count <= INT_MAX / 100)
@@ -272,7 +272,7 @@ static bool make_thumbnails(MapTransfers *const transfers_data,
     }
     ++count;
 
-    if (!make_transfer_thumbnail(transfers_data, transfer, textures))
+    if (!make_transfer_thumbnail(transfers_data, &*transfer, textures))
     {
       success = false;
       break;
@@ -293,7 +293,7 @@ static bool make_thumbnails(MapTransfers *const transfers_data,
 }
 
 static bool add_to_list(MapTransfers *const transfers_data,
-  MapTransfer *const transfer, int *const index)
+  MapTransfer *const transfer, _Optional int *const index)
 {
   assert(transfers_data != NULL);
   assert(transfer != NULL);
@@ -319,7 +319,7 @@ static void remove_from_list(MapTransfers *const transfers_data,
 {
   assert(transfers_data != NULL);
   assert(transfer != NULL);
-  MapTransfer *const removed = strdict_remove_value(&transfers_data->dict, get_leaf_name(&transfer->dfile), NULL);
+  _Optional MapTransfer *const removed = strdict_remove_value(&transfers_data->dict, get_leaf_name(&transfer->dfile), NULL);
   assert(removed == transfer);
   NOT_USED(removed);
   assert(transfers_data->count > 0);
@@ -729,16 +729,24 @@ static void MapTransfer_destroy_cb(DFile const *const dfile)
 static void free_all_cb(char const *const key, _Optional void *const data, void *const arg)
 {
   NOT_USED(key);
-  MapTransfer *const transfer_to_delete = data;
+  _Optional MapTransfer *const transfer_to_delete = data;
+  if (!transfer_to_delete) {
+    return;
+  }
   MapTransfers *const transfers_data = arg;
-  delete_thumbnail(transfers_data, transfer_to_delete);
+  delete_thumbnail(transfers_data, &*transfer_to_delete);
   dfile_release(&transfer_to_delete->dfile);
 }
 
 static void delete_transfer(MapTransfer *const transfer_to_delete,
   MapTransfers *const transfers_data)
 {
-  verbose_remove(dfile_get_name(&transfer_to_delete->dfile));
+  _Optional char const *filename = dfile_get_name(&transfer_to_delete->dfile);
+  assert(filename);
+  if (filename)
+  {
+    verbose_remove(&*filename);
+  }
   delete_thumbnail(transfers_data, transfer_to_delete);
   dfile_release(&transfer_to_delete->dfile);
 }
@@ -746,7 +754,10 @@ static void delete_transfer(MapTransfer *const transfer_to_delete,
 static void delete_all_cb(char const *const key, _Optional void *const data, void *const arg)
 {
   NOT_USED(key);
-  delete_transfer(data, arg);
+  _Optional MapTransfer *const transfer = data;
+  if (transfer) {
+    delete_transfer(&*transfer, arg);\
+  }
 }
 
 /* ----------------- Public functions ---------------- */
@@ -757,9 +768,9 @@ DFile *MapTransfer_get_dfile(MapTransfer *const transfer)
   return &transfer->dfile;
 }
 
-MapTransfer *MapTransfer_create(void)
+_Optional MapTransfer *MapTransfer_create(void)
 {
-  MapTransfer *const transfer = malloc(sizeof(*transfer));
+  _Optional MapTransfer *const transfer = malloc(sizeof(*transfer));
   if (transfer == NULL) {
     report_error(SFERROR(NoMem), "", "");
     return NULL;
@@ -769,7 +780,7 @@ MapTransfer *MapTransfer_create(void)
   *transfer = (MapTransfer){.dfile = {0}, .size_minus_one = {0,0}};
 
   dfile_init(&transfer->dfile, MapTransfer_read_cb,
-             MapTransfer_write_cb, NULL, MapTransfer_destroy_cb);
+             MapTransfer_write_cb, (DFileGetMinSizeFn *)NULL, MapTransfer_destroy_cb);
 
   return transfer;
 }
@@ -798,30 +809,30 @@ void MapTransfers_load_all(MapTransfers *const transfers_data,
   char const *const tiles_set)
 {
   DEBUG("Loading transfers for tiles set '%s'...", tiles_set);
-  char *const dir = make_file_path_in_dir(Config_get_transfers_dir(), tiles_set);
+  _Optional char *const dir = make_file_path_in_dir(Config_get_transfers_dir(), tiles_set);
   if (!dir) {
     return;
   }
 
   MapTransfers_free(transfers_data);
   MapTransfers_init(transfers_data);
-  transfers_data->directory = dir;
+  transfers_data->directory = &*dir;
 
-  if (!file_exists(dir)) {
+  if (!file_exists(&*dir)) {
     return;
   }
 
   hourglass_on();
 
-  DirIterator *iter = NULL;
-  const _kernel_oserror *e = diriterator_make(&iter, 0, transfers_data->directory, NULL);
+  _Optional DirIterator *iter = NULL;
+  _Optional const _kernel_oserror *e = diriterator_make(&iter, 0, &*dir, NULL);
   int const expected_ftype = data_type_to_file_type(DataType_MapTransfer);
   for (;
-       !E(e) && !diriterator_is_empty(iter);
-       e = diriterator_advance(iter)) {
+       !E(e) && iter && !diriterator_is_empty(&*iter);
+       e = diriterator_advance(&*iter)) {
 
     DirIteratorObjectInfo info;
-    int const object_type = diriterator_get_object_info(iter, &info);
+    int const object_type = diriterator_get_object_info(&*iter, &info);
 
     /* Check that file is of correct type */
     if ((object_type != ObjectType_File) || (info.file_type != expected_ftype)) {
@@ -830,7 +841,7 @@ void MapTransfers_load_all(MapTransfers *const transfers_data,
 
     /* Check that filename is within length limit */
     Filename filename;
-    if (diriterator_get_object_leaf_name(iter, filename, sizeof(filename)) >
+    if (diriterator_get_object_leaf_name(&*iter, filename, sizeof(filename)) >
         sizeof(Filename)-1) {
       DEBUGF("%s exceeds the character limit.\n", filename);
       continue;
@@ -838,22 +849,22 @@ void MapTransfers_load_all(MapTransfers *const transfers_data,
     DEBUG("File name is '%s'", filename);
 
     /* Load tiles transfer */
-    size_t const n = diriterator_get_object_path_name(iter, NULL, 0);
+    size_t const n = diriterator_get_object_path_name(&*iter, NULL, 0);
     {
-      char *const full_path = malloc(n + 1);
+      _Optional char *const full_path = malloc(n + 1);
       if (!full_path) {
         report_error(SFERROR(NoMem), "", "");
         break;
       }
-      (void)diriterator_get_object_path_name(iter, full_path, n + 1);
+      (void)diriterator_get_object_path_name(&*iter, &*full_path, n + 1);
 
-      MapTransfer *const transfer = MapTransfer_create();
+      _Optional MapTransfer *const transfer = MapTransfer_create();
       if (!transfer) {
         free(full_path);
         break;
       }
 
-      if (report_error(load_compressed(&transfer->dfile, full_path), full_path, "")) {
+      if (report_error(load_compressed(&transfer->dfile, &*full_path), &*full_path, "")) {
         dfile_release(&transfer->dfile);
         free(full_path);
         break;
@@ -862,7 +873,7 @@ void MapTransfers_load_all(MapTransfers *const transfers_data,
       int tmp[2] = {0};
       memcpy(tmp, &info.date_stamp, sizeof(info.date_stamp));
 
-      if (!dfile_set_saved(&transfer->dfile, full_path, tmp)) {
+      if (!dfile_set_saved(&transfer->dfile, &*full_path, tmp)) {
         report_error(SFERROR(NoMem), "", "");
         dfile_release(&transfer->dfile);
         free(full_path);
@@ -871,7 +882,7 @@ void MapTransfers_load_all(MapTransfers *const transfers_data,
 
       free(full_path);
 
-      if (!add_to_list(transfers_data, transfer, NULL)) {
+      if (!add_to_list(transfers_data, &*transfer, NULL)) {
         dfile_release(&transfer->dfile);
         break;
       }
@@ -887,7 +898,7 @@ void MapTransfers_open_dir(MapTransfers const *const transfers_data)
 {
   assert(transfers_data);
   if (transfers_data->directory) {
-    open_dir(transfers_data->directory);
+    open_dir(&*transfers_data->directory);
   }
 }
 
@@ -936,7 +947,7 @@ bool MapTransfers_ensure_thumbnails(MapTransfers *const transfers_data,
   return success;
 }
 
-MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
+_Optional MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
   MapEditSelection *const selected)
 {
   /* Find bounding box covering all selected tiles */
@@ -948,7 +959,7 @@ MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
 
   /* Create a new transfer record */
   MapPoint const size = MapPoint_sub(bounds.max, bounds.min);
-  MapTransfer *const transfer = MapTransfer_create();
+  _Optional MapTransfer *const transfer = MapTransfer_create();
   if (transfer == NULL) {
     return NULL;
   }
@@ -957,7 +968,7 @@ MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
   assert(size_minus_one.x == size.x);
   assert(size_minus_one.y == size.y);
 
-  if (!alloc_transfer(transfer, size_minus_one))
+  if (!alloc_transfer(&*transfer, size_minus_one))
   {
     report_error(SFERROR(NoMem), "", "");
     dfile_release(&transfer->dfile);
@@ -975,13 +986,13 @@ MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
     if (MapEditSelection_is_selected(selected, p)) {
       tile = MapEdit_read_tile(map, p);
     }
-    write_transfer_tile(transfer, MapPoint_sub(p, bounds.min), tile);
+    write_transfer_tile(&*transfer, MapPoint_sub(p, bounds.min), tile);
   }
 
   int sel_count = 0;
   if (map->anims != NULL) {
     MapAnimsIter anims_iter;
-    for (MapPoint p = MapAnimsIter_get_first(&anims_iter, map->anims, &bounds, NULL);
+    for (MapPoint p = MapAnimsIter_get_first(&anims_iter, &*map->anims, &bounds, NULL);
          !MapAnimsIter_done(&anims_iter);
          p = MapAnimsIter_get_next(&anims_iter, NULL))
     {
@@ -991,8 +1002,8 @@ MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
     }
   }
 
-  if (sel_count > 0) {
-    if (!transfer_pre_alloc(transfer, sel_count)) {
+  if (map->anims != NULL && sel_count > 0) {
+    if (!transfer_pre_alloc(&*transfer, sel_count)) {
       report_error(SFERROR(NoMem), "", "");
       dfile_release(&transfer->dfile);
       return NULL;
@@ -1006,7 +1017,7 @@ MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
       },
     };
     MapAnimsIter anims_iter;
-    for (MapPoint p = MapAnimsIter_get_first(&anims_iter, map->anims, &bounds, &anim.param);
+    for (MapPoint p = MapAnimsIter_get_first(&anims_iter, &*map->anims, &bounds, &anim.param);
          !MapAnimsIter_done(&anims_iter);
          p = MapAnimsIter_get_next(&anims_iter, &anim.param))
     {
@@ -1014,7 +1025,7 @@ MapTransfer *MapTransfers_grab_selection(const MapEditContext *const map,
         /* The selection's wrapped bounding box may contain the coordinates of
            an animation even though those coordinates appear far outside the bounding box. */
         anim.coords = map_coords_to_coarse(map_coords_in_area(p, &bounds));
-        transfer_add_anim(transfer, &anim);
+        transfer_add_anim(&*transfer, &anim);
       }
     }
   }
@@ -1132,8 +1143,8 @@ typedef struct {
   const MapEditContext *map;
   MapPoint const t_pos_on_map;
   MapTransfer *transfer;
-  MapEditSelection *selection;
-  MapEditChanges *change_info;
+  _Optional MapEditSelection *selection;
+  _Optional MapEditChanges *change_info;
 } PlotToMapData;
 
 static void plot_to_map_cb(void *const cb_arg, MapArea const *const t_subregion)
@@ -1150,15 +1161,15 @@ static void plot_to_map_cb(void *const cb_arg, MapArea const *const t_subregion)
     &read_data, data->change_info);
 
   if (data->selection) {
-    MapEditSelection_select_area(data->selection, &map_area);
+    MapEditSelection_select_area(&*data->selection, &map_area);
   }
 }
 
 bool MapTransfers_plot_to_map(const MapEditContext *const map,
-                                   MapPoint const bl,
-                                   MapTransfer *const transfer,
-                                   MapEditSelection *const selection,
-                                   MapEditChanges *const change_info)
+                              MapPoint const bl,
+                              MapTransfer *const transfer,
+                              _Optional MapEditSelection *const selection,
+                              _Optional MapEditChanges *const change_info)
 {
   /* Paste transfer to tiles map */
   DEBUG("About to paste transfer %p at %" PRIMapCoord ",%" PRIMapCoord,
@@ -1170,7 +1181,7 @@ bool MapTransfers_plot_to_map(const MapEditContext *const map,
 
   /* Create new animations from transfer (if any) */
   int const num_to_add = transfer->anim_count;
-  ConvAnimations *const anims = map->anims;
+  _Optional ConvAnimations *const anims = map->anims;
   if (anims == NULL)
     return num_to_add == 0; /* cannot paste new animations nor liquidate old ones */
 
@@ -1267,7 +1278,7 @@ MapRef MapTransfers_read_ref(MapTransfer *const transfer, MapPoint const trans_p
   return map_ref_from_num(((unsigned char *)transfer->tiles)[uchar_offset(transfer, trans_pos)]);
 }
 
-MapTransfer *MapTransfers_find_by_name(MapTransfers *const transfers_data,
+_Optional MapTransfer *MapTransfers_find_by_name(MapTransfers *const transfers_data,
   char const *const filename, int *const index_out)
 {
   assert(filename != NULL);
@@ -1277,7 +1288,7 @@ MapTransfer *MapTransfers_find_by_name(MapTransfers *const transfers_data,
   assert(transfers_data != NULL);
 
   size_t index = 0;
-  MapTransfer *const transfer = strdict_find_value(&transfers_data->dict, filename, &index);
+  _Optional MapTransfer *const transfer = strdict_find_value(&transfers_data->dict, filename, &index);
 
   if (!transfer) {
     DEBUG ("Reached end of transfers list without finding record!");
@@ -1293,7 +1304,7 @@ MapTransfer *MapTransfers_find_by_name(MapTransfers *const transfers_data,
   return transfer;
 }
 
-MapTransfer *MapTransfers_find_by_index(MapTransfers *const transfers_data,
+_Optional MapTransfer *MapTransfers_find_by_index(MapTransfers *const transfers_data,
   int const transfer_index)
 {
   DEBUG ("Find transfer at index %d in tiles data %p",
@@ -1318,21 +1329,22 @@ bool MapTransfers_add(MapTransfers *const transfers_data,
   if (!transfers_data->directory) {
     return false;
   }
+  char const *directory = &*transfers_data->directory;
 
-  MapTransfer *const existing_transfer = strdict_find_value(&transfers_data->dict, filename, NULL);
+  _Optional MapTransfer *const existing_transfer = strdict_find_value(&transfers_data->dict, filename, NULL);
   if (existing_transfer) {
-    MapTransfers_remove_and_delete(transfers_data, existing_transfer, false);
+    MapTransfers_remove_and_delete(transfers_data, &*existing_transfer, false);
   }
 
   int new_index = 0;
   bool success = false;
-  char *const full_path = make_file_path_in_dir(transfers_data->directory, filename);
+  _Optional char *const full_path = make_file_path_in_dir(directory, filename);
 
   if (full_path) {
-    if (ensure_path_exists(full_path) &&
-        !report_error(save_compressed(&transfer->dfile, full_path), full_path, "") &&
-        set_data_type(full_path, DataType_MapTransfer) &&
-        set_saved_with_stamp(&transfer->dfile, full_path)) {
+    if (ensure_path_exists(&*full_path) &&
+        !report_error(save_compressed(&transfer->dfile, &*full_path), &*full_path, "") &&
+        set_data_type(&*full_path, DataType_MapTransfer) &&
+        set_saved_with_stamp(&transfer->dfile, &*full_path)) {
       if (!transfers_data->have_thumbnails || make_transfer_thumbnail(transfers_data, transfer, textures)) {
         success = add_to_list(transfers_data, transfer, &new_index);
         if (!success) {
@@ -1340,7 +1352,7 @@ bool MapTransfers_add(MapTransfers *const transfers_data,
         }
       }
     } else {
-      remove(full_path);
+      remove(&*full_path);
     }
     free(full_path);
   }
@@ -1364,18 +1376,19 @@ bool MapTransfers_rename(MapTransfers *const transfers_data,
   if (!transfers_data->directory) {
     return false;
   }
+  char const *directory = &*transfers_data->directory;
 
   assert(transfer_to_rename != NULL);
   assert(strdict_find_value(&transfers_data->dict, get_leaf_name(&transfer_to_rename->dfile), NULL) == transfer_to_rename);
 
   if (stricmp(get_leaf_name(&transfer_to_rename->dfile), new_name) != 0) {
-    MapTransfer *const dup = strdict_find_value(&transfers_data->dict, new_name, NULL);
+    _Optional MapTransfer *const dup = strdict_find_value(&transfers_data->dict, new_name, NULL);
     if (dup) {
-      MapTransfers_remove_and_delete(transfers_data, dup, false);
+      MapTransfers_remove_and_delete(transfers_data, &*dup, false);
     }
   }
 
-  char *const old_name = strdup(get_leaf_name(&transfer_to_rename->dfile));
+  _Optional char *const old_name = strdup(get_leaf_name(&transfer_to_rename->dfile));
   if (!old_name) {
     report_error(SFERROR(NoMem), "", "");
     return false;
@@ -1383,15 +1396,20 @@ bool MapTransfers_rename(MapTransfers *const transfers_data,
 
   /* Rename the corresponding file */
   bool success = false;
-  char *const newpath = make_file_path_in_dir(transfers_data->directory, new_name);
+  _Optional char *const newpath = make_file_path_in_dir(directory, new_name);
   if (newpath) {
-    success = verbose_rename(dfile_get_name(&transfer_to_rename->dfile), newpath);
+    _Optional const char *filename = dfile_get_name(&transfer_to_rename->dfile);
+    assert(filename);
+    if (filename)
+    {
+      success = verbose_rename(&*filename, &*newpath);
+    }
     if (success) {
-      MapTransfer *const removed = strdict_remove_value(&transfers_data->dict,
+      _Optional MapTransfer *const removed = strdict_remove_value(&transfers_data->dict,
                                   get_leaf_name(&transfer_to_rename->dfile), NULL);
       assert(removed == transfer_to_rename);
       NOT_USED(removed);
-      (void)set_saved_with_stamp(&transfer_to_rename->dfile, newpath);
+      (void)set_saved_with_stamp(&transfer_to_rename->dfile, &*newpath);
     }
     free(newpath);
   }
@@ -1412,7 +1430,7 @@ bool MapTransfers_rename(MapTransfers *const transfers_data,
 
     if (transfers_data->have_thumbnails) {
       SprMem_rename(&transfers_data->thumbnail_sprites,
-                    old_name, new_name);
+                    &*old_name, new_name);
     }
   }
 

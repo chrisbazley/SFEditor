@@ -63,6 +63,11 @@ static int menu_selection(int const event_code, ToolboxEvent *const event,
   ON_ERR_RPT_RTN_V(toolbox_get_client_handle(0, id_block->ancestor_id,
     &edit_win), 0);
   EditSession *const session = EditWin_get_session(edit_win);
+  _Optional MissionData *const m = Session_get_mission(session);
+  assert(m);
+  if (!m) {
+    return 0;
+  }
 
   DEBUG("Ship menu item %d selected", id_block->self_component);
 
@@ -76,7 +81,7 @@ static int menu_selection(int const event_code, ToolboxEvent *const event,
     which_ticked = id_block->self_component;
     E(menu_set_tick(0, id_block->self_id, which_ticked, 1));
 
-    DefencesData *const defences = mission_get_defences(Session_get_mission(session));
+    DefencesData *const defences = mission_get_defences(&*m);
     defences_set_ship_type(defences, (ShipType)(ShipType_Fighter1 + which_ticked));
     Session_notify_changed(session, DataType_Mission);
   }
@@ -97,8 +102,12 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
     &edit_win), 0);
   EditSession *const session = EditWin_get_session(edit_win);
   FilenamesData const *const filenames = Session_get_filenames(session);
-
-  DefencesData const *const defences = mission_get_defences(Session_get_mission(session));
+  _Optional MissionData *const m = Session_get_mission(session);
+  assert(m);
+  if (!m) {
+    return 0;
+  }
+  DefencesData const *const defences = mission_get_defences(&*m);
   ShipType const launch_type = defences_get_ship_type(defences);
 
   if (stricmp(filenames_get(filenames, DataType_PolygonMeshes), graphics_set) != 0) {

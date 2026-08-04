@@ -32,7 +32,7 @@ struct PaletteData {
 
   int sel_index, num_indices, max_columns;
   Vertex grid_size, sel_pos, object_size;
-  const struct PaletteClientFuncts *client_functions;
+  _Optional const struct PaletteClientFuncts *client_functions;
 };
 
 #endif

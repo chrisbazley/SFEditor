@@ -166,7 +166,8 @@ static MapArea limit_max_bounds(ObjEditSelection const *const selection)
 }
 
 SFError ObjEditSelection_init(ObjEditSelection *const selection,
-  void (*const redraw_cb)(MapPoint, void *), void *const redraw_arg)
+                              _Optional ObjEditSelectionRedrawFn *redraw_cb,
+                              void *const redraw_arg)
 {
   assert(selection != NULL);
 
@@ -471,10 +472,10 @@ void ObjEditSelection_destroy(ObjEditSelection *const selection)
 
 bool ObjEditSelection_for_each_changed(
   ObjEditSelection const *const a, ObjEditSelection const *const b,
-  MapArea const *const map_area, void (*const callback)(MapPoint, void *),
+  _Optional MapArea const *const map_area, void (*const callback)(MapPoint, void *),
   void *const cb_arg)
 {
-  assert(!map_area || MapArea_is_valid(map_area));
+  assert(!map_area || MapArea_is_valid(&*map_area));
   assert(callback);
   DEBUG("Iterate over changes between selection %p and %p",
         (void *)a, (void *)b);
@@ -494,7 +495,7 @@ bool ObjEditSelection_for_each_changed(
   }
 
   if (map_area) {
-    MapArea_intersection(map_area, &check_bounds, &check_bounds);
+    MapArea_intersection(&*map_area, &check_bounds, &check_bounds);
   }
 
   MapAreaIter iter;

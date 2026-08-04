@@ -107,7 +107,7 @@ static void map_write_cb(DFile const *const dfile, Writer *const writer)
 
 static void map_cleanup(void)
 {
-  strdict_destroy(&file_dict, NULL, NULL);
+  strdict_destroy(&file_dict, (StrDictDestructorFn *)NULL, &file_dict);
 }
 
 void map_init(void)
@@ -122,9 +122,9 @@ DFile *map_get_dfile(MapData *const map)
   return &map->dfile;
 }
 
-static MapData *map_create(bool const is_overlay)
+static _Optional MapData *map_create(bool const is_overlay)
 {
-  MapData *map = malloc(sizeof(*map));
+  _Optional MapData *map = malloc(sizeof(*map));
   if (map)
   {
     *map = (MapData){.is_overlay = is_overlay};
@@ -142,12 +142,12 @@ static MapData *map_create(bool const is_overlay)
   return map;
 }
 
-MapData *map_create_overlay(void)
+_Optional MapData *map_create_overlay(void)
 {
   return map_create(true);
 }
 
-MapData *map_create_base(void)
+_Optional MapData *map_create_base(void)
 {
   return map_create(false);
 }
@@ -158,9 +158,9 @@ bool map_share(MapData *const map)
   return dfile_set_shared(&map->dfile, &file_dict);
 }
 
-MapData *map_get_shared(char const *const filename)
+_Optional MapData *map_get_shared(char const *const filename)
 {
-  DFile *const dfile = dfile_find_shared(&file_dict, filename);
+  _Optional DFile *const dfile = dfile_find_shared(&file_dict, filename);
   return dfile ? CONTAINER_OF(dfile, MapData, dfile) : NULL;
 }
 

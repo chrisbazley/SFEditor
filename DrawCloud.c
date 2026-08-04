@@ -84,7 +84,7 @@ extern PaletteEntry transfer_func(PaletteEntry);
 
 bool DrawCloud_init(DrawCloudContext *const context, CloudColData const *const clouds,
   PaletteEntry const (*const unsel_palette)[NumColours],
-  PaletteEntry const (*const sel_palette)[NumColours],
+  _Optional PaletteEntry const (*const sel_palette)[NumColours],
   int const zoom, bool const is_ghost)
 {
   /* Set up the workspace for the transfer function */

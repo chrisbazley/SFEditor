@@ -78,7 +78,7 @@ static void ObjGfx_destroy_cb(DFile const *const dfile)
 
 static void ObjGfx_cleanup(void)
 {
-  strdict_destroy(&file_dict, NULL, NULL);
+  strdict_destroy(&file_dict, (StrDictDestructorFn *)NULL, &file_dict);
 }
 
 void ObjGfx_init(void)
@@ -93,9 +93,9 @@ DFile *ObjGfx_get_dfile(ObjGfx *const graphics)
   return &graphics->dfile;
 }
 
-ObjGfx *ObjGfx_create(void)
+_Optional ObjGfx *ObjGfx_create(void)
 {
-  ObjGfx *const graphics = malloc(sizeof(*graphics));
+  _Optional ObjGfx *const graphics = malloc(sizeof(*graphics));
   if (graphics)
   {
     *graphics = (ObjGfx){
@@ -108,10 +108,10 @@ ObjGfx *ObjGfx_create(void)
       {0},
     };
 
-    dfile_init(&graphics->dfile, ObjGfx_read_cb, NULL, NULL,
+    dfile_init(&graphics->dfile, ObjGfx_read_cb, (DFileWriteFn *)NULL, (DFileGetMinSizeFn *)NULL,
                ObjGfx_destroy_cb);
 
-    init_all(graphics);
+    init_all(&*graphics);
   }
   return graphics;
 }
@@ -120,12 +120,12 @@ void ObjGfx_load_metadata(ObjGfx *graphics)
 {
   assert(graphics);
 
-  char const *const filename = dfile_get_name(&graphics->dfile);
+  _Optional char const *const filename = dfile_get_name(&graphics->dfile);
+  assert(filename);
   if (filename == NULL) {
     return;
   }
-
-  char *const leaf_name = pathtail(filename, 1);
+  const char *const leaf_name = pathtail(&*filename, 1);
 
   ObjSnakes_load(&graphics->snakes, leaf_name,
                     ObjGfxMeshes_get_ground_count(&graphics->meshes));
@@ -138,8 +138,8 @@ bool ObjGfx_share(ObjGfx *const graphics)
   return dfile_set_shared(&graphics->dfile, &file_dict);
 }
 
-ObjGfx *ObjGfx_get_shared(char const *const filename)
+_Optional ObjGfx *ObjGfx_get_shared(char const *const filename)
 {
-  DFile *const dfile = dfile_find_shared(&file_dict, filename);
+  _Optional DFile *const dfile = dfile_find_shared(&file_dict, filename);
   return dfile ? CONTAINER_OF(dfile, ObjGfx, dfile) : NULL;
 }

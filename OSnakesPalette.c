@@ -57,7 +57,7 @@ static WimpPlotIconBlock plot_label;
 static char truncated_name[sizeof(Filename) + sizeof("...") - 1];
 /* -1 because both sizeof() values include space for a string terminator. */
 static ObjGfxMeshes *redraw_meshes;
-static PolyColData const *redraw_poly_colours;
+static _Optional PolyColData const *redraw_poly_colours;
 ObjGfx *redraw_graphics;
 static ObjGfxMeshesView plot_ctx;
 
@@ -237,10 +237,10 @@ static void redraw_label(Editor *const editor, Vertex const origin,
   E(wimp_plot_icon(&plot_label));
 }
 
-static void draw_snake(ObjGfxMeshes *const meshes, PolyColData const *const poly_colours,
+static void draw_snake(ObjGfxMeshes *const meshes, _Optional PolyColData const *const poly_colours,
   Vertex const plot_centre, long int const distance,
   ObjRef (*const thumb_refs)[THUMB_TILE_SIZE][THUMB_TILE_WIDTH],
-  PaletteEntry const (*const pal)[NumColours], BBox *const bounding_box,
+  _Optional PaletteEntry const (*const pal)[NumColours], _Optional BBox *const bounding_box,
   ObjGfxMeshStyle const style)
 {
   long int const xstart = -((THUMB_TILE_WIDTH / 2) * ObjGridSize);
@@ -259,7 +259,7 @@ static void draw_snake(ObjGfxMeshes *const meshes, PolyColData const *const poly
           pos, pal, bounding_box ? &obj_bbox : NULL, style);
 
         if (bounding_box) {
-          BBox_expand_for_area(bounding_box, &obj_bbox);
+          BBox_expand_for_area(&*bounding_box, &obj_bbox);
         }
       }
 
@@ -272,7 +272,7 @@ static void draw_snake(ObjGfxMeshes *const meshes, PolyColData const *const poly
           pos, pal, bounding_box ? &obj_bbox : NULL, style);
 
         if (bounding_box) {
-          BBox_expand_for_area(bounding_box, &obj_bbox);
+          BBox_expand_for_area(&*bounding_box, &obj_bbox);
         }
       }
     }
@@ -287,7 +287,7 @@ static void draw_snake(ObjGfxMeshes *const meshes, PolyColData const *const poly
           pos, pal, bounding_box ? &obj_bbox : NULL, style);
 
         if (bounding_box) {
-          BBox_expand_for_area(bounding_box, &obj_bbox);
+          BBox_expand_for_area(&*bounding_box, &obj_bbox);
         }
       }
     }
@@ -382,7 +382,7 @@ static void reload(Editor *const editor)
                     filenames_get(filenames, DataType_PolygonMeshes),
                     ObjGfxMeshes_get_ground_count(&graphics->meshes));
 
-  Session_all_graphics_changed(graphics, EDITOR_CHANGE_GFX_SNAKES_RELOADED, NULL);
+  Session_all_graphics_changed(graphics, EDITOR_CHANGE_GFX_SNAKES_RELOADED, &(EditorChangeParams){0});
 }
 
 static void edit(Editor *const editor)

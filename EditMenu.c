@@ -112,11 +112,11 @@ void EditMenu_created(ObjectId const id)
 
 void EditMenu_update(Editor const *const editor)
 {
-  EditWin *const edit_win = get_ancestor_handle_if_showing(EditMenu_id);
-  if (edit_win && EditWin_get_editor(edit_win) == editor)
+  _Optional EditWin *const edit_win = get_ancestor_handle_if_showing(EditMenu_id);
+  if (edit_win && EditWin_get_editor(&*edit_win) == editor)
   {
-    EditWin_update_can_paste(edit_win);
-    update_edit_menu(edit_win);
+    EditWin_update_can_paste(&*edit_win);
+    update_edit_menu(&*edit_win);
   }
 }
 

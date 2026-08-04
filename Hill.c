@@ -239,21 +239,27 @@ static unsigned char calc_height_for_pos(HillsData const *const hills, MapPoint 
     min_height = HillBaseHeight;
   }
 
-  TrigTable const *const trig_table = ObjGfxMeshes_get_trig_table();
+  _Optional TrigTable const *const trig_table = ObjGfxMeshes_get_trig_table();
+  assert(trig_table);
+  if (!trig_table)
+  {
+    return 0;
+  }
+
 #if HILL_HEIGHT_BUG
   /* These coefficients were clearly meant to be cosine and sine in the original
      game code but they aren't (wrong magic address relocation number). */
-  int f = TrigTable_look_up_sine(trig_table,
+  int f = TrigTable_look_up_sine(&*trig_table,
                         p.x * (OBJGFXMESH_ANGLE_QUART / HillCoordPerQuarterTurn));
 
-  int g = TrigTable_look_up_sine(trig_table,
+  int g = TrigTable_look_up_sine(&*trig_table,
                         (OBJGFXMESH_ANGLE_QUART * 3) +
                         p.y * (OBJGFXMESH_ANGLE_QUART / HillCoordPerQuarterTurn));
 #else
-  int f = TrigTable_look_up_cosine(trig_table,
+  int f = TrigTable_look_up_cosine(&*trig_table,
                         p.x * (OBJGFXMESH_ANGLE_QUART / HillCoordPerQuarterTurn));
 
-  int g = TrigTable_look_up_sine(trig_table,
+  int g = TrigTable_look_up_sine(&*trig_table,
                         p.y * (OBJGFXMESH_ANGLE_QUART / HillCoordPerQuarterTurn));
 #endif
 #if TRIG_BUG

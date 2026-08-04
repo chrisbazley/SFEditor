@@ -37,7 +37,7 @@ void ObjEditChanges_init(ObjEditChanges *const change_info)
   *change_info = (ObjEditChanges){0,0,0,0};
 }
 
-char *ObjEditChanges_get_message(const ObjEditChanges *const change_info)
+_Optional char *ObjEditChanges_get_message(const ObjEditChanges *const change_info)
 {
   char refs_changed_str[24], triggers_added_str[24], triggers_changed_str[24],
        triggers_deleted_str[24], token[sizeof(TOKEN_STEM "OACK")];
@@ -61,7 +61,7 @@ char *ObjEditChanges_get_message(const ObjEditChanges *const change_info)
              change_info->refs_changed);
     sub[p++] = refs_changed_str;
   } else {
-    sub[p++] = NULL;
+    sub[p++] = "";
   }
 
   if (change_info->triggers_added) {
@@ -69,7 +69,7 @@ char *ObjEditChanges_get_message(const ObjEditChanges *const change_info)
              change_info->triggers_added);
     sub[p++] = triggers_added_str;
   } else {
-    sub[p++] = NULL;
+    sub[p++] = "";
   }
 
   if (change_info->triggers_changed) {
@@ -77,7 +77,7 @@ char *ObjEditChanges_get_message(const ObjEditChanges *const change_info)
              change_info->triggers_changed);
     sub[p++] = triggers_changed_str;
   } else {
-    sub[p++] = NULL;
+    sub[p++] = "";
   }
 
   if (change_info->triggers_deleted) {
@@ -85,7 +85,7 @@ char *ObjEditChanges_get_message(const ObjEditChanges *const change_info)
              change_info->triggers_deleted);
     sub[p++] = triggers_deleted_str;
   } else {
-    sub[p++] = NULL;
+    sub[p++] = "";
   }
 
   return msgs_lookup_subn(token, p, sub[0], sub[1], sub[2], sub[3]);

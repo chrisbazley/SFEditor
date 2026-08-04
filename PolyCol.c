@@ -63,7 +63,7 @@ static void polycol_destroy_cb(DFile const *const dfile)
 
 static void polycol_cleanup(void)
 {
-  strdict_destroy(&file_dict, NULL, NULL);
+  strdict_destroy(&file_dict, (StrDictDestructorFn *)NULL, &file_dict);
 }
 
 void polycol_init(void)
@@ -72,9 +72,9 @@ void polycol_init(void)
   atexit(polycol_cleanup);
 }
 
-PolyColData *polycol_create(void)
+_Optional PolyColData *polycol_create(void)
 {
-  PolyColData *const poly_colours = malloc(sizeof(*poly_colours));
+  _Optional PolyColData *const poly_colours = malloc(sizeof(*poly_colours));
   if (poly_colours)
   {
     if (!flex_alloc(&poly_colours->flex, PolyColMax))
@@ -83,7 +83,8 @@ PolyColData *polycol_create(void)
       return NULL;
     }
 
-    dfile_init(&poly_colours->dfile, polycol_read_cb, NULL, NULL,
+    dfile_init(&poly_colours->dfile, polycol_read_cb,
+               (DFileWriteFn *)NULL, (DFileGetMinSizeFn *)NULL,
                polycol_destroy_cb);
   }
   return poly_colours;
@@ -95,10 +96,10 @@ bool polycol_share(PolyColData *const poly_colours)
   return dfile_set_shared(&poly_colours->dfile, &file_dict);
 }
 
-PolyColData *polycol_get_shared(char const *const filename)
+_Optional PolyColData *polycol_get_shared(char const *const filename)
 {
   assert(filename);
-  DFile *const dfile = dfile_find_shared(&file_dict, filename);
+  _Optional DFile *const dfile = dfile_find_shared(&file_dict, filename);
   return dfile ? CONTAINER_OF(dfile, PolyColData, dfile) : NULL;
 }
 

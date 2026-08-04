@@ -56,10 +56,10 @@ static bool get_name_from_type(StringBuffer *const output_string,
   if (stringbuffer_append_all(&token, graphics_set))
   {
     size_t toksize = TokenTailMaxBytes;
-    char *const toktail = stringbuffer_prepare_append(&token, &toksize);
+    _Optional char *const toktail = stringbuffer_prepare_append(&token, &toksize);
     if (toktail)
     {
-      int const nchars = sprintf(toktail, "@%c%d", type_prefix, obj_no);
+      int const nchars = sprintf(&*toktail, "@%c%d", type_prefix, obj_no);
       assert(nchars >= 0);
       stringbuffer_finish_append(&token, (size_t)nchars);
 
@@ -68,10 +68,10 @@ static bool get_name_from_type(StringBuffer *const output_string,
       if (messagetrans_lookup(&messages, stringbuffer_get_pointer(&token),
                                NULL, 0, &msgsize, 0) == NULL)
       {
-        char *const outtail = stringbuffer_prepare_append(output_string, &msgsize);
+        _Optional char *const outtail = stringbuffer_prepare_append(output_string, &msgsize);
         if (outtail &&
             messagetrans_lookup(&messages, stringbuffer_get_pointer(&token),
-                                 outtail, msgsize, &msgsize, 0) == NULL)
+                                &*outtail, msgsize, &msgsize, 0) == NULL)
         {
           stringbuffer_finish_append(output_string, msgsize - 1);
           success = true;
@@ -115,10 +115,10 @@ bool get_objname_from_type(StringBuffer *const output_string,
     if (messagetrans_lookup(&messages, token,
                              NULL, 0, &msgsize, 1, id_string) == NULL)
     {
-      char *const outtail = stringbuffer_prepare_append(output_string, &msgsize);
+      _Optional char *const outtail = stringbuffer_prepare_append(output_string, &msgsize);
       if (outtail &&
           messagetrans_lookup(&messages, token,
-                              outtail, msgsize, &msgsize, 1, id_string) == NULL)
+                              &*outtail, msgsize, &msgsize, 1, id_string) == NULL)
       {
         stringbuffer_finish_append(output_string, msgsize - 1);
         return true;

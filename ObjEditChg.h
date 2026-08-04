@@ -21,7 +21,7 @@ ObjEditChanges;
 
 void ObjEditChanges_init(ObjEditChanges *change_info);
 
-static inline bool ObjEditChanges_triggers_changed(const ObjEditChanges *const change_info)
+static inline bool ObjEditChanges_triggers_changed(_Optional const ObjEditChanges *const change_info)
 {
   if (!change_info) {
     return false;
@@ -31,7 +31,7 @@ static inline bool ObjEditChanges_triggers_changed(const ObjEditChanges *const c
          change_info->triggers_deleted;
 }
 
-static inline bool ObjEditChanges_refs_changed(const ObjEditChanges *const change_info)
+static inline bool ObjEditChanges_refs_changed(_Optional const ObjEditChanges *const change_info)
 {
   if (!change_info) {
     return false;
@@ -39,13 +39,13 @@ static inline bool ObjEditChanges_refs_changed(const ObjEditChanges *const chang
   return change_info->refs_changed;
 }
 
-static inline bool ObjEditChanges_is_changed(const ObjEditChanges *const change_info)
+static inline bool ObjEditChanges_is_changed(_Optional const ObjEditChanges *const change_info)
 {
   return ObjEditChanges_triggers_changed(change_info) ||
          ObjEditChanges_refs_changed(change_info);
 }
 
-static inline void ObjEditChanges_change_refs(ObjEditChanges *const change_info,
+static inline void ObjEditChanges_change_refs(_Optional ObjEditChanges *const change_info,
   unsigned long int const n)
 {
   if (change_info) {
@@ -53,32 +53,32 @@ static inline void ObjEditChanges_change_refs(ObjEditChanges *const change_info,
   }
 }
 
-static inline void ObjEditChanges_change_ref(ObjEditChanges *const change_info)
+static inline void ObjEditChanges_change_ref(_Optional ObjEditChanges *const change_info)
 {
   ObjEditChanges_change_refs(change_info, 1);
 }
 
-static inline void ObjEditChanges_change_trig(ObjEditChanges *const change_info)
+static inline void ObjEditChanges_change_trig(_Optional ObjEditChanges *const change_info)
 {
   if (change_info) {
     ++change_info->triggers_changed;
   }
 }
 
-static inline void ObjEditChanges_add_trig(ObjEditChanges *const change_info)
+static inline void ObjEditChanges_add_trig(_Optional ObjEditChanges *const change_info)
 {
   if (change_info) {
     ++change_info->triggers_added;
   }
 }
 
-static inline void ObjEditChanges_delete_trig(ObjEditChanges *const change_info)
+static inline void ObjEditChanges_delete_trig(_Optional ObjEditChanges *const change_info)
 {
   if (change_info) {
     ++change_info->triggers_deleted;
   }
 }
 
-char *ObjEditChanges_get_message(const ObjEditChanges *change_info);
+_Optional char *ObjEditChanges_get_message(const ObjEditChanges *change_info);
 
 #endif

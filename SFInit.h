@@ -26,7 +26,7 @@ extern PaletteEntry const (*palette)[NumColours];
 extern char taskname[];
 extern int wimp_version, task_handle;
 extern MessagesFD messages;
-extern void *tb_sprite_area;
+extern _Optional void *tb_sprite_area;
 
 void initialise(void);
 

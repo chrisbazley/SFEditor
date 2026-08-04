@@ -68,7 +68,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   for (size_t i = 0; i < ARRAY_SIZE(knowledge); i++) {
     /* Are there any mission files on this pyramid? */
     int new_vsn;
-    const filescan_leafname *const leaves =
+    _Optional const filescan_leafname *const leaves =
       filescan_get_leaf_names(knowledge[i].directory, &new_vsn);
     if (knowledge[i].vsn != new_vsn && leaves != NULL) {
       knowledge[i].vsn = new_vsn;

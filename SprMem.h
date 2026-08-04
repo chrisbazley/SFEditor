@@ -29,7 +29,7 @@ bool SprMem_create_mask(SprMem *sm, char const *name);
 void SprMem_rename(SprMem *sm, char const *old_name,
   char const *new_name);
 
-SpriteHeader *SprMem_get_sprite_address(SprMem *sm,
+_Optional SpriteHeader *SprMem_get_sprite_address(SprMem *sm,
   char const *name);
 
 void SprMem_put_sprite_address(SprMem *sm,
@@ -55,8 +55,9 @@ void SprMem_flip(const SprMem *sm, char const *name);
 
 void SprMem_plot_scaled_sprite(const SprMem *sm,
       char const *name,
-      Vertex coords, int action, ScaleFactors *scale,
-      void const *colours);
+      Vertex coords, int action,
+      _Optional ScaleFactors *scale,
+      _Optional void const *colours);
 
 void SprMem_plot_trans_quad_sprite(const SprMem *sm,
   const char *name, BBox const *src, int action,

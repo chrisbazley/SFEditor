@@ -699,9 +699,9 @@ DFile *mission_get_dfile(MissionData *const mission)
   return &mission->dfile;
 }
 
-MissionData *mission_create(void)
+_Optional MissionData *mission_create(void)
 {
-  MissionData *const mission = malloc(sizeof(*mission));
+  _Optional MissionData *const mission = malloc(sizeof(*mission));
   if (mission)
   {
     *mission = (MissionData){0};
@@ -709,7 +709,7 @@ MissionData *mission_create(void)
     dfile_init(&mission->dfile, mission_read_cb, mission_write_cb,
                mission_get_min_size_cb, mission_destroy_cb);
 
-    SFError err = init_all(mission);
+    SFError err = init_all(&*mission);
     if (SFError_fail(err)) {
       free(mission);
       return NULL;

@@ -216,14 +216,15 @@ static void select_tool_with_fallback(Editor *const editor, EditorTool tool)
 
 /* ---------------- Public functions ---------------- */
 
-bool Editor_init(Editor *const editor, EditSession *const session, Editor const *const editor_to_copy)
+bool Editor_init(Editor *const editor, EditSession *const session,
+                 _Optional Editor const *const editor_to_copy)
 {
   DEBUG("Creating new editor on editing session %p", (void *)session);
 
   *editor = (Editor){
     .session = session,
     .editing_mode = EDITING_MODE_NONE,
-    .tool = editor_to_copy ? Editor_get_tool(editor_to_copy) : Config_get_default_edit_tool(),
+    .tool = editor_to_copy ? Editor_get_tool(&*editor_to_copy) : Config_get_default_edit_tool(),
     .show_tool_bar = editor_to_copy ? editor_to_copy->show_tool_bar : Config_get_default_tool_bar_enabled(),
     .show_palette = editor_to_copy ? editor_to_copy->show_palette : Config_get_default_palette_enabled(),
     .global_fill = editor_to_copy ? editor_to_copy->global_fill : Config_get_default_fill_is_global(),
@@ -242,7 +243,7 @@ bool Editor_init(Editor *const editor, EditSession *const session, Editor const 
     return false;
   }
 
-  EditMode mode = editor_to_copy ? Editor_get_edit_mode(editor_to_copy) : Config_get_default_edit_mode();
+  EditMode mode = editor_to_copy ? Editor_get_edit_mode(&*editor_to_copy) : Config_get_default_edit_mode();
   return select_mode_with_fallback(editor, mode);
 }
 
@@ -271,6 +272,11 @@ void Editor_resource_change(Editor *const editor, EditorChange const event,
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
+  if (!editor->mode_functions)
+  {
+    return;
+  }
+  EditModeFuncts const *mode_functions = &*editor->mode_functions;
 
   switch (event) {
     case EDITOR_CHANGE_TEX_ALL_RELOADED:
@@ -292,8 +298,8 @@ void Editor_resource_change(Editor *const editor, EditorChange const event,
       break;
   }
 
-  if (editor->mode_functions->resource_change) {
-    editor->mode_functions->resource_change(editor, event, params);
+  if (mode_functions->resource_change) {
+    mode_functions->resource_change(editor, event, params);
   }
 
   Editor_redraw_pending(editor, false);
@@ -303,6 +309,10 @@ void Editor_auto_select(Editor *const editor, EditWin *const edit_win)
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
+  if (!editor->mode_functions)
+  {
+    return;
+  }
 
   if (editor->dragging_select || editor->dragging_obj) {
     return;
@@ -322,6 +332,10 @@ void Editor_auto_deselect(Editor *const editor)
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
+  if (!editor->mode_functions)
+  {
+    return;
+  }
 
   if (editor->dragging_select || editor->dragging_obj) {
     return;
@@ -340,6 +354,11 @@ static void cancel_select(Editor *const editor, EditWin *const edit_win)
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
+  if (!editor->mode_functions)
+  {
+    return;
+  }
+
   if (!editor->dragging_select) {
     return;
   }
@@ -431,7 +450,7 @@ void Editor_wipe_ghost(Editor *const editor)
 void Editor_cancel(Editor *const editor, EditWin *const edit_win)
 {
   assert(editor != NULL);
-  char *msg = NULL;
+  _Optional char *msg = NULL;
   switch (editor->tool)
   {
     case EDITORTOOL_SELECT:
@@ -458,7 +477,7 @@ void Editor_cancel(Editor *const editor, EditWin *const edit_win)
       break;
   }
   if (msg) {
-    Editor_display_msg(editor, msg, false);
+    Editor_display_msg(editor, &*msg, false);
   }
   Editor_set_help_and_ptr(editor);
   Editor_redraw_pending(editor, false);
@@ -571,6 +590,11 @@ bool Editor_pointer_update(Editor *const editor,
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
+  if (!editor->mode_functions)
+  {
+    return false;
+  }
+  EditModeFuncts const *mode_functions = &*editor->mode_functions;
 
   DEBUG("Mouse pointer update %" PRIMapCoord ",%" PRIMapCoord " (buttons %d)",
         pointer_pos.x, pointer_pos.y, button_held);
@@ -594,8 +618,8 @@ bool Editor_pointer_update(Editor *const editor,
 
     case EDITORTOOL_TRANSFER:
       if (ptr_moved || !editor->shown_pending) {
-        if (editor->mode_functions->pending_transfer) {
-          editor->mode_functions->pending_transfer(editor, editor->map_pos);
+        if (mode_functions->pending_transfer) {
+          mode_functions->pending_transfer(editor, editor->map_pos);
           editor->shown_pending = true;
           Editor_redraw_pending(editor, true);
         }
@@ -604,16 +628,16 @@ bool Editor_pointer_update(Editor *const editor,
 
    case EDITORTOOL_SMOOTHWAND:
      if (TEST_BITS(button_held, BUTTONS_DRAG(Wimp_MouseButtonSelect))) {
-       if (ptr_moved && editor->mode_functions->draw_smooth) {
-         editor->mode_functions->draw_smooth(editor, editor->wand_size, last_map_pos, editor->map_pos);
+       if (ptr_moved && mode_functions->draw_smooth) {
+         mode_functions->draw_smooth(editor, editor->wand_size, last_map_pos, editor->map_pos);
          editor->shown_pending = false;
          Session_redraw_pending(editor->session, true);
        }
        auto_scroll = true;
      } else {
        if (ptr_moved || !editor->shown_pending) {
-         if (editor->mode_functions->pending_smooth) {
-           editor->mode_functions->pending_smooth(editor, editor->wand_size, editor->map_pos);
+         if (mode_functions->pending_smooth) {
+           mode_functions->pending_smooth(editor, editor->wand_size, editor->map_pos);
            Editor_redraw_pending(editor, true);
            editor->shown_pending = true;
          }
@@ -623,16 +647,16 @@ bool Editor_pointer_update(Editor *const editor,
 
    case EDITORTOOL_BRUSH:
      if (TEST_BITS(button_held, BUTTONS_DRAG(Wimp_MouseButtonSelect))) {
-       if (ptr_moved && editor->mode_functions->draw_brush) {
-         editor->mode_functions->draw_brush(editor, editor->brush_size, last_map_pos, editor->map_pos);
+       if (ptr_moved && mode_functions->draw_brush) {
+         mode_functions->draw_brush(editor, editor->brush_size, last_map_pos, editor->map_pos);
          editor->shown_pending = false;
          Session_redraw_pending(editor->session, true);
        }
        auto_scroll = true;
      } else {
        if (ptr_moved || !editor->shown_pending) {
-         if (editor->mode_functions->pending_brush) {
-           editor->mode_functions->pending_brush(editor, editor->brush_size, editor->map_pos);
+         if (mode_functions->pending_brush) {
+           mode_functions->pending_brush(editor, editor->brush_size, editor->map_pos);
            Editor_redraw_pending(editor, true);
            editor->shown_pending = true;
          }
@@ -643,16 +667,16 @@ bool Editor_pointer_update(Editor *const editor,
    case EDITORTOOL_FILLREPLACE:
      if (editor->global_fill) {
        if (fine_moved || !editor->shown_pending) {
-         if (editor->mode_functions->pending_global_replace) {
-           editor->mode_functions->pending_global_replace(editor, editor->fine_pos, editor->map_pos, edit_win);
+         if (mode_functions->pending_global_replace) {
+           mode_functions->pending_global_replace(editor, editor->fine_pos, editor->map_pos, edit_win);
            editor->shown_pending = true;
            Editor_redraw_pending(editor, true);
          }
        }
      } else {
        if (fine_moved || !editor->shown_pending) {
-         if (editor->mode_functions->pending_flood_fill) {
-           editor->mode_functions->pending_flood_fill(editor, editor->fine_pos, editor->map_pos, edit_win);
+         if (mode_functions->pending_flood_fill) {
+           mode_functions->pending_flood_fill(editor, editor->fine_pos, editor->map_pos, edit_win);
            editor->shown_pending = true;
            Editor_redraw_pending(editor, true);
          }
@@ -662,8 +686,8 @@ bool Editor_pointer_update(Editor *const editor,
 
    case EDITORTOOL_SAMPLER:
      if (ptr_moved || !editor->shown_pending) {
-       if (editor->mode_functions->pending_sample_obj) {
-         editor->mode_functions->pending_sample_obj(editor, editor->map_pos);
+       if (mode_functions->pending_sample_obj) {
+         mode_functions->pending_sample_obj(editor, editor->map_pos);
          editor->shown_pending = true;
        }
      }
@@ -671,16 +695,16 @@ bool Editor_pointer_update(Editor *const editor,
 
    case EDITORTOOL_SNAKE:
      if (TEST_BITS(button_held, BUTTONS_DRAG(Wimp_MouseButtonAdjust | Wimp_MouseButtonSelect))) {
-       if (ptr_moved && editor->mode_functions->draw_snake) {
-         editor->mode_functions->draw_snake(editor, editor->map_pos);
+       if (ptr_moved && mode_functions->draw_snake) {
+         mode_functions->draw_snake(editor, editor->map_pos);
          editor->shown_pending = false;
          Session_redraw_pending(editor->session, true);
        }
        auto_scroll = true;
      } else {
        if (ptr_moved || !editor->shown_pending) {
-         if (editor->mode_functions->pending_snake) {
-           editor->mode_functions->pending_snake(editor, editor->map_pos);
+         if (mode_functions->pending_snake) {
+           mode_functions->pending_snake(editor, editor->map_pos);
            editor->shown_pending = true;
            Editor_redraw_pending(editor, true);
          }
@@ -691,8 +715,8 @@ bool Editor_pointer_update(Editor *const editor,
    case EDITORTOOL_SELECT:
      if (editor->paste_pending) {
        if (ptr_moved || !editor->shown_pending) {
-         if (editor->mode_functions->pending_paste) {
-           editor->mode_functions->pending_paste(editor, editor->map_pos);
+         if (mode_functions->pending_paste) {
+           mode_functions->pending_paste(editor, editor->map_pos);
            editor->shown_pending = true;
            Editor_redraw_pending(editor, true);
          }
@@ -702,7 +726,7 @@ bool Editor_pointer_update(Editor *const editor,
 
      if (editor->dragging_select) {
        DEBUG("A drag is in progress");
-       if (fine_moved && editor->mode_functions->update_select) {
+       if (fine_moved && mode_functions->update_select) {
          DEBUG("Calling update drag function");
 
          /* Don't use last_fine_pos here because it isn't necessarily correct for this purpose.
@@ -714,7 +738,7 @@ bool Editor_pointer_update(Editor *const editor,
          MapArea select_box = {editor->drag_select_start, editor->drag_select_end};
          MapArea_make_valid(&select_box, &select_box);
 
-         editor->mode_functions->update_select(editor,
+         mode_functions->update_select(editor,
            editor->drag_select_only_inside,
            &last_select_box, &select_box, edit_win);
 
@@ -778,6 +802,11 @@ static void shapes_mouse_select(Editor *const editor)
 {
   assert(editor);
   assert(editor->mode_functions);
+  if (!editor->mode_functions)
+  {
+    return;
+  }
+  EditModeFuncts const *const mode_functions = &*editor->mode_functions;
   assert(editor->tool == EDITORTOOL_PLOTSHAPES);
 
   set_vertex(editor);
@@ -785,8 +814,8 @@ static void shapes_mouse_select(Editor *const editor)
   switch (editor->shape_to_plot) {
     case PLOTSHAPE_LINE:
       if (editor->vertices_set == 2) {
-        if (editor->mode_functions->plot_line) {
-          editor->mode_functions->plot_line(editor, editor->vertex[0],
+        if (mode_functions->plot_line) {
+          mode_functions->plot_line(editor, editor->vertex[0],
             editor->vertex[1]);
           editor->shown_pending = false;
         }
@@ -796,8 +825,8 @@ static void shapes_mouse_select(Editor *const editor)
 
     case PLOTSHAPE_RECTANGLE:
       if (editor->vertices_set == 2) {
-        if (editor->mode_functions->plot_rect) {
-          editor->mode_functions->plot_rect(editor, editor->vertex[0],
+        if (mode_functions->plot_rect) {
+          mode_functions->plot_rect(editor, editor->vertex[0],
             editor->vertex[1]);
           editor->shown_pending = false;
         }
@@ -807,8 +836,8 @@ static void shapes_mouse_select(Editor *const editor)
 
     case PLOTSHAPE_CIRCLE:
       if (editor->vertices_set == 2) {
-        if (editor->mode_functions->plot_circ) {
-          editor->mode_functions->plot_circ(editor, editor->vertex[0],
+        if (mode_functions->plot_circ) {
+          mode_functions->plot_circ(editor, editor->vertex[0],
             editor->vertex[1]);
           editor->shown_pending = false;
         }
@@ -819,8 +848,8 @@ static void shapes_mouse_select(Editor *const editor)
     default:
       assert(editor->shape_to_plot == PLOTSHAPE_TRIANGLE);
       if (editor->vertices_set == 3) {
-        if (editor->mode_functions->plot_tri) {
-          editor->mode_functions->plot_tri(editor, editor->vertex[0],
+        if (mode_functions->plot_tri) {
+          mode_functions->plot_tri(editor, editor->vertex[0],
             editor->vertex[1], editor->vertex[2]);
           editor->shown_pending = false;
         }
@@ -843,6 +872,7 @@ static void shapes_mouse_adjust(Editor *const editor)
   set_vertex(editor);
 
   if (editor->shown_pending &&
+      editor->mode_functions &&
       editor->mode_functions->pending_plot) {
     editor->mode_functions->pending_plot(editor, editor->map_pos);
   }
@@ -857,6 +887,11 @@ static void select_mouse_click(Editor *const editor,
 {
   assert(editor);
   assert(editor->mode_functions);
+  if (!editor->mode_functions)
+  {
+    return;
+  }
+  EditModeFuncts const *const mode_functions = &*editor->mode_functions;
   assert(editor->tool == EDITORTOOL_SELECT);
 
   if (editor->allow_drag_select) {
@@ -877,9 +912,9 @@ static void select_mouse_click(Editor *const editor,
 
   if (TEST_BITS(buttons, BUTTONS_DRAG(Wimp_MouseButtonSelect))) {
     /* Drag selected objects */
-    if (editor->mode_functions->start_drag_obj) {
+    if (mode_functions->start_drag_obj) {
       assert(!editor->dragging_obj);
-      editor->dragging_obj = editor->mode_functions->start_drag_obj(editor, fine_pos, edit_win);
+      editor->dragging_obj = mode_functions->start_drag_obj(editor, fine_pos, edit_win);
       if (editor->dragging_obj) {
         disp_drag_size(editor);
       }
@@ -889,8 +924,8 @@ static void select_mouse_click(Editor *const editor,
 
   if (TEST_BITS(buttons, BUTTONS_SINGLE(Wimp_MouseButtonSelect))) {
     if (editor->paste_pending) {
-      if (editor->mode_functions->draw_paste &&
-          editor->mode_functions->draw_paste(editor, editor->map_pos)) {
+      if (mode_functions->draw_paste &&
+          mode_functions->draw_paste(editor, editor->map_pos)) {
         /* Prevent the paste action from turning into a drag selection
            if the button is held too long */
         editor->allow_drag_select = false;
@@ -898,9 +933,9 @@ static void select_mouse_click(Editor *const editor,
         Editor_set_help_and_ptr(editor);
         Session_redraw_pending(editor->session, true);
       }
-    } else if (editor->mode_functions->start_exclusive_select) {
+    } else if (mode_functions->start_exclusive_select) {
       /* Exclusively select object */
-      editor->allow_drag_select = editor->mode_functions->start_exclusive_select(
+      editor->allow_drag_select = mode_functions->start_exclusive_select(
         editor, shift, fine_pos, edit_win);
 
       if (editor->allow_drag_select) {
@@ -920,9 +955,9 @@ static void select_mouse_click(Editor *const editor,
       /* Prevent the paste action from turning into a drag selection
          if the button is held too long */
       editor->allow_drag_select = false;
-    } else if (editor->mode_functions->start_select) {
+    } else if (mode_functions->start_select) {
       /* Select or deselect object */
-      editor->allow_drag_select = editor->mode_functions->start_select(
+      editor->allow_drag_select = mode_functions->start_select(
         editor, shift, fine_pos, edit_win);
 
       if (editor->allow_drag_select) {
@@ -939,8 +974,8 @@ static void select_mouse_click(Editor *const editor,
 
   if (TEST_BITS(buttons, BUTTONS_DOUBLE(Wimp_MouseButtonSelect))) {
     /* Edit object properties */
-    if (editor->mode_functions->edit_properties_at_pos) {
-      editor->mode_functions->edit_properties_at_pos(editor, fine_pos, edit_win);
+    if (mode_functions->edit_properties_at_pos) {
+      mode_functions->edit_properties_at_pos(editor, fine_pos, edit_win);
     }
     return;
   }
@@ -951,6 +986,11 @@ bool Editor_mouse_click(Editor *const editor, MapPoint const fine_pos,
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
+  if (!editor->mode_functions)
+  {
+    return false;
+  }
+  EditModeFuncts const *const mode_functions = &*editor->mode_functions;
 
   DEBUG("Mouse click at %" PRIMapCoord ",%" PRIMapCoord " (buttons %d, shift %d)",
         fine_pos.x, fine_pos.y, buttons, shift);
@@ -958,8 +998,8 @@ bool Editor_mouse_click(Editor *const editor, MapPoint const fine_pos,
   switch (editor->tool) {
     case EDITORTOOL_SAMPLER:
       if (TEST_BITS(buttons, BUTTONS_CLICK(Wimp_MouseButtonSelect))) {
-        if (editor->mode_functions->sample_obj) {
-          editor->mode_functions->sample_obj(editor, fine_pos, editor->map_pos, edit_win);
+        if (mode_functions->sample_obj) {
+          mode_functions->sample_obj(editor, fine_pos, editor->map_pos, edit_win);
           editor->shown_pending = false;
         }
         return false; /* don't trap mouse pointer */
@@ -972,8 +1012,8 @@ bool Editor_mouse_click(Editor *const editor, MapPoint const fine_pos,
       }
 
       if (TEST_BITS(buttons, BUTTONS_CLICK(Wimp_MouseButtonSelect))) {
-        if (editor->mode_functions->start_brush) {
-          editor->mode_functions->start_brush(editor, editor->brush_size, editor->map_pos);
+        if (mode_functions->start_brush) {
+          mode_functions->start_brush(editor, editor->brush_size, editor->map_pos);
           editor->shown_pending = false;
           Session_redraw_pending(editor->session, true);
         }
@@ -987,8 +1027,8 @@ bool Editor_mouse_click(Editor *const editor, MapPoint const fine_pos,
 
       if (TEST_BITS(buttons,
           BUTTONS_CLICK(Wimp_MouseButtonSelect | Wimp_MouseButtonAdjust))) {
-        if (editor->mode_functions->start_snake) {
-          editor->mode_functions->start_snake(editor, editor->map_pos,
+        if (mode_functions->start_snake) {
+          mode_functions->start_snake(editor, editor->map_pos,
             !TEST_BITS(buttons, BUTTONS_CLICK(Wimp_MouseButtonSelect)));
           editor->shown_pending = false;
           Session_redraw_pending(editor->session, true);
@@ -1003,12 +1043,12 @@ bool Editor_mouse_click(Editor *const editor, MapPoint const fine_pos,
     case EDITORTOOL_FILLREPLACE:
       if (TEST_BITS(buttons, BUTTONS_CLICK(Wimp_MouseButtonSelect))) {
         if (editor->global_fill) {
-          if (editor->mode_functions->global_replace) {
-            editor->mode_functions->global_replace(editor, fine_pos, editor->map_pos, edit_win);
+          if (mode_functions->global_replace) {
+            mode_functions->global_replace(editor, fine_pos, editor->map_pos, edit_win);
           }
         } else {
-          if (editor->mode_functions->flood_fill) {
-            editor->mode_functions->flood_fill(editor, fine_pos, editor->map_pos, edit_win);
+          if (mode_functions->flood_fill) {
+            mode_functions->flood_fill(editor, fine_pos, editor->map_pos, edit_win);
           }
         }
         editor->shown_pending = false;
@@ -1030,8 +1070,8 @@ bool Editor_mouse_click(Editor *const editor, MapPoint const fine_pos,
       }
 
       if (TEST_BITS(buttons, BUTTONS_CLICK(Wimp_MouseButtonSelect))) {
-        if (editor->mode_functions->start_smooth) {
-          editor->mode_functions->start_smooth(editor, editor->wand_size, editor->map_pos);
+        if (mode_functions->start_smooth) {
+          mode_functions->start_smooth(editor, editor->wand_size, editor->map_pos);
           editor->shown_pending = false;
           Session_redraw_pending(editor->session, true);
         }
@@ -1041,8 +1081,8 @@ bool Editor_mouse_click(Editor *const editor, MapPoint const fine_pos,
     case EDITORTOOL_TRANSFER:
     /*case EDITORTOOL_CBPASTE:*/
       if (TEST_BITS(buttons, BUTTONS_CLICK(Wimp_MouseButtonSelect))) {
-        if (editor->mode_functions->draw_transfer) {
-          editor->mode_functions->draw_transfer(editor, editor->map_pos);
+        if (mode_functions->draw_transfer) {
+          mode_functions->draw_transfer(editor, editor->map_pos);
           editor->shown_pending = false;
         }
       }
@@ -1059,7 +1099,7 @@ MapArea Editor_map_to_grid_area(Editor const *const editor,
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
-  return editor->mode_functions->map_to_grid_area ?
+  return editor->mode_functions && editor->mode_functions->map_to_grid_area ?
          editor->mode_functions->map_to_grid_area(map_area, edit_win) :
          *map_area;
 }
@@ -1069,7 +1109,7 @@ MapPoint Editor_map_to_grid_coords(Editor const *const editor,
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
-  return editor->mode_functions->map_to_grid_coords ?
+  return editor->mode_functions && editor->mode_functions->map_to_grid_coords ?
          editor->mode_functions->map_to_grid_coords(map_coords, edit_win) :
          map_coords;
 }
@@ -1079,7 +1119,7 @@ MapPoint Editor_grid_to_map_coords(Editor const *const editor,
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
-  return editor->mode_functions->grid_to_map_coords ?
+  return editor->mode_functions && editor->mode_functions->grid_to_map_coords ?
          editor->mode_functions->grid_to_map_coords(grid_coords, edit_win) :
          grid_coords;
 }
@@ -1088,7 +1128,7 @@ size_t Editor_num_selected(Editor const *const editor)
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
-  return editor->mode_functions->num_selected ?
+  return editor->mode_functions && editor->mode_functions->num_selected ?
          editor->mode_functions->num_selected(editor) :
          0;
 }
@@ -1097,7 +1137,7 @@ size_t Editor_max_selected(Editor const *const editor)
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
-  return editor->mode_functions->num_selected ?
+  return editor->mode_functions && editor->mode_functions->num_selected ?
          editor->mode_functions->max_selected(editor) :
          0;
 }
@@ -1119,7 +1159,7 @@ char const *Editor_get_mode_name(Editor const *const editor)
   return msgs_lookup("EMNon");
 }
 
-char *Editor_get_help_msg(Editor const *const editor)
+_Optional char *Editor_get_help_msg(Editor const *const editor)
 {
   assert(editor != NULL);
 
@@ -1206,7 +1246,7 @@ bool Editor_can_set_edit_mode(Editor *const editor, EditMode const new_mode)
   return can_enter;
 }
 
-bool Editor_set_edit_mode(Editor *const editor, EditMode const new_mode, EditWin *const edit_win)
+bool Editor_set_edit_mode(Editor *const editor, EditMode const new_mode, _Optional EditWin *const edit_win)
 {
   assert(Editor_can_set_edit_mode(editor, new_mode));
 
@@ -1343,13 +1383,13 @@ EditSession *Editor_get_session(Editor const *editor)
 void Editor_set_help_and_ptr(Editor *const editor)
 {
   assert(editor != NULL);
-  char *const help = Editor_get_help_msg(editor);
+  _Optional char *const help = Editor_get_help_msg(editor);
   PointerType const ptr = Editor_get_ptr_type(editor);
 
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_set_help_and_ptr(edit_win, help, ptr);
+    EditWin_set_help_and_ptr(&*edit_win, help, ptr);
   }
 #else
   Session_set_help_and_ptr(editor->session, help, ptr);
@@ -1750,7 +1790,8 @@ bool Editor_start_pending_paste(Editor *const editor, Reader *const reader,
   cancel_paste(editor);
 
   bool success = false;
-  if (editor->mode_functions->start_pending_paste) {
+  if (editor->mode_functions &&
+      editor->mode_functions->start_pending_paste) {
     success = editor->mode_functions->start_pending_paste(
                   editor, reader, estimated_size, data_type, filename);
   }
@@ -1802,7 +1843,7 @@ bool Editor_allow_drop(Editor const *editor)
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
-  return editor->mode_functions->drop != NULL;
+  return editor->mode_functions->drop;
 }
 
 DataType const *Editor_get_dragged_data_types(Editor const *editor)
@@ -1874,8 +1915,13 @@ void Editor_palette_selection(Editor *const editor, int const object)
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
+  if (!editor->mode_functions)
+  {
+    return;
+  }
+  EditModeFuncts const *mode_functions = &*editor->mode_functions;
 
-  if (editor->mode_functions->palette_selection != NULL) {
+  if (editor->mode_functions->palette_selection) {
     editor->mode_functions->palette_selection(editor, object);
   }
 
@@ -1889,22 +1935,22 @@ void Editor_palette_selection(Editor *const editor, int const object)
       break;
 
     case EDITORTOOL_TRANSFER:
-      if (editor->mode_functions->pending_transfer) {
-        editor->mode_functions->pending_transfer(editor, editor->map_pos);
+      if (mode_functions->pending_transfer) {
+        mode_functions->pending_transfer(editor, editor->map_pos);
         Editor_redraw_pending(editor, true);
       }
       break;
 
    case EDITORTOOL_BRUSH:
-     if (editor->mode_functions->pending_brush) {
-       editor->mode_functions->pending_brush(editor, editor->brush_size, editor->map_pos);
+     if (mode_functions->pending_brush) {
+       mode_functions->pending_brush(editor, editor->brush_size, editor->map_pos);
        Editor_redraw_pending(editor, true);
      }
      break;
 
    case EDITORTOOL_SNAKE:
-     if (editor->mode_functions->pending_snake) {
-       editor->mode_functions->pending_snake(editor, editor->map_pos);
+     if (mode_functions->pending_snake) {
+       mode_functions->pending_snake(editor, editor->map_pos);
        Editor_redraw_pending(editor, true);
      }
      break;
@@ -1916,7 +1962,7 @@ void Editor_palette_selection(Editor *const editor, int const object)
 
 bool Editor_show_ghost_drop(Editor *const editor,
                        MapArea const *const bbox,
-                       Editor const *drag_origin)
+                       _Optional Editor const *drag_origin)
 {
   bool hide_origin_bbox = false;
 
@@ -1928,12 +1974,12 @@ bool Editor_show_ghost_drop(Editor *const editor,
 
   assert(MapArea_is_valid(bbox));
 
-  if (drag_origin && Editor_get_edit_mode(drag_origin) != Editor_get_edit_mode(editor))
+  if (drag_origin && Editor_get_edit_mode(&*drag_origin) != Editor_get_edit_mode(editor))
   {
     drag_origin = NULL;
   }
 
-  if (editor->mode_functions->show_ghost_drop) {
+  if (editor->mode_functions && editor->mode_functions->show_ghost_drop) {
     hide_origin_bbox = editor->mode_functions->show_ghost_drop(editor, bbox, drag_origin);
     Editor_redraw_pending(editor, true);
   }
@@ -1946,7 +1992,7 @@ void Editor_hide_ghost_drop(Editor *const editor)
   assert(editor->mode_functions != NULL);
   DEBUGF("Hide ghost in editor %p\n", (void *)editor);
 
-  if (editor->mode_functions->hide_ghost_drop) {
+  if (editor->mode_functions && editor->mode_functions->hide_ghost_drop) {
     editor->mode_functions->hide_ghost_drop(editor);
     Editor_redraw_pending(editor, false);
   }
@@ -1960,6 +2006,7 @@ void Editor_drag_obj_move(Editor *const editor,
   assert(drag_origin != NULL);
   assert(drag_origin->dragging_obj);
   assert(editor->mode_functions != NULL);
+
   assert(MapArea_is_valid(bbox));
   assert(editor->session == drag_origin->session);
 
@@ -1976,7 +2023,7 @@ void Editor_drag_obj_move(Editor *const editor,
 
   Editor_select_tool(editor, EDITORTOOL_SELECT);
 
-  if (editor->mode_functions->drag_obj_move) {
+  if (editor->mode_functions && editor->mode_functions->drag_obj_move) {
     editor->mode_functions->drag_obj_move(editor, bbox, drag_origin);
     Session_redraw_pending(editor->session, false);
   }
@@ -2005,7 +2052,7 @@ bool Editor_drag_obj_copy(Editor *const editor,
 
   Editor_select_tool(editor, EDITORTOOL_SELECT);
 
-  if (editor->mode_functions->drag_obj_copy) {
+  if (editor->mode_functions && editor->mode_functions->drag_obj_copy) {
     bool success = editor->mode_functions->drag_obj_copy(editor, bbox, drag_origin);
     Session_redraw_pending(editor->session, false);
     return success;
@@ -2021,9 +2068,7 @@ bool Editor_drag_obj_link(Editor *const editor, int const window, int const icon
   assert(drag_origin != NULL);
   assert(drag_origin->dragging_obj);
   assert(editor->mode_functions != NULL);
-
-
-  if (editor->mode_functions->drag_obj_link) {
+  if (editor->mode_functions && editor->mode_functions->drag_obj_link) {
     if (editor->mode_functions->drag_obj_link(editor, window, icon, drag_origin)) {
       drag_origin->dragging_obj = false;
       return true;
@@ -2047,7 +2092,7 @@ bool Editor_drop(Editor *const editor, MapArea const *const bbox,
 
   Editor_select_tool(editor, EDITORTOOL_SELECT);
 
-  if (editor->mode_functions->drop) {
+  if (editor->mode_functions && editor->mode_functions->drop) {
     bool success = editor->mode_functions->drop(editor, bbox, reader,
       estimated_size, data_type, filename);
     Session_redraw_pending(editor->session, false);
@@ -2098,6 +2143,7 @@ void Editor_set_plot_shape(Editor *const editor, PlotShape const shape_to_plot)
       clear_vertices(editor);
 
       if (editor->shown_pending &&
+          editor->mode_functions &&
           editor->mode_functions->pending_plot) {
         editor->mode_functions->pending_plot(editor, editor->map_pos);
       }
@@ -2129,6 +2175,7 @@ void Editor_set_brush_size(Editor *const editor, int const size)
 
     if (editor->tool == EDITORTOOL_BRUSH) {
       if (editor->shown_pending &&
+          editor->mode_functions &&
           editor->mode_functions->pending_brush) {
         editor->mode_functions->pending_brush(editor, editor->brush_size, editor->map_pos);
         Editor_redraw_pending(editor, true);
@@ -2160,6 +2207,7 @@ void Editor_set_wand_size(Editor *const editor, int const size)
 
     if (editor->tool == EDITORTOOL_SMOOTHWAND) {
       if (editor->shown_pending &&
+          editor->mode_functions &&
           editor->mode_functions->pending_smooth) {
         editor->mode_functions->pending_smooth(editor, editor->wand_size, editor->map_pos);
       }
@@ -2259,9 +2307,9 @@ void Editor_redraw_object(Editor *const editor, MapPoint const pos, ObjRef const
 {
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_redraw_object(edit_win, pos, objects_ref_none(), obj_ref, obj_ref, has_triggers);
+    EditWin_redraw_object(&*edit_win, pos, objects_ref_none(), obj_ref, obj_ref, has_triggers);
   }
 #else
   Session_redraw_object(editor->session, pos, objects_ref_none(), obj_ref, obj_ref, has_triggers);
@@ -2272,9 +2320,9 @@ void Editor_redraw_info(Editor *const editor, MapPoint const pos)
 {
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_redraw_info(edit_win, pos);
+    EditWin_redraw_info(&*edit_win, pos);
   }
 #else
   Session_redraw_info(editor->session, pos);
@@ -2285,9 +2333,9 @@ void Editor_occluded_obj_changed(Editor *const editor, MapPoint const pos, ObjRe
 {
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_occluded_obj_changed(edit_win, pos, obj_ref);
+    EditWin_occluded_obj_changed(&*edit_win, pos, obj_ref);
   }
 #else
   Session_occluded_obj_changed(editor->session, pos, obj_ref);
@@ -2298,9 +2346,9 @@ void Editor_occluded_info_changed(Editor *const editor, MapPoint const pos)
 {
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_occluded_info_changed(edit_win, pos);
+    EditWin_occluded_info_changed(&*edit_win, pos);
   }
 #else
   Session_occluded_info_changed(editor->session, pos);
@@ -2311,9 +2359,9 @@ void Editor_redraw_ghost(Editor *const editor)
 {
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_redraw_ghost(edit_win);
+    EditWin_redraw_ghost(&*edit_win);
   }
 #else
   Session_redraw_ghost(editor->session);
@@ -2324,9 +2372,9 @@ void Editor_clear_ghost_bbox(Editor *const editor)
 {
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_clear_ghost_bbox(edit_win);
+    EditWin_clear_ghost_bbox(&*edit_win);
   }
 #else
   Session_clear_ghost_bbox(editor->session);
@@ -2337,9 +2385,9 @@ void Editor_set_ghost_map_bbox(Editor *const editor, MapArea const *area)
 {
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_set_ghost_map_bbox(edit_win, area);
+    EditWin_set_ghost_map_bbox(&*edit_win, area);
   }
 #else
   Session_set_ghost_map_bbox(editor->session, area);
@@ -2350,9 +2398,9 @@ void Editor_add_ghost_obj(Editor *const editor, MapPoint const pos, ObjRef const
 {
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_add_ghost_obj(edit_win, pos, obj_ref);
+    EditWin_add_ghost_obj(&*edit_win, pos, obj_ref);
   }
 #else
   Session_add_ghost_obj(editor->session, pos, obj_ref);
@@ -2363,9 +2411,9 @@ void Editor_add_ghost_info(Editor *const editor, MapPoint const pos)
 {
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_add_ghost_info(edit_win, pos);
+    EditWin_add_ghost_info(&*edit_win, pos);
   }
 #else
   Session_add_ghost_info(editor->session, pos);
@@ -2376,9 +2424,9 @@ void Editor_add_ghost_unknown_obj(Editor *const editor, MapArea const *const bbo
 {
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_add_ghost_unknown_obj(edit_win, bbox);
+    EditWin_add_ghost_unknown_obj(&*edit_win, bbox);
   }
 #else
   Session_add_ghost_unknown_obj(editor->session, bbox);
@@ -2389,9 +2437,9 @@ void Editor_add_ghost_unknown_info(Editor *const editor, MapArea const *const bb
 {
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_add_ghost_unknown_info(edit_win, bbox);
+    EditWin_add_ghost_unknown_info(&*edit_win, bbox);
   }
 #else
   Session_add_ghost_unknown_info(editor->session, bbox);
@@ -2402,9 +2450,9 @@ void Editor_redraw_pending(Editor *const editor, bool const immediate)
 {
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_redraw_pending(edit_win, immediate);
+    EditWin_redraw_pending(&*edit_win, immediate);
   }
 #else
   Session_redraw_pending(editor->session, immediate);

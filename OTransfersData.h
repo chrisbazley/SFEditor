@@ -17,7 +17,7 @@ struct ObjTransfers
 {
   int               count;
   StrDict           dict; /* root of linked list of transfers */
-  char *directory;
+  _Optional char *directory;
 };
 
 #endif

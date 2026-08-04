@@ -34,7 +34,7 @@ typedef struct SnakeContext {
   unsigned int default_piece;
   Direction major_direct;
   SnakesReadFunction *read;
-  SnakesWriteFunction *write;
+  _Optional SnakesWriteFunction *write;
 } SnakeContext;
 
 void Snakes_init(Snakes *snakes_data);
@@ -57,7 +57,7 @@ SFError Snakes_load(FILE *const file, Snakes *const snakes_data,
 int Snakes_begin_line(SnakeContext *ctx,
   Snakes *snakes_data, MapPoint map_pos, int snake,
   bool inside, SnakesReadFunction *read,
-  SnakesWriteFunction *write);
+  _Optional SnakesWriteFunction *write);
 
 void Snakes_plot_line(SnakeContext *ctx, MapPoint end);
 

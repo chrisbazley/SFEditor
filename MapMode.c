@@ -117,14 +117,14 @@ typedef struct
   MapPoint drag_start_pos, pending_vert[3];
   MapEditChanges change_info; /* for accumulation */
   PendingShape pending_shape;
-  MapTransfer *pending_transfer, *pending_paste, *pending_drop, *dragged;
+  _Optional MapTransfer *pending_transfer, *pending_paste, *pending_drop, *dragged;
   bool uk_drop_pending:1, lock_selection:1;
   MapSnakesContext snake_ctx;
   MapPropDboxes prop_dboxes;
 }
 MapModeData;
 
-static MapTransfer *clipboard;
+static _Optional MapTransfer *clipboard;
 
 /* ---------------- Private functions ---------------- */
 
@@ -186,7 +186,7 @@ static bool MapMode_anim_is_selected(Editor const *const editor)
   if (map->anims) {
     DEBUGF("Searching animations for the first selected\n");
     MapAnimsIter iter;
-    for (MapPoint p = MapAnimsIter_get_first(&iter, map->anims, &sel_area, NULL);
+    for (MapPoint p = MapAnimsIter_get_first(&iter, &*map->anims, &sel_area, NULL);
          !MapAnimsIter_done(&iter);
          p = MapAnimsIter_get_next(&iter, NULL))
     {
@@ -252,9 +252,9 @@ static void notify_changed(EditSession *const session,
 static void display_msg(Editor *const editor,
   MapEditChanges const *const change_info)
 {
-  char *const msg = MapEditChanges_get_message(change_info);
+  _Optional char *const msg = MapEditChanges_get_message(change_info);
   if (msg) {
-    Editor_display_msg(editor, msg, true);
+    Editor_display_msg(editor, &*msg, true);
   }
 }
 
@@ -303,10 +303,10 @@ typedef enum {
 } RedrawCheqValue;
 
 typedef struct {
-  MapEditSelection const *selection;
+  _Optional MapEditSelection const *selection;
   PaletteEntry bg_sel_colour;
   PaletteEntry bg_colour;
-  MapEditContext const *map;
+  _Optional MapEditContext const *map;
   RedrawCheqValue last;
   Vertex min_os;
 } RedrawCheqData;
@@ -340,7 +340,7 @@ static DrawTilesReadResult draw_chequered_read(void *const cb_arg, MapPoint cons
 
   /* If skip_overlay then skip tiles overridden in the overlay map
      (prevents unsightly overplotting). */
-  if (data->map && !map_ref_is_mask(MapEdit_read_overlay(data->map, map_pos)))
+  if (data->map && !map_ref_is_mask(MapEdit_read_overlay(&*data->map, map_pos)))
   {
     return (DrawTilesReadResult){
       .tile_ref = map_ref_from_num(RedrawCheqValue_Skip),
@@ -351,7 +351,7 @@ static DrawTilesReadResult draw_chequered_read(void *const cb_arg, MapPoint cons
   return (DrawTilesReadResult){
     .tile_ref = map_ref_from_num(
                   data->selection &&
-                  MapEditSelection_is_selected(data->selection, map_pos) ?
+                  MapEditSelection_is_selected(&*data->selection, map_pos) ?
                     RedrawCheqValue_Selected : RedrawCheqValue_Clear),
     .is_selected = false,
   };
@@ -370,7 +370,7 @@ static void draw_chequered(Editor *const editor, MapAngle const angle,
 {
   DEBUGF("Drawing chequered\n");
   EditSession *const session = Editor_get_session(editor);
-  MapModeData *const mode_data =
+  _Optional MapModeData *const mode_data =
       (Editor_get_edit_mode(editor) == EDITING_MODE_MAP ?
       editor->editingmode_data : NULL);
 
@@ -396,7 +396,7 @@ static void draw_chequered(Editor *const editor, MapAngle const angle,
     &data, tile_size);
 }
 
-static MapEditSelection *get_selection(Editor *const editor)
+static _Optional MapEditSelection *get_selection(Editor *const editor)
 {
   if (Editor_get_edit_mode(editor) != EDITING_MODE_MAP)
     return NULL;
@@ -434,8 +434,8 @@ static void draw_anims(Editor *const editor,
 {
   EditSession *const session = Editor_get_session(editor);
   MapEditContext const *const map = Session_get_map(session);
-  ConvAnimations *const anims = map->anims;
-  MapEditSelection const *const selection = get_selection(editor);
+  _Optional ConvAnimations *const anims = map->anims;
+  _Optional MapEditSelection const *const selection = get_selection(editor);
 
   if (!anims) {
     return;
@@ -464,7 +464,7 @@ static void draw_anims(Editor *const editor,
   unsigned int const bg_sel_brightness = palette_entry_brightness(bg_sel_colour);
 
   MapAnimsIter iter;
-  for (MapPoint p = MapAnimsIter_get_first(&iter, anims, grid_area, NULL);
+  for (MapPoint p = MapAnimsIter_get_first(&iter, &*anims, grid_area, NULL);
        !MapAnimsIter_done(&iter);
        p = MapAnimsIter_get_next(&iter, NULL))
   {
@@ -472,7 +472,7 @@ static void draw_anims(Editor *const editor,
     Vertex const draw_min = Vertex_add(scr_orig, Vertex_mul(MapPoint_to_vertex(scr_pos), tile_size));
 
     bool const inv_tile =
-      (selection ? MapEditSelection_is_selected(selection, p) : false);
+      (selection ? MapEditSelection_is_selected(&*selection, p) : false);
 
     PaletteEntry colour;
     MapRef tile_no = MapEdit_read_tile(read_map_data, p);
@@ -501,7 +501,7 @@ static void draw_anims(Editor *const editor,
 
 typedef struct {
   MapEditContext read_map_data;
-  MapEditSelection *selection;
+  _Optional MapEditSelection *selection;
 } RedrawToSpriteData;
 
 static DrawTilesReadResult read_map(void *const cb_arg, MapPoint const map_pos)
@@ -510,7 +510,7 @@ static DrawTilesReadResult read_map(void *const cb_arg, MapPoint const map_pos)
   RedrawToSpriteData const *const data = cb_arg;
   return (DrawTilesReadResult){
     MapEdit_read_tile(&data->read_map_data, map_pos),
-    data->selection ? MapEditSelection_is_selected(data->selection, map_pos) : false,
+    data->selection ? MapEditSelection_is_selected(&*data->selection, map_pos) : false,
   };
 }
 
@@ -520,7 +520,7 @@ static DrawTilesReadResult read_overlay(void *const cb_arg, MapPoint const map_p
   RedrawToSpriteData const *const data = cb_arg;
   return (DrawTilesReadResult){
     MapEdit_read_overlay(&data->read_map_data, map_pos),
-    data->selection ? MapEditSelection_is_selected(data->selection, map_pos) : false};
+    data->selection ? MapEditSelection_is_selected(&*data->selection, map_pos) : false};
 }
 
 static bool draw_to_sprite(Editor *const editor,
@@ -697,7 +697,7 @@ static void update_transfer_ghost(Editor *const editor,
 }
 
 static bool paste_generic(Editor *const editor,
-  MapTransfer *const transfer, MapPoint const map_pos, MapEditSelection *const selection)
+  MapTransfer *const transfer, MapPoint const map_pos, _Optional MapEditSelection *const selection)
 {
   MapModeData *const mode_data = get_mode_data(editor);
 
@@ -706,7 +706,7 @@ static bool paste_generic(Editor *const editor,
   MapEditChanges_init(&mode_data->change_info);
 
   if (selection) {
-    MapEditSelection_clear(selection);
+    MapEditSelection_clear(&*selection);
   }
 
   /* Plot transfer at mouse pointer */
@@ -714,7 +714,7 @@ static bool paste_generic(Editor *const editor,
   MapPoint const t_dims = MapTransfers_get_dims(transfer);
   MapPoint const t_pos_on_map = MapPoint_sub(map_pos, MapPoint_div_log2(t_dims, 1));
   bool success = MapTransfers_plot_to_map(Session_get_map(session), t_pos_on_map, transfer,
-                           selection, &mode_data->change_info);
+                                          selection, &mode_data->change_info);
 
   changed_with_msg(editor);
   return success;
@@ -754,7 +754,7 @@ static MapRef get_selected_tile(Editor *const editor)
   return map_ref_from_num(pal_index != NULL_DATA_INDEX ? (unsigned char)pal_index : 0);
 }
 
-static MapTransfer *get_selected_transfer(Editor *const editor)
+static _Optional MapTransfer *get_selected_transfer(Editor *const editor)
 {
   assert(editor != NULL);
   int const sel_index = Palette_get_selection(&editor->palette_data);
@@ -1011,7 +1011,7 @@ static void free_pending_paste(MapModeData *const mode_data)
   assert(mode_data);
   if (mode_data->pending_paste) {
     assert(mode_data->pending_paste != mode_data->pending_transfer);
-    dfile_release(MapTransfer_get_dfile(mode_data->pending_paste));
+    dfile_release(MapTransfer_get_dfile(&*mode_data->pending_paste));
     mode_data->pending_paste = NULL;
   }
 }
@@ -1021,7 +1021,7 @@ static void free_dragged(MapModeData *const mode_data)
   assert(mode_data);
   if (mode_data->dragged) {
     assert(mode_data->dragged != mode_data->pending_transfer);
-    dfile_release(MapTransfer_get_dfile(mode_data->dragged));
+    dfile_release(MapTransfer_get_dfile(&*mode_data->dragged));
     mode_data->dragged = NULL;
   }
 }
@@ -1031,7 +1031,7 @@ static void free_pending_drop(MapModeData *const mode_data)
   assert(mode_data);
   if (mode_data->pending_drop) {
     assert(mode_data->pending_drop != mode_data->pending_transfer);
-    dfile_release(MapTransfer_get_dfile(mode_data->pending_drop));
+    dfile_release(MapTransfer_get_dfile(&*mode_data->pending_drop));
     mode_data->pending_drop = NULL;
   }
 }
@@ -1073,12 +1073,12 @@ static bool MapMode_start_exclusive_select(Editor *const editor, bool const only
 
 static void MapMode_pending_transfer(Editor *const editor, MapPoint const map_pos)
 {
-  MapTransfer *const transfer = get_selected_transfer(editor);
+  _Optional MapTransfer *const transfer = get_selected_transfer(editor);
   if (transfer == NULL) {
     return;
   }
 
-  update_transfer_ghost(editor, transfer, map_pos);
+  update_transfer_ghost(editor, &*transfer, map_pos);
 }
 
 static bool MapMode_has_selection(Editor const *const editor)
@@ -1295,7 +1295,7 @@ static void MapMode_plot_circ(Editor *const editor, MapPoint const a, MapPoint c
   changed_with_msg(editor);
 }
 
-static MapTransfer *clipboard;
+static _Optional MapTransfer *clipboard;
 
 static bool cb_copy_core(Editor *const editor)
 {
@@ -1319,7 +1319,12 @@ static void cb_status(Editor *const editor, bool const copy)
   sprintf(tiles_count_str, "%zu",
            tiles_count);
 
-  int const anim_count = MapTransfers_get_anim_count(clipboard);
+  assert(clipboard);
+  if (!clipboard)
+  {
+    return;
+  }
+  int const anim_count = MapTransfers_get_anim_count(&*clipboard);
 
   if (anim_count > 0) {
     char anim_count_str[32];
@@ -1368,9 +1373,9 @@ static void MapMode_paint_selected(Editor *const editor)
 
 static void MapMode_draw_transfer(Editor *const editor, MapPoint const map_pos)
 {
-  MapTransfer *const s = get_selected_transfer(editor);
+  _Optional MapTransfer *const s = get_selected_transfer(editor);
   if (s != NULL) {
-    paste_generic(editor, s, map_pos, NULL);
+    paste_generic(editor, &*s, map_pos, NULL);
   }
 }
 
@@ -1437,17 +1442,17 @@ static void MapMode_create_transfer(Editor *const editor, char const *const name
   MapTex *const textures = Session_get_textures(session);
 
   int replace_index;
-  MapTransfer * const replace_transfer = MapTransfers_find_by_name(
+  _Optional MapTransfer * const replace_transfer = MapTransfers_find_by_name(
     &textures->transfers, name, &replace_index);
 
   if (replace_transfer != NULL) {
     if (!dialogue_confirm(msgs_lookup_subn("DupTransferName", 1,
-         get_leaf_name(MapTransfer_get_dfile(replace_transfer))), "OvBut"))
+         get_leaf_name(MapTransfer_get_dfile(&*replace_transfer))), "OvBut"))
       return; /* no user confirmation */
   }
 
   /* Grab transfer from selected tiles on map */
-  MapTransfer *const transfer = MapTransfers_grab_selection(
+  _Optional MapTransfer *const transfer = MapTransfers_grab_selection(
     Session_get_map(session), &mode_data->selection);
 
   if (!transfer) {
@@ -1456,9 +1461,9 @@ static void MapMode_create_transfer(Editor *const editor, char const *const name
 
   /* Add the new transfer to the linked list for this tiles set */
   int new_index;
-  if (!MapTransfers_add(&textures->transfers, transfer, name,
+  if (!MapTransfers_add(&textures->transfers, &*transfer, name,
                      &new_index, &textures->tiles)) {
-    dfile_release(MapTransfer_get_dfile(transfer));
+    dfile_release(MapTransfer_get_dfile(&*transfer));
     return; /* failed */
   }
 
@@ -1472,7 +1477,7 @@ static void MapMode_create_transfer(Editor *const editor, char const *const name
       &(EditorChangeParams){.transfer_replaced.index = replace_index});
   }
 
-  create_trans_msg(editor, transfer);
+  create_trans_msg(editor, &*transfer);
 }
 
 static bool MapMode_auto_select(Editor *const editor, MapPoint const fine_pos, EditWin *const edit_win)
@@ -1600,11 +1605,11 @@ static int MapMode_misc_event(Editor *const editor, int const event_code)
   return 0; /* not interested */
 }
 
-static char *MapMode_get_help_msg(Editor const *const editor)
+static _Optional char *MapMode_get_help_msg(Editor const *const editor)
 {
-  char *msg = NULL; // remove help
+  _Optional char *msg = NULL; // remove help
   char size_string[16] = "";
-  MapModeData *const mode_data = editor->editingmode_data;
+  MapModeData *const mode_data = get_mode_data(editor);
 
   switch (Editor_get_tool(editor)) {
     case EDITORTOOL_BRUSH:
@@ -1657,14 +1662,14 @@ static bool MapMode_start_pending_paste(Editor *const editor, Reader *const read
     return false;
   }
 
-  SFError err = read_compressed(MapTransfer_get_dfile(mode_data->pending_paste),
+  SFError err = read_compressed(MapTransfer_get_dfile(&*mode_data->pending_paste),
                                 reader);
   if (err.type == SFErrorType_TransferNot) {
     err = SFERROR(CBWrong);
   }
 
   if (report_error(err, filename, "")) {
-    free_pending_paste(mode_data);
+    free_pending_paste(&*mode_data);
     return false;
   }
 
@@ -1676,7 +1681,7 @@ static void MapMode_pending_paste(Editor *const editor, MapPoint const map_pos)
   MapModeData *const mode_data = get_mode_data(editor);
   assert(mode_data->pending_paste);
 
-  update_transfer_ghost(editor, mode_data->pending_paste, map_pos);
+  update_transfer_ghost(editor, &*mode_data->pending_paste, map_pos);
 }
 
 static bool MapMode_draw_paste(Editor *const editor, MapPoint const map_pos)
@@ -1684,10 +1689,10 @@ static bool MapMode_draw_paste(Editor *const editor, MapPoint const map_pos)
   MapModeData *const mode_data = get_mode_data(editor);
   assert(mode_data->pending_paste);
 
-  if (!paste_generic(editor, mode_data->pending_paste, map_pos, &mode_data->selection)) {
+  if (!paste_generic(editor, &*mode_data->pending_paste, map_pos, &mode_data->selection)) {
     return false;
   }
-  free_pending_paste(mode_data);
+  free_pending_paste(&*mode_data);
   return true;
 }
 
@@ -1705,10 +1710,8 @@ static void MapMode_cancel_paste(Editor *const editor)
 
 static void MapMode_tool_selected(Editor *const editor)
 {
-  assert(Editor_get_edit_mode(editor) == EDITING_MODE_MAP);
-
   assert(editor);
-  MapModeData *const mode_data = editor->editingmode_data;
+  MapModeData *const mode_data = get_mode_data(editor);
 
   MapMode_wipe_ghost(editor);
 
@@ -1908,12 +1911,12 @@ static void MapMode_palette_selection(Editor *const editor, int const object)
     default:
     {
       assert(mode_data->palette_type == MAPPALETTE_TYPE_TRANSFERS);
-      MapTransfer *const transfer = MapTransfers_find_by_index(
+      _Optional MapTransfer *const transfer = MapTransfers_find_by_index(
         &textures->transfers, object);
 
       assert(transfer != NULL);
       msg = msgs_lookup_subn("StatusTrSel", 1,
-        get_leaf_name(MapTransfer_get_dfile(transfer)));
+        get_leaf_name(MapTransfer_get_dfile(&*transfer)));
       break;
     }
   }
@@ -1941,7 +1944,7 @@ static void MapMode_draw_numbers(Editor *const editor,
   int const zoom = EditWin_get_zoom(edit_win);
   Vertex const grid_size = calc_grid_size(zoom);
 
-  MapEditSelection const *const selection = get_selection(editor);
+  _Optional MapEditSelection const *const selection = get_selection(editor);
   bool const may_blend_to_bg = plot_can_blend_font();
 
   int handle;
@@ -2000,7 +2003,7 @@ static void MapMode_draw_numbers(Editor *const editor,
       MapRef tile_no = MapEdit_read_tile(read_map_data, map_pos);
 
       bool const inv_tile =
-        (selection ? MapEditSelection_is_selected(selection, map_pos) : false);
+        (selection ? MapEditSelection_is_selected(&*selection, map_pos) : false);
 #if 0
       if (map_ref_is_mask(tile_no)) {
         continue; /* no base map loaded - skip this grid location */
@@ -2060,7 +2063,7 @@ static void MapMode_draw_numbers(Editor *const editor,
 
       plot_font(handle, string, NULL, font_coord, blend);
 
-      if (map->anims && MapAnims_check_locn(map->anims, map_pos)) {
+      if (map->anims && MapAnims_check_locn(&*map->anims, map_pos)) {
         size_t const ulen = strlen(string);
         if (ulen != last_ulen) {
           memset(underline, '_', ulen);
@@ -2302,9 +2305,11 @@ static void draw_pending(MapModeData const *const mode_data, Vertex const scr_or
       break;
 
     case Pending_Transfer:
-      draw_ghost_paste(mode_data->pending_transfer,
-                           mode_data->ghost_bbox.min, edit_win,
-                           scr_orig, grid_area);
+      if (mode_data->pending_transfer) {
+        draw_ghost_paste(&*mode_data->pending_transfer,
+                         mode_data->ghost_bbox.min, edit_win,
+                         scr_orig, grid_area);
+      }
       break;
 
     default:
@@ -2372,19 +2377,19 @@ void MapMode_draw(Editor *const editor, Vertex const scr_orig,
   }
 
 #if !PENDING_IS_SELECTED
-  MapModeData *const mode_data = Editor_get_edit_mode(editor) == EDITING_MODE_MAP ?
+  _Optional MapModeData *const mode_data = Editor_get_edit_mode(editor) == EDITING_MODE_MAP ?
                                  editor->editingmode_data : NULL;
 
   if (mode_data && mode_data->pending_shape != Pending_None) {
     plot_set_col(EditWin_get_ghost_colour(edit_win));
-    draw_pending(mode_data, scr_orig, &grid_area, edit_win);
+    draw_pending(&*mode_data, scr_orig, &grid_area, edit_win);
   }
 
   if (mode_data && mode_data->pending_drop &&
     map_overlap(&grid_area, &mode_data->drop_bbox))
   {
     plot_set_col(EditWin_get_ghost_colour(edit_win));
-    draw_ghost_paste(mode_data->pending_drop,
+    draw_ghost_paste(&*mode_data->pending_drop,
                      mode_data->drop_bbox.min, edit_win, scr_orig, &grid_area);
   }
 
@@ -2438,7 +2443,7 @@ static bool MapMode_copy(Editor *const editor)
 }
 
 static void MapMode_delete_core(Editor *const editor, MapEditContext const *const map,
-  MapEditChanges *const change_info)
+  _Optional MapEditChanges *const change_info)
 {
   MapModeData *const mode_data = get_mode_data(editor);
   mode_data->lock_selection = true; // strictly redundant
@@ -2486,10 +2491,11 @@ static bool MapMode_start_drag_obj(Editor *const editor,
   mode_data->drag_start_pos = sel_box.min;
 
   free_dragged(mode_data);
-  mode_data->dragged = MapTransfers_grab_selection(map, &mode_data->selection);
-  if (!mode_data->dragged) {
+  _Optional MapTransfer *const dragged = MapTransfers_grab_selection(map, &mode_data->selection);
+  if (!dragged) {
     return false;
   }
+  mode_data->dragged = dragged;
 
   View const *const view = EditWin_get_view(edit_win);
   MapArea sent_bbox = MapLayout_map_area_to_centre(view, &sel_box);
@@ -2511,7 +2517,7 @@ static bool MapMode_drag_obj_remote(Editor *const editor, struct Writer *const w
     return false;
   }
 
-  bool success = !report_error(write_compressed(MapTransfer_get_dfile(mode_data->dragged),
+  bool success = !report_error(write_compressed(MapTransfer_get_dfile(&*mode_data->dragged),
                                  writer), filename, "");
 
   free_dragged(mode_data);
@@ -2520,11 +2526,11 @@ static bool MapMode_drag_obj_remote(Editor *const editor, struct Writer *const w
 
 static bool MapMode_show_ghost_drop(Editor *const editor,
                                    MapArea const *const bbox,
-                                   Editor const *const drag_origin)
+                                    _Optional Editor const *const drag_origin)
 {
   bool const hide_origin_bbox = true;
   MapModeData *const mode_data = get_mode_data(editor);
-  MapModeData *const origin_data = drag_origin ? get_mode_data(drag_origin) : NULL;
+  _Optional MapModeData *const origin_data = drag_origin ? get_mode_data(&*drag_origin) : NULL;
   assert(MapArea_is_valid(bbox));
 
   if (origin_data) {
@@ -2554,7 +2560,7 @@ static bool MapMode_show_ghost_drop(Editor *const editor,
 #endif
 
     mode_data->pending_drop = origin_data->dragged;
-    dfile_claim(MapTransfer_get_dfile(origin_data->dragged));
+    dfile_claim(MapTransfer_get_dfile(&*origin_data->dragged));
 
   } else {
     // Dragging from a window belonging to another task
@@ -2634,7 +2640,12 @@ static bool MapMode_drag_obj_copy(Editor *const editor,
 
   MapEditChanges_init(&dst_data->change_info);
 
-  drag_obj_copy_core(editor, bbox, origin_data->dragged, Session_get_map(session));
+  assert(origin_data->dragged);
+  if (!origin_data->dragged) {
+    return false;
+  }
+
+  drag_obj_copy_core(editor, bbox, &*origin_data->dragged, Session_get_map(session));
 
   changed_with_msg(editor);
   free_dragged(origin_data);
@@ -2653,10 +2664,15 @@ static void gen_premove_msgs(EditSession *const session, MapModeData *const mode
 {
   assert(mode_data);
   assert(MapArea_is_valid(bbox));
+  assert(mode_data->dragged);
+  if (!mode_data->dragged)
+  {
+    return;
+  }
+  MapTransfer *const transfer = &*mode_data->dragged;
 
   /* Take into account the direction of the move to avoid issues when part of the
      source data is overwritten by the moved data. */
-  MapTransfer *const transfer = mode_data->dragged;
   MapPoint const dims = MapTransfers_get_dims(transfer);
   MapPoint dir = {1, 1}, start = {0, 0}, stop = dims;
 
@@ -2675,7 +2691,7 @@ static void gen_premove_msgs(EditSession *const session, MapModeData *const mode
   for (MapPoint p = {.x = start.x}; p.x != stop.x; p.x += dir.x) {
     for (p.y = start.y; p.y != stop.y; p.y += dir.y) {
       DEBUGF("%" PRIMapCoord ",%" PRIMapCoord " in source area\n", p.x, p.y);
-      MapRef const map_ref = MapTransfers_read_ref(transfer, p);
+      MapRef const map_ref = MapTransfers_read_ref(&*transfer, p);
 
       if (!map_ref_is_mask(map_ref)) {
         Session_map_premove(session, MapPoint_add(mode_data->drag_start_pos, p),
@@ -2691,7 +2707,7 @@ static MapEditContext get_no_prechange_cb_ctx(MapEditContext const *const map)
 
   MapEditContext no_prechange_cb_ctx = *map;
   // Suppress EDITOR_CHANGE_MAP_PRECHANGE messages
-  no_prechange_cb_ctx.prechange_cb = NULL;
+  no_prechange_cb_ctx.prechange_cb = (MapEditPreChangeFn *)NULL;
   return no_prechange_cb_ctx;
 }
 
@@ -2705,6 +2721,12 @@ static void MapMode_drag_obj_move(Editor *const editor,
   assert(session == Editor_get_session(drag_origin));
   MapEditContext const no_prechange_cb_ctx = get_no_prechange_cb_ctx(Session_get_map(session));
 
+  assert(origin_data->dragged);
+  if (!origin_data->dragged) {
+    return;
+  }
+  MapTransfer *const dragged = &*origin_data->dragged;
+  
   MapEditChanges_init(&dst_data->change_info);
   MapEditChanges_init(&origin_data->change_info);
 
@@ -2713,11 +2735,11 @@ static void MapMode_drag_obj_move(Editor *const editor,
 
   // FIXME: single move call?
   MapTransfers_fill_map(&no_prechange_cb_ctx, origin_data->drag_start_pos,
-                           origin_data->dragged, map_ref_from_num(DeletedFillRef),
+                           dragged, map_ref_from_num(DeletedFillRef),
                            &origin_data->change_info);
 
   MapEditSelection_clear(&dst_data->selection);
-  MapTransfers_plot_to_map(&no_prechange_cb_ctx, bbox->min, origin_data->dragged,
+  MapTransfers_plot_to_map(&no_prechange_cb_ctx, bbox->min, dragged,
                            &dst_data->selection, &dst_data->change_info);
 
   changed_with_msg(editor);
@@ -2736,22 +2758,22 @@ static bool MapMode_drop(Editor *const editor, MapArea const *const bbox,
   MapModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
 
-  MapTransfer *const dropped = MapTransfer_create();
+  _Optional MapTransfer *const dropped = MapTransfer_create();
   if (dropped == NULL) {
     return false;
   }
 
-  SFError err = read_compressed(MapTransfer_get_dfile(dropped), reader);
+  SFError err = read_compressed(MapTransfer_get_dfile(&*dropped), reader);
   bool success = !report_error(err, filename, "");
   if (success) {
     MapEditChanges_init(&mode_data->change_info);
 
-    drag_obj_copy_core(editor, bbox, dropped, Session_get_map(session));
+    drag_obj_copy_core(editor, bbox, &*dropped, Session_get_map(session));
 
     changed_with_msg(editor);
   }
 
-  dfile_release(MapTransfer_get_dfile(dropped));
+  dfile_release(MapTransfer_get_dfile(&*dropped));
   return success;
 }
 
@@ -2774,7 +2796,7 @@ bool MapMode_enter(Editor *const editor)
   DEBUG("Entering map mode");
   assert(MapMode_can_enter(editor));
 
-  MapModeData *const mode_data = malloc(sizeof(MapModeData));
+  _Optional MapModeData *const mode_data = malloc(sizeof(MapModeData));
   if (mode_data == NULL) {
     report_error(SFERROR(NoMem), "", "");
     return false;
@@ -2785,7 +2807,7 @@ bool MapMode_enter(Editor *const editor)
     .pending_shape = Pending_None,
   };
 
-  editor->editingmode_data = mode_data;
+  editor->editingmode_data = &*mode_data;
 
   static DataType const type_list[] = {DataType_MapTransfer, DataType_Count};
 
@@ -2908,14 +2930,13 @@ bool MapMode_enter(Editor *const editor)
     return true;
   }
   free(mode_data);
-  editor->editingmode_data = NULL;
   return false;
 }
 
 void MapMode_free_clipboard(void)
 {
   if (clipboard) {
-    dfile_release(MapTransfer_get_dfile(clipboard));
+    dfile_release(MapTransfer_get_dfile(&*clipboard));
     clipboard = NULL;
   }
 }
@@ -2924,11 +2945,21 @@ bool MapMode_write_clipboard(struct Writer *const writer,
   DataType const data_type, char const *const filename)
 {
   NOT_USED(data_type);
-  return !report_error(write_compressed(MapTransfer_get_dfile(clipboard), writer), filename, "");
+  assert(clipboard);
+  if (!clipboard)
+  {
+    return false;
+  }
+  return !report_error(write_compressed(MapTransfer_get_dfile(&*clipboard), writer), filename, "");
 }
 
 long int MapMode_estimate_clipboard(DataType const data_type)
 {
   NOT_USED(data_type);
-  return worst_compressed_size(MapTransfer_get_dfile(clipboard));
+  assert(clipboard);
+  if (!clipboard)
+  {
+    return 0;
+  }
+  return worst_compressed_size(MapTransfer_get_dfile(&*clipboard));
 }

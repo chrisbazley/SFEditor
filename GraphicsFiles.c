@@ -181,7 +181,7 @@ void GraphicsFiles_created(ObjectId const id)
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
     EF(event_register_toolbox_handler(id, handlers[i].event_code,
-                                      handlers[i].handler, NULL));
+                                      handlers[i].handler, &GraphicsFiles_id));
   }
 }
 
@@ -206,7 +206,7 @@ int GraphicsFiles_colour_selected(EditSession *const session,
   }
 
   Session_notify_changed(session, DataType_Mission);
-  Session_resource_change(session, EDITOR_CHANGE_CLOUD_COLOURS, NULL);
+  Session_resource_change(session, EDITOR_CHANGE_CLOUD_COLOURS, &(EditorChangeParams){0});
 
   return 1; /* claim event */
 }

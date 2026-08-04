@@ -87,7 +87,7 @@ static char const *graphics_set;
 static char truncated_name[MaxNameLen + sizeof("...") - 1];
 /* -1 because both sizeof() values include space for a string terminator. */
 static ObjGfx *redraw_graphics;
-static PolyColData const *poly_colours;
+static _Optional PolyColData const *poly_colours;
 static SprMem back_buffer;
 static bool have_back_buffer, found_cloud;
 static int pcount = 0, redraw_num_objects;

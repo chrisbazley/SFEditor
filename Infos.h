@@ -38,7 +38,7 @@ void target_infos_init(TargetInfosData *target_infos);
 void target_infos_destroy(TargetInfosData *target_infos);
 
 SFError target_infos_add(TargetInfosData *target_infos,
-  MapPoint pos, size_t *index);
+  MapPoint pos, _Optional size_t *index);
 
 /* set_text not add_text because a fixed number of strings appear
    at predetermined screen coordinates */
@@ -58,7 +58,7 @@ size_t target_info_delete(TargetInfo *info);
 size_t target_infos_get_count(TargetInfosData const *target_infos);
 size_t target_infos_get_text_count(TargetInfosData const *target_infos);
 
-TargetInfo *target_info_from_index(TargetInfosData const *target_infos, size_t index);
+_Optional TargetInfo *target_info_from_index(TargetInfosData const *target_infos, size_t index);
 
 SFError target_infos_read(TargetInfosData *target_infos,
   struct Reader *reader);

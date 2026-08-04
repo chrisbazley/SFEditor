@@ -725,13 +725,19 @@ static bool init_stack(Stack *const stack)
 {
   assert(stack != NULL);
 
+  _Optional Segment *mem = malloc(STACK_CHUNK_SIZE * sizeof(Segment));
+  if (!mem)
+  {
+    return false;
+  }
+  
   *stack = (Stack){
-    .mem = malloc(STACK_CHUNK_SIZE * sizeof(Segment)),
+    .mem = &*mem,
     .sp = 0,
     .sl = STACK_CHUNK_SIZE,
   };
 
-  return stack->mem;
+  return true;
 }
 
 static void term_stack(Stack const *const stack)
@@ -756,14 +762,14 @@ static bool push_segment(Stack *const stack, MapCoord const y, MapCoord const mi
     DEBUG("Extending stack from %d to %d",
           stack->sl, stack->sl + STACK_CHUNK_SIZE);
 
-    void *const ext = realloc(stack->mem,
+    _Optional void *const ext = realloc(stack->mem,
                         (size_t)(stack->sl + STACK_CHUNK_SIZE) * sizeof(Segment));
     if (!ext) {
       return false;
     }
 
     stack->sl += STACK_CHUNK_SIZE;
-    stack->mem = ext;
+    stack->mem = &*ext;
   }
 
   DEBUG("Pushing item %d: span %" PRIMapCoord ",%" PRIMapCoord " on line %" PRIMapCoord

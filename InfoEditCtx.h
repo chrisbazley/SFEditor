@@ -15,12 +15,16 @@
 
 struct EditSession;
 
+typedef void InfoEditAddedFn(struct TargetInfo const *, size_t, struct EditSession *),
+             InfoEditPreDeleteFn(struct TargetInfo const *, size_t, struct EditSession *),
+             InfoEditMovedFn(struct TargetInfo const *, MapPoint, size_t, size_t, struct EditSession *);
+
 struct InfoEditContext
 {
-  struct TargetInfosData *data; /* (Mission only) */
-  void (*added_cb)(struct TargetInfo const *, size_t, struct EditSession *);
-  void (*predelete_cb)(struct TargetInfo const *, size_t, struct EditSession *);
-  void (*moved_cb)(struct TargetInfo const *, MapPoint, size_t, size_t, struct EditSession *);
+  _Optional struct TargetInfosData *data; /* (Mission only) */
+  _Optional InfoEditAddedFn *added_cb;
+  _Optional InfoEditPreDeleteFn *predelete_cb;
+  _Optional InfoEditMovedFn *moved_cb;
   struct EditSession *session;
 };
 

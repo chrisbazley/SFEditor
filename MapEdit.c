@@ -49,7 +49,7 @@
 
 /* ---------------- Private functions ---------------- */
 
-static MapData *get_write_map(MapEditContext const *const map)
+static _Optional MapData *get_write_map(MapEditContext const *const map)
 {
   assert(map != NULL);
   return map->overlay != NULL ? map->overlay : map->base;
@@ -63,7 +63,7 @@ static MapRef read_overlay_core(MapEditContext const *const map,
 
   MapRef tile = map_ref_mask();
   if (map->overlay != NULL) {
-    tile = map_get_tile(map->overlay, pos);
+    tile = map_get_tile(&*map->overlay, pos);
   }
   return tile;
 }
@@ -73,14 +73,14 @@ static MapRef read_tile_core(MapEditContext const *const map,
 {
   MapRef tile = read_overlay_core(map, pos);
   if (map_ref_is_mask(tile) && map->base != NULL) {
-    tile = map_get_tile(map->base, pos); /* read from base map */
+    tile = map_get_tile(&*map->base, pos); /* read from base map */
     assert(!map_ref_is_mask(tile));
   }
   return tile;
 }
 
 static void write_tile_core(MapData *const map, MapPoint const pos,
-  MapRef const tile_num, MapEditChanges *const change_info,
+  MapRef const tile_num, _Optional MapEditChanges *const change_info,
   MapArea *const redraw_area)
 {
   assert(map_coords_in_range(pos));
@@ -124,7 +124,7 @@ static bool replace_frame(MapAnimParam *const param,
 }
 
 static void wipe_anims(MapEditContext const *const map, MapArea const *map_area,
-  MapEditChanges *const change_info)
+  _Optional MapEditChanges *const change_info)
 {
   if (map->anims == NULL) {
     return;
@@ -139,7 +139,7 @@ static void wipe_anims(MapEditContext const *const map, MapArea const *map_area,
 
   MapAnimParam param;
   MapAnimsIter iter;
-  for ((void)MapAnimsIter_get_first(&iter, map->anims, map_area, &param);
+  for ((void)MapAnimsIter_get_first(&iter, &*map->anims, map_area, &param);
        !MapAnimsIter_done(&iter);
        (void)MapAnimsIter_get_next(&iter, &param))
   {
@@ -149,13 +149,13 @@ static void wipe_anims(MapEditContext const *const map, MapArea const *map_area,
 }
 
 static void wipe_anim(MapEditContext const *const map, MapPoint map_pos,
-  MapEditChanges *const change_info)
+  _Optional MapEditChanges *const change_info)
 {
   if (map->anims == NULL) {
     return;
   }
 
-  if (MapAnims_check_locn(map->anims, map_pos)) {
+  if (MapAnims_check_locn(&*map->anims, map_pos)) {
     MapArea const map_area = {map_pos, map_pos};
     wipe_anims(map, &map_area, change_info);
   }
@@ -163,7 +163,7 @@ static void wipe_anim(MapEditContext const *const map, MapPoint map_pos,
 
 static void fill_core(MapEditContext const *const map,
   MapArea const *const area, MapRef const tile_num,
-  MapEditChanges *const change_info, MapArea *const redraw_area)
+  _Optional MapEditChanges *const change_info, MapArea *const redraw_area)
 {
   assert(map != NULL);
   assert(map->overlay || !map_ref_is_mask(tile_num));
@@ -175,13 +175,19 @@ static void fill_core(MapEditContext const *const map,
 
   wipe_anims(map, area, change_info);
 
-  MapData *const gmap = get_write_map(map);
+  _Optional MapData *const gmap = get_write_map(map);
+  assert(gmap);
+  if (!gmap)
+  {
+    return;
+  }
+
   MapAreaIter iter;
   for (MapPoint p = MapAreaIter_get_first(&iter, area);
        !MapAreaIter_done(&iter);
        p = MapAreaIter_get_next(&iter))
   {
-    write_tile_core(gmap, map_wrap_coords(p), tile_num, change_info,
+    write_tile_core(&*gmap, map_wrap_coords(p), tile_num, change_info,
                     redraw_area);
   }
 }
@@ -201,7 +207,7 @@ static void do_redraw(MapEditContext const *const map, MapArea const *const redr
 /* ---------------- Public functions ---------------- */
 
 void MapEdit_reverse_selected(MapEditContext const *const map,
-  MapEditSelection *const selected, MapEditChanges *const change_info)
+  MapEditSelection *const selected, _Optional MapEditChanges *const change_info)
 {
   if (!map->anims) {
     return;
@@ -216,7 +222,7 @@ void MapEdit_reverse_selected(MapEditContext const *const map,
 
   MapAnimsIter iter;
   MapAnimParam param;
-  for (MapPoint p = MapAnimsIter_get_first(&iter, map->anims, &bounds, &param);
+  for (MapPoint p = MapAnimsIter_get_first(&iter, &*map->anims, &bounds, &param);
        !MapAnimsIter_done(&iter);
        p = MapAnimsIter_get_next(&iter, &param))
   {
@@ -236,7 +242,7 @@ void MapEdit_reverse_selected(MapEditContext const *const map,
 }
 
 void MapEdit_delete_selected(MapEditContext const *const map,
-  MapEditSelection *const selected, MapEditChanges *const change_info)
+  MapEditSelection *const selected, _Optional MapEditChanges *const change_info)
 {
   if (!map->anims) {
     return;
@@ -251,7 +257,7 @@ void MapEdit_delete_selected(MapEditContext const *const map,
 
   MapAnimsIter iter;
   MapAnimParam param;
-  for (MapPoint p = MapAnimsIter_get_first(&iter, map->anims, &bounds, &param);
+  for (MapPoint p = MapAnimsIter_get_first(&iter, &*map->anims, &bounds, &param);
        !MapAnimsIter_done(&iter);
        p = MapAnimsIter_get_next(&iter, &param))
   {
@@ -270,9 +276,15 @@ void MapEdit_delete_selected(MapEditContext const *const map,
 }
 
 void MapEdit_fill_selection(MapEditContext const *const map,
-  MapEditSelection *const selected, MapRef const tile,
-  MapEditChanges *const change_info)
+                            MapEditSelection *const selected, MapRef const tile,
+                            _Optional MapEditChanges *const change_info)
 {
+  _Optional MapData *const gmap = get_write_map(map);
+  assert(gmap);
+  if (!gmap) {
+    return;
+  }
+
   MapArea redraw_area = MapArea_make_invalid();
 
   MapEditSelIter iter;
@@ -281,7 +293,7 @@ void MapEdit_fill_selection(MapEditContext const *const map,
        p = MapEditSelIter_get_next(&iter))
   {
     wipe_anim(map, p, change_info);
-    write_tile_core(get_write_map(map), map_wrap_coords(p), tile,
+    write_tile_core(&*gmap, map_wrap_coords(p), tile,
       change_info, &redraw_area);
   }
 
@@ -289,8 +301,9 @@ void MapEdit_fill_selection(MapEditContext const *const map,
 }
 
 void MapEdit_smooth_selection(MapEditContext const *const map,
-  MapEditSelection *const selected, MapTexGroups *const groups_data,
-  MapEditChanges *const change_info)
+                              MapEditSelection *const selected,
+                              MapTexGroups *const groups_data,
+                              _Optional MapEditChanges *const change_info)
 {
   MapEditSelIter iter;
   for (MapPoint p = MapEditSelIter_get_first(&iter, selected);
@@ -302,7 +315,7 @@ void MapEdit_smooth_selection(MapEditContext const *const map,
 }
 
 void MapEdit_crop_overlay(MapEditContext const *const map,
-  MapEditChanges *const change_info)
+                          _Optional MapEditChanges *const change_info)
 {
   /* Removes wastage from ground map overlay
      (tiles equal to those overridden) */
@@ -320,17 +333,17 @@ void MapEdit_crop_overlay(MapEditContext const *const map,
        !MapAreaIter_done(&iter);
        p = MapAreaIter_get_next(&iter))
   {
-    if (map->anims && MapAnims_check_locn(map->anims, p)) {
+    if (map->anims && MapAnims_check_locn(&*map->anims, p)) {
       continue;
     }
 
-    MapRef const cur_tile = map_get_tile(map->overlay, p);
+    MapRef const cur_tile = map_get_tile(&*map->overlay, p);
     if (!map_ref_is_mask(cur_tile) &&
-        map_ref_is_equal(map_get_tile(map->base, p), cur_tile)) {
+        map_ref_is_equal(map_get_tile(&*map->base, p), cur_tile)) {
       DEBUG("Cropping overlay location at %" PRIMapCoord ",%" PRIMapCoord,
         p.x, p.y);
 
-      map_set_tile(map->overlay, p, map_ref_mask());
+      map_set_tile(&*map->overlay, p, map_ref_mask());
       MapArea_expand(&redraw_area, p);
       MapEditChanges_change_tile(change_info);
     }
@@ -342,7 +355,7 @@ void MapEdit_crop_overlay(MapEditContext const *const map,
 typedef struct {
   MapEditContext const *map;
   MapRef tile_num;
-  MapEditChanges *change_info;
+  _Optional MapEditChanges *change_info;
   MapArea redraw_area;
 } WriteShapeContext;
 
@@ -368,9 +381,9 @@ static void plot_shape(MapArea const *const map_area, void *const arg)
 }
 
 void MapEdit_plot_tri(MapEditContext const *const map,
-  MapPoint const vertex_A, MapPoint const vertex_B,
-  MapPoint const vertex_C, MapRef const tile,
-  MapEditChanges *const change_info)
+                      MapPoint const vertex_A, MapPoint const vertex_B,
+                      MapPoint const vertex_C, MapRef const tile,
+                      _Optional MapEditChanges *const change_info)
 {
   WriteShapeContext context = {
     .map = map,
@@ -383,8 +396,9 @@ void MapEdit_plot_tri(MapEditContext const *const map,
 }
 
 void MapEdit_plot_rect(MapEditContext const *const map,
-  MapPoint const vertex_A, MapPoint const vertex_B, MapRef const tile,
-  MapEditChanges *const change_info)
+                       MapPoint const vertex_A, MapPoint const vertex_B,
+                       MapRef const tile,
+                       _Optional MapEditChanges *const change_info)
 {
   WriteShapeContext context = {
     .map = map,
@@ -397,8 +411,9 @@ void MapEdit_plot_rect(MapEditContext const *const map,
 }
 
 void MapEdit_plot_circ(MapEditContext const *const map,
-  MapPoint const centre, MapCoord const radius, MapRef const tile,
-  MapEditChanges *const change_info)
+                       MapPoint const centre, MapCoord const radius,
+                       MapRef const tile,
+                       _Optional MapEditChanges *const change_info)
 {
   WriteShapeContext context = {
     .map = map,
@@ -411,8 +426,8 @@ void MapEdit_plot_circ(MapEditContext const *const map,
 }
 
 void MapEdit_plot_line(MapEditContext const *const map, MapPoint const start,
-  MapPoint const end, MapRef const tile, MapCoord const thickness,
-  MapEditChanges *const change_info)
+                       MapPoint const end, MapRef const tile, MapCoord const thickness,
+                       _Optional MapEditChanges *const change_info)
 {
   WriteShapeContext context = {
     .map = map,
@@ -425,7 +440,8 @@ void MapEdit_plot_line(MapEditContext const *const map, MapPoint const start,
 }
 
 void MapEdit_global_replace(MapEditContext const *const map,
-  MapRef const find, MapRef const replace, MapEditChanges *const change_info)
+                            MapRef const find, MapRef const replace,
+                            _Optional MapEditChanges *const change_info)
 {
   assert(map != NULL);
   assert(map->overlay || !map_ref_is_mask(replace));
@@ -437,7 +453,13 @@ void MapEdit_global_replace(MapEditContext const *const map,
   }
 
   MapArea redraw_area = MapArea_make_invalid();
-  MapData *const write_map = get_write_map(map);
+
+  _Optional MapData *const write_map = get_write_map(map);
+  assert(write_map);
+  if (!write_map)
+  {
+    return;
+  }
 
   MapAreaIter iter;
   for (MapPoint p = map_get_first(&iter);
@@ -446,7 +468,7 @@ void MapEdit_global_replace(MapEditContext const *const map,
   {
     MapRef const tile = read_tile_core(map, p);
     if (map_ref_is_equal(tile, find)) {
-      write_tile_core(write_map, p, replace, change_info, &redraw_area);
+      write_tile_core(&*write_map, p, replace, change_info, &redraw_area);
     }
   }
 
@@ -455,7 +477,7 @@ void MapEdit_global_replace(MapEditContext const *const map,
     MapAnimParam param;
     MapAnimsIter anims_iter;
     MapArea const bounds = {{0,0}, {Map_Size - 1, Map_Size - 1}};
-    for (MapPoint p = MapAnimsIter_get_first(&anims_iter, map->anims, &bounds, &param);
+    for (MapPoint p = MapAnimsIter_get_first(&anims_iter, &*map->anims, &bounds, &param);
          !MapAnimsIter_done(&anims_iter);
          p = MapAnimsIter_get_next(&anims_iter, &param))
     {
@@ -471,8 +493,8 @@ void MapEdit_global_replace(MapEditContext const *const map,
 }
 
 void MapEdit_flood_fill(MapEditContext const *const map,
-  MapRef const replace,  MapPoint const pos,
-  MapEditChanges *const change_info)
+                        MapRef const replace, MapPoint const pos,
+                        _Optional MapEditChanges *const change_info)
 {
   DEBUG("Will locally replace with %d (flood at %" PRIMapCoord ",%" PRIMapCoord ")",
         map_ref_to_num(replace), pos.x, pos.y);
@@ -503,8 +525,8 @@ void MapEdit_flood_fill(MapEditContext const *const map,
 }
 
 void MapEdit_fill_area(MapEditContext const *const map,
-  MapArea const *const area, MapRef const tile_num,
-  MapEditChanges *const change_info)
+                       MapArea const *const area, MapRef const tile_num,
+                       _Optional MapEditChanges *const change_info)
 {
   MapArea redraw_area = MapArea_make_invalid();
 
@@ -514,8 +536,9 @@ void MapEdit_fill_area(MapEditContext const *const map,
 }
 
 void MapEdit_copy_to_area(MapEditContext const *const map,
-  MapArea const *const area, MapEditReadFn *const read, void *const cb_arg,
-  MapEditChanges *const change_info)
+                          MapArea const *const area, MapEditReadFn *const read,
+                          void *const cb_arg,
+                          _Optional MapEditChanges *const change_info)
 {
   assert(map != NULL);
   assert(MapArea_is_valid(area));
@@ -527,7 +550,12 @@ void MapEdit_copy_to_area(MapEditContext const *const map,
 
   wipe_anims(map, area, change_info);
 
-  MapData *const gmap = get_write_map(map);
+  _Optional MapData *const gmap = get_write_map(map);
+  assert(gmap);
+  if (!gmap) {
+    return;
+  }
+
   MapArea redraw_area = MapArea_make_invalid();
 
   MapAreaIter iter;
@@ -537,14 +565,15 @@ void MapEdit_copy_to_area(MapEditContext const *const map,
   {
     MapRef const tile = read(cb_arg, MapPoint_sub(p, area->min));
     assert(map->overlay || !map_ref_is_mask(tile));
-    write_tile_core(gmap, map_wrap_coords(p), tile, change_info, &redraw_area);
+    write_tile_core(&*gmap, map_wrap_coords(p), tile, change_info, &redraw_area);
   }
 
   do_redraw(map, &redraw_area);
 }
 
 void MapEdit_write_tile(MapEditContext const *const map, MapPoint const pos,
-  MapRef const tile_num, MapEditChanges *const change_info)
+                        MapRef const tile_num,
+                        _Optional MapEditChanges *const change_info)
 {
   DEBUG_VERBOSE("Putting tile no. %d at map location %" PRIMapCoord ",%" PRIMapCoord,
     map_ref_to_num(tile_num), pos.x, pos.y);
@@ -559,7 +588,13 @@ void MapEdit_write_tile(MapEditContext const *const map, MapPoint const pos,
   wipe_anim(map, pos, change_info);
   MapArea redraw_area = MapArea_make_invalid();
 
-  write_tile_core(get_write_map(map), map_wrap_coords(pos), tile_num,
+  _Optional MapData *const gmap = get_write_map(map);
+  assert(gmap);
+  if (!gmap) {
+    return;
+  }
+
+  write_tile_core(&*gmap, map_wrap_coords(pos), tile_num,
     change_info, &redraw_area);
 
   do_redraw(map, &redraw_area);
@@ -582,15 +617,15 @@ MapRef MapEdit_read_overlay(MapEditContext const *const map, MapPoint const pos)
 }
 
 bool MapEdit_write_anim(MapEditContext const *const map,
-  MapPoint const map_pos, MapAnimParam const param,
-  MapEditChanges *const change_info)
+                        MapPoint const map_pos, MapAnimParam const param,
+                        _Optional MapEditChanges *const change_info)
 {
   assert(map != NULL);
   wipe_anim(map, map_pos, change_info);
 
   if (map->anims)
   {
-    if (report_error(MapAnims_add(map->anims, get_write_map(map), map_pos, param), "", ""))
+    if (report_error(MapAnims_add(&*map->anims, get_write_map(map), map_pos, param), "", ""))
     {
       return false;
     }
@@ -600,28 +635,34 @@ bool MapEdit_write_anim(MapEditContext const *const map,
 }
 
 void MapEdit_anims_to_map(MapEditContext const *const map,
-  MapEditChanges *const change_info)
+                          _Optional MapEditChanges *const change_info)
 {
   /* Ensures that the ground map displays the current state of all animations */
   assert(map != NULL);
   if (!map->anims) {
     return;
   }
+  struct ConvAnimations *anims = &*map->anims;
 
   MapArea redraw_area = MapArea_make_invalid();
 
-  MapData *const gmap = get_write_map(map);
+  _Optional MapData *const gmap = get_write_map(map);
+  assert(gmap);
+  if (!gmap)
+  {
+    return;
+  }
   MapArea const bounds = {{0,0}, {Map_Size - 1, Map_Size - 1}};
   MapAnimParam param;
   MapAnimsIter iter;
-  for (MapPoint p = MapAnimsIter_get_first(&iter, map->anims, &bounds, &param);
+  for (MapPoint p = MapAnimsIter_get_first(&iter, anims, &bounds, &param);
        !MapAnimsIter_done(&iter);
        p = MapAnimsIter_get_next(&iter, &param))
   {
     MapRef const tile_num = MapAnimsIter_get_current(&iter);
     if (!map_ref_is_mask(tile_num) &&
         !map_ref_is_equal(tile_num, read_tile_core(map, p))) {
-      write_tile_core(gmap, p, tile_num, change_info, &redraw_area);
+      write_tile_core(&*gmap, p, tile_num, change_info, &redraw_area);
     }
   }
 
@@ -632,19 +673,29 @@ void MapEdit_reset_anims(MapEditContext const *const map)
 {
   assert(map != NULL);
   if (map->anims) {
-    MapAnims_reset(map->anims);
+    MapAnims_reset(&*map->anims);
   }
 }
 
 SchedulerTime MapEdit_update_anims(MapEditContext const *const map,
-  int const steps_to_advance, struct MapAreaColData *const redraw_map)
+  int const steps_to_advance, _Optional struct MapAreaColData *const redraw_map)
 {
   assert(map != NULL);
-  if (!map->anims)
+  
+  _Optional ConvAnimations *const anims = map->anims;
+  if (!anims)
   {
-    return INT_MAX;
+    return SchedulerTime_Max;
   }
-  return MapAnims_update(map->anims, get_write_map(map), steps_to_advance, redraw_map);
+
+  _Optional MapData *const write_map = get_write_map(map);
+  assert(write_map);
+  if (!write_map)
+  {
+    return SchedulerTime_Max;
+  }
+
+  return MapAnims_update(&*anims, &*write_map, steps_to_advance, redraw_map);
 }
 
 size_t MapEdit_count_anims(MapEditContext const *const map)
@@ -654,7 +705,7 @@ size_t MapEdit_count_anims(MapEditContext const *const map)
   {
     return INT_MAX;
   }
-  return MapAnims_count(map->anims);
+  return MapAnims_count(&*map->anims);
 }
 
 bool MapEdit_check_tile_range(MapEditContext const *const map,
@@ -667,7 +718,7 @@ bool MapEdit_check_tile_range(MapEditContext const *const map,
        p = MapAreaIter_get_next(&iter))
   {
     if (map->base != NULL) {
-      MapRef const map_tile = map_get_tile(map->base, p);
+      MapRef const map_tile = map_get_tile(&*map->base, p);
       if (map_ref_to_num(map_tile) >= num_tiles) {
         DEBUG("Base tile %d at location %" PRIMapCoord ",%" PRIMapCoord
               " not in range 0,%zu", map_ref_to_num(map_tile), p.x, p.y,
@@ -677,7 +728,7 @@ bool MapEdit_check_tile_range(MapEditContext const *const map,
     }
 
     if (map->overlay != NULL) {
-      MapRef const map_tile = map_get_tile(map->overlay, p);
+      MapRef const map_tile = map_get_tile(&*map->overlay, p);
       if (!map_ref_is_mask(map_tile) &&
           map_ref_to_num(map_tile) >= num_tiles) {
         DEBUG("Overlay tile %d at location %" PRIMapCoord ",%" PRIMapCoord

@@ -13,7 +13,7 @@
 
 struct BriefingData {
   size_t count;
-  struct Text *texts;
+  _Optional struct Text *texts;
   char prefix[12];
   int line_count;
   unsigned char title_colour;

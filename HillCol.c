@@ -62,7 +62,7 @@ static void hillcol_destroy_cb(DFile const *const dfile)
 
 static void hillcol_cleanup(void)
 {
-  strdict_destroy(&file_dict, NULL, NULL);
+  strdict_destroy(&file_dict, (StrDictDestructorFn *)NULL, &file_dict);
 }
 
 void hillcol_init(void)
@@ -71,9 +71,9 @@ void hillcol_init(void)
   atexit(hillcol_cleanup);
 }
 
-HillColData *hillcol_create(void)
+_Optional HillColData *hillcol_create(void)
 {
-  HillColData *const hill_colours = malloc(sizeof(*hill_colours));
+  _Optional HillColData *const hill_colours = malloc(sizeof(*hill_colours));
   if (hill_colours)
   {
     if (!flex_alloc(&hill_colours->flex, HillNumColours))
@@ -82,8 +82,8 @@ HillColData *hillcol_create(void)
       return NULL;
     }
 
-    dfile_init(&hill_colours->dfile, hillcol_read_cb, NULL, NULL,
-               hillcol_destroy_cb);
+    dfile_init(&hill_colours->dfile, hillcol_read_cb, (DFileWriteFn *)NULL,
+               (DFileGetMinSizeFn *)NULL, hillcol_destroy_cb);
   }
   return hill_colours;
 }
@@ -94,10 +94,10 @@ bool hillcol_share(HillColData *const hill_colours)
   return dfile_set_shared(&hill_colours->dfile, &file_dict);
 }
 
-HillColData *hillcol_get_shared(char const *const filename)
+_Optional HillColData *hillcol_get_shared(char const *const filename)
 {
   assert(filename);
-  DFile *const dfile = dfile_find_shared(&file_dict, filename);
+  _Optional DFile *const dfile = dfile_find_shared(&file_dict, filename);
   return dfile ? CONTAINER_OF(dfile, HillColData, dfile) : NULL;
 }
 

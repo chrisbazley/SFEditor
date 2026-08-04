@@ -93,7 +93,7 @@ void DCS_created(ObjectId const dcs_id)
   dcs_sharedid = dcs_id;
 
   /* Install handlers */
-  EF(event_register_toolbox_handler(dcs_id, -1, actions_handler, NULL));
+  EF(event_register_toolbox_handler(dcs_id, -1, actions_handler, &dcs_sharedid));
 }
 
 void DCS_queryunsaved(ObjectId const edit_win, int const num_files,

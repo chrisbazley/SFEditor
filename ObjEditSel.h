@@ -17,12 +17,14 @@
 #define _Optional
 #endif
 
+typedef void ObjEditSelectionRedrawFn(MapPoint, void *);
+
 typedef struct ObjEditSelection
 {
   void *flex;
   MapArea max_bounds;
   size_t num_selected;
-  void (*redraw_cb)(MapPoint, void *);
+  _Optional ObjEditSelectionRedrawFn *redraw_cb;
   void *redraw_arg;
 }
 ObjEditSelection;
@@ -37,7 +39,8 @@ typedef struct
 ObjEditSelIter;
 
 SFError ObjEditSelection_init(ObjEditSelection *selection,
-  void (*redraw_cb)(MapPoint, void *), void *redraw_arg);
+                              _Optional ObjEditSelectionRedrawFn *redraw_cb,
+                              void *redraw_arg);
 
 void ObjEditSelection_copy(ObjEditSelection *dst, ObjEditSelection *src);
 
@@ -101,7 +104,7 @@ void ObjEditSelection_destroy(ObjEditSelection *selection);
 
 bool ObjEditSelection_for_each_changed(ObjEditSelection const *a,
   ObjEditSelection const *b,
-  MapArea const *map_area,
+  _Optional MapArea const *map_area,
   void (*callback)(MapPoint, void *), void *cb_arg);
 
 bool ObjEditSelection_for_each(

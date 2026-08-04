@@ -116,7 +116,12 @@ static int calc_match_2(const MapTexGroups *const groups_data,
   }
 
   /* the advent of super-groups complicates things somewhat... */
-  TexGroupRoot *const tile_groups = groups_data->array;
+  assert(groups_data->array);
+  if (!groups_data->array)
+  {
+    return ChangesMismatch;
+  }
+  TexGroupRoot *const tile_groups = &*groups_data->array;
   TexGroupRoot *const a_group_def = &tile_groups[cand_edge];
   TexGroupRoot *const b_group_def = &tile_groups[ideal_edge];
 
@@ -182,9 +187,10 @@ static int calc_match(const MapTexGroups *const groups_data,
 static void init_group(TexGroupRoot *const tile_group)
 {
   assert(tile_group != NULL);
-  tile_group->array_anchor = NULL;
-  tile_group->count = 0;
-  tile_group->super = false;
+  *tile_group = (TexGroupRoot){
+    .count = 0,
+    .super = false,
+  };
 }
 
 static bool add_group_member(TexGroupRoot *const group, unsigned char const new_member)
@@ -318,10 +324,10 @@ static int count_groups_in_file(FILE *const file)
   return num_groups;
 }
 
-static TexGroupRoot *alloc_groups(int const ngroups)
+static _Optional TexGroupRoot *alloc_groups(int const ngroups)
 {
   assert(ngroups > 0);
-  TexGroupRoot *const roots_array = calloc(ngroups, sizeof(*roots_array));
+  _Optional TexGroupRoot *const roots_array = calloc(ngroups, sizeof(*roots_array));
   if (roots_array != NULL) {
     /* For each group, set the flex anchor to NULL and the membership to 0 */
     for (int i = 0; i < ngroups; ++i) {
@@ -336,6 +342,10 @@ static bool add_undef_to_group(MapTexGroups *const groups_data,
 {
   assert(groups_data != NULL);
   assert(undef_group < UCHAR_MAX);
+  assert(groups_data->array);
+  if (!groups_data->array) {
+    return false;
+  }
 
   /*
     Append undefined tiles to specified group
@@ -382,8 +392,14 @@ static SFError read_from_file(FILE *const file,
   bool block = false;
   int line = 0;
   unsigned char group_num = 0;
-  TexGroupRoot *pgroup = NULL;
+  TexGroupRoot *pgroup;
   int const ngroups = groups_data->count;
+  
+  assert(groups_data->array);
+  if (!groups_data->array) {
+    return SFERROR(OK);
+  }
+  TexGroupRoot *const array = &*groups_data->array;
 
   while (read_line_comm(read_line, sizeof(read_line), file, &line) != NULL)
   {
@@ -415,7 +431,7 @@ static SFError read_from_file(FILE *const file,
 
       assert(group <= UCHAR_MAX);
       group_num = (unsigned char)group;
-      pgroup = &groups_data->array[group_num];
+      pgroup = &array[group_num];
       block = true;
 
       continue; /* read next line */
@@ -583,7 +599,7 @@ void MapTexGroups_init(MapTexGroups *const groups_data)
 void MapTexGroups_load(MapTexGroups *const groups_data, char const *tiles_set,
                        int const ntiles)
 {
-  char *const full_path = make_file_path_in_dir(
+  _Optional char *const full_path = make_file_path_in_dir(
                           CHOICES_READ_PATH TILEGROUPS_DIR, tiles_set);
   if (!full_path) {
     return;
@@ -596,7 +612,7 @@ void MapTexGroups_load(MapTexGroups *const groups_data, char const *tiles_set,
   SFError err = SFERROR(OK);
 
   hourglass_on();
-  if (file_exists(full_path)) {
+  if (file_exists(&*full_path)) {
     /*
       Make table for quick look-up of smoothing data for a given tile
     */
@@ -611,8 +627,8 @@ void MapTexGroups_load(MapTexGroups *const groups_data, char const *tiles_set,
 
       unsigned char undef_group = UCHAR_MAX; /* default is to append undefined tiles to no group */
 
-      DEBUG("Opening tile groups file '%s'", full_path);
-      FILE *const file = fopen(full_path, "r");
+      DEBUG("Opening tile groups file '%s'", &*full_path);
+      _Optional FILE *const file = fopen(&*full_path, "r");
       if (file == NULL) {
         err = SFERROR(OpenInFail);
       } else {
@@ -621,7 +637,7 @@ void MapTexGroups_load(MapTexGroups *const groups_data, char const *tiles_set,
           (Cannot extend the pointers array using realloc() since the flex anchors
           would be be invalidated)
         */
-        groups_data->count = count_groups_in_file(file);
+        groups_data->count = count_groups_in_file(&*file);
         if (groups_data->count > 0) {
           groups_data->array = alloc_groups(groups_data->count);
           if (groups_data->array == NULL) {
@@ -630,11 +646,11 @@ void MapTexGroups_load(MapTexGroups *const groups_data, char const *tiles_set,
             /*
               Second pass over file is to actually read the smoothing data
             */
-            fseek(file, 0, SEEK_SET); /* back to beginning of file */
-            err = read_from_file(file, groups_data, &undef_group, ntiles, err_buf);
+            fseek(&*file, 0, SEEK_SET); /* back to beginning of file */
+            err = read_from_file(&*file, groups_data, &undef_group, ntiles, err_buf);
           }
         } /* endif (groups_data->count > 0) */
-        fclose(file);
+        fclose(&*file);
       }
 
       if (!SFError_fail(err) && undef_group != UCHAR_MAX) {
@@ -646,7 +662,7 @@ void MapTexGroups_load(MapTexGroups *const groups_data, char const *tiles_set,
   }
   hourglass_off();
 
-  report_error(err, full_path, err_buf);
+  report_error(err, &*full_path, err_buf);
   free(full_path);
 }
 
@@ -661,6 +677,10 @@ int MapTexGroups_get_num_group_members(MapTexGroups *const groups_data, int cons
 {
   assert(groups_data != NULL);
   assert(group < groups_data->count);
+  assert(groups_data->array);
+  if (!groups_data->array) {
+    return 0;
+  }
   const TexGroupRoot *const pgroup = &groups_data->array[group];
   int const n = pgroup->super ? 0 : pgroup->count;
   DEBUGF("There are %d members of texture group %d\n", n, group);
@@ -672,6 +692,10 @@ MapRef MapTexGroups_get_group_member(MapTexGroups *const groups_data, int const 
 {
   assert(groups_data != NULL);
   assert(group < groups_data->count);
+  assert(groups_data->array);
+  if (!groups_data->array) {
+    return map_ref_from_num(0);
+  }
   TexGroupRoot *const pgroup = &groups_data->array[group];
   unsigned char const tile = get_group_member(pgroup, index);
   DEBUGF("Member %d of texture group %d is tile %d\n", index, group, tile);
@@ -694,7 +718,7 @@ void MapTexGroups_free(MapTexGroups *const groups_data)
   assert(groups_data != NULL);
 
   if (groups_data->array != NULL) {
-    TexGroupRoot *tile_groups = groups_data->array;
+    TexGroupRoot *const tile_groups = &*groups_data->array;
     for (int i = 0; i < groups_data->count; i++) {
       if (tile_groups[i].array_anchor != NULL)
         flex_free(&tile_groups[i].array_anchor);
@@ -710,7 +734,7 @@ void MapTexGroups_free(MapTexGroups *const groups_data)
 
 void MapTexGroups_smooth(MapEditContext const *const map,
   MapTexGroups *const groups_data, MapPoint const map_pos,
-  MapEditChanges *const change_info)
+  _Optional MapEditChanges *const change_info)
 {
   DEBUG("Will attempt to smooth tile at %" PRIMapCoord ",%" PRIMapCoord,
         map_pos.x, map_pos.y);
@@ -718,6 +742,8 @@ void MapTexGroups_smooth(MapEditContext const *const map,
   assert(groups_data != NULL);
   if (groups_data->smooth_anchor == NULL || groups_data->array == NULL)
     return; /* can do nothing without smoothing data! */
+
+  TexGroupRoot *const array = &*groups_data->array;
 
   MapRef const Ctile = MapEdit_read_tile(map, map_pos);
   if (map_ref_is_mask(Ctile)) {
@@ -780,9 +806,8 @@ void MapTexGroups_smooth(MapEditContext const *const map,
      Search for a replacement tile (within the same group)
      that fits better with the surrounding tiles
   */
-  TexGroupRoot *const centre_group = &groups_data->array[
-                                       ideal_tile.main_group];
-  MapRef *const best_tiles = malloc(sizeof(*best_tiles) * centre_group->count);
+  TexGroupRoot *const centre_group = &array[ideal_tile.main_group];
+  _Optional MapRef *const best_tiles = malloc(sizeof(*best_tiles) * centre_group->count);
   if (!best_tiles) {
     report_error(SFERROR(NoMem), "", "");
     return;

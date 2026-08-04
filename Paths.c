@@ -80,7 +80,7 @@ void paths_destroy(PathsData *const paths)
   }
 }
 
-Path *paths_add(PathsData *const paths)
+_Optional Path *paths_add(PathsData *const paths)
 {
   assert(paths);
   assert(paths->count <= PathsMax);
@@ -90,7 +90,7 @@ Path *paths_add(PathsData *const paths)
     return NULL;
   }
 
-  Path *const path = malloc(sizeof(*path));
+  _Optional Path *const path = malloc(sizeof(*path));
   if (path)
   {
     *path = (Path){.paths = paths, .count = 0};
@@ -105,7 +105,7 @@ Path *paths_add(PathsData *const paths)
   return path;
 }
 
-Waypoint *path_add_waypoint(Path *const path, CoarsePoint3d coords)
+_Optional Waypoint *path_add_waypoint(Path *const path, CoarsePoint3d coords)
 {
   assert(path);
   assert(path->paths);
@@ -117,7 +117,7 @@ Waypoint *path_add_waypoint(Path *const path, CoarsePoint3d coords)
     return NULL;
   }
 
-  Waypoint *const waypoint = malloc(sizeof(*waypoint));
+  _Optional Waypoint *const waypoint = malloc(sizeof(*waypoint));
   if (waypoint)
   {
     *waypoint = (Waypoint){.path = path, .coords = coords};
@@ -218,7 +218,7 @@ SFError paths_read(PathsData *const paths, Reader *const reader)
       return SFERROR(BadNumWaypoints);
     }
 
-    Path *const path = paths_add(paths);
+    _Optional Path *const path = paths_add(paths);
     if (!path)
     {
       return SFERROR(NoMem);
@@ -237,7 +237,7 @@ SFError paths_read(PathsData *const paths, Reader *const reader)
       {
         return SFERROR(BadSeek);
       }
-      if (!path_add_waypoint(path, coords))
+      if (!path_add_waypoint(&*path, coords))
       {
         return SFERROR(NoMem);
       }
@@ -342,7 +342,7 @@ void paths_write(PathsData *const paths, Writer *const writer)
   }
 }
 
-Path *path_from_index(PathsData *const paths, int const index)
+_Optional Path *path_from_index(PathsData *const paths, int const index)
 {
   /* Only expected to be used on mission load, otherwise we should
      substitute an array */
@@ -363,7 +363,7 @@ Path *path_from_index(PathsData *const paths, int const index)
   return NULL;
 }
 
-Waypoint *waypoint_from_index(Path *const path, int const index)
+_Optional Waypoint *waypoint_from_index(Path *const path, int const index)
 {
   /* Only expected to be used on mission load, otherwise we should
      substitute an array */

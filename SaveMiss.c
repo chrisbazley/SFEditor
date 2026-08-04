@@ -77,7 +77,12 @@ static int miss_number, default_miss_number;
 
 static void resetdbox(EditSession *const session, ObjectId const self_id)
 {
-  PyramidData *const p = mission_get_pyramid(Session_get_mission(session));
+  _Optional MissionData *const m = Session_get_mission(session);
+  assert(m);
+  if (!m) {
+    return;
+  }
+  PyramidData *const p = mission_get_pyramid(&*m);
 
   switch (pyramid_get_difficulty(p)) {
     case Pyramid_Easy:
@@ -155,6 +160,11 @@ static int actionhandler(int const event_code, ToolboxEvent *const event,
     &edit_win), 0);
 
   EditSession *const session = EditWin_get_session(edit_win);
+  _Optional MissionData *const m = Session_get_mission(session);
+  assert(m);
+  if (!m) {
+    return 0;
+  }
 
   switch (id_block->self_component) {
     case ComponentId_ACTION_CANCEL:
@@ -195,7 +205,7 @@ static int actionhandler(int const event_code, ToolboxEvent *const event,
 
         get_mission_file_name(sub_path, pyramid_number, miss_number, miss_name);
 
-        PyramidData *const p = mission_get_pyramid(Session_get_mission(session));
+        PyramidData *const p = mission_get_pyramid(&*m);
 
         if (!Session_can_quick_save(session) ||
             stricmp(Session_get_filename(session), sub_path) != 0)
@@ -357,6 +367,6 @@ void SaveMiss_created(ObjectId const id)
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
     EF(event_register_toolbox_handler(id, handlers[i].event_code,
-                                      handlers[i].handler, NULL));
+                                      handlers[i].handler, &SaveMiss_sharedid));
   }
 }

@@ -196,7 +196,8 @@ static void reload(Editor *const editor)
                     filenames_get(filenames, DataType_MapTextures),
                     MapTexBitmaps_get_count(&textures->tiles));
 
-  Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_SNAKES_RELOADED, NULL);
+  Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_SNAKES_RELOADED,
+                               &(EditorChangeParams){0});
 }
 
 static void edit(Editor *const editor)

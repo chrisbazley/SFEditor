@@ -34,7 +34,7 @@ SpriteAreaHeader *get_sprite_area(void);
 
 bool set_saved_with_stamp(DFile *dfile, char const *fname);
 
-void get_scrollbar_sizes(int *width, int *height);
+void get_scrollbar_sizes(_Optional int *width, _Optional int *height);
 
 int truncate_string(char *string, int max_width);
 
@@ -58,7 +58,7 @@ unsigned int read_binary(char const *bin_string);
 bool dialogue_confirm(char const *mess, char const *buttons_token);
 
 /* Read line from file, skipping lines beginning with '#' */
-char *read_line_comm(char *s, size_t n, FILE *stream, int *line_num);
+char *read_line_comm(char *s, size_t n, FILE *stream, _Optional int *line_num);
 
 void open_topleftofwin(unsigned int flags, ObjectId showobj,
   ObjectId relativeto, ObjectId parent, ComponentId parent_component);
@@ -74,7 +74,7 @@ bool file_exists(char const *filepath);
 /* Bring window to front, if already open somewhere */
 bool show_win_if_open(ObjectId win);
 
-void *get_ancestor_handle_if_showing(ObjectId self_id);
+_Optional void *get_ancestor_handle_if_showing(ObjectId self_id);
 
 bool ensure_path_exists(char *file_path);
 
@@ -103,13 +103,13 @@ bool object_is_showing(ObjectId id);
 void edit_file(char const *dir, char const *tiles_set);
 bool append_to_csv(StringBuffer *csv, char const *value);
 
-char *make_file_path_in_dir_on_path(char const *path, char const *subdir,
+_Optional char *make_file_path_in_dir_on_path(char const *path, char const *subdir,
   char const *leaf);
 
-char *make_file_path_in_subdir(char const *dir, char const *subdir,
+_Optional char *make_file_path_in_subdir(char const *dir, char const *subdir,
   char const *leaf);
 
-char *make_file_path_in_dir(char const *dir, char const *leaf);
+_Optional char *make_file_path_in_dir(char const *dir, char const *leaf);
 
 bool report_error(SFError err, char const *load_path, char const *extra);
 

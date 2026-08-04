@@ -21,7 +21,7 @@ InfoEditChanges;
 
 void InfoEditChanges_init(InfoEditChanges *change_info);
 
-static inline bool InfoEditChanges_is_changed(const InfoEditChanges *const change_info)
+static inline bool InfoEditChanges_is_changed(_Optional const InfoEditChanges *const change_info)
 {
   if (!change_info) {
     return false;
@@ -31,27 +31,27 @@ static inline bool InfoEditChanges_is_changed(const InfoEditChanges *const chang
          change_info->infos_deleted;
 }
 
-static inline void InfoEditChanges_change(InfoEditChanges *const change_info)
+static inline void InfoEditChanges_change(_Optional InfoEditChanges *const change_info)
 {
   if (change_info) {
     ++change_info->infos_changed;
   }
 }
 
-static inline void InfoEditChanges_add(InfoEditChanges *const change_info)
+static inline void InfoEditChanges_add(_Optional InfoEditChanges *const change_info)
 {
   if (change_info) {
     ++change_info->infos_added;
   }
 }
 
-static inline void InfoEditChanges_delete(InfoEditChanges *const change_info)
+static inline void InfoEditChanges_delete(_Optional InfoEditChanges *const change_info)
 {
   if (change_info) {
     ++change_info->infos_deleted;
   }
 }
 
-char *InfoEditChanges_get_message(const InfoEditChanges *change_info);
+_Optional char *InfoEditChanges_get_message(const InfoEditChanges *change_info);
 
 #endif
