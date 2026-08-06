@@ -13,6 +13,10 @@
 #include "SFInit.h"
 #include "Map.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 enum {
   /* The eigen values must be correct for the screen mode number.
      They affect the size of thumbnails in the palette but that's all. */

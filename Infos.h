@@ -15,6 +15,10 @@ struct Writer;
 #include "SFError.h"
 #include "IntDict.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 enum {
   TargetInfoMax = 6, // Never more than 4 in practice
   InfoMaxClickDist = 5, // any Manhattan distance less than 6 in the game

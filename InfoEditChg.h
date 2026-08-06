@@ -9,6 +9,10 @@
 
 #include <stdbool.h>
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 typedef struct InfoEditChanges
 {
   unsigned long int infos_added, infos_changed, infos_deleted;

@@ -11,6 +11,10 @@
 #include "toolbox.h"
 #include "FileScan.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 /* Build menu from array of leafnames */
 ComponentId fsmenu_build(ObjectId menu, filescan_leafname *leaf_names,
   ComponentId *ret_next_free, bool inc_blank, bool add_none,

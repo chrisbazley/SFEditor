@@ -13,6 +13,10 @@
 #include "DataType.h"
 #include "FilenamesData.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 typedef enum {
   FS_FIRST,
   FS_MISSION_E = FS_FIRST,

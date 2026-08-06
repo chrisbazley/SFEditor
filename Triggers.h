@@ -27,6 +27,11 @@ typedef enum
 {
 #define DECLARE_TRIGGER(t) TriggerAction_ ## t,
 #include "DeclTrig.h"
+
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 #undef DECLARE_TRIGGER
 }
 TriggerAction;

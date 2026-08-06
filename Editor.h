@@ -16,6 +16,10 @@
 #include "ObjGfxMesh.h"
 #include "DataType.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 struct EditWin;
 struct EditSession;
 struct MapTex;

@@ -11,6 +11,10 @@
 #include "PalEntry.h"
 #include "Vertex.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 #define PAL_WHITE (PaletteEntry_RedMask | \
                    PaletteEntry_GreenMask | \
                    PaletteEntry_BlueMask)

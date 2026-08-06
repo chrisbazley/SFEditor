@@ -171,6 +171,10 @@ static inline MapRef map_update_tile(MapData const *const map,
 
 #include "CoarseCoord.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 static inline CoarsePoint2d map_coords_to_coarse(MapPoint const pos)
 {
   return (CoarsePoint2d){(CoarseCoord)map_wrap_coord(pos.x),

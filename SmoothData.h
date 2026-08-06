@@ -9,6 +9,10 @@
 
 #include <stdbool.h>
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 /*
   The array of TileSmoothData allows us to quickly find the group number of a
 given tile. Each element is a TileSmoothData block that contains the NESW edge

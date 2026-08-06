@@ -16,6 +16,10 @@
 #include "Editor.h"
 #include "Triggers.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 struct CloudColData;
 struct ObjEditContext;
 struct MapEditContext;

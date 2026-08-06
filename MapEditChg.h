@@ -9,6 +9,10 @@
 
 #include <stdbool.h>
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 typedef struct MapEditChanges
 {
   unsigned long int tiles_changed, anims_added, anims_changed, anims_deleted;

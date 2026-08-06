@@ -14,6 +14,10 @@ struct Writer;
 
 #include "CoarseCoord.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 enum {
   ShipsMax = 32
 };

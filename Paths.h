@@ -13,6 +13,10 @@ struct Writer;
 
 #include "CoarseCoord.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 typedef struct PathsData PathsData;
 typedef struct Path Path;
 typedef struct Waypoint Waypoint;

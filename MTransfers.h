@@ -14,6 +14,10 @@
 #include "MapTexBitm.h"
 #include "DFile.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 enum
 {
   TransfersThumbWidth = 7 * MapTexSize,

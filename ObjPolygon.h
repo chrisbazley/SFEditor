@@ -11,6 +11,10 @@
 struct Reader;
 #include "Debug.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 enum {
   ObjPolygonMinSides = 3,
   ObjPolygonMaxSides = 15,

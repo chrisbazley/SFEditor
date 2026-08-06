@@ -22,6 +22,10 @@
 #include "HillCol.h"
 #include "Obj.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 enum {
   OBJGFXMESH_ANGLE_QUART = 128,
   SINE_TABLE_SCALE_LOG2 = 10,

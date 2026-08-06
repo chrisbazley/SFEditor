@@ -11,6 +11,10 @@
 #include "MapEdit.h"
 #include "MapEditChg.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 typedef struct MapTexGroups MapTexGroups;
 
 void MapTexGroups_init(MapTexGroups *groups_data);

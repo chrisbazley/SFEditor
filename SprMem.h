@@ -11,6 +11,10 @@
 #include "SprFormats.h"
 #include "Vertex.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 typedef struct SprMem {
   void *mem;
 } SprMem;

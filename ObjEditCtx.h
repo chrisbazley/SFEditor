@@ -11,6 +11,10 @@
 #include "Obj.h"
 #include "Triggers.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 struct EditSession;
 
 struct ObjEditContext

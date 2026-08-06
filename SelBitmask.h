@@ -10,6 +10,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 typedef uint32_t SelBitmaskType;
 
 typedef struct SelectionBitmask

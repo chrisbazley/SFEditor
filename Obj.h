@@ -266,6 +266,10 @@ static inline ObjRef objects_update_ref(ObjectsData const *const objects,
 
 #include "CoarseCoord.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 static inline CoarsePoint2d objects_coords_to_coarse(MapPoint pos)
 {
   pos = objects_wrap_coords(pos);

@@ -12,6 +12,10 @@
 #include "Infos.h"
 #include "Macros.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 struct InfoEditChanges;
 struct SelectionBitmask;
 

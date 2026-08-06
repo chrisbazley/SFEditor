@@ -14,6 +14,10 @@
 #include "Editor.h"
 #include "DataType.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 struct EditWin;
 struct Reader;
 struct Writer;

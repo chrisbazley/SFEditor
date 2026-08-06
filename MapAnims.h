@@ -18,6 +18,10 @@
 #include "DFile.h"
 #include "IntDict.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 struct MapEditSelection;
 struct MapEditChanges;
 struct MapAreaColData;

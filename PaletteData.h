@@ -14,6 +14,10 @@
 #include "Vertex.h"
 #include "Palette.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 struct PaletteData {
   ObjectId my_object;
   struct Editor *parent_editor;

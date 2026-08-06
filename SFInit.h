@@ -11,6 +11,10 @@
 #include "Macros.h"
 #include "PalEntry.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 #define APP_NAME "SFEditor"
 
 enum

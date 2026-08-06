@@ -11,6 +11,10 @@
 #include "StrDict.h"
 #include "SFError.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 struct Writer;
 struct Reader;
 

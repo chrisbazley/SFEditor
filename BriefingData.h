@@ -1,3 +1,7 @@
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 /*
  *  SFeditor - Star Fighter 3000 map/mission editor
  *  Mission briefing data

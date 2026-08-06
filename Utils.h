@@ -24,6 +24,10 @@
 #include "DFile.h"
 #include "DataType.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 int string_lcount(char const *string, int *max_width);
 
 SpriteAreaHeader *get_sprite_area(void);

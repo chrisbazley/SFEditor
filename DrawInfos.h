@@ -9,6 +9,10 @@
 
 #include "MapCoord.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 #define COLLISION_BBOX_IS_SELECTION_BBOX 0
 
 typedef ObjRef DrawInfosReadObjFn(void *cb_arg, MapPoint map_pos);

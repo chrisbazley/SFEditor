@@ -50,6 +50,11 @@ typedef struct EditWin EditWin;
 typedef enum {
 #define DECLARE_CHANGE(c) EDITOR_CHANGE_ ## c,
 #include "DeclChange.h"
+
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 #undef DECLARE_CHANGE
 } EditorChange;
 
