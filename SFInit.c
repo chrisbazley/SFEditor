@@ -167,7 +167,7 @@ PaletteEntry const (*palette)[NumColours];
 char taskname[MaxTaskNameLen + 1] = APP_NAME;
 int  wimp_version, task_handle;
 MessagesFD messages;
-_Optional void *tb_sprite_area;
+_Optional SpriteAreaHeader *tb_sprite_area;
 
 /* ---------------- Private functions ---------------- */
 
@@ -486,14 +486,17 @@ void initialise(void)
 
   static IdBlock id_block;
   int toolbox_events = 0;
+  _Optional void *sa = NULL;
   _Optional const _kernel_oserror *e = toolbox_initialise (
                                                  0, KnownWimpVersion, wimp_messages,
                                                  &toolbox_events, "<"APP_NAME"Res$Dir>",
                                                  &messages, &id_block, &wimp_version,
                                                  &task_handle,
-                                                 &tb_sprite_area);
+                                                 &sa);
   if (e != NULL)
     simple_exit(&*e);
+
+  tb_sprite_area = sa;
 
   e = messagetrans_lookup(&messages,
                           "_TaskName",

@@ -10,6 +10,7 @@
 #include "toolbox.h"
 #include "Macros.h"
 #include "PalEntry.h"
+#include "SprFormats.h"
 
 #if !defined(USE_OPTIONAL) && !defined(_Optional)
 #define _Optional
@@ -26,7 +27,7 @@ extern PaletteEntry const (*palette)[NumColours];
 extern char taskname[];
 extern int wimp_version, task_handle;
 extern MessagesFD messages;
-extern _Optional void *tb_sprite_area;
+extern _Optional SpriteAreaHeader *tb_sprite_area;
 
 void initialise(void);
 

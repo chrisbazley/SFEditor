@@ -389,10 +389,9 @@ static SFError read_from_file(FILE *const file,
   *err_buf = '\0';
 
   char read_line[LineBufferSize];
-  bool block = false;
   int line = 0;
   unsigned char group_num = 0;
-  TexGroupRoot *pgroup;
+  _Optional TexGroupRoot *pgroup = NULL;
   int const ngroups = groups_data->count;
   
   assert(groups_data->array);
@@ -406,7 +405,7 @@ static SFError read_from_file(FILE *const file,
     if (strncmp(read_line, UX_STARTSMOOTHMARK,
                 sizeof(UX_STARTSMOOTHMARK) - 1) == 0)
     {
-      if (block) {
+      if (pgroup) {
         /* syntax error - already in block */
         sprintf(err_buf, "%d", line);
         return SFERROR(Unexp);
@@ -432,13 +431,11 @@ static SFError read_from_file(FILE *const file,
       assert(group <= UCHAR_MAX);
       group_num = (unsigned char)group;
       pgroup = &array[group_num];
-      block = true;
-
       continue; /* read next line */
     }
 
     if (strcmp(read_line, ENDSMOOTHMARK) == 0) {
-      if (!block) {
+      if (!pgroup) {
         /* syntax error - not in block */
         sprintf(err_buf, "%d", line);
         return SFERROR(Unexp);
@@ -446,14 +443,13 @@ static SFError read_from_file(FILE *const file,
       /*
         End of group definition
       */
-      block = false;
-
+      pgroup = NULL;
       continue; /* read next line */
     }
 
     if (strncmp(read_line, UX_SMOOTHUNDEFMARK,
                 sizeof(UX_SMOOTHUNDEFMARK) - 1) == 0) {
-      if (block) {
+      if (pgroup) {
         /* syntax error - in block */
         sprintf(err_buf, "%d", line);
         return SFERROR(Unexp);
@@ -481,7 +477,7 @@ static SFError read_from_file(FILE *const file,
     }
 
     if (strncmp(read_line, UX_SUBGROUP, sizeof(UX_SUBGROUP) - 1) == 0) {
-      if (!block) {
+      if (!pgroup) {
         /* Error - not inside group definition */
         sprintf(err_buf, "%d", line);
         return SFERROR(Unexp);
@@ -519,7 +515,7 @@ static SFError read_from_file(FILE *const file,
       continue; /* read next line */
     }
 
-    if (!block) {
+    if (!pgroup) {
       /* unknown non-comment text outside block */
       sprintf(err_buf, "%d", line);
       return SFERROR(Mistake);
@@ -574,7 +570,7 @@ static SFError read_from_file(FILE *const file,
                          (unsigned char)s, (unsigned char)w);
   } /* endwhile */
 
-  if (block) {
+  if (pgroup) {
     /* syntax error - no end of block before EOF */
     strcpy(err_buf, ENDSMOOTHMARK);
     return SFERROR(EOF);

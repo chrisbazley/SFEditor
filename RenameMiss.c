@@ -140,7 +140,7 @@ static void setup_win(void)
   /* Have reached end of list without match - substitute 1st known name */
   {
     _Optional filescan_leafname *first_leaf = NULL;
-    char const *prefix;
+    char const *prefix = "";
 
     for (size_t i = 0; !first_leaf && i < ARRAY_SIZE(data); ++i) {
       if (data[i].leaves == NULL) {

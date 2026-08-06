@@ -762,7 +762,7 @@ static bool push_segment(Stack *const stack, MapCoord const y, MapCoord const mi
     DEBUG("Extending stack from %d to %d",
           stack->sl, stack->sl + STACK_CHUNK_SIZE);
 
-    _Optional void *const ext = realloc(stack->mem,
+    _Optional Segment *const ext = realloc(stack->mem,
                         (size_t)(stack->sl + STACK_CHUNK_SIZE) * sizeof(Segment));
     if (!ext) {
       return false;

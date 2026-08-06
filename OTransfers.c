@@ -517,9 +517,10 @@ static void delete_transfer(ObjTransfer *const transfer_to_delete)
 static void delete_all_cb(char const *const key, _Optional void *const data, void *const arg)
 {
   NOT_USED(key);
+  _Optional ObjTransfer *const transfer_to_delete = data;
   NOT_USED(arg);
-  if (data)
-    delete_transfer(&*data);
+  if (transfer_to_delete)
+    delete_transfer(&*transfer_to_delete);
 }
 
 /* ----------------- Public functions ---------------- */
