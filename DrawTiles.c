@@ -64,7 +64,7 @@ static bool draw_bitmap_big(MapTexBitmaps *const textures,
   unsigned char const (*const sel_colours)[NumColours])
 {
   assert(textures != NULL);
-  assert(read != NULL);
+  assert(read);
 
   /* White out the sprite (needed for EOR plot if tiles inverted) */
 
@@ -142,7 +142,7 @@ static bool draw_bitmap_small(MapTexBitmaps *const textures,
   unsigned char const (*const sel_colours)[NumColours])
 {
   assert(textures != NULL);
-  assert(read != NULL);
+  assert(read);
 
   bool needs_mask = false;
   Vertex draw_pos = {0,0};
@@ -217,7 +217,7 @@ bool DrawTiles_to_sprite(MapTexBitmaps *const textures,
   int const zoom, unsigned char const (*const sel_colours)[NumColours])
 {
   assert(textures != NULL);
-  assert(read != NULL);
+  assert(read);
 
   DEBUGF("Plot bitmap for tiles x %" PRIMapCoord "..%" PRIMapCoord " y %" PRIMapCoord "..%" PRIMapCoord
          " at zoom level %d\n",
@@ -355,8 +355,8 @@ void DrawTiles_to_bbox(
   MapAngle const angle, MapArea const *const scr_area, DrawTilesReadFn *const read, void *const read_arg,
   DrawTilesBBoxFn *const give_bbox, void *const give_bbox_arg, Vertex const tile_size)
 {
-  assert(read != NULL);
-  assert(give_bbox != NULL);
+  assert(read);
+  assert(give_bbox);
   DEBUGF("Plot bboxes for tiles %" PRIMapCoord ", %" PRIMapCoord "%" PRIMapCoord ", %" PRIMapCoord "\n",
          scr_area->min.x, scr_area->min.y, scr_area->max.x, scr_area->max.y);
 

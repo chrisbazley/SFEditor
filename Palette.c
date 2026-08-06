@@ -168,7 +168,7 @@ static int index_to_object(PaletteData const *const pal_data, int const index)
   int object = index;
 
   if (pal_data->client_functions != NULL &&
-      pal_data->client_functions->index_to_object != NULL)
+      pal_data->client_functions->index_to_object)
   {
     object = pal_data->client_functions->index_to_object(
       pal_data->parent_editor, index);
@@ -182,7 +182,7 @@ static void update_menus(PaletteData *const pal_data)
 {
   assert(pal_data);
   if (pal_data->client_functions != NULL &&
-      pal_data->client_functions->update_menus != NULL)
+      pal_data->client_functions->update_menus)
   {
     pal_data->client_functions->update_menus(pal_data);
   }
@@ -196,7 +196,7 @@ static int p_object_to_index(PaletteData const *const pal_data, int const object
   int index = object;
 
   if (pal_data->client_functions != NULL &&
-      pal_data->client_functions->object_to_index != NULL)
+      pal_data->client_functions->object_to_index)
   {
     index = pal_data->client_functions->object_to_index(
       pal_data->parent_editor, object);
@@ -282,7 +282,7 @@ static int index_from_grid(PaletteData *const pal_data, Vertex grid_pos)
   int index = NULL_DATA_INDEX;
 
   if (!pal_data->numeric_order && pal_data->client_functions != NULL &&
-      pal_data->client_functions->grid_to_index != NULL)
+      pal_data->client_functions->grid_to_index)
   {
     DEBUGF("Calling grid-to-index function for custom layout\n");
     index = pal_data->client_functions->grid_to_index(pal_data->parent_editor,
@@ -494,7 +494,7 @@ static bool reformat_visible(PaletteData *const pal_data, BBox const *const visi
 
   /* Predict number of rows in display */
   if (!pal_data->numeric_order && pal_data->client_functions != NULL &&
-      pal_data->client_functions->get_num_rows != NULL)
+      pal_data->client_functions->get_num_rows)
   {
     pal_data->grid_size.y = (int)pal_data->client_functions->get_num_rows(
                                pal_data->parent_editor, new_num_columns);
@@ -540,7 +540,7 @@ static void redraw_loop(PaletteData *const pal_data, WimpRedrawWindowBlock *cons
   const PaletteClientFuncts *const client_functions =
     pal_data->client_functions;
 
-  if (client_functions != NULL && client_functions->start_redraw != NULL) {
+  if (client_functions != NULL && client_functions->start_redraw) {
     DEBUGF("Calling client function at start of redraw\n");
     client_functions->start_redraw(pal_data->parent_editor, pal_data->labels);
   }
@@ -665,7 +665,7 @@ static void redraw_loop(PaletteData *const pal_data, WimpRedrawWindowBlock *cons
           break; /* assume it is the end of this row */
         }
 
-        if (client_functions->redraw_object != NULL)
+        if (client_functions->redraw_object)
         {
           DEBUGF("Calling client function to redraw item %d (bbox %d,%d,%d,%d)\n",
                  index, image_bbox.xmin, image_bbox.ymin, image_bbox.xmax,
@@ -676,7 +676,7 @@ static void redraw_loop(PaletteData *const pal_data, WimpRedrawWindowBlock *cons
                                           pal_data->sel_index == index);
         }
 
-        if (pal_data->labels && client_functions->redraw_label != NULL)
+        if (pal_data->labels && client_functions->redraw_label)
         {
           DEBUGF("Calling client function to redraw label %d (bbox %d,%d,%d,%d)\n",
                  index, label_bbox.xmin, label_bbox.ymin,
@@ -760,7 +760,7 @@ static void redraw_loop(PaletteData *const pal_data, WimpRedrawWindowBlock *cons
     }
   }
 
-  if (client_functions != NULL && client_functions->end_redraw != NULL)
+  if (client_functions != NULL && client_functions->end_redraw)
   {
     DEBUGF("Calling client function at end of redraw\n");
     client_functions->end_redraw(pal_data->parent_editor, pal_data->labels);
@@ -988,7 +988,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 
   if (!pal_data->is_showing) {
     if (pal_data->client_functions != NULL &&
-        pal_data->client_functions->animate != NULL)
+        pal_data->client_functions->animate)
     {
       int now;
       EF(os_read_monotonic_time(&now));
@@ -1013,7 +1013,7 @@ static int has_been_hidden(int const event_code, ToolboxEvent *const event,
     Editor_pal_was_hidden(pal_data->parent_editor);
 
     if (pal_data->client_functions != NULL &&
-        pal_data->client_functions->animate != NULL)
+        pal_data->client_functions->animate)
     {
       scheduler_deregister(anim_cb, pal_data);
     }
@@ -1099,7 +1099,7 @@ static int user_event(int const event_code, ToolboxEvent *const event,
   if (pal_data->client_functions != NULL) {
     switch (event_code) {
     case EVENT_PALETTE_DELETE:
-      if (pal_data->client_functions->delete != NULL &&
+      if (pal_data->client_functions->delete &&
           pal_data->sel_index != NULL_DATA_INDEX) {
         pal_data->client_functions->delete(
           pal_data->parent_editor, index_to_object(pal_data, pal_data->sel_index));
@@ -1198,12 +1198,12 @@ static void do_finalise(PaletteData *const pal_data, bool const reinit)
          pal_data->client_functions->title_msg);
 
   if (pal_data->is_showing) {
-    if (pal_data->client_functions->animate != NULL) {
+    if (pal_data->client_functions->animate) {
       scheduler_deregister(anim_cb, pal_data);
     }
   }
 
-  if (pal_data->client_functions->finalise != NULL) {
+  if (pal_data->client_functions->finalise) {
     DEBUG ("Calling client finalisation function");
     pal_data->client_functions->finalise(pal_data, pal_data->parent_editor, reinit);
   } else if (!reinit) {
@@ -1235,7 +1235,7 @@ static bool do_init(PaletteData *const pal_data,
   if (client_functions != NULL)
   {
     Vertex default_selected = {0, 0};
-    if (client_functions->initialise != NULL)
+    if (client_functions->initialise)
     {
       DEBUG ("Calling client initialisation function");
 

@@ -519,7 +519,7 @@ void MapEdit_copy_to_area(MapEditContext const *const map,
 {
   assert(map != NULL);
   assert(MapArea_is_valid(area));
-  assert(read != NULL);
+  assert(read);
 
   if (map->prechange_cb) {
     map->prechange_cb(area, map->session);

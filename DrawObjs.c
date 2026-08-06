@@ -372,8 +372,8 @@ void DrawObjs_to_screen(
   Vertex const scr_orig,
   bool const is_ghost, ObjEditSelection const *const occluded)
 {
-  assert(read_obj != NULL);
-  assert(read_hill != NULL);
+  assert(read_obj);
+  assert(read_hill);
   assert(MapArea_is_valid(scr_area));
 
   DEBUGF("Plot objects for grid %" PRIMapCoord ", %" PRIMapCoord

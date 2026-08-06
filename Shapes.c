@@ -133,7 +133,7 @@ static void plot_trapezium(ShapesWriteFunction *const write, void *const arg,
 {
   assert(left != NULL);
   assert(right != NULL);
-  assert(write != NULL);
+  assert(write);
 
   DEBUGF("Trapezium with base %" PRIMapCoord ",%" PRIMapCoord
          " and dir %" PRIMapCoord ",%" PRIMapCoord
@@ -256,7 +256,7 @@ void Shapes_tri(ShapesWriteFunction *const write, void *const arg,
 void Shapes_rect(ShapesWriteFunction *const write, void *const arg,
   MapPoint const vertex_A, MapPoint const vertex_B)
 {
-  assert(write != NULL);
+  assert(write);
   DEBUG("Rectangle between %" PRIMapCoord ",%" PRIMapCoord " and %"
         PRIMapCoord ",%" PRIMapCoord, vertex_A.x,
         vertex_A.y, vertex_B.x, vertex_B.y);
@@ -269,7 +269,7 @@ void Shapes_rect(ShapesWriteFunction *const write, void *const arg,
 static void write_circle(ShapesWriteFunction *const write, void *const arg,
   MapPoint const centre, MapArea const *const map_area)
 {
-  assert(write != NULL);
+  assert(write);
   assert(MapArea_is_valid(map_area));
   assert(map_area->min.y >= 0);
 
@@ -372,7 +372,7 @@ static inline MapCoord round_coord(double const x)
 static void steep_thick_line(ShapesWriteFunction *const write, void *const arg,
   MapPoint const start, MapPoint const end, MapCoord const thickness, MapPoint const d)
 {
-  assert(write != NULL);
+  assert(write);
   MapCoord const radius_squared = thickness * thickness;
 
   DEBUGF("Steep thick (y major)\n");
@@ -487,7 +487,7 @@ static void steep_thick_line(ShapesWriteFunction *const write, void *const arg,
 static void steep_line(ShapesWriteFunction *const write, void *const arg,
   MapPoint const start, MapPoint const end, MapPoint const d)
 {
-  assert(write != NULL);
+  assert(write);
   DEBUGF("Steep (y major)\n");
   MapCoord const x_dir = (end.x >= start.x ? 1 : -1);
   MapCoord p = d.y; /* decision parameter */
@@ -525,7 +525,7 @@ static void shallow_thick_line(ShapesWriteFunction *const write,
   void *const arg, MapPoint const start, MapPoint const end,
   MapCoord const thickness, MapPoint const d)
 {
-  assert(write != NULL);
+  assert(write);
   MapCoord const radius_squared = thickness * thickness;
 
   DEBUGF("Shallow thick (x major)\n");
@@ -641,7 +641,7 @@ static void shallow_thick_line(ShapesWriteFunction *const write,
 static void shallow_line(ShapesWriteFunction *const write, void *const arg,
   MapPoint const start, MapPoint const end, MapPoint const d)
 {
-  assert(write != NULL);
+  assert(write);
   DEBUGF("Shallow (x major)\n");
   MapCoord const y_dir = (end.y >= start.y ? 1 : -1);
   MapCoord p = d.x; /* decision parameter */
@@ -814,8 +814,8 @@ static bool do_flood_fill(Stack *const stack, ShapesReadFunction *const read,
   ShapesWriteFunction *const write, void *const arg,
   size_t const find, MapPoint pos, MapCoord const limit)
 {
-  assert(read != NULL);
-  assert(write != NULL);
+  assert(read);
+  assert(write);
 
   /*
    * A Seed Fill Algorithm

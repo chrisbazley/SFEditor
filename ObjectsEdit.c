@@ -770,7 +770,7 @@ void ObjectsEdit_copy_to_area(ObjEditContext const *const objects,
 {
   assert(objects != NULL);
   assert(MapArea_is_valid(area));
-  assert(read != NULL);
+  assert(read);
 
   if (objects->prechange_cb) {
     objects->prechange_cb(area, objects->session);
@@ -865,7 +865,7 @@ bool ObjectsEdit_can_copy_to_area(ObjEditContext const *const objects,
 {
   assert(objects != NULL);
   assert(MapArea_is_valid(area));
-  assert(read != NULL);
+  assert(read);
 
   MapAreaIter iter;
   for (MapPoint p = MapAreaIter_get_first(&iter, area);
