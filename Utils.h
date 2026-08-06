@@ -59,8 +59,6 @@ char *read_line_comm(char *s, size_t n, FILE *stream, int *line_num);
 void open_topleftofwin(unsigned int flags, ObjectId showobj,
   ObjectId relativeto, ObjectId parent, ComponentId parent_component);
 
-char *truncate(char *string, int length);
-
 char real_to_mode13col(PaletteEntry real_col);
 
 PaletteEntry opposite_col(PaletteEntry real_col);
