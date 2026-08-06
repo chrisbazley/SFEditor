@@ -507,7 +507,9 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
 
   /* Parse each object definition in turn until finding an end marker.
      There must be at least one. */
+#ifdef DEBUG_OUTPUT
   int object_count = 0;
+#endif
   do {
     long int expl_size = 36l * (last_explosion_num + 1l);
 
@@ -766,7 +768,9 @@ static SFError parse_objects(ObjGfxMeshes *const meshes, Reader * const reader)
       return SFERROR(ReadFail);
     }
 
+#ifdef DEBUG_OUTPUT
     ++object_count;
+#endif
   } while (last_explosion_num != Objects_EndOfData);
 
   DEBUGF("Found file terminator at %ld\n",
