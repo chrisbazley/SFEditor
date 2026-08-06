@@ -204,7 +204,7 @@ static bool check_wrapped(ConvAnimations *const anims, MapPoint const map_pos)
   return false;
 }
 
-static void anim_destroy_cb(IntDictKey const key, void *const data, void *const arg)
+static void anim_destroy_cb(IntDictKey const key, _Optional void *const data, void *const arg)
 {
   NOT_USED(key);
   NOT_USED(arg);

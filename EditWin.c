@@ -684,7 +684,7 @@ static void close(EditWin *const edit_win, bool const open_parent)
  * type 5 is used for DragBoxOp_Start, drag type 7 for DragBoxOp_Hide and
  * Wimp_DragBox -1 for DragBoxOp_Cancel.
  */
-static const _kernel_oserror *drag_box_method(DragBoxOp action, bool solid_drags, int mouse_x,
+static const _Optional _kernel_oserror *drag_box_method(DragBoxOp action, bool solid_drags, int mouse_x,
                                               int mouse_y, void *client_handle)
 {
   NOT_USED(solid_drags);
@@ -1300,7 +1300,7 @@ static bool paste_read_cb(Reader *const reader, int const estimated_size,
   return Editor_start_pending_paste(editor, reader, estimated_size, data_type, leaf_name);
 }
 
-static void paste_failed_cb(const _kernel_oserror *const e, void *const client_handle)
+static void paste_failed_cb(_Optional const _kernel_oserror *const e, void *const client_handle)
 {
   NOT_USED(client_handle);
   E(e);
@@ -2341,7 +2341,7 @@ static bool drag_write(Writer *const writer, int const file_type,
   return Editor_drag_obj_remote(src_edit_win->editor, writer, data_type, filename);
 }
 
-static void drag_failed(const _kernel_oserror *const error,
+static void drag_failed(_Optional const _kernel_oserror *const error,
   void *const client_handle)
 {
   EditWin *const src_edit_win = client_handle;
@@ -2353,7 +2353,7 @@ static void drag_failed(const _kernel_oserror *const error,
   Editor_cancel_drag_obj(src_edit_win->editor);
 }
 
-static void drag_moved(int const file_type, char const *const file_path,
+static void drag_moved(int const file_type, _Optional char const *const file_path,
   int const datasave_ref, void *const client_handle)
 {
   EditWin *const src_edit_win = client_handle;
@@ -2541,7 +2541,7 @@ static void paste_probe_cb(int const file_type, void *const client_handle)
   Editor_set_paste_enabled(editor, in_file_types(file_type, import_file_types));
 }
 
-static void probe_failed_cb(const _kernel_oserror *const e, void *const client_handle)
+static void probe_failed_cb(_Optional const _kernel_oserror *const e, void *const client_handle)
 {
   EditWin *const edit_win = client_handle;
   assert(edit_win != NULL);

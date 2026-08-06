@@ -45,8 +45,11 @@ static void *save_area = NULL;
 static SpriteRestoreOutputBlock old_output_state;
 static bool restore_state = false, restore_output_is_reg = false;
 
-typedef _kernel_oserror *switch_output_fn(SpriteAreaHeader *,
-  char const *, void *, size_t, size_t *, SpriteRestoreOutputBlock *);
+typedef _Optional _kernel_oserror *switch_output_fn(SpriteAreaHeader *,
+                                                    _Optional char const *,
+                                                    _Optional void *, size_t,
+                                                    _Optional size_t *,
+                                                    _Optional SpriteRestoreOutputBlock *);
 
 /* ---------------- Private functions --------------- */
 

@@ -838,7 +838,7 @@ bool report_error(SFError const err, char const *const path, char const *const e
   return is_err;
 }
 
-void load_fail(CONST _kernel_oserror *const error,
+void load_fail(_Optional CONST _kernel_oserror *const error,
   void *const client_handle)
 {
   NOT_USED(client_handle);

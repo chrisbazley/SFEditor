@@ -491,7 +491,7 @@ static void ObjTransfer_destroy_cb(DFile const *const dfile)
   free(transfer);
 }
 
-static void free_all_cb(char const *const key, void *const data, void *const arg)
+static void free_all_cb(char const *const key, _Optional void *const data, void *const arg)
 {
   NOT_USED(key);
   ObjTransfer *const transfer_to_delete = data;
@@ -506,7 +506,7 @@ static void delete_transfer(ObjTransfer *const transfer_to_delete)
   dfile_release(&transfer_to_delete->dfile);
 }
 
-static void delete_all_cb(char const *const key, void *const data, void *const arg)
+static void delete_all_cb(char const *const key, _Optional void *const data, void *const arg)
 {
   NOT_USED(key);
   NOT_USED(arg);

@@ -109,7 +109,7 @@ char *make_file_path_in_dir(char const *dir, char const *leaf);
 
 bool report_error(SFError err, char const *load_path, char const *extra);
 
-void load_fail(CONST _kernel_oserror *error, void *client_handle);
+void load_fail(_Optional CONST _kernel_oserror *error, void *client_handle);
 
 SFError check_trunc_or_ext(struct Reader *reader, SFError err);
 
