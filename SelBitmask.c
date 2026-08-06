@@ -24,6 +24,10 @@
 #include "Macros.h"
 #include "SelBitmask.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static void redraw(SelectionBitmask *const selection, size_t const index)
 {
   assert(selection);

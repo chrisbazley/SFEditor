@@ -47,6 +47,10 @@
 #include "ObjGfxData.h"
 #include "ObjLayout.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   PaletteIndexWhite = 255,
   PaletteIndexBlack = 0,

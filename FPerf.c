@@ -30,6 +30,10 @@
 #include "FPerf.h"
 #include "FPerfData.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum
 {
   FighterPerformPadding = 8,

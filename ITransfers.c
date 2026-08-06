@@ -43,6 +43,10 @@
 #include "CoarseCoord.h"
 #include "SelBitmask.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define TRANSFER_TAG "YMMV"
 
 enum

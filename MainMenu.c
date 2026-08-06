@@ -36,6 +36,10 @@
 #include "DataType.h"
 #include "Editor.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   ComponentId_FILE     = 0x2,
   ComponentId_EDIT     = 0x3,

@@ -40,6 +40,10 @@
 #include "FilePaths.h"
 #include "PalEntry.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define CUSTOMGAMELOC "CustomGameLocation = %d\n"
 #define GAMELOCATION "GameLocation = %s\n"
 #define EXTERNALDIR "UseExternalDir = %d\n"

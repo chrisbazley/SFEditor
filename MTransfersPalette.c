@@ -48,6 +48,10 @@
 #include "FilenamesData.h"
 #include "DFileUtils.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define CLIP_LABEL_WIDTH
 
 static WimpPlotIconBlock plot_icon, plot_label;

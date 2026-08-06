@@ -47,6 +47,10 @@
 #include "Obj.h"
 #include "ObjGfxMesh.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define CLIP_LABEL_WIDTH
 
 static WimpPlotIconBlock plot_label;

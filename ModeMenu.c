@@ -34,6 +34,10 @@
 #include "DataType.h"
 #include "Editor.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* --------------------- Gadgets -------------------- */
 
 enum {

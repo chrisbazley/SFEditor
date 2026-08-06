@@ -40,6 +40,10 @@
 #include "DataType.h"
 #include "FilePaths.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static DataType data_type;
 
 /* ---------------- Private functions ---------------- */

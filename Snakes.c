@@ -34,6 +34,10 @@
 #include "MapCoord.h"
 #include "Utils.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define UX_STARTSNAKEMARK "StartSnake"
 #define STARTSNAKEMARK UX_STARTSNAKEMARK" '%11s'\n"
 #define UX_ENDSNAKEMARK "EndSnake"

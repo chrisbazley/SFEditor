@@ -41,6 +41,10 @@
 #include "Session.h"
 #include "PreQuit.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* Constant numeric values */
 enum
 {

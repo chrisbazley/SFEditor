@@ -28,6 +28,10 @@
 #include "SFError.h"
 #include "ObjPolygon.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   ObjPolygonNumSidesMask = 0x0fu,
   ObjPolygonNumSidesShift = 0,

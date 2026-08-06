@@ -23,6 +23,10 @@
 #include "MapCoord.h"
 #include "MapLayout.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   MAP_TILE_SIZE_LOG2 = MAP_COORDS_LIMIT_LOG2 - Map_SizeLog2,
   MAP_TILE_SIZE = 1l << MAP_TILE_SIZE_LOG2,

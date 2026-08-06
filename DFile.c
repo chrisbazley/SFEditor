@@ -33,6 +33,10 @@
 #include "DFile.h"
 #include "DFileData.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 SFError dfile_read(DFile const *const dfile, Reader *const reader)
 {
   assert(dfile);

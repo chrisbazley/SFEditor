@@ -38,6 +38,10 @@
 #include "Clouds.h"
 #include "DataType.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static char const GF_STARTBASEGFXMARK[] = "StartBaseGfx\n";
 static char const GF_ENDBASEGFXMARK[] = "EndBaseGfx\n";
 

@@ -54,6 +54,10 @@
 #include "Hill.h"
 #include "Obj.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 typedef enum
 {
   CoordinateScale_Small,

@@ -32,6 +32,10 @@
 #include "Paths.h"
 #include "PathsData.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   PathsMax = 8,
   PathMaxWaypoints = 64,

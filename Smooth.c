@@ -44,6 +44,10 @@
 #include "MapCoord.h"
 #include "SmoothData.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define UX_STARTSMOOTHMARK "StartGroup"
 #define STARTSMOOTHMARK UX_STARTSMOOTHMARK" %d\n"
 #define UX_ENDSMOOTHMARK "EndGroup"

@@ -53,6 +53,10 @@
 #include "MapTexBitm.h"
 #include "MapCoord.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* Makes the tile number hard to read in low resolution screen modes */
 #define CROSS_HATCH 0
 

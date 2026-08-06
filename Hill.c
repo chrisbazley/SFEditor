@@ -16,6 +16,10 @@
 #include "ObjGfxMesh.h"
 #include "SFError.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define HILL_HEIGHT_BUG 1
 #define HILL_COLOUR_BUG 1
 #define MIX_COLOURS 1

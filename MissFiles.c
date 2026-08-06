@@ -32,6 +32,10 @@
 #include "MissFiles.h"
 #include "DataType.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   MISSFILES_SAVEALL    = 0x5,
   MISSFILES_CLOSE      = 0x13,

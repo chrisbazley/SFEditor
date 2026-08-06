@@ -31,6 +31,10 @@
 #include "FileScan.h"
 #include "RenMissMenu.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   RENMISSMENU_EASY   = 0x4,
   RENMISSMENU_MEDIUM = 0x5,

@@ -37,6 +37,10 @@
 #include "DataType.h"
 #include "Mission.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* --------------------- Gadgets -------------------- */
 
 enum {

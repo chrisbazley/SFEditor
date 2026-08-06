@@ -41,6 +41,10 @@
 #include "DrawTrig.h"
 #include "SelBitmask.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 SFError InfoEdit_add(InfoEditContext const *const infos, MapPoint const pos,
   char const *C23_CONST (*const strings)[TargetInfoTextIndex_Count],
   InfoEditChanges *const change_info, size_t *const index)

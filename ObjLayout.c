@@ -27,6 +27,10 @@
 #include "MapCoord.h"
 #include "ObjLayout.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   MAP_GRID_SIZE_LOG2 =  MAP_COORDS_LIMIT_LOG2 - Obj_SizeLog2,
   MAP_GRID_SIZE = 1l << MAP_GRID_SIZE_LOG2, // 0x80 0000

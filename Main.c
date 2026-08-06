@@ -32,6 +32,10 @@
 #include "ParseArgs.h"
 #include "SFInit.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* ---------------- Private functions ---------------- */
 
 #ifdef FORTIFY

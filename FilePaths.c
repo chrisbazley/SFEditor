@@ -32,6 +32,10 @@
 #include "PathTail.h"
 #include "DataType.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 void get_mission_file_name(Filename buffer, Pyramid const p,
   int const mission, char const *const user_name)
 {

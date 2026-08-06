@@ -46,6 +46,10 @@
 #include "SprMem.h"
 #include "MapLayout.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #ifndef FASTPLOT
 
 enum {

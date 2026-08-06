@@ -57,6 +57,11 @@ char const *TriggerAction_to_string(TriggerAction const action)
   static char const *const strings[] = {
 #define DECLARE_TRIGGER(t) [TriggerAction_ ## t] = #t,
 #include "DeclTrig.h"
+
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #undef DECLARE_TRIGGER
   };
   assert(action >= 0);

@@ -46,6 +46,10 @@
 #include "Mission.h"
 #include "Player.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* --------------------- Gadgets -------------------- */
 
 enum {

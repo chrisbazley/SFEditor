@@ -106,6 +106,10 @@
 #include "MapAreaCol.h"
 #include "Goto.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define DEBUG_REDRAW_AREA 0
 #define SHOW_REDRAW_RECT 0
 #define DEBUG_REDRAW 0

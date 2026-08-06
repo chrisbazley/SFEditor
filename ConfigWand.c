@@ -35,6 +35,10 @@
 #include "ConfigWand.h"
 #include "ToolMenu.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* --------------------- Gadgets -------------------- */
 
 enum {

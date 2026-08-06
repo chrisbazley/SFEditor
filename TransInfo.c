@@ -39,6 +39,10 @@
 #include "Utils.h"
 #include "DFileUtils.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* Extra gadgets over normal FileInfo object */
 enum {
   TRANSINFO_DIMENSIONS = 0x82ac0f,

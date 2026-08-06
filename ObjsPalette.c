@@ -57,6 +57,10 @@
 #include "FilenamesData.h"
 #include "DrawCloud.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   MinDist = 65536,
   MaxDist = MinDist * 8,

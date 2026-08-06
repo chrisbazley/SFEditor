@@ -37,6 +37,10 @@
 #include "Text.h"
 #include "TextData.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   TargetInfoAlloc = 16, // impossible because of TextOffsetCount limit
   TargetInfoPadding = 2,

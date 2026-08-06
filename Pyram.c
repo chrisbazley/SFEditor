@@ -27,6 +27,10 @@
 #include "PyramData.h"
 #include "Pyram.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   MinLevelNumber = 1,
   MaxLevelNumber = 36,

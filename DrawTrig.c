@@ -38,6 +38,10 @@
 #include "Desktop.h"
 #include "Utils.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 typedef enum {
   DrawTrigSpr_First,
   DrawTrigSpr_MissionTarget = DrawTrigSpr_First,

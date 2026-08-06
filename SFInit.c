@@ -140,6 +140,10 @@
 #include "PolyCol.h"
 #include "Session.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   KnownWimpVersion = 310,
   ErrNum_ToSaveDrag = 0x80b633,

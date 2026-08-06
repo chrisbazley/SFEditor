@@ -27,6 +27,10 @@
 #include "Shapes.h"
 #include "Map.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   MapEditSelection_NBytes = (Map_Area + CHAR_BIT - 1) / CHAR_BIT,
 };

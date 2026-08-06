@@ -59,6 +59,10 @@
 #include "OurEvents.h"
 #include "TransMenu.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   X_BORDER = 4,
   Y_BORDER = 4,

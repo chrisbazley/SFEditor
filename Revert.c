@@ -44,6 +44,10 @@
 #include "Revert.h"
 #include "MapAnims.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   REVERT_TOLASTSAVE = 0x0,
   REVERT_TOORIGINAL = 0x1,

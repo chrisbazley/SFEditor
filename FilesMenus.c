@@ -54,6 +54,10 @@
 #include "DataType.h"
 #include "FSMenu.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 struct fm_menu_info {
   ComponentId ticked;
   ComponentId next_cid;

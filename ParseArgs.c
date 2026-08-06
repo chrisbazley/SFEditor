@@ -36,6 +36,10 @@
 #include "ParseArgs.h"
 #include "Utils.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 void parse_arguments(int argc, char *argv[])
 {
   /*

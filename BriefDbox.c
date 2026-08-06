@@ -43,6 +43,10 @@
 
 #include "BriefDbox.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define ENDPARA "$\n"
 
 /* --------------------- Gadgets -------------------- */

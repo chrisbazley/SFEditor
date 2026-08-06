@@ -50,6 +50,10 @@
 #include "ObjectsMode.h"
 #include "ObjectsEdit.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define SINGLE_DBOX 1
 
 enum {

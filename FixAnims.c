@@ -21,6 +21,10 @@
 
 #include "filepaths.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   CopyObjects = 26
 };

@@ -32,6 +32,10 @@
 #include "FileScan.h"
 #include "ORDMenu.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   ORDMENU_BASEMAP = 0x0,
   ORDMENU_EASY    = 0x4,

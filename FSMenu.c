@@ -33,6 +33,10 @@
 #include "FileScan.h"
 #include "FSMenu.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 void fsmenu_grey_internal(ObjectId const menu,
                               const filescan_leafname *const leaf_names,
                               bool const inc_blank, bool const grey_internal)

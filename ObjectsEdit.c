@@ -41,6 +41,10 @@
 #include "Triggers.h"
 #include "ObjEditSel.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* Value 0 doesn't work properly yet because:
  - Hard to place objects given that no ghost is drawn when overlapping
  - Moves fail if the overlapped objects are the source objects

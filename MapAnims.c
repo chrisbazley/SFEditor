@@ -47,6 +47,10 @@
 #include "CoarseCoord.h"
 #include "IntDict.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   MIN_EXTEND_SIZE = 8,
   ANIMS_BIT_MAP_SIZE = Map_Area/CHAR_BIT * sizeof(char),

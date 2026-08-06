@@ -30,6 +30,10 @@
 #include "EditWin.h"
 #include "GhostCol.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static ObjectId GhostCol_id = NULL_ComponentId;
 
 /* ---------------- Private functions ---------------- */

@@ -100,6 +100,10 @@
 #include "OSnakes.h"
 #include "IntDict.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* Because the second clause of the 'for' statement guards entry to the
    body of the loop, we don't need to worry about a null pointer in that block. */
 #define SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) \

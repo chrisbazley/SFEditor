@@ -30,6 +30,10 @@
 #include "EditWin.h"
 #include "SelCol.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static ObjectId SelCol_id = NULL_ComponentId;
 
 /* ---------------- Private functions ---------------- */

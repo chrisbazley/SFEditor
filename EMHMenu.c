@@ -42,6 +42,10 @@
 #include "EMHMenu.h"
 #include "FilePaths.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static struct
 {
   ComponentId ticked;

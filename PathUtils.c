@@ -41,6 +41,10 @@
 #include "Pyram.h"
 #include "DFileUtils.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static bool rename_level_file(char const *const dest_sub_path,
   char const *const src_sub_path, char const *const dir_name, bool const copy)
 {

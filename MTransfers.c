@@ -69,6 +69,10 @@
 #include "CoarseCoord.h"
 #include "StrDict.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define TRANSFER_TAG "STMP"
 
 enum

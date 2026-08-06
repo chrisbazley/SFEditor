@@ -35,6 +35,10 @@
 #include "DCS_dialogue.h"
 #include "Session.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static bool dcs_open_parent = false;
 static ObjectId dcs_sharedid = NULL_ObjectId;
 

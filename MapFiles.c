@@ -32,6 +32,10 @@
 #include "MapFiles.h"
 #include "DataType.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
  MAPFILES_SAVEALL    = 0x3,
  MAPFILES_CLOSE      = 0x13,

@@ -48,6 +48,10 @@
 #include "Mission.h"
 #include "Pyram.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* ----------------- Gadget Ids -------------------- */
 
 enum {

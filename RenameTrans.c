@@ -45,6 +45,10 @@
 #include "FilenamesData.h"
 #include "DFileUtils.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* Gadget numbers */
 enum {
   RENAMETRANS_NAME = 0x0,

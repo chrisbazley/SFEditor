@@ -33,6 +33,10 @@
 #include "ObjData.h"
 #include "Utils.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   PREALLOC_SIZE = 4096,
 };

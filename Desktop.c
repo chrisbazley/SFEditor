@@ -38,6 +38,10 @@
 #include "Desktop.h"
 #include "DrawTiles.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   PreAllocSize = 512,
   ReadModeNumber = 135,

@@ -42,6 +42,10 @@
 #include "Session.h"
 #include "FilePaths.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum
 {
   WindowHandle_IconBar = -2, /* Pseudo window handle (icon bar) */

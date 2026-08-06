@@ -34,6 +34,10 @@
 #include "BriefingData.h"
 #include "SFError.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 typedef enum {
   BriefingTextIndex_Title,
   BriefingTextIndex_LocDate,

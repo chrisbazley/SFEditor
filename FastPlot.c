@@ -28,6 +28,10 @@
 
 #include "fastplot.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #ifdef FASTPLOT
 /* Eventually we want to replace these routines with hand-optimised ARM code */
 

@@ -26,6 +26,10 @@
 #include "SFError.h"
 #include "ObjVertex.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   NDims = 3,
 };

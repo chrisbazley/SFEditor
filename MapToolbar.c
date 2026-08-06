@@ -57,6 +57,10 @@
 #include "MTransfers.h"
 #include "DataType.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* --------------------- Gadgets -------------------- */
 
 enum {

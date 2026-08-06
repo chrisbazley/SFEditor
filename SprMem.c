@@ -36,6 +36,10 @@
 #include "SprMem.h"
 #include "Utils.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   GROWTH_FACTOR = 2,
   PREALLOC_SIZE = 512

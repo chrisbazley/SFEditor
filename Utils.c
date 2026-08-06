@@ -824,6 +824,11 @@ bool report_error(SFError const err, char const *const path, char const *const e
   static char const *const ms_to_token[] = {
 #define DECLARE_ERROR(ms) [SFErrorType_ ## ms] = #ms,
 #include "DeclErrors.h"
+
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #undef DECLARE_ERROR
   };
   if (!SFError_fail(err))

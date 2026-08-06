@@ -41,6 +41,10 @@
 #include "DataType.h"
 #include "Mission.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static ComponentId which_ticked = NULL_ComponentId;
 static Filename graphics_set = "";
 

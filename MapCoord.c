@@ -33,6 +33,10 @@
 #include "Reader.h"
 #include "Writer.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 bool MapArea_is_valid(MapArea const *const map_area)
 {
   assert(map_area != NULL);

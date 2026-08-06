@@ -42,6 +42,10 @@
 #include "Filenames.h"
 #include "DataType.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* Menu entries */
 enum {
   ComponentId_Edit     = 0x0,

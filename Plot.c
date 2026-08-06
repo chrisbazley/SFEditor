@@ -34,6 +34,10 @@
 
 #include "Plot.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   MILLIPOINTS_PER_UNIT = 400,
   ClearGraphicsWindow = 16,

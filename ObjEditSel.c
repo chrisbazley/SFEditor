@@ -29,6 +29,10 @@
 #include "MapCoord.h"
 #include "Obj.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   ObjEditSelection_NBytes = (Obj_Area + CHAR_BIT - 1) / CHAR_BIT,
 };

@@ -36,6 +36,10 @@
 #include "DataType.h"
 #include "FilePaths.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* ---------------- Private functions ---------------- */
 
 static int about_to_be_shown(int const event_code, ToolboxEvent *const event,

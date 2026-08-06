@@ -34,6 +34,10 @@
 #include "DataType.h"
 #include "Mission.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   ComponentId_NOSCANNER      = 0x4,
   ComponentId_NOGROUNDDAMAGE = 0x5,

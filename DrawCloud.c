@@ -42,6 +42,10 @@
 #include "Plot.h"
 #include "ObjLayout.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define SPRITE_NAME "cloud"
 
 enum {

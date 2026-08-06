@@ -34,6 +34,10 @@
 #include "ShipsData.h"
 #include "Paths.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   BytesPerShip = 32,
   ShipFollowPlayer = 255,

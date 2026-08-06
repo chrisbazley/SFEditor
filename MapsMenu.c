@@ -41,6 +41,10 @@
 #include "RenameMap.h"
 #include "FSMenu.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static ComponentId ticked = NULL_ComponentId;
 static filescan_leafname *combined_list;
 

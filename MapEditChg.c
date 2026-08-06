@@ -25,6 +25,10 @@
 
 #include "MapEditChg.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define TOKEN_STEM "MStatus"
 
 void MapEditChanges_init(MapEditChanges *const change_info)

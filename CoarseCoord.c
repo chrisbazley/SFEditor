@@ -24,6 +24,10 @@
 #include "Reader.h"
 #include "Writer.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 CoarsePoint3d CoarsePoint3d_from_fine(FinePoint3d const point)
 {
   return (CoarsePoint3d){

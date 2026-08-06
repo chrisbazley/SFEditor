@@ -37,6 +37,10 @@
 
 #include "Ships.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   TokenTailMaxBytes = 16 /* two characters, decimal integer and terminator */
 };

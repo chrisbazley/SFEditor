@@ -25,6 +25,10 @@
 #include "MapAreaCol.h"
 #include "MapAreaColData.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 void MapAreaCol_init(MapAreaColData *const coll, int const size_log2)
 {
   assert(coll);

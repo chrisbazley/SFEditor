@@ -30,6 +30,10 @@
 #include "EditWin.h"
 #include "BackCol.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static ObjectId BackCol_id = NULL_ComponentId;
 
 /* ---------------- Private functions ---------------- */

@@ -2180,6 +2180,11 @@ char const *EditorChange_to_string(EditorChange const event)
   char const *strings[] = {
 #define DECLARE_CHANGE(c) [EDITOR_CHANGE_ ## c] = #c,
 #include "DeclChange.h"
+
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #undef DECLARE_CHANGE
   };
   assert(event >= 0);

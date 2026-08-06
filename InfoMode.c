@@ -52,6 +52,10 @@
 #include "DrawInfos.h"
 #include "Infos.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 typedef struct
 {
   SelectionBitmask selection, occluded, tmp;

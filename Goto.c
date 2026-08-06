@@ -38,6 +38,10 @@
 #include "EditWin.h"
 #include "Editor.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* Window component IDs */
 enum
 {

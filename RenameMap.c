@@ -45,6 +45,10 @@
 #include "PathUtils.h"
 #include "FileScan.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* Gadget numbers */
 enum {
   RENAMEMAP_OPTION_COPY   = 0x74,

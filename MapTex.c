@@ -36,6 +36,10 @@
 #include "MapTex.h"
 #include "MapTexData.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static StrDict file_dict;
 
 static void init_all(MapTex *const textures)

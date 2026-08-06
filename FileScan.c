@@ -46,6 +46,10 @@
 #include "Debug.h"
 #include "DataType.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 struct fs_dir_info {
   DataType data_type;
   filescan_leafname *leaf_names;

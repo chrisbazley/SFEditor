@@ -44,6 +44,10 @@
 #include "Session.h"
 #include "ObjEditChg.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static unsigned char read_map(MapPoint const map_pos, SnakeContext *const ctx)
 {
   ObjSnakesContext const *const octx = CONTAINER_OF(ctx, ObjSnakesContext, super);

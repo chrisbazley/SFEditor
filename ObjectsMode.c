@@ -78,6 +78,10 @@
 #include "ObjLayout.h"
 #include "ObjEditChg.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 typedef enum {
   OBJPALETTE_TYPE_NONE = -1,
   OBJPALETTE_TYPE_SNAKES,

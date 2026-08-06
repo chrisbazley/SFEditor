@@ -41,6 +41,10 @@
 #include "DataType.h"
 #include "DFileUtils.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* Menu entries */
 enum {
   TRANSMENU_TRANSFER  = 0x2,

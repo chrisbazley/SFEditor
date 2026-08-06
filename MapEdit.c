@@ -43,6 +43,10 @@
 #include "Smooth.h"
 #include "Map.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* ---------------- Private functions ---------------- */
 
 static MapData *get_write_map(MapEditContext const *const map)

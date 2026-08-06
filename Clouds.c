@@ -28,6 +28,10 @@
 #include "CloudsData.h"
 #include "SFInit.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 SFError clouds_read(CloudColData *const clouds,
   Reader *const reader)
 {

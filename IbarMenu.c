@@ -41,6 +41,10 @@
 #include "PathUtils.h"
 #include "Config.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* Menu entries */
 enum {
   IBARMENU_CREATE    = 0x7,

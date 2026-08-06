@@ -88,6 +88,10 @@
 #include "IntDict.h"
 #include "MapLayout.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define PENDING_IS_SELECTED 0
 
 enum {

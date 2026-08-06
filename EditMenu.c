@@ -32,6 +32,10 @@
 #include "Utils.h"
 #include "EditWin.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   ComponentId_CUT            = 0x0,
   ComponentId_COPY           = 0x1,

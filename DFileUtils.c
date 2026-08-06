@@ -38,6 +38,10 @@
 #include "FilePaths.h"
 #include "PathTail.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   HistoryLog2 = 9,
   WorstBitsPerChar = 9,

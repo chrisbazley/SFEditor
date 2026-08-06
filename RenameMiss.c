@@ -45,6 +45,10 @@
 #include "PathUtils.h"
 #include "Pyram.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* Gadget numbers */
 enum {
   RENAMEMISS_NUMBER_RANGE  = 0x6e,

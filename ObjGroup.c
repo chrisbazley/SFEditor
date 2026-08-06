@@ -25,6 +25,10 @@
 #include "SFError.h"
 #include "ObjVertex.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 void obj_vertex_array_init(ObjVertexArray * const varray)
 {
   assert(varray != NULL);

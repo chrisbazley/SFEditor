@@ -25,6 +25,10 @@
 
 #include "ObjEditChg.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define TOKEN_STEM "OStatus"
 
 void ObjEditChanges_init(ObjEditChanges *const change_info)

@@ -31,6 +31,10 @@
 #include "Shapes.h"
 #include "MapCoord.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 typedef struct
 {
   MapCoord x;

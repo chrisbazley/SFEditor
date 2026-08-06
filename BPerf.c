@@ -30,6 +30,10 @@
 #include "BPerf.h"
 #include "BPerfData.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum
 {
   BigAllowBadMinShips = -1, /* surprisingly common */

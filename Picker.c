@@ -31,6 +31,10 @@
 #include "GraphicsFiles.h"
 #include "Picker.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static ObjectId picker_id = NULL_ObjectId;
 
 /* ---------------- Private functions ---------------- */

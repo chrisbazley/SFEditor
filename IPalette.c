@@ -37,6 +37,10 @@
 #include "IPalette.h"
 #include "DrawInfo.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define SPRITE_NAME "info"
 #define CLIP_LABEL_WIDTH
 

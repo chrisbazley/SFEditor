@@ -34,6 +34,10 @@
 #include "ObjGfx.h"
 #include "ObjGfxData.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 static StrDict file_dict;
 
 static void init_all(ObjGfx *const graphics)

@@ -37,6 +37,10 @@
 #include "DataType.h"
 #include "EditWin.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 typedef struct
 {
   char ships_selected[32];

@@ -31,6 +31,10 @@
 #include "GridCol.h"
 #include "UtilsMenu.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 ObjectId GridCol_id = NULL_ObjectId;
 
 /* ---------------- Private functions ---------------- */

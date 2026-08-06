@@ -33,6 +33,10 @@
 #include "Text.h"
 #include "TextData.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   BytesPerAddresses = 8, // Overwritten on loading
   BytesPerStringNumber = 4, // Overwritten on loading

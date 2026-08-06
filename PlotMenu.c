@@ -33,6 +33,10 @@
 #include "PlotMenu.h"
 #include "Utils.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* --------------------- Menu entries -------------------- */
 
 enum {

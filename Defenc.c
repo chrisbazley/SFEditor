@@ -30,6 +30,10 @@
 #include "Defenc.h"
 #include "DefencData.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   DefencesShipTypeMask = 0xf,
   DefencesShipTypeShift = 0,

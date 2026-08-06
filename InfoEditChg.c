@@ -25,6 +25,10 @@
 
 #include "InfoEditChg.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 #define TOKEN_STEM "IStatus"
 
 void InfoEditChanges_init(InfoEditChanges *const change_info)

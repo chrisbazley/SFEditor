@@ -31,6 +31,10 @@
 #include "FilenamesData.h"
 #include "DataType.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   FilenameScrambleRange = 256,
   FilenameScramblePasses = 10

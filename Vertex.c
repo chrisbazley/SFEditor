@@ -22,6 +22,10 @@
 #include "Macros.h"
 #include "Vertex.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 void BBox_expand(BBox *const bounding_box, Vertex const point)
 {
   assert(bounding_box != NULL);

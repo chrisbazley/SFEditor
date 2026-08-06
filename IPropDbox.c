@@ -46,6 +46,10 @@
 #include "Infos.h"
 #include "InfoMode.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* --------------------- Gadgets -------------------- */
 
 enum {

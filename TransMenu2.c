@@ -32,6 +32,10 @@
 #include "Palette.h"
 #include "Utils.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 /* Menu entries */
 enum {
   TRANSMENU2_INFO   = 0x7,

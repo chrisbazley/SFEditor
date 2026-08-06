@@ -33,6 +33,10 @@
 #include "EditWin.h"
 #include "Utils.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   ComponentId_FILL     = 0x8,
   ComponentId_SMOOTH   = 0x7,

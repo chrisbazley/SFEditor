@@ -37,6 +37,10 @@
 #include "StatusBar.h"
 #include "MapCoord.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   LEFT_BORDER = 8,
   TOP_BORDER = 8,
