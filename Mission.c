@@ -290,6 +290,7 @@ void texts_write(MissionData *const mission, Writer *const writer)
   offset = target_infos_write_text_offsets(&mission->target_infos, writer, offset);
   assert(offset >= TextOffsetMin);
   assert(offset - TextOffsetMin <= TotalTextSize);
+  NOT_USED(offset);
 
   size_t const padding = TextOffsetCount - btexts - ttexts;
   writer_fseek(writer, (long)padding * BytesPerTextOffset, SEEK_CUR);
