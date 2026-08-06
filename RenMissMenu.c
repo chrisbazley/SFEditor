@@ -85,5 +85,5 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 void RenMissMenu_created(ObjectId const id)
 {
   /* Install handlers */
-  EF(event_register_toolbox_handler(id, Menu_AboutToBeShown, about_to_be_shown, NULL));
+  EF(event_register_toolbox_handler(id, Menu_AboutToBeShown, about_to_be_shown, (void *)NULL));
 }

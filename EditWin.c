@@ -1090,7 +1090,7 @@ static void stop_drag(EditWin *const edit_win)
 static bool menu_is_open(EditSession *const session)
 {
   assert(session != NULL);
-  EditSession *const menu_session = MainMenu_get_session();
+  _Optional EditSession *const menu_session = MainMenu_get_session();
   return session == menu_session;
 }
 
@@ -3181,12 +3181,12 @@ void EditWin_redraw_ghost(EditWin *const edit_win)
 {
   assert(edit_win != NULL);
   MapAreaColIter iter;
-  for (MapArea const *ghost_bbox = MapAreaColIter_get_first(&iter, &edit_win->ghost_bboxes);
+  for (_Optional MapArea const *ghost_bbox = MapAreaColIter_get_first(&iter, &edit_win->ghost_bboxes);
        ghost_bbox != NULL;
        ghost_bbox = MapAreaColIter_get_next(&iter)) {
     DEBUGF("Redrawing ghost bbox %" PRIMapCoord ",%" PRIMapCoord ",%" PRIMapCoord ",%" PRIMapCoord "\n",
            ghost_bbox->min.x, ghost_bbox->min.y, ghost_bbox->max.x, ghost_bbox->max.y);
-    MapAreaCol_add(&edit_win->pending_redraws, ghost_bbox);
+    MapAreaCol_add(&edit_win->pending_redraws, &*ghost_bbox);
   }
 }
 
@@ -3274,10 +3274,10 @@ void EditWin_redraw_pending(EditWin *const edit_win, bool const immediate)
 
   DEBUGF("Doing pending redraws\n");
   MapAreaColIter iter;
-  for (MapArea const *area = MapAreaColIter_get_first(&iter, &edit_win->pending_redraws);
+  for (_Optional MapArea const *area = MapAreaColIter_get_first(&iter, &edit_win->pending_redraws);
        area != NULL;
        area = MapAreaColIter_get_next(&iter)) {
-    EditWin_redraw_area(edit_win, area, immediate);
+    EditWin_redraw_area(edit_win, &*area, immediate);
   }
   MapAreaCol_init(&edit_win->pending_redraws, MAP_COORDS_LIMIT_LOG2);
   DEBUGF("Cleared redraw rect\n");

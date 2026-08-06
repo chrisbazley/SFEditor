@@ -107,7 +107,7 @@ void EditMenu_created(ObjectId const id)
 {
   EditMenu_id = id;
 
-  EF(event_register_toolbox_handler(id, Menu_AboutToBeShown, about_to_be_shown, NULL));
+  EF(event_register_toolbox_handler(id, Menu_AboutToBeShown, about_to_be_shown, &EditMenu_id));
 }
 
 void EditMenu_update(Editor const *const editor)

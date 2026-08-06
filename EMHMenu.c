@@ -118,7 +118,7 @@ static int openhandler(int const event_code, ToolboxEvent *const event,
   int new_vsn;
   bool grey_internal;
   Filename leafname_buf;
-  char const *leafname_ptr = NULL;
+  _Optional char const *leafname_ptr = NULL;
 
   hourglass_on();
   DEBUG("Mission selection menu %d (for dir %d) opened", id_block->self_id,
@@ -189,7 +189,7 @@ static int openhandler(int const event_code, ToolboxEvent *const event,
                                 &*read_name, sizeof(read_name), 0)))
         break;
 
-      if (stricmp(read_name, leafname_ptr) == 0) {
+      if (stricmp(read_name, &*leafname_ptr) == 0) {
         /* Tick menu entry to show it is selected */
         E(menu_set_tick(0, id_block->self_id, entry, 1));
         DEBUG("Ticking entry %d of menu %d", entry, id_block->self_id);

@@ -100,7 +100,7 @@ void EffectMenu_created(ObjectId const id)
   EffectMenu_id = id;
 
   EF(event_register_toolbox_handler(id, Menu_AboutToBeShown,
-                                    about_to_be_shown, NULL));
+                                    about_to_be_shown, &EffectMenu_id));
 }
 
 void EffectMenu_update(Editor const *const editor)

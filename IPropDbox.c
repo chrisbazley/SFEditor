@@ -121,8 +121,8 @@ static bool read_win(InfoPropDbox *const prop)
 {
   assert(prop);
 
-  char *buffers[TargetInfoTextIndex_Count] = {NULL};
-  char const *strings[TargetInfoTextIndex_Count] = {NULL};
+  _Optional char *buffers[TargetInfoTextIndex_Count] = {NULL};
+  char const *strings[TargetInfoTextIndex_Count];
   bool ok = true;
 
   for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
@@ -131,24 +131,26 @@ static bool read_win(InfoPropDbox *const prop)
     ComponentId const textarea = text_index_to_component[k];
 
     int nbytes = 0;
-    if (E(textarea_get_text(0, prop->my_object, textarea, NULL, 0, &nbytes)) ||
+    if (E(textarea_get_text(0, prop->my_object, textarea, &(char){0}, 0, &nbytes)) ||
         nbytes < 0) {
       ok = false;
       break;
     }
 
-    buffers[k] = malloc((unsigned)nbytes);
-    if (buffers[k] == NULL) {
+    _Optional char *const buffer = malloc((unsigned)nbytes);
+    if (buffer == NULL) {
       report_error(SFERROR(NoMem), "", "");
       ok = false;
       break;
     }
 
-    if (E(textarea_get_text(0, prop->my_object, textarea, buffers[k], nbytes, NULL))) {
+    if (E(textarea_get_text(0, prop->my_object, textarea, &*buffer, nbytes, NULL))) {
       ok = false;
       break;
     }
-    strings[k] = buffers[k];
+
+    buffers[k] = buffer;
+    strings[k] = &*buffer; // shallow copy for read-only use
   }
 
   if (ok) {
@@ -251,12 +253,12 @@ static void update_title(InfoPropDbox *const prop)
                      msgs_lookup_subn("IPropTitle", 1, pathtail(file_name, 1))));
 }
 
-static InfoPropDbox *create_dbox(InfoPropDboxes *const prop_dboxes, TargetInfo *const info)
+static _Optional InfoPropDbox *create_dbox(InfoPropDboxes *const prop_dboxes, TargetInfo *const info)
 {
   assert(prop_dboxes != NULL);
   DEBUGF("Creating properties dbox for target info %p\n", (void *)info);
 
-  InfoPropDbox *const prop = malloc(sizeof(*prop));
+  _Optional InfoPropDbox *const prop = malloc(sizeof(*prop));
   if (!prop) {
     report_error(SFERROR(NoMem), "", "");
     return NULL;
@@ -277,11 +279,11 @@ static InfoPropDbox *create_dbox(InfoPropDboxes *const prop_dboxes, TargetInfo *
     E(textarea_set_font(0, prop->my_object, textarea, "Corpus.Bold", 150, 225));
   }
 
-    if (register_event_handlers(prop)) {
+    if (register_event_handlers(&*prop)) {
       if (!intdict_insert(&prop_dboxes->sa, map_coords_to_key(target_info_get_pos(info)), prop, NULL)) {
         report_error(SFERROR(NoMem), "", "");
       } else {
-        update_title(prop);
+        update_title(&*prop);
         return prop;
       }
     }
@@ -314,7 +316,7 @@ void InfoPropDboxes_init(InfoPropDboxes *const prop_dboxes, Editor *editor)
 void InfoPropDboxes_destroy(InfoPropDboxes *const prop_dboxes)
 {
   assert(prop_dboxes);
-  intdict_destroy(&prop_dboxes->sa, destroy_cb, NULL);
+  intdict_destroy(&prop_dboxes->sa, destroy_cb, &prop_dboxes->sa);
 }
 
 void InfoPropDboxes_update_title(InfoPropDboxes *const prop_dboxes)

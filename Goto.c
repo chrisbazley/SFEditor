@@ -167,7 +167,7 @@ void Goto_created(ObjectId id)
   for (size_t i = 0; i < ARRAY_SIZE(tbox_handlers); i++)
   {
     EF(event_register_toolbox_handler(id, tbox_handlers[i].event_code,
-         tbox_handlers[i].handler, NULL));
+         tbox_handlers[i].handler, &Goto_id));
   }
 
   Goto_id = id;

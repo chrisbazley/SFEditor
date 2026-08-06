@@ -507,7 +507,7 @@ static SFError read_from_file(FILE *const file,
       }
 
       assert(group <= UCHAR_MAX);
-      if (!add_group_member(pgroup, (unsigned char)group)) {
+      if (!add_group_member(&*pgroup, (unsigned char)group)) {
         sprintf(err_buf, "%d", line);
         return SFERROR(NoMem);
       }
@@ -557,7 +557,7 @@ static SFError read_from_file(FILE *const file,
     }
 
     assert(tile <= UCHAR_MAX);
-    if (!add_group_member(pgroup, (unsigned char)tile)) {
+    if (!add_group_member(&*pgroup, (unsigned char)tile)) {
       sprintf(err_buf, "%d", line);
       return SFERROR(NoMem);
     }

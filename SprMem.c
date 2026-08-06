@@ -376,9 +376,8 @@ void SprMem_plot_scaled_sprite(const SprMem *const sm, char const *const name,
 
 
 void SprMem_plot_trans_quad_sprite(const SprMem *sm,
-  const char *name, BBox const *src, int action,
-  TransformQuad const *quad,
-  void const *colours)
+  const char *name, _Optional BBox const *src, int action,
+  TransformQuad const *quad, _Optional void const *colours)
 {
   assert(sm != NULL);
   assert(name != NULL);
@@ -397,9 +396,11 @@ void SprMem_plot_trans_quad_sprite(const SprMem *sm,
 }
 
 void SprMem_plot_trans_matrix_sprite(const SprMem *sm,
-  const char *name, BBox const *src, int action,
-  TransformMatrix const *matrix,
-  void const *colours)
+                                     const char *name,
+                                     _Optional BBox const *src,
+                                     int action,
+                                     TransformMatrix const *matrix,
+                                     _Optional void const *colours)
 {
   assert(sm != NULL);
   assert(name != NULL);

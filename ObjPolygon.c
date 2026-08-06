@@ -45,7 +45,7 @@ enum {
   ObjPolygonMinVertex = 1,
 };
 
-static SFError obj_polygon_read(ObjPolygon * const polygon,
+static SFError obj_polygon_read(_Optional ObjPolygon * const polygon,
   Reader * const reader, int const num_vertices, int *const max_group)
 {
   assert(!reader_ferror(reader));

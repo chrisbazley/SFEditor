@@ -166,7 +166,7 @@ static int menu_selection(int const event_code, ToolboxEvent *const event,
 static bool is_showing_for_session(Editor const *const editor)
 {
   _Optional EditWin *const edit_win = get_ancestor_handle_if_showing(ToolMenu_id);
-  Editor const *const ancestor_editor =
+  _Optional Editor const *const ancestor_editor =
     edit_win ? EditWin_get_editor(&*edit_win) : NULL;
 
   return ancestor_editor == editor;
@@ -190,7 +190,7 @@ void ToolMenu_created(ObjectId const menu_id)
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
     EF(event_register_toolbox_handler(menu_id, handlers[i].event_code,
-                                      handlers[i].handler, NULL));
+                                      handlers[i].handler, &ToolMenu_id));
   }
 }
 

@@ -94,5 +94,5 @@ void ORDMenu_created(ObjectId const id)
 {
   /* Install handlers */
   EF(event_register_toolbox_handler(id, Menu_AboutToBeShown,
-                                    about_to_be_shown, NULL));
+                                    about_to_be_shown, (void *)NULL));
 }

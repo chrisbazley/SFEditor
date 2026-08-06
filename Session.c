@@ -231,10 +231,10 @@ static SchedulerTime update_animations(void *const handle,
                         steps_to_advance, &redraw_map);
 
   MapAreaColIter iter;
-  for (MapArea const *anim_bbox = MapAreaColIter_get_first(&iter, &redraw_map);
+  for (_Optional MapArea const *anim_bbox = MapAreaColIter_get_first(&iter, &redraw_map);
        anim_bbox != NULL;
        anim_bbox = MapAreaColIter_get_next(&iter)) {
-    Session_redraw_map(session, anim_bbox);
+    Session_redraw_map(session, &*anim_bbox);
   }
 
   Session_redraw_pending(session, true);

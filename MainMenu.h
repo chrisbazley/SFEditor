@@ -12,8 +12,12 @@
 
 #include "Session.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 void MainMenu_created(ObjectId id);
-EditSession *MainMenu_get_session(void);
+_Optional EditSession *MainMenu_get_session(void);
 void MainMenu_hide(void);
 
 #endif

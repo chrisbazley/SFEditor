@@ -70,7 +70,7 @@ void Picker_created(ObjectId const id)
   picker_id = id;
 
   EF(Pal256_initialise(id, *palette, &messages, err_check_rep));
-  EF(event_register_toolbox_handler(id, Pal256_ColourSelected, colourselhandler, NULL));
+  EF(event_register_toolbox_handler(id, Pal256_ColourSelected, colourselhandler, &picker_id));
 }
 
 void Picker_set_title(char *const title)

@@ -478,7 +478,7 @@ static bool make_mip_level(MapTexBitmaps *const tiles, MapAngle const angle, int
   return true;
 }
 
-SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *const tiles, MapAngle angle, int const level)
+_Optional SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *const tiles, MapAngle angle, int const level)
 {
   assert(tiles != NULL);
   assert(angle >= 0);

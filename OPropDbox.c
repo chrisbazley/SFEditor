@@ -533,7 +533,7 @@ static bool add_to_list(ObjPropDbox *const prop, TriggerFullParam const item)
   }
 
   if (E(scrolllist_add_item(0, prop->my_object, ComponentId_TriggerList,
-                get_list_text(prop, item), NULL, NULL, offset)))
+                            get_list_text(prop, item), NULL, NULL, offset)))
   {
     return false;
   }
@@ -1227,12 +1227,12 @@ static void update_title(ObjPropDbox *const prop)
                      msgs_lookup_subn("OPropTitle", 1, pathtail(file_name, 1))));
 }
 
-static ObjPropDbox *create_dbox(ObjPropDboxes *const prop_dboxes, MapPoint const pos)
+static _Optional ObjPropDbox *create_dbox(ObjPropDboxes *const prop_dboxes, MapPoint const pos)
 {
   assert(prop_dboxes != NULL);
   DEBUGF("Creating properties dbox for %"PRIMapCoord",%"PRIMapCoord"\n", pos.x, pos.y);
 
-  ObjPropDbox *const prop = malloc(sizeof(*prop));
+  _Optional ObjPropDbox *const prop = malloc(sizeof(*prop));
   if (!prop) {
     report_error(SFERROR(NoMem), "", "");
     return NULL;
@@ -1249,10 +1249,10 @@ static ObjPropDbox *create_dbox(ObjPropDboxes *const prop_dboxes, MapPoint const
   if (!E(toolbox_create_object(0, SINGLE_DBOX ? "ObjProp" : "ObjPropB", &prop->my_object))) {
     DEBUG("ObjProp object id is %d", prop->my_object);
 
-    if (register_event_handlers(prop)) {
+    if (register_event_handlers(&*prop)) {
       E(scrolllist_set_state(0, prop->my_object, ComponentId_TriggerList,
                              ScrollList_MultipleSelections));
-      update_title(prop);
+      update_title(&*prop);
 #if SINGLE_DBOX
       prop->my_add_object = prop->my_object;
 #else
@@ -1262,21 +1262,21 @@ static ObjPropDbox *create_dbox(ObjPropDboxes *const prop_dboxes, MapPoint const
         DEBUG("ObjProp2 object id is %d", prop->my_add_object);
 
         if (!E(window_get_wimp_handle(0, prop->my_add_object, &prop->my_add_window)) &&
-             register_event_handlers2(prop))
+             register_event_handlers2(&*prop))
         {
-          if (!intdict_insert(&prop_dboxes->sa_window, prop->my_add_window, prop, NULL))
+          if (!intdict_insert(&prop_dboxes->sa_window, prop->my_add_window, &*prop, NULL))
           {
             report_error(SFERROR(NoMem), "", "");
           }
           else
           {
-            if (!intdict_insert(&prop_dboxes->sa_coords, objects_coords_to_key(pos), prop, NULL))
+            if (!intdict_insert(&prop_dboxes->sa_coords, objects_coords_to_key(pos), &*prop, NULL))
             {
               report_error(SFERROR(NoMem), "", "");
             }
             else
             {
-              update_title(prop);
+              update_title(&*prop);
               return prop;
             }
             _Optional ObjPropDbox *const removed = intdict_remove_value(&prop_dboxes->sa_window, prop->my_add_window, NULL);
@@ -1318,8 +1318,8 @@ void ObjPropDboxes_init(ObjPropDboxes *const prop_dboxes, Editor *editor)
 void ObjPropDboxes_destroy(ObjPropDboxes *const prop_dboxes)
 {
   assert(prop_dboxes);
-  intdict_destroy(&prop_dboxes->sa_coords, destroy_cb, NULL);
-  intdict_destroy(&prop_dboxes->sa_window, NULL, NULL);
+  intdict_destroy(&prop_dboxes->sa_coords, destroy_cb, prop_dboxes);
+  intdict_destroy(&prop_dboxes->sa_window, (IntDictDestructorFn *)NULL, prop_dboxes);
 }
 
 void ObjPropDboxes_update_title(ObjPropDboxes *const prop_dboxes)

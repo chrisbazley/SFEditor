@@ -113,7 +113,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 static bool is_showing_for_session(EditWin const *const edit_win)
 {
   _Optional EditWin *const ancestor_edit_win = get_ancestor_handle_if_showing(UtilsMenu_id);
-  const EditSession *const ancestor_session =
+  _Optional const EditSession *const ancestor_session =
     ancestor_edit_win ? EditWin_get_session(&*ancestor_edit_win) : NULL;
 
   return ancestor_session == EditWin_get_session(edit_win);
@@ -126,7 +126,8 @@ void UtilsMenu_created(ObjectId const menu_id)
   UtilsMenu_id = menu_id;
 
   EF(event_register_toolbox_handler(menu_id, Menu_AboutToBeShown,
-                                            about_to_be_shown, NULL));
+                                    about_to_be_shown,
+                                    &UtilsMenu_id));
 }
 
 void UtilsMenu_update(EditWin *const edit_win)

@@ -186,14 +186,14 @@ void MapAreaCol_add(MapAreaColData *const coll, MapArea const *const area)
   }
 }
 
-MapArea const *MapAreaColIter_get_first(MapAreaColIter *const iter, MapAreaColData const *const coll)
+_Optional MapArea const *MapAreaColIter_get_first(MapAreaColIter *const iter, MapAreaColData const *const coll)
 {
   assert(iter);
   *iter = (MapAreaColIter){.coll = coll, .next = 0};
   return MapAreaColIter_get_next(iter);
 }
 
-MapArea const *MapAreaColIter_get_next(MapAreaColIter *const iter)
+_Optional MapArea const *MapAreaColIter_get_next(MapAreaColIter *const iter)
 {
   assert(iter);
   MapAreaColData const *const coll = iter->coll;

@@ -128,7 +128,7 @@ void MainMenu_created(ObjectId const id)
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
     EF(event_register_toolbox_handler(id, handlers[i].event_code,
-                                      handlers[i].handler, NULL));
+                                      handlers[i].handler, &MainMenu_id));
   }
 }
 
@@ -137,9 +137,9 @@ void MainMenu_hide(void)
   E(toolbox_hide_object(0, MainMenu_id));
 }
 
-EditSession *MainMenu_get_session(void)
+_Optional EditSession *MainMenu_get_session(void)
 {
-  EditSession *session = NULL;
+  _Optional EditSession *session = NULL;
   _Optional EditWin *const edit_win = get_ancestor_handle_if_showing(MainMenu_id);
 
   if (edit_win != NULL) {

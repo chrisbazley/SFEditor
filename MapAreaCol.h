@@ -10,6 +10,10 @@
 #include <stddef.h>
 #include "MapCoord.h"
 
+#if !defined(USE_OPTIONAL) && !defined(_Optional)
+#define _Optional
+#endif
+
 typedef struct MapAreaColData MapAreaColData;
 
 void MapAreaCol_init(MapAreaColData *coll, int const size_log2);
@@ -22,7 +26,7 @@ typedef struct
 }
 MapAreaColIter;
 
-MapArea const *MapAreaColIter_get_first(MapAreaColIter *iter, MapAreaColData const *coll);
-MapArea const *MapAreaColIter_get_next(MapAreaColIter *iter);
+_Optional MapArea const *MapAreaColIter_get_first(MapAreaColIter *iter, MapAreaColData const *coll);
+_Optional MapArea const *MapAreaColIter_get_next(MapAreaColIter *iter);
 
 #endif

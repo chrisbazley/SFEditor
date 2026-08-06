@@ -183,8 +183,10 @@ void ZoomMenu_created(ObjectId const menu_id)
 
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
-    EF(event_register_toolbox_handler(menu_id, handlers[i].event_code,
-                                      handlers[i].handler, NULL));
+    EF(event_register_toolbox_handler(menu_id,
+                                      handlers[i].event_code,
+                                      handlers[i].handler,
+                                      &ZoomMenu_id));
   }
 }
 

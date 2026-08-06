@@ -13,6 +13,10 @@ struct Reader;
 #include "MapCoord.h"
 #include "Map.h"
 
+#ifdef USE_OPTIONAL
+#include "Optional.h"
+#endif
+
 enum {
   MapTexSizeLog2 = 4, /* 16 pixels */
   MapTexSize = 1 << MapTexSizeLog2, /* in pixels */
@@ -33,5 +37,5 @@ SFError MapTexBitmaps_read(MapTexBitmaps *tiles, struct Reader *reader);
 void MapTexBitmaps_free(MapTexBitmaps *tiles);
 bool MapTexBitmaps_is_bright(const MapTexBitmaps *tiles, MapRef tile_num);
 int MapTexBitmaps_get_average_colour(const MapTexBitmaps *tiles, MapRef tile_num);
-SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *tiles, MapAngle angle, int level);
+_Optional SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *tiles, MapAngle angle, int level);
 #endif

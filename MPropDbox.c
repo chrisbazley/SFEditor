@@ -185,7 +185,7 @@ static void update_sprite(MapPropDbox const *const prop,
   EditSession *const session = get_session(prop);
 
   MapTex *const textures = Session_get_textures(session);
-  SprMem *const sprites = MapTexBitmaps_get_sprites(&textures->tiles, PropsAngle, PropsMipLevel);
+  _Optional SprMem *const sprites = MapTexBitmaps_get_sprites(&textures->tiles, PropsAngle, PropsMipLevel);
   if (!sprites) {
     return;
   }
@@ -196,7 +196,7 @@ static void update_sprite(MapPropDbox const *const prop,
              WimpIcon_Indirected,
     .data = {
       .is = {
-        .sprite_area = SprMem_get_area_address(sprites),
+        .sprite_area = SprMem_get_area_address(&*sprites),
         .sprite = spr_name,
         .sprite_name_length = sizeof(spr_name)
       }
@@ -211,7 +211,7 @@ static void update_sprite(MapPropDbox const *const prop,
     .visible_area = plot_icon.bbox
   };
 
-  size_t const sprite_count = SprMem_get_sprite_count(sprites);
+  size_t const sprite_count = SprMem_get_sprite_count(&*sprites);
   int more;
   if (E(window_get_wimp_handle(0, window, &block.window_handle)) ||
       E(wimp_update_window(&block, &more))) {
@@ -230,7 +230,7 @@ static void update_sprite(MapPropDbox const *const prop,
     if (E(wimp_get_rectangle(&block, &more)))
       more = 0;
   }
-  SprMem_put_area_address(sprites);
+  SprMem_put_area_address(&*sprites);
 }
 
 static void reverse(MapPropDbox *const prop)
@@ -651,7 +651,7 @@ static int redraw_window(int const event_code, WimpPollBlock *const event,
   EditSession *const session = get_session(prop);
 
   MapTex *const textures = Session_get_textures(session);
-  SprMem *const sprites = MapTexBitmaps_get_sprites(&textures->tiles, PropsAngle, PropsMipLevel);
+  _Optional SprMem *const sprites = MapTexBitmaps_get_sprites(&textures->tiles, PropsAngle, PropsMipLevel);
   if (!sprites) {
     return 1;
   }
@@ -662,14 +662,14 @@ static int redraw_window(int const event_code, WimpPollBlock *const event,
              WimpIcon_Indirected,
     .data = {
       .is = {
-        .sprite_area = SprMem_get_area_address(sprites),
+        .sprite_area = SprMem_get_area_address(&*sprites),
         .sprite = spr_name,
         .sprite_name_length = sizeof(spr_name)
       }
     }
   };
 
-  size_t const sprite_count = SprMem_get_sprite_count(sprites);
+  size_t const sprite_count = SprMem_get_sprite_count(&*sprites);
 
   WimpRedrawWindowBlock block = {
     .window_handle = wrwre->window_handle
@@ -718,7 +718,7 @@ static int redraw_window(int const event_code, WimpPollBlock *const event,
       more = 0;
   } /* endwhile (more) */
 
-  SprMem_put_area_address(sprites);
+  SprMem_put_area_address(&*sprites);
 
   return 1; /* claim event */
 }
@@ -758,12 +758,12 @@ static void update_title(MapPropDbox *const prop)
                      msgs_lookup_subn("MPropTitle", 1, pathtail(file_name, 1))));
 }
 
-static MapPropDbox *create_dbox(MapPropDboxes *const prop_dboxes, MapPoint const pos)
+static _Optional MapPropDbox *create_dbox(MapPropDboxes *const prop_dboxes, MapPoint const pos)
 {
   assert(prop_dboxes != NULL);
   DEBUGF("Creating properties dbox for %"PRIMapCoord",%"PRIMapCoord"\n", pos.x, pos.y);
 
-  MapPropDbox *const prop = malloc(sizeof(*prop));
+  _Optional MapPropDbox *const prop = malloc(sizeof(*prop));
   if (!prop) {
     report_error(SFERROR(NoMem), "", "");
     return NULL;
@@ -778,11 +778,11 @@ static MapPropDbox *create_dbox(MapPropDboxes *const prop_dboxes, MapPoint const
   if (!E(toolbox_create_object(0, "MapProp", &prop->my_object))) {
     DEBUG("MapProp object id is %d", prop->my_object);
 
-    if (register_event_handlers(prop)) {
+    if (register_event_handlers(&*prop)) {
       if (!intdict_insert(&prop_dboxes->sa, map_coords_to_key(pos), prop, NULL)) {
         report_error(SFERROR(NoMem), "", "");
       } else {
-        update_title(prop);
+        update_title(&*prop);
         return prop;
       }
     }
@@ -815,7 +815,7 @@ void MapPropDboxes_init(MapPropDboxes *const prop_dboxes, Editor *editor)
 void MapPropDboxes_destroy(MapPropDboxes *const prop_dboxes)
 {
   assert(prop_dboxes);
-  intdict_destroy(&prop_dboxes->sa, destroy_cb, NULL);
+  intdict_destroy(&prop_dboxes->sa, destroy_cb, &prop_dboxes->sa);
 }
 
 void MapPropDboxes_update_title(MapPropDboxes *const prop_dboxes)

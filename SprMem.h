@@ -60,14 +60,18 @@ void SprMem_plot_scaled_sprite(const SprMem *sm,
       _Optional void const *colours);
 
 void SprMem_plot_trans_quad_sprite(const SprMem *sm,
-  const char *name, BBox const *src, int action,
-  TransformQuad const *quad,
-  void const *colours);
+                                   const char *name,
+                                   _Optional BBox const *src,
+                                   int action,
+                                   TransformQuad const *quad,
+                                   _Optional void const *colours);
 
 void SprMem_plot_trans_matrix_sprite(const SprMem *sm,
-  const char *name, BBox const *src, int action,
-  TransformMatrix const *matrix,
-  void const *colours);
+                                     const char *name,
+                                     _Optional BBox const *src,
+                                     int action,
+                                     TransformMatrix const *matrix,
+                                     _Optional void const *colours);
 
 size_t SprMem_get_sprite_count(const SprMem *sm);
 
