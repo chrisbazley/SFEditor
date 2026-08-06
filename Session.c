@@ -100,6 +100,15 @@
 #include "OSnakes.h"
 #include "IntDict.h"
 
+/* Because the second clause of the 'for' statement guards entry to the
+   body of the loop, we don't need to worry about a null pointer in that block. */
+#define SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) \
+IntDictVIter iter; \
+for (EditWinList *(this_edit_win) = intdictviter_all_init( \
+                                               &iter, &(session)->edit_wins_array); \
+     (this_edit_win) != NULL; \
+     (this_edit_win) = intdictviter_advance(&iter))
+
 enum {
   MAX_FILE_PERIOD = CLOCKS_PER_SEC / 2,
   PRIORITY = SchedulerPriority_Min,
@@ -164,8 +173,7 @@ static void set_edit_win_titles(EditSession *const session)
         break;
     }
 
-    INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-      EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+    SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
       EditWin_set_title(&this_edit_win->edit_win,
                         stringbuffer_get_pointer(&session->edit_win_titles));
     }
@@ -396,8 +404,7 @@ static void show_all_edit_wins(EditSession *const session)
 {
   assert(session != NULL);
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_show(&this_edit_win->edit_win);
   }
 }
@@ -475,8 +482,7 @@ void Session_redraw_map(EditSession *const session, MapArea const *const area)
   DEBUGF("Redraw map at {%" PRIMapCoord ", %" PRIMapCoord " ,%" PRIMapCoord ", %" PRIMapCoord "}\n",
           area->min.x, area->min.y, area->max.x, area->max.y);
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_redraw_map(&this_edit_win->edit_win, area);
   }
 }
@@ -488,8 +494,7 @@ void Session_redraw_object(EditSession *const session, MapPoint const pos, ObjRe
           objects_ref_to_num(old_ref), objects_ref_to_num(new_ref), objects_ref_to_num(base_ref),
           pos.x, pos.y);
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_redraw_object(&this_edit_win->edit_win, pos, base_ref, old_ref, new_ref, has_triggers);
   }
 }
@@ -499,8 +504,7 @@ void Session_redraw_info(EditSession *const session, MapPoint const pos)
   assert(session != NULL);
   DEBUGF("Redraw info at %" PRIMapCoord ", %" PRIMapCoord "\n", pos.x, pos.y);
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_redraw_info(&this_edit_win->edit_win, pos);
   }
 }
@@ -511,8 +515,7 @@ void Session_occluded_obj_changed(EditSession *const session, MapPoint const pos
   DEBUGF("Occluded object %d changed at %" PRIMapCoord ", %" PRIMapCoord "\n",
           objects_ref_to_num(obj_ref), pos.x, pos.y);
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_occluded_obj_changed(&this_edit_win->edit_win, pos, obj_ref);
   }
 }
@@ -522,8 +525,7 @@ void Session_occluded_info_changed(EditSession *const session, MapPoint const po
   assert(session != NULL);
   DEBUGF("Occluded info changed at %" PRIMapCoord ", %" PRIMapCoord "\n", pos.x, pos.y);
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_occluded_info_changed(&this_edit_win->edit_win, pos);
   }
 }
@@ -534,8 +536,7 @@ void Session_trig_changed(EditSession *const session, MapPoint const pos, ObjRef
   DEBUGF("Redraw trigger for object %d at %" PRIMapCoord ", %" PRIMapCoord "\n",
           objects_ref_to_num(obj_ref), pos.x, pos.y);
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_trig_changed(&this_edit_win->edit_win, pos, obj_ref, fparam);
   }
 }
@@ -546,8 +547,7 @@ void Session_redraw_ghost(EditSession *const session)
   assert(session != NULL);
   DEBUGF("Wipe ghost\n");
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_redraw_ghost(&this_edit_win->edit_win);
   }
 }
@@ -556,8 +556,7 @@ void Session_clear_ghost_bbox(EditSession *const session)
 {
   assert(session != NULL);
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_clear_ghost_bbox(&this_edit_win->edit_win);
   }
 }
@@ -567,8 +566,7 @@ void Session_set_ghost_map_bbox(EditSession *const session, MapArea const *const
   assert(session != NULL);
   assert(MapArea_is_valid(area));
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_set_ghost_map_bbox(&this_edit_win->edit_win, area);
   }
 }
@@ -577,8 +575,7 @@ void Session_add_ghost_obj(EditSession *const session, MapPoint const pos, ObjRe
 {
   assert(session != NULL);
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_add_ghost_obj(&this_edit_win->edit_win, pos, obj_ref);
   }
 }
@@ -587,8 +584,7 @@ void Session_add_ghost_info(EditSession *const session, MapPoint const pos)
 {
   assert(session != NULL);
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_add_ghost_info(&this_edit_win->edit_win, pos);
   }
 }
@@ -598,8 +594,7 @@ void Session_add_ghost_unknown_obj(EditSession *const session, MapArea const *co
   assert(session != NULL);
   assert(MapArea_is_valid(bbox));
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_add_ghost_unknown_obj(&this_edit_win->edit_win, bbox);
   }
 }
@@ -609,8 +604,7 @@ void Session_add_ghost_unknown_info(EditSession *const session, MapArea const *c
   assert(session != NULL);
   assert(MapArea_is_valid(bbox));
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_add_ghost_unknown_info(&this_edit_win->edit_win, bbox);
   }
 }
@@ -621,8 +615,7 @@ void Session_redraw_pending(EditSession *const session, bool const immediate)
 {
   assert(session != NULL);
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_redraw_pending(&this_edit_win->edit_win, immediate);
   }
 }
@@ -929,8 +922,7 @@ void Session_redraw(EditSession *const session,
          redraw_area->min.x, redraw_area->min.y, redraw_area->max.x, redraw_area->max.y,
          immediate ? "immediately" : "later");
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_redraw_area(&this_edit_win->edit_win, redraw_area, immediate);
   }
 }
@@ -2318,8 +2310,7 @@ void Session_display_msg(EditSession *const session, char const *hint, bool cons
 {
   assert(session != NULL);
   NOT_USED(temp);
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_display_hint(&this_edit_win->edit_win, hint);
   }
 }
@@ -2691,8 +2682,7 @@ bool Session_drag_obj_link(EditSession *const session, int const window, int con
   Editor *const origin)
 {
 #if PER_VIEW_SELECT
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     if (Editor_drag_obj_link(EditWin_get_editor(&this_edit_win->edit_win), window, icon, origin)) {
       return true;
     }
@@ -2744,8 +2734,7 @@ void Session_resource_change(EditSession *const session,
     break;
   }
 
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
 #if PER_VIEW_SELECT
     Editor_resource_change(EditWin_get_editor(&this_edit_win->edit_win), event, params);
 #endif
@@ -3223,8 +3212,7 @@ void Session_set_help_and_ptr(EditSession *const session,
   char *const help, PointerType const ptr)
 {
   assert(session != NULL);
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_set_help_and_ptr(&this_edit_win->edit_win, help, ptr);
   }
 }
@@ -3232,8 +3220,7 @@ void Session_set_help_and_ptr(EditSession *const session,
 void Session_display_mode(EditSession *const session)
 {
   assert(session != NULL);
-  INTDICT_FOR_EACH(&session->edit_wins_array, index, tmp) {
-    EditWinList *const this_edit_win = intdict_get_value_at(&session->edit_wins_array, index);
+  SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
     EditWin_display_mode(&this_edit_win->edit_win);
   }
 }
