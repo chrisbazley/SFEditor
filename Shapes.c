@@ -37,11 +37,8 @@
 
 typedef struct
 {
-  MapCoord x;
-  MapCoord end_x;
-  MapCoord p;
+  MapCoord x, end_x, p, dir;
   MapPoint d;
-  MapCoord dir;
 } Edge;
 
 static void make_edge(Edge *const edge,
