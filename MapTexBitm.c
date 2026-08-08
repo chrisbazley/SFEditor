@@ -277,6 +277,7 @@ int MapTexBitmaps_get_count(const MapTexBitmaps *const tiles)
 {
   assert(tiles != NULL);
   assert(tiles->count > 0);
+  assert(tiles->count < MapTexMax);
   DEBUG_VERBOSEF("No. of tiles is %d\n", tiles->count);
   return tiles->count;
 }
