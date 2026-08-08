@@ -314,7 +314,7 @@ typedef struct {
 static void draw_chequered_bbox(void *cb_arg, BBox const *bbox, MapRef const value)
 {
   RedrawCheqData *const data = cb_arg;
-  RedrawCheqValue current = map_ref_to_num(value);
+  unsigned char current = map_ref_to_num(value);
   assert(data);
   assert(bbox);
   DEBUGF("BBox value %d min %d,%d max %d,%d\n", map_ref_to_num(value),
