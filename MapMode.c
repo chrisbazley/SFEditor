@@ -321,6 +321,7 @@ static void draw_chequered_bbox(void *cb_arg, BBox const *bbox, MapRef const val
          bbox->xmin, bbox->ymin, bbox->xmax, bbox->ymax);
 
   if (current != RedrawCheqValue_Skip) {
+    assert(current == RedrawCheqValue_Selected || current == RedrawCheqValue_Clear);
     if (current != data->last) {
       plot_set_col(current == RedrawCheqValue_Selected ?
         data->bg_sel_colour : data->bg_colour);
