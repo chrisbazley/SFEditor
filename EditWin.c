@@ -2999,7 +2999,7 @@ bool EditWin_get_sel_tex_is_bright(EditWin const *const edit_win, MapRef const t
   assert(edit_win != NULL);
   unsigned char const index = map_ref_to_num(tile_num);
   assert(index < MapTexBitmaps_get_count(&Session_get_textures(EditWin_get_session(edit_win))->tiles));
-  assert((index / CHAR_BIT) < ARRAY_SIZE(sel_tex_bw_table));
+  assert((index / CHAR_BIT) < ARRAY_SIZE(edit_win->sel_tex_bw_table));
   return TEST_BITS(edit_win->sel_tex_bw_table[index / CHAR_BIT], 1u << (index % CHAR_BIT));
 }
 
