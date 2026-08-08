@@ -546,10 +546,12 @@ _Optional filescan_leafname *filescan_combine_filenames(filescan_leafname *filen
         /* If A and B are equal then we do not insert B, just skip it.
            This is to avoid duplication, since A has already been inserted */
         DEBUG_VERBOSEF("Ignoring B name (duplicates A name)\n");
+        // NOLINTNEXTLINE(clang-analyzer-security.ArrayBound)
         B_finished = (*filenames_B[++B_pos].leaf_name == '\0');
       }
 
       DEBUG_VERBOSEF("Advancing to next A name\n");
+      // NOLINTNEXTLINE(clang-analyzer-security.ArrayBound)
       A_finished = (*filenames_A[++A_pos].leaf_name == '\0');
     }
     else
@@ -560,6 +562,7 @@ _Optional filescan_leafname *filescan_combine_filenames(filescan_leafname *filen
       tmp = filenames_B[B_pos];
 
       DEBUG_VERBOSEF("Advancing to next B name\n");
+      // NOLINTNEXTLINE(clang-analyzer-security.ArrayBound)
       B_finished = (*filenames_B[++B_pos].leaf_name == '\0');
     }
 
