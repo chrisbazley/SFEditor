@@ -129,7 +129,7 @@ jobs:
 
           cat > "$RUNNER_TEMP/optional-smoke-test.c" <<'EOF'
           int value_or_zero(_Optional int *value) {
-            return value == nullptr ? 0 : *value;
+            return value ? 0 : *value;
           }
           EOF
 
