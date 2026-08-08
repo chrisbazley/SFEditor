@@ -61,8 +61,6 @@ static inline ShipsModeData *get_mode_data(Editor const *const editor)
 
 static size_t ShipsMode_num_selected(Editor const *const editor)
 {
-  ShipsModeData *const mode_data = get_mode_data(editor);
-
   return 0;
 }
 
@@ -99,8 +97,6 @@ static void ShipsMode_leave(Editor *const editor)
 static void ShipsMode_draw_grid(Vertex const map_origin,
   MapArea const *redraw_area, EditWin const *edit_win)
 {
-  PaletteEntry const colour = EditWin_get_grid_colour(edit_win);
-  int const zoom = EditWin_get_zoom(edit_win);
 }
 
 void ShipsMode_draw(Editor *const editor, Vertex const map_origin,
@@ -125,9 +121,6 @@ static void ShipsMode_draw_numbers(Editor *const editor,
   Vertex const scr_orig, MapArea const *const redraw_area,
   EditWin const *const edit_win)
 {
-  ViewDisplayFlags const display_flags = EditWin_get_display_flags(edit_win);
-  int const zoom = EditWin_get_zoom(edit_win);
-  PaletteEntry const bg_colour = EditWin_get_bg_colour(edit_win);
 }
 
 bool ShipsMode_can_enter(Editor *const editor)
