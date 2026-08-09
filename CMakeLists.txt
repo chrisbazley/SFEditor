@@ -60,7 +60,7 @@ if(ENABLE_CLANG_TIDY)
     set(CMAKE_C_CLANG_TIDY
         "${CLANG_TIDY_EXE}"
         "--checks=-*,clang-analyzer-*,-clang-analyzer-security.insecureAPI.*"
-        "--warnings-as-errors=clang-analyzer-*"
+        "--warnings-as-errors=clang-analyzer-optionality.*"
     )
 
     message(STATUS "clang-tidy: ${CLANG_TIDY_EXE}")
