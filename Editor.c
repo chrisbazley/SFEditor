@@ -1137,7 +1137,7 @@ size_t Editor_max_selected(Editor const *const editor)
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
-  return editor->mode_functions && editor->mode_functions->num_selected ?
+  return editor->mode_functions && editor->mode_functions->max_selected ?
          editor->mode_functions->max_selected(editor) :
          0;
 }
