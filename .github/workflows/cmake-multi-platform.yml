@@ -77,13 +77,44 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --build-config ${{ matrix.build_type }}
 
+    - name: Upload Test Logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ctest-logs-${{ runner.os }}-${{ matrix.build_type }}
+        path: ${{ steps.strings.outputs.build-output-dir }}/Testing/Temporary/
+        if-no-files-found: ignore # Prevents failure if the folder doesn't exist yet
+
+  clang-analysis:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: echo "build-output-dir=${{ github.workspace }}/build-analysis" >> "$GITHUB_OUTPUT"
+
+    - name: Run Static Analysis Suite
+      run: |
+        # 1. Tell CMake explicitly to use the Clang Static Analyzer natively
+        cmake -B ${{ steps.strings.outputs.build-output-dir }} \
+          -DCMAKE_C_COMPILER=clang \
+          -DCMAKE_CXX_COMPILER=clang++ \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_C_CLANG_STATIC_ANALYZER=/usr/bin/clang \
+          -S ${{ github.workspace }}
+
+        # 2. Just build normally
+        cmake --build ${{ steps.strings.outputs.build-output-dir }}
+
   optional-clang:
     name: Build and analyze with _Optional Clang
     runs-on: ubuntu-22.04
     timeout-minutes: 60
 
     env:
-      OPTIONAL_CLANG_TAG: v1.0.4-optional
+      OPTIONAL_CLANG_TAG: v1.0.7-optional
       OPTIONAL_CLANG_PLATFORM: linux-x86_64
       GH_TOKEN: ${{ github.token }}
 
