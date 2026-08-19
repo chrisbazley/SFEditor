@@ -61,6 +61,7 @@ static void merge_overlapping(MapAreaColData *const coll)
   do {
     merged = false;
     size_t const count = coll->count;
+    assert(count <= ARRAY_SIZE(coll->areas));
     int const size_log2 = coll->size_log2;
     for (size_t i = 0; i < count && !merged; ++i) {
       for (size_t k = i + 1; k < count && !merged; ++k) {
