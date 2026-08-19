@@ -345,8 +345,8 @@ flex_ptr memcpy_flex(flex_ptr dst, flex_ptr src, size_t n)
   return dst;
 }
 
-char *read_line_comm(char *const s, size_t const n, FILE *const stream,
-                     _Optional int *const line_num)
+_Optional char *read_line_comm(char *const s, size_t const n, FILE *const stream,
+                               _Optional int *const line_num)
 {
   /* Read string from file into buffer s of length n,
      ignoring comments and blank lines.
@@ -354,7 +354,7 @@ char *read_line_comm(char *const s, size_t const n, FILE *const stream,
   assert(s);
   assert(stream);
   assert(n <= INT_MAX);
-  char *err;
+  _Optional char *err;
 
   do {
     /* Read line */

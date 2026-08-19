@@ -813,7 +813,7 @@ void Session_openparentdir(EditSession *const session)
 
   /* Open parent directory */
   char *const main_filename = Session_get_filename(session);
-  char *const last_dot = strrchr(main_filename, PATH_SEPARATOR);
+  _Optional char *const last_dot = strrchr(main_filename, PATH_SEPARATOR);
   if (last_dot == NULL)
     return;
 

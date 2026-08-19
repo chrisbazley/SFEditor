@@ -419,7 +419,7 @@ static int autocreate_handler(int const event_code, ToolboxEvent *const event,
     { "tilesetmenu", tilesetmenu_created },
     { "usermenu", usermenu_created },
   };
-  const ObjectInitInfo *match;
+  _Optional const ObjectInitInfo *match;
 
   NOT_USED(event_code);
   assert(event != NULL);

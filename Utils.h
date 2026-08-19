@@ -58,7 +58,7 @@ unsigned int read_binary(char const *bin_string);
 bool dialogue_confirm(char const *mess, char const *buttons_token);
 
 /* Read line from file, skipping lines beginning with '#' */
-char *read_line_comm(char *s, size_t n, FILE *stream, _Optional int *line_num);
+_Optional char *read_line_comm(char *s, size_t n, FILE *stream, _Optional int *line_num);
 
 void open_topleftofwin(unsigned int flags, ObjectId showobj,
   ObjectId relativeto, ObjectId parent, ComponentId parent_component);
