@@ -174,6 +174,9 @@ char const *briefing_get_text(BriefingData const *const briefing, size_t const i
   assert(briefing->texts);
   assert(briefing->count <= BriefingMax);
   assert(index < briefing->count);
+  if (!briefing->texts) {
+    return "";
+  }
   return text_get_string(&briefing->texts[index]);
 }
 
