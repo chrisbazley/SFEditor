@@ -231,8 +231,8 @@ void text_write_offset(Text const *const text, Writer *const writer,
 void text_write_block(Text const *const text, Writer *const writer)
 {
   assert(text != NULL);
-  size_t const str_size = stringbuffer_get_length(&text->string) + 1; /* for terminator */
   char const *const str = stringbuffer_get_pointer(&text->string);
+  size_t const str_size = strlen(str) + 1; /* for terminator */
 
   writer_fseek(writer, BytesPerAddresses, SEEK_CUR);
   writer_fwrite_int32(text->params.duration, writer);
@@ -386,4 +386,3 @@ SFError text_read_block(Text *const text, Reader *const reader)
 
   return SFERROR(OK);
 }
-

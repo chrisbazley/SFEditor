@@ -611,7 +611,10 @@ static MapPoint chain_iter_loop_core(TriggersChainIter *const iter,
     assert(trigger->param.action == TriggerAction_ChainReaction);
     _Optional LinkedListItem *const prev = linkedlist_get_prev(&trigger->link);
     assert(prev);
-    Trigger const *const prev_trigger = CONTAINER_OF(prev, Trigger, link);
+    if (!prev) {
+      continue;
+    }
+    Trigger const *const prev_trigger = CONTAINER_OF(&*prev, Trigger, link);
     MapPoint const next_coords = objects_coords_from_coarse(prev_trigger->coords);
 
     if (!objects_bbox_contains(&iter->map_area, next_coords)) {

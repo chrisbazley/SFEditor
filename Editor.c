@@ -492,7 +492,7 @@ int Editor_misc_event(Editor *const editor, int const event_code)
     return 0;
   }
 
-  return editor->mode_functions->misc_event ?
+  return editor->mode_functions && editor->mode_functions->misc_event ?
          editor->mode_functions->misc_event(editor, event_code) :
          0;
 }
@@ -505,7 +505,7 @@ void Editor_drag_select_ended(Editor *const editor,
   assert(editor->mode_functions != NULL);
   assert(MapArea_is_valid(select_box));
 
-  if (editor->mode_functions->update_select) {
+  if (editor->mode_functions && editor->mode_functions->update_select) {
     MapArea last_select_box = {editor->drag_select_start, editor->drag_select_end};
     MapArea_make_valid(&last_select_box, &last_select_box);
 
@@ -541,28 +541,32 @@ static void pending_shape(Editor *const editor)
   assert(editor);
   assert(editor->mode_functions);
   assert(editor->tool == EDITORTOOL_PLOTSHAPES);
+  if (!editor->mode_functions) {
+    return;
+  }
+  EditModeFuncts const *const mode_functions = &*editor->mode_functions;
 
   if (editor->vertices_set < 1) {
-    if (editor->mode_functions->pending_plot) {
-      editor->mode_functions->pending_plot(editor, editor->map_pos);
+    if (mode_functions->pending_plot) {
+      mode_functions->pending_plot(editor, editor->map_pos);
     }
   } else {
     switch (editor->shape_to_plot) {
       case PLOTSHAPE_LINE:
-        if (editor->mode_functions->pending_line) {
-          editor->mode_functions->pending_line(editor, editor->vertex[0], editor->map_pos);
+        if (mode_functions->pending_line) {
+          mode_functions->pending_line(editor, editor->vertex[0], editor->map_pos);
         }
         break;
 
       case PLOTSHAPE_RECTANGLE:
-        if (editor->mode_functions->pending_rect) {
-          editor->mode_functions->pending_rect(editor, editor->vertex[0], editor->map_pos);
+        if (mode_functions->pending_rect) {
+          mode_functions->pending_rect(editor, editor->vertex[0], editor->map_pos);
         }
         break;
 
       case PLOTSHAPE_CIRCLE:
-        if (editor->mode_functions->pending_circ) {
-          editor->mode_functions->pending_circ(editor, editor->vertex[0], editor->map_pos);
+        if (mode_functions->pending_circ) {
+          mode_functions->pending_circ(editor, editor->vertex[0], editor->map_pos);
         }
         vertex_msg(editor);
         break;
@@ -570,12 +574,12 @@ static void pending_shape(Editor *const editor)
       default:
         assert(editor->shape_to_plot == PLOTSHAPE_TRIANGLE);
         if (editor->vertices_set < 2) {
-          if (editor->mode_functions->pending_line) {
-            editor->mode_functions->pending_line(editor, editor->vertex[0], editor->map_pos);
+          if (mode_functions->pending_line) {
+            mode_functions->pending_line(editor, editor->vertex[0], editor->map_pos);
          }
         } else {
-          if (editor->mode_functions->pending_tri) {
-            editor->mode_functions->pending_tri(editor, editor->vertex[0], editor->vertex[1], editor->map_pos);
+          if (mode_functions->pending_tri) {
+            mode_functions->pending_tri(editor, editor->vertex[0], editor->vertex[1], editor->map_pos);
           }
         }
         break;
@@ -760,7 +764,7 @@ bool Editor_can_draw_grid(Editor *const editor, EditWin const *edit_win)
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
-  if (editor->mode_functions->can_draw_grid) {
+  if (editor->mode_functions && editor->mode_functions->can_draw_grid) {
     return editor->mode_functions->can_draw_grid(editor, edit_win);
   }
   return false;
@@ -772,7 +776,7 @@ void Editor_draw_grid(Editor *const editor, Vertex const map_origin,
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
   assert(MapArea_is_valid(redraw_area));
-  if (editor->mode_functions->draw_grid) {
+  if (editor->mode_functions && editor->mode_functions->draw_grid) {
     editor->mode_functions->draw_grid(map_origin, redraw_area, edit_win);
   }
 }
@@ -781,7 +785,7 @@ bool Editor_can_draw_numbers(Editor *const editor, EditWin const *edit_win)
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
-  if (editor->mode_functions->can_draw_numbers) {
+  if (editor->mode_functions && editor->mode_functions->can_draw_numbers) {
     return editor->mode_functions->can_draw_numbers(editor, edit_win);
   }
   return false;
@@ -793,7 +797,7 @@ void Editor_draw_numbers(Editor *const editor, Vertex const map_origin,
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
   assert(MapArea_is_valid(redraw_area));
-  if (editor->mode_functions->draw_numbers) {
+  if (editor->mode_functions && editor->mode_functions->draw_numbers) {
     editor->mode_functions->draw_numbers(editor, map_origin, redraw_area, edit_win);
   }
 }
@@ -1261,7 +1265,9 @@ bool Editor_set_edit_mode(Editor *const editor, EditMode const new_mode, _Option
   if (editor->editing_mode != EDITING_MODE_NONE)
   {
     assert(editor->mode_functions != NULL);
-    editor->mode_functions->leave(editor);
+    if (editor->mode_functions) {
+      editor->mode_functions->leave(editor);
+    }
     editor->mode_functions = NULL;
   }
 
@@ -1419,7 +1425,7 @@ bool Editor_can_clip_overlay(Editor const *const editor)
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
 
-  if (editor->mode_functions->can_clip_overlay) {
+  if (editor->mode_functions && editor->mode_functions->can_clip_overlay) {
     can_clip = editor->mode_functions->can_clip_overlay(editor);
   }
   DEBUGF("%s clip overlay\n", can_clip ? "Can" : "Can't");
@@ -1435,7 +1441,7 @@ void Editor_clip_overlay(Editor *const editor)
     return;
   }
 
-  if (editor->mode_functions->clip_overlay) {
+  if (editor->mode_functions && editor->mode_functions->clip_overlay) {
     editor->mode_functions->clip_overlay(editor);
 
     /* Although the filtered data should be unchanged we may be
@@ -1453,7 +1459,7 @@ void Editor_paint_selected(Editor *editor)
     return;
   }
 
-  if (editor->mode_functions->paint_selected) {
+  if (editor->mode_functions && editor->mode_functions->paint_selected) {
     editor->mode_functions->paint_selected(editor);
     Session_redraw_pending(editor->session, false);
   }
@@ -1465,7 +1471,7 @@ bool Editor_anim_is_selected(Editor const *const editor)
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
 
-  if (editor->mode_functions->anim_is_selected) {
+  if (editor->mode_functions && editor->mode_functions->anim_is_selected) {
     anim_is_selected = editor->mode_functions->anim_is_selected(editor);
   }
   DEBUGF("Animation %s selected\n", anim_is_selected ? "is" : "isn't");
@@ -1478,7 +1484,7 @@ bool Editor_can_edit_properties(Editor const *const editor)
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
 
-  if (editor->mode_functions->can_edit_properties) {
+  if (editor->mode_functions && editor->mode_functions->can_edit_properties) {
     can_edit_properties = editor->mode_functions->can_edit_properties(editor);
   }
   DEBUGF("%s edit properties\n", can_edit_properties ? "Can" : "Can't");
@@ -1494,7 +1500,7 @@ void Editor_edit_properties(Editor *const editor, EditWin *const edit_win)
     return;
   }
 
-  if (editor->mode_functions->edit_properties) {
+  if (editor->mode_functions && editor->mode_functions->edit_properties) {
     editor->mode_functions->edit_properties(editor, edit_win);
   }
 }
@@ -1505,7 +1511,7 @@ bool Editor_can_create_transfer(Editor const *const editor)
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
 
-  if (editor->mode_functions->can_create_transfer) {
+  if (editor->mode_functions && editor->mode_functions->can_create_transfer) {
     can_create_transfer = editor->mode_functions->can_create_transfer(editor);
   }
   DEBUGF("%s create transfer\n", can_create_transfer ? "Can" : "Can't");
@@ -1521,7 +1527,7 @@ void Editor_create_transfer(Editor *const editor, const char *const name)
     return;
   }
 
-  if (editor->mode_functions->create_transfer) {
+  if (editor->mode_functions && editor->mode_functions->create_transfer) {
     editor->mode_functions->create_transfer(editor, name);
   }
 }
@@ -1532,7 +1538,7 @@ bool Editor_trigger_is_selected(Editor const *const editor)
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
 
-  if (editor->mode_functions->trigger_is_selected) {
+  if (editor->mode_functions && editor->mode_functions->trigger_is_selected) {
     trigger_is_selected = editor->mode_functions->trigger_is_selected(editor);
   }
   DEBUGF("Trigger %s selected\n", trigger_is_selected ? "is" : "isn't");
@@ -1545,7 +1551,7 @@ bool Editor_can_delete(Editor const *const editor)
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
 
-  if (editor->mode_functions->can_delete) {
+  if (editor->mode_functions && editor->mode_functions->can_delete) {
     can_delete = editor->mode_functions->can_delete(editor);
   }
   DEBUGF("%s delete\n", can_delete ? "Can" : "Can't");
@@ -1558,7 +1564,7 @@ bool Editor_can_select_tool(Editor const *const editor, EditorTool const tool)
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
 
-  if (editor->mode_functions->can_select_tool) {
+  if (editor->mode_functions && editor->mode_functions->can_select_tool) {
     can_select_tool = editor->mode_functions->can_select_tool(editor, tool);
   }
   DEBUGF("%s select tool %d\n", can_select_tool ? "Can" : "Can't", (int)tool);
@@ -1610,7 +1616,7 @@ bool Editor_can_replace(Editor const *const editor)
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
 
-  if (editor->mode_functions->can_replace) {
+  if (editor->mode_functions && editor->mode_functions->can_replace) {
     can_replace = editor->mode_functions->can_replace(editor);
   }
   DEBUGF("%s replace selected\n", can_replace ? "Can" : "Can't");
@@ -1623,7 +1629,7 @@ bool Editor_can_smooth(Editor const *const editor)
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
 
-  if (editor->mode_functions->can_smooth) {
+  if (editor->mode_functions && editor->mode_functions->can_smooth) {
     can_smooth = editor->mode_functions->can_smooth(editor);
   }
   DEBUGF("%s smooth selected\n", can_smooth ? "Can" : "Can't");
@@ -1697,7 +1703,7 @@ void Editor_select_all(Editor *const editor)
     return;
   }
 
-  if (editor->mode_functions->select_all) {
+  if (editor->mode_functions && editor->mode_functions->select_all) {
     editor->mode_functions->select_all(editor);
     disp_selection_size(editor);
     editor->temp_menu_select = false;
@@ -1715,7 +1721,7 @@ void Editor_clear_selection(Editor *const editor)
     return;
   }
 
-  if (editor->mode_functions->clear_selection) {
+  if (editor->mode_functions && editor->mode_functions->clear_selection) {
     editor->mode_functions->clear_selection(editor);
     disp_selection_size(editor);
     editor->temp_menu_select = false;
@@ -1732,7 +1738,7 @@ void Editor_delete(Editor *const editor)
     return;
   }
 
-  if (editor->mode_functions->delete) {
+  if (editor->mode_functions && editor->mode_functions->delete) {
     editor->mode_functions->delete(editor);
     editor->temp_menu_select = false;
     Session_redraw_pending(editor->session, false);
@@ -1748,7 +1754,8 @@ bool Editor_cut(Editor *const editor)
     return false;
   }
 
-  if (editor->mode_functions->cut && editor->mode_functions->cut(editor)) {
+  if (editor->mode_functions && editor->mode_functions->cut &&
+      editor->mode_functions->cut(editor)) {
     editor->temp_menu_select = false;
     clipboard_mode = editor->editing_mode;
     Session_redraw_pending(editor->session, false);
@@ -1767,7 +1774,8 @@ bool Editor_copy(Editor *const editor)
     return false;
   }
 
-  if (editor->mode_functions->copy && editor->mode_functions->copy(editor)) {
+  if (editor->mode_functions && editor->mode_functions->copy &&
+      editor->mode_functions->copy(editor)) {
     clipboard_mode = editor->editing_mode;
     return true;
   }
@@ -1831,7 +1839,7 @@ bool Editor_drag_obj_remote(Editor *const editor, Writer *const writer,
   editor->dragging_obj = false;
 
   bool success = false;
-  if (editor->mode_functions->drag_obj_remote) {
+  if (editor->mode_functions && editor->mode_functions->drag_obj_remote) {
     success = editor->mode_functions->drag_obj_remote(
                   editor, writer, data_type, filename);
   }
@@ -1843,7 +1851,7 @@ bool Editor_allow_drop(Editor const *editor)
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
-  return editor->mode_functions->drop;
+  return editor->mode_functions && editor->mode_functions->drop;
 }
 
 DataType const *Editor_get_dragged_data_types(Editor const *editor)
@@ -1853,7 +1861,7 @@ DataType const *Editor_get_dragged_data_types(Editor const *editor)
 
   static DataType const no_dragged[] = {DataType_Count};
 
-  return editor->mode_functions->dragged_data_types ?
+  return editor->mode_functions && editor->mode_functions->dragged_data_types ?
          editor->mode_functions->dragged_data_types :
          no_dragged;
 }
@@ -1865,7 +1873,7 @@ DataType const *Editor_get_import_data_types(Editor const *editor)
 
   static DataType const no_import[] = {DataType_Count};
 
-  return editor->mode_functions->import_data_types ?
+  return editor->mode_functions && editor->mode_functions->import_data_types ?
          editor->mode_functions->import_data_types :
          no_import;
 }
@@ -1877,7 +1885,7 @@ DataType const *Editor_get_export_data_types(Editor const *editor)
 
   static DataType const no_export[] = {DataType_Count};
 
-  return editor->mode_functions->export_data_types ?
+  return editor->mode_functions && editor->mode_functions->export_data_types ?
          editor->mode_functions->export_data_types :
          no_export;
 }
@@ -1893,7 +1901,8 @@ bool Editor_allow_paste(Editor const *const editor)
 {
   assert(editor != NULL);
   assert(editor->mode_functions != NULL);
-  bool const can_paste = editor->mode_functions->start_pending_paste && editor->can_paste &&
+  bool const can_paste = editor->mode_functions &&
+                         editor->mode_functions->start_pending_paste && editor->can_paste &&
                          !editor->dragging_select && !editor->dragging_obj;
   DEBUGF("%s paste\n", can_paste ? "Can" : "Can't");
   return can_paste;
