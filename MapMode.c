@@ -1680,16 +1680,17 @@ static bool MapMode_start_pending_paste(Editor *const editor, Reader *const read
 static void MapMode_pending_paste(Editor *const editor, MapPoint const map_pos)
 {
   MapModeData *const mode_data = get_mode_data(editor);
-  assert(mode_data->pending_paste);
-
-  update_transfer_ghost(editor, &*mode_data->pending_paste, map_pos);
+  if (mode_data->pending_paste) {
+    update_transfer_ghost(editor, &*mode_data->pending_paste, map_pos);
+  }
 }
 
 static bool MapMode_draw_paste(Editor *const editor, MapPoint const map_pos)
 {
   MapModeData *const mode_data = get_mode_data(editor);
-  assert(mode_data->pending_paste);
-
+  if (!mode_data->pending_paste) {
+    return false;
+  }
   if (!paste_generic(editor, &*mode_data->pending_paste, map_pos, &mode_data->selection)) {
     return false;
   }
@@ -1915,9 +1916,12 @@ static void MapMode_palette_selection(Editor *const editor, int const object)
       _Optional MapTransfer *const transfer = MapTransfers_find_by_index(
         &textures->transfers, object);
 
-      assert(transfer != NULL);
-      msg = msgs_lookup_subn("StatusTrSel", 1,
-        get_leaf_name(MapTransfer_get_dfile(&*transfer)));
+      if (transfer != NULL) {
+        msg = msgs_lookup_subn("StatusTrSel", 1,
+          get_leaf_name(MapTransfer_get_dfile(&*transfer)));
+      } else {
+        msg = "";
+      }
       break;
     }
   }
@@ -2536,8 +2540,11 @@ static bool MapMode_show_ghost_drop(Editor *const editor,
 
   if (origin_data) {
     // Dragging from a window belonging to this task
-    assert(origin_data->dragged);
     assert(!mode_data->uk_drop_pending);
+    if (!origin_data->dragged) {
+      DEBUGF("No dragged object!\n");
+      return hide_origin_bbox;
+    }
 
     if (mode_data->pending_drop) {
       if (MapArea_compare(&mode_data->drop_bbox, bbox) &&
