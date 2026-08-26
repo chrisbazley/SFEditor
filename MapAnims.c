@@ -544,9 +544,12 @@ MapRef MapAnimsIter_get_current(MapAnimsIter const *const iter)
   assert(MapArea_is_valid(&iter->map_area));
 
   /* Find the map tile for the current frame of this animation */
-  _Optional MapAnim const *const anim = iter->anim;
-  int const current_frame = anim ? anim->frame_num : 0;
   MapRef anim_tile = map_ref_mask();
+  _Optional MapAnim const *const anim = iter->anim;
+  if (!anim) {
+    return anim_tile;
+  }
+  int const current_frame = anim->frame_num;
 
   for (int frame = AnimsNFrames + current_frame; frame > current_frame; frame--)
   {
