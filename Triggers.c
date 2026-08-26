@@ -320,7 +320,7 @@ static SFError add_chain(TriggersData *const triggers,
     /* If there is already a chain trigger following the candidate predecessor
        then we can't use it. */
     _Optional LinkedListItem *const next = linkedlist_get_next(&t->link);
-    next_trigger = next ? CONTAINER_OF(next, Trigger, link) : NULL;
+    next_trigger = next ? CONTAINER_OF(&*next, Trigger, link) : NULL;
     if (next_trigger && next_trigger->param.action == TriggerAction_ChainReaction) {
       assert(linkedlist_get_prev(&*next));
       continue;
@@ -482,8 +482,10 @@ static MapPoint iter_loop_core(TriggersIter *const iter, _Optional TriggerFullPa
       if (trigger->param.action == TriggerAction_ChainReaction) {
         _Optional LinkedListItem *const prev = linkedlist_get_prev(&trigger->link);
         assert(prev);
-        Trigger const *const prev_trigger = CONTAINER_OF(prev, Trigger, link);
-        next_coords = objects_coords_from_coarse(prev_trigger->coords);
+        if (prev) {
+          Trigger const *const prev_trigger = CONTAINER_OF(&*prev, Trigger, link);
+          next_coords = objects_coords_from_coarse(prev_trigger->coords);
+        }
       }
 
       *fparam = (TriggerFullParam){.param = trigger->param, .next_coords = next_coords};
@@ -547,7 +549,7 @@ void TriggersIter_del_current(TriggersIter *const iter)
          trigger->param.value, trigger->coords.x, trigger->coords.y);
 
   _Optional LinkedListItem *prev = linkedlist_get_prev(&trigger->link);
-  _Optional Trigger *prev_trigger = prev ? CONTAINER_OF(prev, Trigger, link) : NULL;
+  _Optional Trigger *prev_trigger = prev ? CONTAINER_OF(&*prev, Trigger, link) : NULL;
 
   if (trigger->param.action == TriggerAction_ChainReaction) {
     DEBUGF("Breaking chain reaction from deleted trigger\n");
@@ -558,12 +560,12 @@ void TriggersIter_del_current(TriggersIter *const iter)
     if (prev_trigger && prev_trigger->param.action == TriggerAction_Dummy) {
       defer_delete(triggers, &*prev_trigger);
       prev = linkedlist_get_prev(&prev_trigger->link);
-      prev_trigger = prev ? CONTAINER_OF(prev, Trigger, link) : NULL;
+      prev_trigger = prev ? CONTAINER_OF(&*prev, Trigger, link) : NULL;
     }
   }
 
   _Optional LinkedListItem *const next = linkedlist_get_next(&trigger->link);
-  _Optional Trigger *const next_trigger = next ? CONTAINER_OF(next, Trigger, link) : NULL;
+  _Optional Trigger *const next_trigger = next ? CONTAINER_OF(&*next, Trigger, link) : NULL;
 
   bool can_delete = true;
   if (next_trigger && next_trigger->param.action == TriggerAction_ChainReaction) {
@@ -671,6 +673,9 @@ void TriggersChainIter_del_current(TriggersChainIter *const iter)
 
   TriggersData *const triggers = iter->triggers;
   _Optional Trigger *const trigger = iter->trigger;
+  if (!iter->trigger) {
+    return;
+  }
   iter->trigger = NULL;
 
   DEBUGF("Delete current trigger %p:%s with parameter %d at coordinates %d,%d\n",
@@ -680,7 +685,7 @@ void TriggersChainIter_del_current(TriggersChainIter *const iter)
   assert(linkedlist_get_prev(&trigger->link));
 
   _Optional LinkedListItem *const next = linkedlist_get_next(&trigger->link);
-  _Optional Trigger *const next_trigger = next ? CONTAINER_OF(next, Trigger, link) : NULL;
+  _Optional Trigger *const next_trigger = next ? CONTAINER_OF(&*next, Trigger, link) : NULL;
   bool can_delete = true;
 
   if (next_trigger && next_trigger->param.action == TriggerAction_ChainReaction) {
@@ -689,7 +694,7 @@ void TriggersChainIter_del_current(TriggersChainIter *const iter)
        optimise by anticipating that the previous trigger will be deleted too, but that
        would be fragile/broken because triggers would be in an invalid state until then. */
     _Optional LinkedListItem *const prev = linkedlist_get_prev(&trigger->link);
-    _Optional Trigger *const prev_trigger = prev ? CONTAINER_OF(prev, Trigger, link) : NULL;
+    _Optional Trigger *const prev_trigger = prev ? CONTAINER_OF(&*prev, Trigger, link) : NULL;
 
     if (!prev_trigger || !CoarsePoint2d_compare(prev_trigger->coords, trigger->coords)) {
       DEBUGF("Can't delete trigger %p without changing the target %d,%d of a chain reaction, %p.\n",
