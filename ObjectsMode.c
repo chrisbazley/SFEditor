@@ -1403,8 +1403,9 @@ static bool ObjectsMode_start_pending_paste(Editor *const editor, Reader *const 
 static void ObjectsMode_pending_paste(Editor *const editor, MapPoint const map_pos)
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
-  assert(mode_data->pending_paste);
-
+  if (!mode_data->pending_paste) {
+    return;
+  }
   MapPoint const t_dims = ObjTransfers_get_dims(&*mode_data->pending_paste);
 
   ObjectsMode_set_pending(editor, Pending_Transfer, objects_ref_none(), &*mode_data->pending_paste,
@@ -1414,8 +1415,9 @@ static void ObjectsMode_pending_paste(Editor *const editor, MapPoint const map_p
 static bool ObjectsMode_draw_paste(Editor *const editor, MapPoint const map_pos)
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
-  assert(mode_data->pending_paste);
-
+  if (!mode_data->pending_paste) {
+    return false;
+  }
   if (!paste_generic(editor, &*mode_data->pending_paste, map_pos)) {
     return false;
   }
@@ -2091,8 +2093,10 @@ static bool ObjectsMode_show_ghost_drop(Editor *const editor,
 
   if (origin_data) {
     // Dragging from a window belonging to this task
-    assert(origin_data->dragged);
     assert(!mode_data->uk_drop_pending);
+    if (!origin_data->dragged) {
+      return hide_origin_bbox;
+    }
 
     EditSession *const session = Editor_get_session(editor);
     ObjGfx *const graphics = Session_get_graphics(session);
