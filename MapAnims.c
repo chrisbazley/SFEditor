@@ -532,8 +532,9 @@ void MapAnimsIter_replace_current(MapAnimsIter const *const iter, MapAnimParam c
   assert(iter != NULL);
   assert(iter->anim != NULL);
   assert(MapArea_is_valid(&iter->map_area));
-
-  iter->anim->param = param;
+  if (iter->anim) {
+    iter->anim->param = param;
+  }
 }
 
 MapRef MapAnimsIter_get_current(MapAnimsIter const *const iter)
@@ -544,7 +545,7 @@ MapRef MapAnimsIter_get_current(MapAnimsIter const *const iter)
 
   /* Find the map tile for the current frame of this animation */
   _Optional MapAnim const *const anim = iter->anim;
-  int const current_frame = anim->frame_num;
+  int const current_frame = anim ? anim->frame_num : 0;
   MapRef anim_tile = map_ref_mask();
 
   for (int frame = AnimsNFrames + current_frame; frame > current_frame; frame--)
