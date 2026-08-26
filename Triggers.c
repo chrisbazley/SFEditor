@@ -542,6 +542,9 @@ void TriggersIter_del_current(TriggersIter *const iter)
 
   TriggersData *const triggers = iter->triggers;
   _Optional Trigger *const trigger = iter->trigger;
+  if (!trigger) {
+    return;
+  }
   iter->trigger = NULL;
 
   DEBUGF("Delete current trigger %p:%s with parameter %d at coordinates %d,%d\n",
