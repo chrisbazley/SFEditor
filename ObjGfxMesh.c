@@ -164,6 +164,10 @@ static ObjGfxMesh *obj_array_get(ObjGfxMeshArray const *const array, ObjRef cons
   unsigned char const n = objects_ref_to_num(obj_ref);
   assert(n < array->ocount);
   assert(array->objects);
+  if (!array->objects) {
+    static ObjGfxMesh dummy;
+    return &dummy;
+  }
   return array->objects[n];
 }
 
