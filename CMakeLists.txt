@@ -39,6 +39,7 @@ if(USE_FORTIFY)
     )
 
     FetchContent_MakeAvailable(Fortify)
+    link_libraries(Fortify)
 endif()
 
 set(CMAKE_C_STANDARD 99)
@@ -237,7 +238,7 @@ target_link_libraries(SFEditor PUBLIC
     SF3K
 )
 
-target_compile_definitions(SFEditor PUBLIC
+target_compile_definitions(SFEditor PRIVATE
     $<$<CONFIG:Debug>:DEBUG_OUTPUT>
 )
 
@@ -248,7 +249,7 @@ if(SYSTEM_NAME_UPPER STREQUAL "RISCOS")
   add_executable(SFEditorApp Main.c)
 else()
   # Other platforms: Compile only (no linking) to catch errors
-  add_library(SFEditorApp Main.c)
+  add_library(SFEditorApp OBJECT Main.c)
 endif()
 
 target_link_libraries(SFEditorApp PRIVATE
