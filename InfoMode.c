@@ -1195,8 +1195,11 @@ static bool InfoMode_show_ghost_drop(Editor *const editor,
 
   if (origin_data) {
     // Dragging from a window belonging to this task
-    assert(origin_data->dragged);
     assert(!mode_data->uk_drop_pending);
+    assert(origin_data->dragged);
+    if (!origin_data->dragged) {
+      return hide_origin_bbox;
+    }
 
     EditSession *const session = Editor_get_session(editor);
     InfoEditContext const *const infos = Session_get_infos(session);
