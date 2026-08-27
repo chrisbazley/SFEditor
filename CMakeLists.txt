@@ -33,8 +33,6 @@ if(USE_OPTIONAL)
 endif()
 
 if(USE_FORTIFY)
-    include(FetchContent)
-
     FetchContent_Declare(Fortify
         GIT_REPOSITORY https://github.com/chrisbazley/Fortify.git
         GIT_TAG main
