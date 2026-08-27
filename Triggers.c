@@ -288,7 +288,10 @@ static void remove_chain(TriggersData *const triggers, Trigger *const trigger)
      next object to be destroyed in the chain reaction (which is previous in the list). */
   _Optional LinkedListItem *const prev = linkedlist_get_prev(&trigger->link);
   assert(prev);
-  Trigger const *const prev_trigger = CONTAINER_OF(prev, Trigger, link);
+  if (!prev) {
+    return;
+  }
+  Trigger const *const prev_trigger = CONTAINER_OF(&*prev, Trigger, link);
   MapCoord const chain_key = objects_coarse_coords_to_index(prev_trigger->coords);
   bool const found = intdict_remove_specific(&triggers->chain_triggers, chain_key, trigger, NULL);
   NOT_USED(found);
