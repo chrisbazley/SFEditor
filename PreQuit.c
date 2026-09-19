@@ -72,6 +72,7 @@ static int quit_handler(int const event_code, ToolboxEvent *const event,
   /* We won't be alive to hear the MenusDeleted msg, so fake it */
   NOT_USED(handle);
   NOT_USED(event);
+  assert(event_code == Quit_Quit);
   NOT_USED(event_code);
   NOT_USED(id_block);
 

@@ -58,6 +58,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 {
   NOT_USED(handle);
   NOT_USED(event);
+  assert(event_code == Menu_AboutToBeShown);
   NOT_USED(event_code);
 
   void *pal_data;

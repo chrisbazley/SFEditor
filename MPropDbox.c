@@ -372,6 +372,7 @@ static int arrows_handler(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
   /* Rotate displayed animation frames left (earlier) or right (later)  */
+  assert(event_code == Adjuster_Clicked);
   NOT_USED(event_code);
   MapPropDbox *const prop = handle;
   const AdjusterClickedEvent *const ace = (AdjusterClickedEvent *)event;
@@ -477,6 +478,7 @@ static int numberrange_value_changed(int const event_code, ToolboxEvent *const e
 {
   /* Enable/disable numeric display of tile number and update picture of tile
      when an animation frame is set to 'sleep' or not */
+  assert(event_code == NumberRange_ValueChanged);
   NOT_USED(event_code);
   MapPropDbox *const prop = handle;
   const NumberRangeValueChangedEvent *const nrvce =
@@ -511,6 +513,7 @@ static int optionbutton_state_changed(int const event_code, ToolboxEvent *const 
 {
   /* Enable/disable numeric display of tile number and update picture of tile
      when an animation frame is set to 'sleep' or not */
+  assert(event_code == OptionButton_StateChanged);
   NOT_USED(event_code);
   MapPropDbox *const prop = handle;
   const OptionButtonStateChangedEvent *const obsce =
@@ -556,7 +559,7 @@ static int optionbutton_state_changed(int const event_code, ToolboxEvent *const 
 static int actionbutton_selected(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Cancel/OK button has been tweaked on button bar */
+  assert(event_code == ActionButton_Selected);
   NOT_USED(event_code);
   MapPropDbox *const prop = handle;
 
@@ -594,6 +597,7 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
 static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Window_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(event);
   MapPropDbox *const prop = handle;
@@ -629,6 +633,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 static int has_been_hidden(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Window_HasBeenHidden);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(id_block);
@@ -644,7 +649,7 @@ static int has_been_hidden(int const event_code, ToolboxEvent *const event,
 static int redraw_window(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Process redraw events */
+  assert(event_code == Wimp_ERedrawWindow);
   NOT_USED(event_code);
   MapPropDbox *const prop = handle;
   const WimpRedrawWindowRequestEvent *const wrwre = &event->redraw_window_request;

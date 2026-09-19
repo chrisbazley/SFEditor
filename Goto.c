@@ -79,6 +79,7 @@ static int goto_about_to_be_shown(int const event_code, ToolboxEvent *const even
 {
   void *client_handle;
 
+  assert(event_code == Window_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(event);
   assert(id_block != NULL);
@@ -101,6 +102,7 @@ static int goto_actionbutton_selected(int const event_code, ToolboxEvent *const 
 {
   void *client_handle;
 
+  assert(event_code == ActionButton_Selected);
   NOT_USED(event_code);
   NOT_USED(event);
   assert(id_block != NULL);

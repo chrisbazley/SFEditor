@@ -770,7 +770,7 @@ static void redraw_loop(PaletteData *const pal_data, WimpRedrawWindowBlock *cons
 static int redraw_window(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Process redraw events */
+  assert(event_code == Wimp_ERedrawWindow);
   NOT_USED(event_code);
   NOT_USED(id_block);
   const WimpRedrawWindowRequestEvent *const wrwre = &event->redraw_window_request;
@@ -794,6 +794,7 @@ static int redraw_window(int const event_code, WimpPollBlock *const event,
 static int open_window(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Wimp_EOpenWindow);
   NOT_USED(event_code);
   NOT_USED(handle);
   WimpOpenWindowRequestEvent *const wowre = &event->open_window_request;
@@ -858,6 +859,7 @@ static int mode_changed_handler(WimpMessage *const message, void *const handle)
 static int mouse_click(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Wimp_EMouseClick);
   NOT_USED(event_code);
   NOT_USED(id_block);
   PaletteData *const pal_data = handle;
@@ -958,6 +960,7 @@ static int close_window(int const event_code, WimpPollBlock *const event,
 {
   /* We need to update the session's display flags when the user closes the
      palette window */
+  assert(event_code == Wimp_ECloseWindow);
   NOT_USED(event_code);
   NOT_USED(id_block);
   WimpCloseWindowRequestEvent *const wcwre = &event->close_window_request;

@@ -322,6 +322,7 @@ static int prequit_wimphandler(WimpMessage *const message, void *const handle)
 static int error_handler(int event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Toolbox_Error);
   NOT_USED(event_code);
   assert(event);
   NOT_USED(id_block);
@@ -421,6 +422,7 @@ static int autocreate_handler(int const event_code, ToolboxEvent *const event,
   };
   _Optional const ObjectInitInfo *match;
 
+  assert(event_code == Toolbox_ObjectAutoCreated);
   NOT_USED(event_code);
   assert(event != NULL);
   assert(id_block != NULL);

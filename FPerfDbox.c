@@ -145,8 +145,8 @@ static void setup_win(ObjectId const performance_dialogue, FPerfDboxData *perfor
 static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Dialogue box about to open */
   NOT_USED(event);
+  assert(event_code == Window_AboutToBeShown);
   NOT_USED(event_code);
   FPerfDboxData *const performance_data = handle;
 
@@ -158,7 +158,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 static int actionbutton_selected(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Cancel/OK button has been activated */
+  assert(event_code == ActionButton_Selected);
   NOT_USED(event_code);
   FPerfDboxData *const performance_data = handle;
 

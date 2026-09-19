@@ -57,6 +57,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   NOT_USED(handle);
   assert(id_block);
   NOT_USED(event);
+  assert(event_code == FileInfo_AboutToBeShown);
   NOT_USED(event_code);
 
   void *pal_data;

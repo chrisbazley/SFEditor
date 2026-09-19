@@ -66,6 +66,7 @@ menu_states[] =
 static int selectionhandler(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Menu_Selection);
   NOT_USED(event_code);
   NOT_USED(event);
 
@@ -111,6 +112,7 @@ static int selectionhandler(int const event_code, ToolboxEvent *const event,
 static int openhandler(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Menu_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(event);
 

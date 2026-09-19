@@ -152,7 +152,7 @@ static SchedulerTime trackpointer(void *const handle,
 static int pointer_enter(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Start tracking mouse pointer */
+  assert(event_code == Wimp_EPointerEnteringWindow);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(id_block);
@@ -169,7 +169,7 @@ static int pointer_enter(int const event_code, WimpPollBlock *const event,
 static int pointer_leave(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Stop tracking mouse pointer */
+  assert(event_code == Wimp_EPointerLeavingWindow);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(id_block);
@@ -201,7 +201,7 @@ static int pointer_leave(int const event_code, WimpPollBlock *const event,
 static int mouse_click(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Handle button presses in Tools window */
+  assert(event_code == Wimp_EMouseClick);
   NOT_USED(event_code);
   MapToolbar *const toolbar = handle;
   const WimpMouseClickEvent *const mouse_click = &event->mouse_click;
