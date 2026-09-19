@@ -226,6 +226,7 @@ static void send_dataloadack(WimpMessage *const message)
 static int radiobutton_state_changed(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == RadioButton_StateChanged);
   NOT_USED(event_code);
   NOT_USED(handle);
   RadioButtonStateChangedEvent *const rbsce =
@@ -246,6 +247,7 @@ static int radiobutton_state_changed(int const event_code, ToolboxEvent *const e
 static int optionbutton_state_changed(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == OptionButton_StateChanged);
   NOT_USED(event_code);
   NOT_USED(handle);
   const OptionButtonStateChangedEvent *const obsce =
@@ -269,8 +271,8 @@ static int optionbutton_state_changed(int const event_code, ToolboxEvent *const 
 static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Config window about to open */
   NOT_USED(event);
+  assert(event_code == Window_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(handle);
   setup_win(id_block->self_id, 1);
@@ -280,6 +282,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 static int actionbutton_selected(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == ActionButton_Selected);
   NOT_USED(event_code);
   NOT_USED(handle);
   switch (id_block->self_component) {

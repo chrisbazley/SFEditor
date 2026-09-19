@@ -42,7 +42,7 @@ static ObjectId picker_id = NULL_ObjectId;
 static int colourselhandler(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Cloud colour selected via picker dbox */
+  assert(event_code == Pal256_ColourSelected);
   NOT_USED(event_code);
   NOT_USED(handle);
   const Pal256ColourSelectedEvent *const pcse = (Pal256ColourSelectedEvent *)

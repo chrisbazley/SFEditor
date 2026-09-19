@@ -144,6 +144,7 @@ static void setup_win(BriefingData *const briefing, ObjectId const id)
 static int actionbutton_selected(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == ActionButton_Selected);
   NOT_USED(event_code);
   BriefDboxData *const briefing_data = handle;
   _Optional MissionData *const m = Session_get_mission(briefing_data->session);
@@ -180,7 +181,7 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
 static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Dialogue window about to open */
+  assert(event_code == Window_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(event);
   BriefDboxData *const briefing_data = handle;

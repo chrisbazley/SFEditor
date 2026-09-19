@@ -994,8 +994,8 @@ static SchedulerTime track_pointer(void *const handle, SchedulerTime const new_t
 static int pointer_leave(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* The mouse pointer has left our edit_win window */
   NOT_USED(event);
+  assert(event_code == Wimp_EPointerLeavingWindow);
   NOT_USED(event_code);
   NOT_USED(id_block);
   EditWin *const edit_win = handle;
@@ -1026,8 +1026,8 @@ static int pointer_leave(int const event_code, WimpPollBlock *const event,
 static int select_drag_complete(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Called when a Wimp_DragBox operation is terminated by the user */
   NOT_USED(id_block);
+  assert(event_code == Wimp_EUserDrag);
   NOT_USED(event_code);
   WimpUserDragBoxEvent *wudbe = &event->user_drag_box;
   EditWin *const edit_win = handle;
@@ -1097,7 +1097,7 @@ static bool menu_is_open(EditSession *const session)
 static int scroll_request(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Respond to scroll request events */
+  assert(event_code == Wimp_EScrollRequest);
   NOT_USED(event_code);
   EditWin *const edit_win = handle;
   WimpScrollRequestEvent *const wsre = &event->scroll_request;
@@ -1736,6 +1736,7 @@ static int open_window(int const event_code, WimpPollBlock *const event,
 {
   /* We only get these events in response to the user dragging or resizing
      the window. */
+  assert(event_code == Wimp_EOpenWindow);
   NOT_USED(event_code);
   WimpOpenWindowRequestEvent *const wowre = &event->open_window_request;
   EditWin *const edit_win = handle;
@@ -1757,7 +1758,7 @@ static int open_window(int const event_code, WimpPollBlock *const event,
 static int mouse_click(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* The user has clicked mouse button on our window */
+  assert(event_code == Wimp_EMouseClick);
   NOT_USED(event_code);
   NOT_USED(id_block);
   EditWin *const edit_win = handle;
@@ -1849,8 +1850,8 @@ static void caret_lost(void *const client_handle)
 static int gain_caret(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* The user has clicked mouse button on our window */
   NOT_USED(event);
+  assert(event_code == Wimp_EGainCaret);
   NOT_USED(event_code);
   NOT_USED(id_block);
   EditWin *const edit_win = handle;
@@ -1872,8 +1873,8 @@ static int gain_caret(int const event_code, WimpPollBlock *const event,
 static int pointer_enter(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* The mouse pointer has entered our map window */
   NOT_USED(event);
+  assert(event_code == Wimp_EPointerEnteringWindow);
   NOT_USED(event_code);
   NOT_USED(id_block);
   EditWin *const edit_win = handle;
@@ -1890,7 +1891,7 @@ static int pointer_enter(int const event_code, WimpPollBlock *const event,
 static int redraw_window(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Process redraw events */
+  assert(event_code == Wimp_ERedrawWindow);
   NOT_USED(event_code);
   NOT_USED(id_block);
   const WimpRedrawWindowRequestEvent *const wrwre = &event->redraw_window_request;
@@ -1931,7 +1932,7 @@ static int redraw_window(int const event_code, WimpPollBlock *const event,
 static int close_window(int const event_code, WimpPollBlock *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* User has clicked main window close button */
+  assert(event_code == Wimp_ECloseWindow);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(id_block);

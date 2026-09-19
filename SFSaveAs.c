@@ -51,6 +51,7 @@ static DataType data_type;
 static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == SaveAs_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(handle);
@@ -91,6 +92,7 @@ static int save_to_file(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
   NOT_USED(handle);
+  assert(event_code == SaveAs_SaveToFile);
   NOT_USED(event_code);
   SaveAsSaveToFileEvent *const sastf = (SaveAsSaveToFileEvent *)event;
   bool success = false;
@@ -129,6 +131,7 @@ static int save_completed(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
   NOT_USED(handle);
+  assert(event_code == SaveAs_SaveCompleted);
   NOT_USED(event_code);
   SaveAsSaveCompletedEvent *const sasc = (SaveAsSaveCompletedEvent *)event;
 

@@ -415,6 +415,7 @@ bool object_is_showing(ObjectId const id)
 int hand_back_caret(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Window_HasBeenHidden);
   NOT_USED(handle);
   NOT_USED(event_code);
   NOT_USED(event);

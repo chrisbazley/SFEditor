@@ -110,6 +110,7 @@ static void setup_win(EditSession *const session, ObjectId const dbox_id)
 static int optionbutton_state_changed(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == OptionButton_StateChanged);
   NOT_USED(event_code);
   NOT_USED(handle);
   const OptionButtonStateChangedEvent *const obsce =
@@ -129,7 +130,7 @@ static int optionbutton_state_changed(int const event_code, ToolboxEvent *const 
 static int actionbutton_selected(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Cancel/OK button has been tweaked on button bar */
+  assert(event_code == ActionButton_Selected);
   NOT_USED(event_code);
   NOT_USED(handle);
 
@@ -160,7 +161,7 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
 static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Set up dialogue window from mission data */
+  assert(event_code == Window_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(handle);

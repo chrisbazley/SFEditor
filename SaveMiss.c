@@ -136,6 +136,7 @@ static void resetdbox(EditSession *const session, ObjectId const self_id)
 static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Window_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(handle);
@@ -152,6 +153,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 static int actionhandler(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == ActionButton_Selected);
   NOT_USED(event_code);
   NOT_USED(handle);
 
@@ -252,6 +254,7 @@ static int actionhandler(int const event_code, ToolboxEvent *const event,
 static int writablehandler(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == WritableField_ValueChanged);
   NOT_USED(event_code);
   NOT_USED(handle);
   const WritableFieldValueChangedEvent *const wfvce =
@@ -271,6 +274,7 @@ static int writablehandler(int const event_code, ToolboxEvent *const event,
 static int numberhandler(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == NumberRange_ValueChanged);
   NOT_USED(event_code);
   NOT_USED(handle);
   const NumberRangeValueChangedEvent *const nrvce =
@@ -290,7 +294,7 @@ static int numberhandler(int const event_code, ToolboxEvent *const event,
 static int radiobutton_state_changed(int const event_code,
   ToolboxEvent *const event, IdBlock *const id_block, void *const handle)
 {
-  /* Radio button has been tweaked */
+  assert(event_code == RadioButton_StateChanged);
   NOT_USED(event_code);
   NOT_USED(handle);
   const RadioButtonStateChangedEvent *const rbsce =

@@ -55,6 +55,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 {
   /* Update menu (if necessary) */
   NOT_USED(event);
+  assert(event_code == Menu_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(handle);
 

@@ -66,7 +66,7 @@ static const ComponentId mode_to_component_id[] =
 static int mm_about_to_be_shown(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Set up menu */
+  assert(event_code == Menu_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(handle);
@@ -102,6 +102,7 @@ static int mm_about_to_be_shown(int const event_code, ToolboxEvent *const event,
 static int mm_selection(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Menu_Selection);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(handle);

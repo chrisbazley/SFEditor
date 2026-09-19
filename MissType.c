@@ -45,6 +45,7 @@ static ComponentId which_ticked = NULL_ComponentId;
 static int menu_selection(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Menu_Selection);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(handle);
@@ -82,6 +83,7 @@ static int menu_selection(int const event_code, ToolboxEvent *const event,
 static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Menu_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(handle);

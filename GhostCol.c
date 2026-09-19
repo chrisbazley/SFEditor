@@ -41,7 +41,7 @@ static ObjectId GhostCol_id = NULL_ComponentId;
 static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Set up colour */
+  assert(event_code == ColourDbox_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(handle);
@@ -59,7 +59,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 static int colour_selected(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
-  /* Colour selected by user */
+  assert(event_code == ColourDbox_ColourSelected);
   NOT_USED(event_code);
   NOT_USED(handle);
 

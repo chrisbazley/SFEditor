@@ -933,6 +933,7 @@ static void edit_trigger(ObjPropDbox *const prop)
 static int actionbutton_selected(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == ActionButton_Selected);
   NOT_USED(event_code);
   ObjPropDbox *const prop = handle;
 
@@ -1023,6 +1024,7 @@ static void setup_win_from_list(ObjPropDbox *const prop)
 static int actionbutton_selected_2(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == ActionButton_Selected);
   NOT_USED(event_code);
   ObjPropDbox *const prop = handle;
 
@@ -1051,6 +1053,7 @@ static int actionbutton_selected_2(int const event_code, ToolboxEvent *const eve
 static int scrolllist_selection(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == ScrollList_Selection);
   NOT_USED(event_code);
   NOT_USED(id_block);
   ObjPropDbox *const prop = handle;
@@ -1077,6 +1080,7 @@ static int scrolllist_selection(int const event_code, ToolboxEvent *const event,
 static int radiobutton_changed(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == RadioButton_StateChanged);
   NOT_USED(event_code);
   ObjPropDbox *const prop = handle;
   RadioButtonStateChangedEvent const *const rbsce = (void *)event;
@@ -1088,6 +1092,7 @@ static int radiobutton_changed(int const event_code, ToolboxEvent *const event,
 static int numberrange_changed(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == NumberRange_ValueChanged);
   NOT_USED(event_code);
   NOT_USED(event);
   ObjPropDbox *const prop = handle;
@@ -1104,6 +1109,7 @@ static int numberrange_changed(int const event_code, ToolboxEvent *const event,
 static int ObjPropDboxes_about_to_be_shown(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Window_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(id_block);
@@ -1136,6 +1142,7 @@ static void delete_dbox(ObjPropDbox *const prop)
 static int ObjPropDboxes_has_been_hidden(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Window_HasBeenHidden);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(id_block);
@@ -1150,6 +1157,7 @@ static int ObjPropDboxes_has_been_hidden(int const event_code, ToolboxEvent *con
 static int ObjPropDboxes_about_to_be_shown_2(int const event_code, ToolboxEvent *const event,
   IdBlock *const id_block, void *const handle)
 {
+  assert(event_code == Window_AboutToBeShown);
   NOT_USED(event_code);
   NOT_USED(event);
   NOT_USED(id_block);

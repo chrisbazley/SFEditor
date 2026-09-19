@@ -77,6 +77,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 {
   NOT_USED(handle);
   NOT_USED(event);
+  assert(event_code == Menu_AboutToBeShown);
   NOT_USED(event_code);
   DEBUG ("Tiles palette menu 0x%x is about to be shown", id_block->self_id);
   assert(id_block->self_id == tiles_menu_id);
