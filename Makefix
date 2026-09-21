@@ -13,9 +13,9 @@ ASMflags =
 
 
 # Final targets:
-@.AnimsFix:   @.o.FixAnims C:o.flexlib C:o.CBLib @.o.FilePaths C:o.stubs \
+@.AnimsFix:   @.o.FixAnims C:o.flexlib C:o.CBLib C:o.CBOSLib @.o.FilePaths C:o.stubs \
         @.o.Scramble 
-        Link $(Linkflags) @.o.FixAnims C:o.flexlib C:o.CBLib @.o.FilePaths \
+        Link $(Linkflags) @.o.FixAnims C:o.flexlib C:o.CBLib C:o.CBOSLib @.o.FilePaths \
         C:o.stubs @.o.Scramble 
 
 
