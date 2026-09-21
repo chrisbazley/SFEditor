@@ -603,7 +603,8 @@ static void set_obj_type(ObjPropDbox const *const prop, ObjRef const obj_ref)
 {
   assert(prop);
   E(stringset_set_selected(StringSet_IndexedSelection, prop->my_object,
-         ComponentId_TypeSet, (char *)(intptr_t)obj_type_to_index(obj_ref)));
+         ComponentId_TypeSet,
+         (char *)(void *)(intptr_t)obj_type_to_index(obj_ref)));
 }
 
 static ObjRef get_obj_type(ObjPropDbox *const prop)
@@ -808,7 +809,7 @@ static void write_gadgets(ObjPropDbox const *const prop, TriggerFullParam const 
   {
     if (ui_act == UITriggerAction_CrippleShipType) {
       E(stringset_set_selected(StringSet_IndexedSelection, prop->my_add_object, gadget,
-        (char *)(intptr_t)ship_type_to_index(item.param.value)));
+        (char *)(void *)(intptr_t)ship_type_to_index(item.param.value)));
     } else {
       E(numberrange_set_value(0, prop->my_add_object, gadget, item.param.value));
     }
