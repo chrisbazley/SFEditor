@@ -92,7 +92,8 @@ static void setup_win(EditSession *const session, ObjectId const dbox_id)
 
   E(stringset_set_selected(StringSet_IndexedSelection,
              dbox_id, ComponentId_SHIPTYPE,
-             (char *)(intptr_t)(player_get_ship_type(s) - ShipType_Player)));
+             (char *)(void *)(intptr_t)
+               (player_get_ship_type(s) - ShipType_Player)));
 
   E(optionbutton_set_state(0, dbox_id, ComponentId_ENABLE,
              player_get_equip_enabled(s)));
