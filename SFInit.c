@@ -420,7 +420,6 @@ static int autocreate_handler(int const event_code, ToolboxEvent *const event,
     { "tilesetmenu", tilesetmenu_created },
     { "usermenu", usermenu_created },
   };
-  _Optional const ObjectInitInfo *match;
 
   assert(event_code == Toolbox_ObjectAutoCreated);
   NOT_USED(event_code);
@@ -439,7 +438,7 @@ static int autocreate_handler(int const event_code, ToolboxEvent *const event,
 
   /* Find the relevant initialisation function from the name of the template
      used to auto-create the object */
-  match = bsearch(toace->template_name,
+  _Optional const ObjectInitInfo *match = bsearch(toace->template_name,
                   auto_created,
                   ARRAY_SIZE(auto_created),
                   sizeof(auto_created[0]),

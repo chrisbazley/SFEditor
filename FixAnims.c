@@ -40,11 +40,10 @@ void check_error(_kernel_oserror *e)
 void load_compressed(char *filepath, flex_ptr buffer)
 {
   /* Allocate buffer and load compressed Fednet datafile */
-  FILE *readfile;
   int buffer_size;
 
   /* get (decompressed) memory requirements */
-  readfile = fopen(filepath, "r");
+  FILE *readfile = fopen(filepath, "r");
   if (readfile == NULL) {
     fprintf(stderr, "Could not open file %s\n", filepath);
     exit(EXIT_FAILURE);
@@ -131,7 +130,7 @@ int main(int argc, char *argv[])
   _kernel_osfile_block kosfb;
   SFMission *mission_data; /* pointer to decompressed file */
   char pyr_prefix[5]="";
-  int ch, l, p;
+  int l, p;
   bool save;
 
   flex_init("AnimsFix", 0, 0); /* (use Wimpslot and own messages) */
@@ -152,7 +151,7 @@ int main(int argc, char *argv[])
 */
   printf("About to scan game files, amending animations data\n\n");
   printf("Press ENTER to continue, or ESCAPE to quit\n");
-  ch = getchar();
+  int ch = getchar();
 
   snprintf(filepath_buffer, sizeof(filepath_buffer), "%s.%s.E.E_01", FIXED_GAME_DIR, LEVELANIMS_DIR);
   printf("Deleting [%s]\n", filepath_buffer);

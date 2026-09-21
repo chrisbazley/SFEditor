@@ -611,10 +611,9 @@ static bool auto_scroll(EditWin *const edit_win, WimpGetWindowStateBlock *const 
   if (scroll.y != 0 || scroll.x != 0) {
     if (edit_win->auto_scrolling) {
       /* Scroll window by amount based on elapsed time */
-      SchedulerTime time_diff;
 
       /* should handle timer wrap-around correctly */
-      time_diff = new_time - edit_win->last_scroll;
+      SchedulerTime time_diff = new_time - edit_win->last_scroll;
       DEBUG("Time since last scroll update: %d", time_diff);
 
       /* Put a cap on enormous time intervals */

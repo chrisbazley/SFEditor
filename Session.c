@@ -204,7 +204,6 @@ static SchedulerTime update_animations(void *const handle,
   /* Null event handler for updating map animations */
   NOT_USED(time_up);
   EditSession *const session = handle;
-  SchedulerTime earliest_next_frame;
 
   assert(session != NULL);
   assert(Session_has_data(session, DataType_OverlayMapAnimations));
@@ -227,7 +226,7 @@ static SchedulerTime update_animations(void *const handle,
   MapAreaColData redraw_map;
   MapAreaCol_init(&redraw_map, 0);
 
-  earliest_next_frame = MapEdit_update_anims(Session_get_map(session),
+  SchedulerTime earliest_next_frame = MapEdit_update_anims(Session_get_map(session),
                         steps_to_advance, &redraw_map);
 
   MapAreaColIter iter;
@@ -282,14 +281,13 @@ static bool start_anims(EditSession *const session)
     return true;
   }
 
-  SchedulerTime next_update_due;
 
   ON_ERR_RPT_RTN_V(os_read_monotonic_time(&session->last_update_time), false);
 
   assert(Session_has_data(session, DataType_OverlayMapAnimations));
 
   MapEditContext const *map = Session_get_map(session);
-  next_update_due = session->last_update_time +
+  SchedulerTime next_update_due = session->last_update_time +
     anim_ticks_to_cs(MapEdit_update_anims(map, 0, NULL));
 
   ON_ERR_RPT_RTN_V(scheduler_register(update_animations, session,
