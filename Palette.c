@@ -1175,14 +1175,13 @@ static void reset_vars(PaletteData *const pal_data)
 
 static bool update_title(PaletteData *const pal_data)
 {
-  char *new_title;
 
   assert(pal_data != NULL);
   DEBUG ("Updating title of palette %p (object 0x%x)", (void *)pal_data,
          pal_data->my_object);
 
   assert(pal_data->parent_editor != NULL);
-  new_title = msgs_lookup_subn(pal_data->client_functions == NULL ? "PalTitleN" :
+  char *new_title = msgs_lookup_subn(pal_data->client_functions == NULL ? "PalTitleN" :
               pal_data->client_functions->title_msg, 1,
               pathtail(Session_get_filename(Palette_get_session(pal_data)), 1));
 

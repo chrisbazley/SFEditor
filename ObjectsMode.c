@@ -1502,13 +1502,12 @@ static void ObjectsMode_draw_numbers(Editor *const editor,
     coord.x = scr_orig.x + (scr_area.min.x * grid_size.x) + (grid_size.x / 2l);
 
     for (scr_pos.x = scr_area.min.x; scr_pos.x <= scr_area.max.x; scr_pos.x++) {
-      PaletteEntry font_fg_colour, font_bg_colour;
       MapPoint const map_pos = ObjLayout_derotate_scr_coords_to_map(angle, scr_pos);
       ObjRef const obj_ref = ObjectsEdit_read_ref(read_obj_ctx, map_pos);
 
       bool const is_sel = ObjEditSelection_is_selected(&mode_data->selection, map_pos);
-      font_bg_colour = is_sel ? bg_sel_colour : bg_colour;
-      font_fg_colour = (is_sel ? bg_sel_brightness : bg_brightness) >
+      PaletteEntry font_bg_colour = is_sel ? bg_sel_colour : bg_colour;
+      PaletteEntry font_fg_colour = (is_sel ? bg_sel_brightness : bg_brightness) >
                        MaxBrightness/2 ? PAL_BLACK : PAL_WHITE;
 
       unsigned char const this_obj = objects_ref_to_num(obj_ref);

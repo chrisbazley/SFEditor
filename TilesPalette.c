@@ -145,7 +145,6 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
                          int object_no, bool const selected)
 {
   NOT_USED(selected);
-  int string_width;
   char string[12];
   PaletteEntry font_colour;
 
@@ -180,7 +179,7 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
 
   /* Generate string and calculate width */
   sprintf(string, "%d", object_no);
-  string_width = plot_get_font_width(font_handle, string);
+  int string_width = plot_get_font_width(font_handle, string);
 
   /* Paint number string overlayed on tile icon */
   Vertex const font_coord = {
