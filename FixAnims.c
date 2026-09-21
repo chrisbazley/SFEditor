@@ -1,6 +1,6 @@
 /*
  * SFeditor - Star Fighter 3000 map/mission editor
- * © Chris Bazley, 2001
+ * (C) Chris Bazley, 2001
  *
  * Proglet to fix animations data
  */
@@ -18,16 +18,13 @@
 #include "strcaseins.h"
 #include "Macros.h"
 #include "FileUtils.h"
+#include "OSFSCntrl.h"
 
 #include "filepaths.h"
 
 #ifdef USE_OPTIONAL
 #include "Optional.h"
 #endif
-
-enum {
-  CopyObjects = 26
-};
 
 void check_error(_kernel_oserror *e)
 {
@@ -116,7 +113,8 @@ bool check_prostitute(SFMission *mission_data, const char *component_dir, const 
     snprintf(dest_buffer, sizeof(dest_buffer), "%s.%s.%s", FIXED_GAME_DIR, component_dir, level_id);
     snprintf(filepath_buffer, sizeof(filepath_buffer), "%s.%s.%s", FIXED_GAME_DIR, component_dir, filename);
     printf("Copying [%s] to [%s]\n", filepath_buffer, dest_buffer);
-    check_error(_swix(OS_FSControl, _INR(0,3), CopyObjects, filepath_buffer, dest_buffer, 1));
+    check_error(os_fscontrol_copy(filepath_buffer, dest_buffer,
+                                  OS_FSControl_Recurse));
 
     printf("Changing %s file [%s] to [%s]\n", descr, filename, level_id);
     strcpy(filename, level_id);
@@ -173,7 +171,8 @@ int main(int argc, char *argv[])
   snprintf(filepath_buffer, sizeof(filepath_buffer), "%s.%s.E.E_07", FIXED_GAME_DIR, LEVELANIMS_DIR);
   snprintf(dest_buffer, sizeof(dest_buffer), "%s.%s.Academy1", FIXED_GAME_DIR, BASEANIMS_DIR);
   printf("Copying [%s] to [%s]\n", filepath_buffer, dest_buffer);
-  check_error(_swix(OS_FSControl, _INR(0,3), CopyObjects, filepath_buffer, dest_buffer, 1));
+  check_error(os_fscontrol_copy(filepath_buffer, dest_buffer,
+                                OS_FSControl_Recurse));
 
   printf("\nScanning mission files...\n");
   for (p=0;p<3;p++) {
@@ -232,5 +231,4 @@ int main(int argc, char *argv[])
   }
   printf("\nFinished!\n");
 }
-
 
