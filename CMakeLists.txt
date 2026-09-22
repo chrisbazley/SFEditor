@@ -10,12 +10,13 @@ include(FetchContent)
 FetchContent_Declare(CBUtil GIT_REPOSITORY https://github.com/chrisbazley/CBUtilLib.git GIT_TAG main)
 FetchContent_Declare(CB GIT_REPOSITORY https://github.com/chrisbazley/CBLibrary.git GIT_TAG main)
 FetchContent_Declare(CBDebug GIT_REPOSITORY https://github.com/chrisbazley/CBDebugLib.git GIT_TAG main)
+FetchContent_Declare(CBPseudo GIT_REPOSITORY https://github.com/chrisbazley/CBPseudoLib.git GIT_TAG main)
 FetchContent_Declare(OptionalAcornC GIT_REPOSITORY https://github.com/chrisbazley/OptionalAcornC.git GIT_TAG main)
 FetchContent_Declare(GKey GIT_REPOSITORY https://github.com/chrisbazley/GKeyLib.git GIT_TAG main)
 FetchContent_Declare(CBOS GIT_REPOSITORY https://github.com/chrisbazley/CBOSLib.git GIT_TAG main)
 FetchContent_Declare(SF3K GIT_REPOSITORY https://github.com/chrisbazley/SF3KLib.git GIT_TAG main)
 
-FetchContent_MakeAvailable(CBUtil CB CBOS GKey CBDebug SF3K OptionalAcornC)
+FetchContent_MakeAvailable(CBUtil CB CBOS GKey CBDebug CBPseudo SF3K OptionalAcornC)
 
 if(USE_OPTIONAL)
     if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang|AppleClang")
@@ -234,6 +235,7 @@ add_library(SFEditor ${SOURCES} ${HEADER_FILES})
 target_link_libraries(SFEditor PUBLIC
     CB
     CBDebug
+    CBPseudo
     OptionalAcornC
     SF3K
 )
