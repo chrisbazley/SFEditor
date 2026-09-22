@@ -315,6 +315,8 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
 static int dataload_message(WimpMessage *const message, void *const handle)
 {
   /* Request that we load data from a file */
+  assert(message != NULL);
+  assert(message->hdr.action_code == Wimp_MDataLoad);
   NOT_USED(handle);
   DEBUG("Config received a DataLoad message (ref. %d in reply to %d)",
         message->hdr.my_ref, message->hdr.your_ref);

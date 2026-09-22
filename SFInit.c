@@ -243,6 +243,8 @@ static void simple_exit(const _kernel_oserror *e)
 static int DataOpen_handler(WimpMessage *const message, void *const handle)
 {
   /* User double-clicked on an object in a directory display */
+  assert(message != NULL);
+  assert(message->hdr.action_code == Wimp_MDataOpen);
   NOT_USED(handle);
 
   bool claim = false;
@@ -285,6 +287,8 @@ static int DataOpen_handler(WimpMessage *const message, void *const handle)
 
 static int quit_wimphandler(WimpMessage *const message, void *const handle)
 {
+  assert(message != NULL);
+  assert(message->hdr.action_code == Wimp_MQuit);
   NOT_USED(message);
   NOT_USED(handle);
 
@@ -298,6 +302,7 @@ static int quit_wimphandler(WimpMessage *const message, void *const handle)
 static int prequit_wimphandler(WimpMessage *const message, void *const handle)
 {
   assert(message);
+  assert(message->hdr.action_code == Wimp_MPreQuit);
   NOT_USED(handle);
 
   DEBUGF("Received Wimp pre-quit message (ref. %d in reply to %d)\n",
