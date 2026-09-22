@@ -836,6 +836,8 @@ static int tools_or_mode_changed(PaletteData *const pal_data)
 
 static int tools_changed_handler(WimpMessage *const message, void *const handle)
 {
+  assert(message != NULL);
+  assert(message->hdr.action_code == Wimp_MToolsChanged);
   NOT_USED(message);
   PaletteData *const pal_data = handle;
   assert(pal_data != NULL);
@@ -848,6 +850,8 @@ static int mode_changed_handler(WimpMessage *const message, void *const handle)
   /* We need to recalculate the maximum horizontal extent of the
      palette window when the screen mode is changed or new window tool
      sprites are loaded. */
+  assert(message != NULL);
+  assert(message->hdr.action_code == Wimp_MModeChange);
   NOT_USED(message);
   PaletteData *const pal_data = handle;
   assert(pal_data != NULL);

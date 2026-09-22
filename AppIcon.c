@@ -74,6 +74,8 @@ static bool read_file(Reader *const reader, int const estimated_size,
 static int datasave_message(WimpMessage *const message, void *const handle)
 {
   /* Request to send us data */
+  assert(message != NULL);
+  assert(message->hdr.action_code == Wimp_MDataSave);
   NOT_USED(handle);
   DEBUG("Icon bar received a DataSave message (ref. %d in reply to %d)",
         message->hdr.my_ref, message->hdr.your_ref);
@@ -106,6 +108,8 @@ static int datasave_message(WimpMessage *const message, void *const handle)
 static int dataload_message(WimpMessage *const message, void *const handle)
 {
   /* Request that we load data from a file */
+  assert(message != NULL);
+  assert(message->hdr.action_code == Wimp_MDataLoad);
   NOT_USED(handle);
   DEBUG("Icon bar received a DataLoad message (ref. %d in reply to %d)",
         message->hdr.my_ref, message->hdr.your_ref);

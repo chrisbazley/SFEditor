@@ -236,6 +236,8 @@ static void read_trans_table(int const mode)
 
 static int mode_change_handler(WimpMessage *const message, void *const handle)
 {
+  assert(message != NULL);
+  assert(message->hdr.action_code == Wimp_MModeChange);
   NOT_USED(message);
   NOT_USED(handle);
 
@@ -245,6 +247,8 @@ static int mode_change_handler(WimpMessage *const message, void *const handle)
 
 static int pal_change_handler(WimpMessage *const message, void *const handle)
 {
+  assert(message != NULL);
+  assert(message->hdr.action_code == Wimp_MPaletteChange);
   NOT_USED(message);
   NOT_USED(handle);
 
