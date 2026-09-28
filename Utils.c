@@ -357,7 +357,7 @@ _Optional char *read_line_comm(char *const s, size_t const n, FILE *const stream
   assert(n >= 2);
   assert(n <= INT_MAX);
   _Optional char *err;
-  size_t len;
+  size_t len = 0;
 
   do {
     /* Read line */
