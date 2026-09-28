@@ -4,6 +4,7 @@ project(SFEditor C)
 option(USE_OPTIONAL "Enable the _Optional qualifier" OFF)
 option(USE_FORTIFY "Enable Fortify memory-allocation checking" OFF)
 option(ENABLE_CLANG_TIDY "Run clang-tidy during compilation" OFF)
+option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
 include(FetchContent)
 
@@ -48,13 +49,22 @@ set(CMAKE_XCODE_ATTRIBUTE_RUN_CLANG_STATIC_ANALYZER "YES")
 
 if(MSVC)
     # MSVC equivalent of -Wall -Wextra is /W4
-    add_compile_options(/W4 /wd4200 /wd4996 /wd4130)
+    add_compile_options(/W4 /wd4200 /wd4996 /wd4130 /wd4100 /wd4505)
 else()
     # For GCC and Clang
-    add_compile_options(-Wall -Wextra -Wsign-compare -pedantic)
+    add_compile_options(-Wall -Wextra -Wsign-compare
+        -Wno-unused-function -Wno-unused-parameter -pedantic)
 endif()
 
-if(ENABLE_CLANG_TIDY)
+if(WARNINGS_AS_ERRORS AND CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    if(MSVC)
+        add_compile_options(/WX)
+    else()
+        add_compile_options(-Werror)
+    endif()
+endif()
+
+if(ENABLE_CLANG_TIDY AND CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang|AppleClang")
         message(FATAL_ERROR "ENABLE_CLANG_TIDY requires Clang")
     endif()
@@ -72,7 +82,7 @@ if(ENABLE_CLANG_TIDY)
     set(CMAKE_C_CLANG_TIDY
         "${CLANG_TIDY_EXE}"
         "--checks=-*,clang-analyzer-*,-clang-analyzer-security.insecureAPI.*"
-        "--warnings-as-errors=clang-analyzer-optionality.*"
+        "--warnings-as-errors=clang-analyzer-*"
     )
 
     message(STATUS "clang-tidy: ${CLANG_TIDY_EXE}")

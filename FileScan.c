@@ -516,6 +516,7 @@ _Optional filescan_leafname *filescan_combine_filenames(filescan_leafname *filen
        success && (!A_finished || !B_finished);
        ++output_pos)
   {
+    NOT_USED(output_pos);
     DEBUG_VERBOSEF("A: %s B: %s\n",filenames_A[A_pos].leaf_name,
                    filenames_B[B_pos].leaf_name);
 

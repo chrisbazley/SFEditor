@@ -545,7 +545,7 @@ static void generate_heights(HillsData *const hills, MapArea const *const update
       }
 
       HillType const old_type = get_hill_type(hills, p);
-      HillType type = old_type;
+      HillType type;
       unsigned char colours[Hill_MaxPolygons] = {0};
 
       if (1/*c != heights[HillCorner_C]*/ || force) {

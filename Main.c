@@ -27,6 +27,7 @@
 
 #include "Err.h"
 #include "Debug.h"
+#include "MacroUtils.h"
 #include "scheduler.h"
 
 #include "ParseArgs.h"
@@ -49,6 +50,7 @@ static void fortify_check(void)
     Fortify_LeaveScope();
   }
   assert(!fortify_detected);
+  NOT_USED(fortify_detected);
 }
 
 /* ----------------------------------------------------------------------- */
