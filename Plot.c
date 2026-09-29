@@ -118,8 +118,8 @@ void plot_get_window(BBox *const bbox)
     [GWBRow] = VDUVar_GWBRow,
     [GWRCol] = VDUVar_GWRCol,
     [GWTRow] = VDUVar_GWTRow,
-    [XEigFactor] = (VDUVar)ModeVar_XEigFactor,
-    [YEigFactor] = (VDUVar)ModeVar_YEigFactor,
+    [XEigFactor] = VDUVar_XEigFactor,
+    [YEigFactor] = VDUVar_YEigFactor,
     [OrgX] = VDUVar_OrgX,
     [OrgY] = VDUVar_OrgY,
     [VarCount] = VDUVar_EndOfList};

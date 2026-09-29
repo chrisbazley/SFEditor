@@ -146,11 +146,11 @@ static void read_mode_vars(void)
     VarIndex_End
   };
   static VDUVar const mode_variables[] = {
-   [VarIndex_XEig] = (VDUVar)ModeVar_XEigFactor,
-   [VarIndex_YEig] = (VDUVar)ModeVar_YEigFactor,
-   [VarIndex_XWindLimit] = (VDUVar)ModeVar_XWindLimit,
-   [VarIndex_YWindLimit] = (VDUVar)ModeVar_YWindLimit,
-   [VarIndex_Log2BPP] = (VDUVar)ModeVar_Log2BPP,
+   [VarIndex_XEig] = VDUVar_XEigFactor,
+   [VarIndex_YEig] = VDUVar_YEigFactor,
+   [VarIndex_XWindLimit] = VDUVar_XWindLimit,
+   [VarIndex_YWindLimit] = VDUVar_YWindLimit,
+   [VarIndex_Log2BPP] = VDUVar_Log2BPP,
    [VarIndex_End] = VDUVar_EndOfList};
 
   intptr_t mode_var_val[VarIndex_End] = {0};
