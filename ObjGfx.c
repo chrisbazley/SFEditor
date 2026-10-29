@@ -30,6 +30,7 @@
 #include "StrDict.h"
 
 #include "OSnakes.h"
+#include "OTransfers.h"
 #include "ObjGfxMesh.h"
 #include "ObjGfx.h"
 #include "ObjGfxData.h"
@@ -111,6 +112,7 @@ _Optional ObjGfx *ObjGfx_create(void)
     dfile_init(&graphics->dfile, ObjGfx_read_cb, (DFileWriteFn *)NULL, (DFileGetMinSizeFn *)NULL,
                ObjGfx_destroy_cb);
 
+    ObjTransfers_init(&graphics->transfers);
     init_all(&*graphics);
   }
   return graphics;

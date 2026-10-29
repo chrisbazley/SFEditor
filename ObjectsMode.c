@@ -338,6 +338,7 @@ static void draw_pending(ObjectsModeData const *const mode_data, ObjEditContext 
     ObjGfx *const graphics = Session_get_graphics(session);
 
     DrawShapeShadow data = {
+      .bbox = overlapping_area,
       .objects = objects,
       .min_os = scr_orig,
       .redraw_area = redraw_area,

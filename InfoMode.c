@@ -303,8 +303,10 @@ void InfoMode_draw(Editor *const editor,
                                                                    mode_data->pending_shape != Pending_None) ?
                                                      &mode_data->occluded : NULL;
 
-  DrawInfoData data = {.view = view, .infos = infos, .redraw_area = redraw_area};
-  data.index = InfoEdit_get_first_idx(&data.iter, infos, &overlapping_area);
+  InfoEditIter iter;
+  size_t const first = InfoEdit_get_first_idx(&iter, infos, &overlapping_area);
+  DrawInfoData data = {.view = view, .infos = infos, .redraw_area = redraw_area,
+                       .iter = iter, .index = first};
   DrawInfos_to_screen(view, read_info_from_map, &data,
                       selection, scr_orig, false, occluded);
 

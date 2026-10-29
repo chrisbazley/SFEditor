@@ -1099,7 +1099,8 @@ void Snakes_plot_line(SnakeContext *const ctx, MapPoint const end)
 void Snakes_init(Snakes *const snakes_data)
 {
   assert(snakes_data);
-  *snakes_data = (Snakes){.count = 0};
+  *snakes_data = (Snakes){
+    .data_anchor = (void *)NULL, .count = 0};
 }
 
 SFError Snakes_load(FILE *const file, Snakes *const snakes_data,

@@ -939,7 +939,7 @@ void Session_redraw(EditSession *const session,
 static char *get_data_type_string(DataType const data_type)
 {
   static char type_desc[32];
-  static char const *const tokens[] =
+  static _Optional char const *const tokens[] =
   {
     [DataType_OverlayMap] = "LEVELMAP",
     [DataType_OverlayObjects] = "LEVELOBJS",
@@ -948,9 +948,11 @@ static char *get_data_type_string(DataType const data_type)
     [DataType_BaseMap] = "BASEMAP",
     [DataType_BaseObjects] = "BASEOBJS",
   };
-  if (data_type < ARRAY_SIZE(tokens) && tokens[data_type])
+  _Optional char const *const token =
+    data_type < ARRAY_SIZE(tokens) ? tokens[data_type] : NULL;
+  if (token)
   {
-    STRCPY_SAFE(type_desc, msgs_lookup(tokens[data_type]));
+    STRCPY_SAFE(type_desc, msgs_lookup(&*token));
   }
   return type_desc;
 }

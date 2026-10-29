@@ -777,7 +777,8 @@ _Optional MapTransfer *MapTransfer_create(void)
   }
   DEBUG ("New transfer list record is at %p", (void *)transfer);
 
-  *transfer = (MapTransfer){.dfile = {0}, .size_minus_one = {0,0}};
+  *transfer = (MapTransfer){
+    .tiles = (void *)NULL, .anims = (void *)NULL, .dfile = {0}, .size_minus_one = {0,0}};
 
   dfile_init(&transfer->dfile, MapTransfer_read_cb,
              MapTransfer_write_cb, (DFileGetMinSizeFn *)NULL, MapTransfer_destroy_cb);
