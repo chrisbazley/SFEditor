@@ -2609,6 +2609,7 @@ bool EditWin_init(EditWin *const edit_win, Editor *const editor,
   *edit_win = (EditWin){
     .view.config = edit_win_to_copy ? edit_win_to_copy->view.config : *Config_get_default_view(),
     .editor = editor,
+    .read_info_ctx = Session_get_infos(session),
     .session = Editor_get_session(editor),
     .button_held = 0,
     .old_grid_pos = (MapPoint){0,0},
