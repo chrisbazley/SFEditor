@@ -127,7 +127,7 @@ static _Optional MapData *map_create(bool const is_overlay)
   _Optional MapData *map = malloc(sizeof(*map));
   if (map)
   {
-    *map = (MapData){.flex = (void *)NULL, .is_overlay = is_overlay};
+    *map = (MapData){.flex = FLEX_NULL, .is_overlay = is_overlay};
 
     dfile_init(&map->dfile, map_read_cb, map_write_cb,
                map_get_min_size_cb, map_destroy_cb);

@@ -135,7 +135,7 @@ static _Optional ObjectsData *objects_create(bool const is_overlay)
   _Optional ObjectsData *obj = malloc(sizeof(*obj));
   if (obj)
   {
-    *obj = (ObjectsData){.flex = (void *)NULL, .is_overlay = is_overlay};
+    *obj = (ObjectsData){.flex = FLEX_NULL, .is_overlay = is_overlay};
 
     dfile_init(&obj->dfile, objects_read_cb, objects_write_cb,
                objects_get_min_size_cb,

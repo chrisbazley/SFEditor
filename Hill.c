@@ -590,7 +590,7 @@ SFError hills_init(HillsData *const hills, HillReadFn *const read_hill_cb, HillR
 {
   assert(hills);
   *hills = (HillsData){
-    .data = (void *)NULL, .read_hill_cb = read_hill_cb, .redraw_cb = redraw_cb, .edit_win = edit_win};
+    .data = FLEX_NULL, .read_hill_cb = read_hill_cb, .redraw_cb = redraw_cb, .edit_win = edit_win};
 
   if (!flex_alloc(&hills->data, Hill_Size * Hill_Size * sizeof(Hill))) {
     return SFERROR(NoMem);

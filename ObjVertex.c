@@ -38,7 +38,7 @@ void obj_vertices_init(ObjVertices * const varray)
 {
   assert(varray != NULL);
   *varray = (ObjVertices){
-    .vertices = (void *)NULL,
+    .vertices = FLEX_NULL,
     .vcount = 0,
   };
 }
