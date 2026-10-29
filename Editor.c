@@ -1269,6 +1269,7 @@ bool Editor_set_edit_mode(Editor *const editor, EditMode const new_mode, _Option
       editor->mode_functions->leave(editor);
     }
     editor->mode_functions = NULL;
+    editor->editingmode_data = NULL;
   }
 
   bool success = false;
@@ -1301,7 +1302,8 @@ bool Editor_set_edit_mode(Editor *const editor, EditMode const new_mode, _Option
   }
   else
   {
-    assert(editor->mode_functions == NULL);
+    editor->mode_functions = NULL;
+    editor->editingmode_data = NULL;
   }
 
 #if PER_VIEW_SELECT

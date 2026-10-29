@@ -53,8 +53,11 @@ ShipsModeData;
 static inline ShipsModeData *get_mode_data(Editor const *const editor)
 {
   assert(Editor_get_edit_mode(editor) == EDITING_MODE_SHIPS);
-  assert(editor->editingmode_data);
-  return editor->editingmode_data;
+  _Optional ShipsModeData *const data = editor->editingmode_data;
+  if (!data) {
+    abort();
+  }
+  return &*data;
 }
 
 /* ---------------- Public functions ---------------- */
