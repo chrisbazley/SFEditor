@@ -648,7 +648,10 @@ static void check_ref_range(EditSession *const session)
      in the loaded tiles set */
   if (Session_has_data(session, DataType_PolygonMeshes))
   {
-    const ObjGfx *const graphics = Session_get_graphics(session);
+    _Optional ObjGfx const *const graphics = Session_get_graphics(session);
+    if (!graphics) {
+      return;
+    }
 
     if (!ObjectsEdit_check_ref_range(Session_get_objects(session),
         ObjGfxMeshes_get_ground_count(&graphics->meshes))) {
@@ -3088,10 +3091,9 @@ MapTex *Session_get_textures(const EditSession *const session)
   return session->textures;
 }
 
-ObjGfx *Session_get_graphics(const EditSession *const session)
+_Optional ObjGfx *Session_get_graphics(const EditSession *const session)
 {
   assert(session != NULL);
-  assert(session->graphics != NULL);
   return session->graphics;
 }
 

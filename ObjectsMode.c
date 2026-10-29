@@ -312,7 +312,10 @@ static void draw_ghost_paste(ObjTransfer *const transfer,
          (void *)transfer, bl.x, bl.y);
 
   EditSession *const session = EditWin_get_session(edit_win);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
 
@@ -352,7 +355,10 @@ static void draw_pending(ObjectsModeData const *const mode_data, ObjEditContext 
     }
   } else {
     EditSession *const session = EditWin_get_session(edit_win);
-    ObjGfx *const graphics = Session_get_graphics(session);
+    _Optional ObjGfx *const graphics = Session_get_graphics(session);
+    if (!graphics) {
+      return;
+    }
 
     DrawShapeShadow data = {
       .bbox = overlapping_area,
@@ -436,7 +442,10 @@ void ObjectsMode_draw(Editor *const editor,
   }
 
   MapArea overlapping_area;
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
   DrawObjs_get_overlapping_draw_area(meshes, view, redraw_area, &overlapping_area);
@@ -568,7 +577,10 @@ static void ObjectsMode_set_pending(Editor *const editor, PendingShape const pen
   assert(editor);
   ObjectsModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   ObjEditContext const *const objects = Session_get_objects(session);
 
@@ -659,7 +671,10 @@ static void ObjectsMode_set_pending(Editor *const editor, PendingShape const pen
 static bool ObjectsMode_can_select_tool(Editor const *const editor, EditorTool const tool)
 {
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return false;
+  }
   bool can_select_tool = false;
 
   switch (tool)
@@ -969,7 +984,10 @@ static void ObjectsMode_update_select(Editor *const editor, bool const only_insi
   ObjectsModeData *const mode_data = get_mode_data(editor);
   ObjEditContext const *const read_obj_ctx = EditWin_get_read_obj_ctx(edit_win);
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
 
@@ -1001,7 +1019,10 @@ static void ObjectsMode_cancel_select(Editor *const editor,
   ObjectsModeData *const mode_data = get_mode_data(editor);
   ObjEditContext const *const read_obj_ctx = EditWin_get_read_obj_ctx(edit_win);
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
 
@@ -1025,7 +1046,10 @@ static bool paste_generic(Editor *const editor,
   ObjectsModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
   ObjEditContext const *const objects = Session_get_objects(session);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return false;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   if (!ObjTransfers_can_plot_to_map(objects, map_pos, transfer, meshes, NULL)) {
@@ -1061,7 +1085,10 @@ static bool ObjectsMode_start_select(Editor *const editor, bool const only_insid
   ObjectsModeData *const mode_data = get_mode_data(editor);
   ObjEditContext const *const read_obj_ctx = EditWin_get_read_obj_ctx(edit_win);
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return false;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
 
@@ -1083,7 +1110,10 @@ static bool ObjectsMode_start_exclusive_select(Editor *const editor, bool const 
   ObjectsModeData *const mode_data = get_mode_data(editor);
   ObjEditContext const *const read_obj_ctx = EditWin_get_read_obj_ctx(edit_win);
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return false;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
 
@@ -1115,7 +1145,10 @@ static void ObjectsMode_edit_properties_at_pos(Editor *const editor, MapPoint co
   ObjectsModeData *const mode_data = get_mode_data(editor);
   ObjEditContext const *const read_obj_ctx = EditWin_get_read_obj_ctx(edit_win);
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
 
@@ -1154,7 +1187,10 @@ static void ObjectsMode_sample_obj(Editor *const editor, MapPoint const fine_pos
   NOT_USED(map_pos);
   ObjEditContext const *const read_obj_ctx = EditWin_get_read_obj_ctx(edit_win);
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
 
@@ -1172,7 +1208,10 @@ static void ObjectsMode_pending_fill(Editor *const editor, MapPoint const fine_p
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
 
@@ -1198,7 +1237,10 @@ static void ObjectsMode_flood_fill(Editor *const editor, MapPoint const fine_pos
   ObjectsModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
   ObjEditContext *const objects = Session_get_objects(session);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
 
@@ -1226,7 +1268,10 @@ static void ObjectsMode_global_replace(Editor *const editor, MapPoint const fine
   ObjectsModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
   ObjEditContext *const objects = Session_get_objects(session);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
 
@@ -1254,7 +1299,10 @@ static void ObjectsMode_pending_brush(Editor *const editor, int brush_size,
   ObjRef const obj_ref = get_selected_obj(editor);
 
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   MapPoint const size = (objects_ref_is_none(obj_ref) || objects_ref_is_cloud(obj_ref) ||
@@ -1282,7 +1330,10 @@ static void ObjectsMode_start_brush(Editor *const editor, int brush_size,
 
   EditSession *const session = Editor_get_session(editor);
   ObjEditContext *const objects = Session_get_objects(session);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   ObjEditChanges_init(&mode_data->change_info);
@@ -1313,7 +1364,10 @@ static void ObjectsMode_draw_brush(Editor *const editor, int const brush_size,
 
   EditSession *const session = Editor_get_session(editor);
   ObjEditContext *const objects = Session_get_objects(session);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   ObjectsMode_wipe_ghost(editor);
@@ -1338,7 +1392,10 @@ static void ObjectsMode_pending_snake(Editor *const editor, MapPoint const map_p
   }
 
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjSnakes *const snakes_data = &graphics->snakes.obj;
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
@@ -1362,7 +1419,10 @@ static void ObjectsMode_start_snake(Editor *const editor, MapPoint const map_pos
   ObjEditChanges_init(&mode_data->change_info);
 
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjSnakes *const snakes_data = &graphics->snakes.obj;
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
@@ -1653,7 +1713,10 @@ static void delete_core(Editor *const editor, ObjEditContext *const objects,
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   mode_data->lock_selection = true; // strictly redundant
@@ -1687,7 +1750,10 @@ static void ObjectsMode_paint_selected(Editor *const editor)
 
   ObjEditChanges_init(&mode_data->change_info);
   ObjEditContext *const objects = Session_get_objects(session);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   mode_data->lock_selection = true;
@@ -1783,7 +1849,10 @@ static bool ObjectsMode_auto_select(Editor *const editor, MapPoint const fine_po
   ObjectsModeData *const mode_data = get_mode_data(editor);
   ObjEditContext const *const read_obj_ctx = EditWin_get_read_obj_ctx(edit_win);
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return false;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
 
@@ -1829,7 +1898,6 @@ static void ObjectsMode_resource_change(Editor *const editor, EditorChange const
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
 
   switch (event) {
   case EDITOR_CHANGE_GFX_ALL_RELOADED:
@@ -1861,6 +1929,10 @@ static void ObjectsMode_resource_change(Editor *const editor, EditorChange const
 
   case EDITOR_CHANGE_POLYGON_COLOURS:
     if (mode_data->palette_type == OBJPALETTE_TYPE_OBJS) {
+      _Optional ObjGfx *const graphics = Session_get_graphics(session);
+      if (!graphics) {
+        break;
+      }
       int const num_objects = ObjGfxMeshes_get_ground_count(&graphics->meshes);
       for (int obj_ref = Obj_RefMinObject; obj_ref < num_objects; ++obj_ref)
       {
@@ -1947,7 +2019,10 @@ static void ObjectsMode_palette_selection(Editor *const editor, int const object
 
     case OBJPALETTE_TYPE_SNAKES:
     {
-      ObjGfx *const graphics = Session_get_graphics(session);
+      _Optional ObjGfx *const graphics = Session_get_graphics(session);
+      if (!graphics) {
+        return;
+      }
       char snake_name[16];
       ObjSnakes_get_name(&graphics->snakes.obj, object, snake_name, sizeof(snake_name));
       msg = msgs_lookup_subn("StatusSnSel", 1, snake_name);
@@ -2024,6 +2099,9 @@ static bool ObjectsMode_start_drag_obj(Editor *const editor,
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
+  if (!Session_get_graphics(session)) {
+    return false;
+  }
   ObjEditContext const *const objects = Session_get_objects(session);
 
   MapArea sel_box;
@@ -2073,9 +2151,16 @@ static bool ObjectsMode_start_drag_obj(Editor *const editor,
       if (!objects_ref_is_mask(obj_ref)) {
         MapArea const obj_bbox = EditWin_get_ghost_obj_bbox(edit_win,
                                      MapPoint_add(sel_box.min, trans_pos), obj_ref);
-        MapArea_expand_for_area(&shown_bbox, &obj_bbox);
+        if (MapArea_is_valid(&obj_bbox)) {
+          MapArea_expand_for_area(&shown_bbox, &obj_bbox);
+        }
       }
     }
+  }
+
+  if (!MapArea_is_valid(&shown_bbox)) {
+    free_dragged(mode_data);
+    return false;
   }
 
   MapArea_translate(&shown_bbox, (MapPoint){-fine_pos.x, -fine_pos.y}, &shown_bbox);
@@ -2116,7 +2201,10 @@ static bool ObjectsMode_show_ghost_drop(Editor *const editor,
     }
 
     EditSession *const session = Editor_get_session(editor);
-    ObjGfx *const graphics = Session_get_graphics(session);
+    _Optional ObjGfx *const graphics = Session_get_graphics(session);
+    if (!graphics) {
+      return hide_origin_bbox;
+    }
     ObjGfxMeshes *const meshes = &graphics->meshes;
     ObjEditContext const *const objects = Session_get_objects(session);
 
@@ -2208,7 +2296,10 @@ static bool drag_obj_copy_core(Editor *const editor,
   ObjectsModeData *const mode_data = get_mode_data(editor);
 
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return false;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   if (!ObjTransfers_can_plot_to_map(objects, bbox->min, dropped, meshes, NULL)) {
@@ -2327,7 +2418,10 @@ static void ObjectsMode_drag_obj_move(Editor *const editor,
   ObjectsModeData *const origin_data = get_mode_data(drag_origin);
   EditSession *const session = Editor_get_session(editor);
   assert(session == Editor_get_session(drag_origin));
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   ObjEditContext const no_prechange_cb_ctx = get_no_prechange_cb_ctx(Session_get_objects(session));
   
@@ -2414,7 +2508,10 @@ static void ObjectsMode_plot_line(Editor *const editor, MapPoint const a, MapPoi
   EditSession *const session = Editor_get_session(editor);
   assert(Editor_get_plot_shape(editor) == PLOTSHAPE_LINE);
   ObjEditContext *const objects = Session_get_objects(session);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   ObjEditChanges_init(&mode_data->change_info);
@@ -2443,7 +2540,10 @@ static void ObjectsMode_plot_tri(Editor *const editor,
   assert(Editor_get_plot_shape(editor) == PLOTSHAPE_TRIANGLE);
   EditSession *const session = Editor_get_session(editor);
   ObjEditContext *const objects = Session_get_objects(session);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   ObjectsMode_wipe_ghost(editor);
@@ -2469,7 +2569,10 @@ static void ObjectsMode_plot_rect(Editor *const editor, MapPoint const a, MapPoi
   assert(Editor_get_plot_shape(editor) == PLOTSHAPE_RECTANGLE);
   EditSession *const session = Editor_get_session(editor);
   ObjEditContext *const objects = Session_get_objects(session);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   ObjectsMode_wipe_ghost(editor);
@@ -2494,7 +2597,10 @@ static void ObjectsMode_plot_circ(Editor *const editor, MapPoint const a, MapPoi
   assert(Editor_get_plot_shape(editor) == PLOTSHAPE_CIRCLE);
   EditSession *const session = Editor_get_session(editor);
   ObjEditContext *const objects = Session_get_objects(session);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   ObjectsMode_wipe_ghost(editor);
@@ -2764,7 +2870,10 @@ bool ObjectsMode_set_properties(Editor *const editor, MapPoint const pos, ObjRef
   EditSession *const session = Editor_get_session(editor);
   ObjEditContext *const objects = Session_get_objects(session);
 
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return false;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   ObjEditChanges_init(&mode_data->change_info);

@@ -75,7 +75,7 @@ file ("IDEFS::Tamzin.$.H.H_08") */
   _Optional struct MissionData *mission;
 
   /* Read-only data areas */
-  struct ObjGfx *graphics; /* (Map/Mission) */
+  _Optional struct ObjGfx *graphics; /* (Map/Mission) */
   struct MapTex *textures; /* (Map/Mission) */
   _Optional struct HillColData *hill_colours; /* (Map/Mission) */
   _Optional struct PolyColData *poly_colours; /* (Map/Mission) */
