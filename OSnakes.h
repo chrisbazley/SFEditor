@@ -27,7 +27,7 @@ typedef struct {
   } super;
   struct EditSession *session;
   struct ObjEditContext const *objects;
-  struct ObjEditChanges *change_info;
+  _Optional struct ObjEditChanges *change_info;
   struct ObjGfxMeshes *meshes;
 } ObjSnakesContext;
 
@@ -50,11 +50,11 @@ void ObjSnakes_load(ObjSnakes *snakes_data,
 void ObjSnakes_begin_line(ObjSnakesContext *ctx,
   struct EditSession *session,
   ObjSnakes *snakes_data, MapPoint map_pos, int snake,
-  bool inside, struct ObjEditChanges *change_info,
+  bool inside, _Optional struct ObjEditChanges *change_info,
   struct ObjGfxMeshes *meshes);
 
 void ObjSnakes_plot_line(ObjSnakesContext *ctx, MapPoint map_pos,
-  struct ObjEditChanges *change_info);
+  _Optional struct ObjEditChanges *change_info);
 
 void ObjSnakes_free(ObjSnakes *snakes_data);
 

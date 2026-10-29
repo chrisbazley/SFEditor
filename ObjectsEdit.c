@@ -704,7 +704,7 @@ bool ObjectsEdit_write_ref_n_triggers(ObjEditContext const *const objects, MapPo
 
 void ObjectsEdit_write_ref(ObjEditContext const *const objects, MapPoint const pos,
   ObjRef const ref_num, TriggersWipeAction const wipe_action,
-  ObjEditChanges *const change_info, ObjGfxMeshes *const meshes)
+  _Optional ObjEditChanges *const change_info, ObjGfxMeshes *const meshes)
 {
   DEBUG("Putting ref no. %d at objects location %" PRIMapCoord ",%" PRIMapCoord,
     objects_ref_to_num(ref_num), pos.x, pos.y);
