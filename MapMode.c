@@ -111,7 +111,10 @@ typedef enum {
 
 typedef struct
 {
-  MapEditSelection selection;
+  union {
+    char nil;
+    MapEditSelection obj;
+  } selection;
   MapPaletteType palette_type;
   MapArea ghost_bbox, drop_bbox;
   MapPoint drag_start_pos, pending_vert[3];
@@ -119,8 +122,14 @@ typedef struct
   PendingShape pending_shape;
   _Optional MapTransfer *pending_transfer, *pending_paste, *pending_drop, *dragged;
   bool uk_drop_pending:1, lock_selection:1;
-  MapSnakesContext snake_ctx;
-  MapPropDboxes prop_dboxes;
+  union {
+    char nil;
+    MapSnakesContext obj;
+  } snake_ctx;
+  union {
+    char nil;
+    MapPropDboxes obj;
+  } prop_dboxes;
 }
 MapModeData;
 
@@ -149,15 +158,15 @@ static bool MapMode_can_select_tool(Editor const *const editor, EditorTool const
   switch (tool)
   {
   case EDITORTOOL_SNAKE:
-    can_select_tool = (MapSnakes_get_count(&textures->snakes) > 0);
+    can_select_tool = (MapSnakes_get_count(&textures->snakes.obj) > 0);
     break;
 
   case EDITORTOOL_SMOOTHWAND:
-    can_select_tool = (MapTexGroups_get_count(&textures->groups) > 0);
+    can_select_tool = (MapTexGroups_get_count(&textures->groups.obj) > 0);
     break;
 
   case EDITORTOOL_TRANSFER:
-    can_select_tool = (MapTransfers_get_count(&textures->transfers) > 0);
+    can_select_tool = (MapTransfers_get_count(&textures->transfers.obj) > 0);
     break;
 
   default:
@@ -179,7 +188,7 @@ static bool MapMode_anim_is_selected(Editor const *const editor)
   }
 
   MapArea sel_area;
-  if (!MapEditSelection_get_bounds(&mode_data->selection, &sel_area)) {
+  if (!MapEditSelection_get_bounds(&mode_data->selection.obj, &sel_area)) {
     return false;
   }
 
@@ -190,7 +199,7 @@ static bool MapMode_anim_is_selected(Editor const *const editor)
          !MapAnimsIter_done(&iter);
          p = MapAnimsIter_get_next(&iter, NULL))
     {
-      if (MapEditSelection_is_selected(&mode_data->selection, p)) {
+      if (MapEditSelection_is_selected(&mode_data->selection.obj, p)) {
         return true;
       }
     }
@@ -213,7 +222,7 @@ static void create_trans_msg(Editor *const editor,
 
   char const *const name = get_leaf_name(MapTransfer_get_dfile(transfer));
 
-  size_t const num_tiles = MapEditSelection_size(&mode_data->selection);
+  size_t const num_tiles = MapEditSelection_size(&mode_data->selection.obj);
   char tiles_count_str[16];
   sprintf(tiles_count_str, "%zu", num_tiles);
 
@@ -385,7 +394,7 @@ static void draw_chequered(Editor *const editor, MapAngle const angle,
   Vertex const draw_min = Vertex_mul(MapPoint_to_vertex(scr_area->min), tile_size);
 
   RedrawCheqData data = {
-    .selection = mode_data ? &mode_data->selection : NULL,
+    .selection = mode_data ? &mode_data->selection.obj : NULL,
     .bg_colour = bg_colour,
     .bg_sel_colour = opposite_col(bg_colour),
     .map = skip_overlay ? Session_get_map(session) : NULL,
@@ -403,7 +412,7 @@ static _Optional MapEditSelection *get_selection(Editor *const editor)
     return NULL;
 
   MapModeData *const mode_data = get_mode_data(editor);
-  return &mode_data->selection;
+  return &mode_data->selection.obj;
 }
 
 static void draw_no_tiles(Editor *const editor, MapAngle const angle,
@@ -457,7 +466,7 @@ static void draw_anims(Editor *const editor,
 
   MapTex *const textures = Session_get_textures(session);
 
-  int const tile_count = MapTexBitmaps_get_count(&textures->tiles);
+  int const tile_count = MapTexBitmaps_get_count(&textures->tiles.obj);
   PaletteEntry last_colour = 1; /* impossible? */
   PaletteEntry const bg_colour = EditWin_get_bg_colour(edit_win);
   PaletteEntry const bg_sel_colour = opposite_col(bg_colour);
@@ -486,7 +495,7 @@ static void draw_anims(Editor *const editor,
       if (map_ref_to_num(tile_no) >= tile_count) {
         tile_no = map_ref_from_num(0); /* FIXME: substitute a placeholder sprite? */
       }
-      colour = get_contrasting(edit_win, &textures->tiles, tile_no, inv_tile);
+      colour = get_contrasting(edit_win, &textures->tiles.obj, tile_no, inv_tile);
     }
     if (colour != last_colour) {
       plot_set_col(colour);
@@ -537,7 +546,7 @@ static bool draw_to_sprite(Editor *const editor,
   EditSession *const session = Editor_get_session(editor);
   MapTex *const textures = Session_get_textures(session);
 
-  bool const needs_mask = DrawTiles_to_sprite(&textures->tiles, sm, "RenderBuffer",
+  bool const needs_mask = DrawTiles_to_sprite(&textures->tiles.obj, sm, "RenderBuffer",
     angle, rot_area, data->read_map_data.base ? read_map : read_overlay, data,
     zoom, EditWin_get_sel_colours(edit_win));
 
@@ -667,7 +676,7 @@ static void MapMode_wipe_ghost(Editor *const editor)
 
   DEBUGF("Wiping ghost tile(s)\n");
 #if PENDING_IS_SELECTED
-  MapEditSelection_clear(&mode_data->selection);
+  MapEditSelection_clear(&mode_data->selection.obj);
 #else
   Editor_redraw_ghost(editor); // undraw
   Editor_clear_ghost_bbox(editor);
@@ -688,7 +697,7 @@ static void update_transfer_ghost(Editor *const editor,
   mode_data->ghost_bbox = MapTransfers_get_bbox(t_pos_on_map, transfer);
 
 #if PENDING_IS_SELECTED
-  MapTransfers_select(&mode_data->selection, t_pos_on_map, transfer);
+  MapTransfers_select(&mode_data->selection.obj, t_pos_on_map, transfer);
 #else
   Editor_set_ghost_map_bbox(editor, &mode_data->ghost_bbox);
 #endif
@@ -724,13 +733,13 @@ static bool paste_generic(Editor *const editor,
 static void clear_selection_and_redraw(Editor *const editor)
 {
   MapModeData *const mode_data = get_mode_data(editor);
-  MapEditSelection_clear(&mode_data->selection);
+  MapEditSelection_clear(&mode_data->selection.obj);
 }
 
 static void set_selected_tile(Editor *const editor, MapRef tile)
 {
   assert(editor);
-  Palette_set_selection(&editor->palette_data, map_ref_to_num(tile));
+  Palette_set_selection(&editor->palette_data.obj, map_ref_to_num(tile));
 }
 
 static void MapMode_sample_tile(Editor *const editor, MapPoint fine_pos, MapPoint const map_pos,
@@ -749,7 +758,7 @@ static void MapMode_sample_tile(Editor *const editor, MapPoint fine_pos, MapPoin
 static MapRef get_selected_tile(Editor *const editor)
 {
   assert(editor);
-  int const pal_index = Palette_get_selection(&editor->palette_data);
+  int const pal_index = Palette_get_selection(&editor->palette_data.obj);
   assert(pal_index >= 0);
   assert(pal_index <= UCHAR_MAX);
   return map_ref_from_num(pal_index != NULL_DATA_INDEX ? (unsigned char)pal_index : 0);
@@ -758,13 +767,13 @@ static MapRef get_selected_tile(Editor *const editor)
 static _Optional MapTransfer *get_selected_transfer(Editor *const editor)
 {
   assert(editor != NULL);
-  int const sel_index = Palette_get_selection(&editor->palette_data);
+  int const sel_index = Palette_get_selection(&editor->palette_data.obj);
   if (sel_index == NULL_DATA_INDEX)
     return NULL;
 
   EditSession *const session = Editor_get_session(editor);
   MapTex *const textures = Session_get_textures(session);
-  return MapTransfers_find_by_index(&textures->transfers, sel_index);
+  return MapTransfers_find_by_index(&textures->transfers.obj, sel_index);
 }
 
 static void MapMode_flood_fill(Editor *const editor, MapPoint const fine_pos, MapPoint const map_pos,
@@ -837,7 +846,7 @@ static void MapMode_pending_brush(Editor *const editor, int const brush_size,
   MapMode_wipe_ghost(editor);
 
 #if PENDING_IS_SELECTED
-  MapEditSelection_select_circ(&mode_data->selection,
+  MapEditSelection_select_circ(&mode_data->selection.obj,
     map_pos, brush_size);
 #else
   mode_data->pending_vert[0] = map_pos;
@@ -872,7 +881,7 @@ static void MapMode_start_snake(Editor *const editor, MapPoint const map_pos, bo
 {
   MapModeData *const mode_data = get_mode_data(editor);
 
-  int const snake = Palette_get_selection(&editor->palette_data);
+  int const snake = Palette_get_selection(&editor->palette_data.obj);
   if (snake == NULL_DATA_INDEX) {
     return;
   }
@@ -880,10 +889,10 @@ static void MapMode_start_snake(Editor *const editor, MapPoint const map_pos, bo
   MapEditChanges_init(&mode_data->change_info);
   EditSession *const session = Editor_get_session(editor);
   MapEditContext const *const map = Session_get_map(session);
-  MapSnakes *const snakes_data = &Session_get_textures(session)->snakes;
+  MapSnakes *const snakes_data = &Session_get_textures(session)->snakes.obj;
 
-  MapSnakes_begin_line(&mode_data->snake_ctx, map,
-    //&mode_data->selection.selection_map,
+  MapSnakes_begin_line(&mode_data->snake_ctx.obj, map,
+    //&mode_data->selection.obj.selection_map,
     snakes_data, map_pos, snake, inside,
     &mode_data->change_info);
 
@@ -896,12 +905,12 @@ static void MapMode_draw_snake(Editor *const editor, MapPoint const map_pos)
 
   MapMode_wipe_ghost(editor);
 
-  int const snake = Palette_get_selection(&editor->palette_data);
+  int const snake = Palette_get_selection(&editor->palette_data.obj);
   if (snake == NULL_DATA_INDEX) {
     return;
   }
 
-  MapSnakes_plot_line(&mode_data->snake_ctx, map_pos,
+  MapSnakes_plot_line(&mode_data->snake_ctx.obj, map_pos,
     &mode_data->change_info);
 
   changed_with_msg(editor);
@@ -912,12 +921,12 @@ static void smooth_selection(Editor *const editor)
   MapModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
   MapEditContext const *const map = Session_get_map(session);
-  MapTexGroups *const groups_data = &Session_get_textures(session)->groups;
+  MapTexGroups *const groups_data = &Session_get_textures(session)->groups.obj;
 
   MapEditChanges_init(&mode_data->change_info);
 
   mode_data->lock_selection = true;
-  MapEdit_smooth_selection(map, &mode_data->selection, groups_data,
+  MapEdit_smooth_selection(map, &mode_data->selection.obj, groups_data,
                            &mode_data->change_info);
   mode_data->lock_selection = false;
 
@@ -933,7 +942,7 @@ static void reverse_selection(Editor *const editor)
 
   MapEditChanges_init(&mode_data->change_info);
 
-  MapEdit_reverse_selected(map, &mode_data->selection, &mode_data->change_info);
+  MapEdit_reverse_selected(map, &mode_data->selection.obj, &mode_data->change_info);
   MapEdit_anims_to_map(map, &mode_data->change_info);
 
   Session_redraw_pending(session, false);
@@ -981,7 +990,7 @@ static void MapMode_start_smooth(Editor *const editor, int const wand_size,
   MapEditChanges_init(&mode_data->change_info);
 
   MapEditContext const *const map = Session_get_map(session);
-  MapTexGroups *const groups_data = &Session_get_textures(session)->groups;
+  MapTexGroups *const groups_data = &Session_get_textures(session)->groups.obj;
   SmoothData data = {map, groups_data, &mode_data->change_info};
 
   Shapes_circ(smooth_line_area_cb, &data, map_pos, wand_size);
@@ -996,7 +1005,7 @@ static void MapMode_draw_smooth(Editor *const editor, int const wand_size,
   EditSession *const session = Editor_get_session(editor);
 
   MapEditContext const *const map = Session_get_map(session);
-  MapTexGroups *const groups_data = &Session_get_textures(session)->groups;
+  MapTexGroups *const groups_data = &Session_get_textures(session)->groups.obj;
   SmoothData data = {map, groups_data, &mode_data->change_info};
 
   MapMode_wipe_ghost(editor);
@@ -1047,7 +1056,7 @@ static bool MapMode_start_select(Editor *const editor, bool const only_inside,
     return true;
   }
 
-  MapEditSelection_invert(&mode_data->selection, map_pos);
+  MapEditSelection_invert(&mode_data->selection.obj, map_pos);
   return true;
 }
 
@@ -1057,17 +1066,17 @@ static bool MapMode_start_exclusive_select(Editor *const editor, bool const only
   MapModeData *const mode_data = get_mode_data(editor);
   MapPoint const map_pos = MapLayout_map_coords_from_fine(EditWin_get_view(edit_win), fine_pos);
 
-  if (MapEditSelection_is_selected(&mode_data->selection, map_pos)) {
+  if (MapEditSelection_is_selected(&mode_data->selection.obj, map_pos)) {
     return false;
   }
 
-  MapEditSelection_clear(&mode_data->selection);
+  MapEditSelection_clear(&mode_data->selection.obj);
 
   if (only_inside) {
     return true;
   }
 
-  MapEditSelection_invert(&mode_data->selection, map_pos);
+  MapEditSelection_invert(&mode_data->selection.obj, map_pos);
 
   return true;
 }
@@ -1086,13 +1095,13 @@ static bool MapMode_has_selection(Editor const *const editor)
 {
   MapModeData *const mode_data = get_mode_data(editor);
 
-  return !MapEditSelection_is_none(&mode_data->selection);
+  return !MapEditSelection_is_none(&mode_data->selection.obj);
 }
 
 static bool MapMode_can_edit_properties(Editor const *const editor)
 {
   MapModeData *const mode_data = get_mode_data(editor);
-  return MapEditSelection_size(&mode_data->selection) == 1;
+  return MapEditSelection_size(&mode_data->selection.obj) == 1;
 }
 
 static void MapMode_edit_properties(Editor *const editor, EditWin *const edit_win)
@@ -1100,9 +1109,9 @@ static void MapMode_edit_properties(Editor *const editor, EditWin *const edit_wi
   assert(MapMode_can_edit_properties(editor));
   MapModeData *const mode_data = get_mode_data(editor);
   MapEditSelIter iter;
-  MapPoint const pos = MapEditSelIter_get_first(&iter, &mode_data->selection);
+  MapPoint const pos = MapEditSelIter_get_first(&iter, &mode_data->selection.obj);
   assert(!MapEditSelIter_done(&iter));
-  MapPropDboxes_open(&mode_data->prop_dboxes, pos, edit_win);
+  MapPropDboxes_open(&mode_data->prop_dboxes.obj, pos, edit_win);
 }
 
 static bool MapMode_can_smooth(Editor const *const editor)
@@ -1110,15 +1119,15 @@ static bool MapMode_can_smooth(Editor const *const editor)
   MapModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
 
-  return !MapEditSelection_is_none(&mode_data->selection) &&
-         MapTexGroups_get_count(&Session_get_textures(session)->groups) != 0;
+  return !MapEditSelection_is_none(&mode_data->selection.obj) &&
+         MapTexGroups_get_count(&Session_get_textures(session)->groups.obj) != 0;
 }
 
 static void edit_properties_at_pos(Editor *const editor, MapPoint const fine_pos, EditWin *const edit_win)
 {
   MapModeData *const mode_data = get_mode_data(editor);
   MapPoint const map_pos = MapLayout_map_coords_from_fine(EditWin_get_view(edit_win), fine_pos);
-  MapPropDboxes_open(&mode_data->prop_dboxes, map_pos, edit_win);
+  MapPropDboxes_open(&mode_data->prop_dboxes.obj, map_pos, edit_win);
 }
 
 static void MapMode_pending_point(Editor *const editor, MapPoint const map_pos)
@@ -1131,7 +1140,7 @@ static void MapMode_pending_point(Editor *const editor, MapPoint const map_pos)
   mode_data->ghost_bbox = (MapArea){map_pos, map_pos};
 
 #if PENDING_IS_SELECTED
-  MapEditSelection_select(&mode_data->selection, map_pos);
+  MapEditSelection_select(&mode_data->selection.obj, map_pos);
 #else
   Editor_set_ghost_map_bbox(editor, &mode_data->ghost_bbox);
 #endif
@@ -1155,7 +1164,7 @@ static void MapMode_pending_line(Editor *const editor, MapPoint const a, MapPoin
   MapMode_wipe_ghost(editor);
 
 #if PENDING_IS_SELECTED
-  MapEditSelection_select_line(&mode_data->selection, a, b, 0);
+  MapEditSelection_select_line(&mode_data->selection.obj, a, b, 0);
 #else
   mode_data->pending_vert[0] = a;
   mode_data->pending_vert[1] = b;
@@ -1191,7 +1200,7 @@ static void MapMode_pending_tri(Editor *const editor,
   MapMode_wipe_ghost(editor);
 
 #if PENDING_IS_SELECTED
-  MapEditSelection_select_tri(&mode_data->selection, a, b, c);
+  MapEditSelection_select_tri(&mode_data->selection.obj, a, b, c);
 #else
   mode_data->pending_vert[0] = a;
   mode_data->pending_vert[1] = b;
@@ -1229,7 +1238,7 @@ static void MapMode_pending_rect(Editor *const editor, MapPoint const a, MapPoin
   MapMode_wipe_ghost(editor);
 
 #if PENDING_IS_SELECTED
-  MapEditSelection_select_rect(&mode_data->selection, a, b);
+  MapEditSelection_select_rect(&mode_data->selection.obj, a, b);
 #else
   mode_data->pending_vert[0] = a;
   mode_data->pending_vert[1] = b;
@@ -1263,7 +1272,7 @@ static void MapMode_pending_circ(Editor *const editor, MapPoint const a, MapPoin
   MapMode_wipe_ghost(editor);
 
 #if PENDING_IS_SELECTED
-  MapEditSelection_select_circ(&mode_data->selection,
+  MapEditSelection_select_circ(&mode_data->selection.obj,
     a, MapPoint_dist(a, b));
 #else
   mode_data->pending_vert[0] = a;
@@ -1301,12 +1310,12 @@ static _Optional MapTransfer *clipboard;
 static bool cb_copy_core(Editor *const editor)
 {
   MapModeData *const mode_data = get_mode_data(editor);
-  assert(!MapEditSelection_is_none(&mode_data->selection));
+  assert(!MapEditSelection_is_none(&mode_data->selection.obj));
 
   EditSession *const session = Editor_get_session(editor);
   assert(!clipboard);
   clipboard = MapTransfers_grab_selection(
-    Session_get_map(session), &mode_data->selection);
+    Session_get_map(session), &mode_data->selection.obj);
 
   return clipboard != NULL;
 }
@@ -1315,7 +1324,7 @@ static void cb_status(Editor *const editor, bool const copy)
 {
   MapModeData *const mode_data = get_mode_data(editor);
 
-  size_t const tiles_count = MapEditSelection_size(&mode_data->selection);
+  size_t const tiles_count = MapEditSelection_size(&mode_data->selection.obj);
   char tiles_count_str[16];
   sprintf(tiles_count_str, "%zu",
            tiles_count);
@@ -1347,7 +1356,7 @@ static void delete_selected_anims(Editor *const editor)
   MapEditChanges_init(&mode_data->change_info);
   MapEditContext const *const map = Session_get_map(session);
 
-  MapEdit_delete_selected(map, &mode_data->selection,
+  MapEdit_delete_selected(map, &mode_data->selection.obj,
     &mode_data->change_info);
 
   changed_with_msg(editor);
@@ -1365,7 +1374,7 @@ static void MapMode_paint_selected(Editor *const editor)
   MapEditContext const *const map = Session_get_map(session);
 
   mode_data->lock_selection = true;
-  MapEdit_fill_selection(map, &mode_data->selection, tile,
+  MapEdit_fill_selection(map, &mode_data->selection.obj, tile,
     &mode_data->change_info);
   mode_data->lock_selection = false;
 
@@ -1444,7 +1453,7 @@ static void MapMode_create_transfer(Editor *const editor, char const *const name
 
   int replace_index;
   _Optional MapTransfer * const replace_transfer = MapTransfers_find_by_name(
-    &textures->transfers, name, &replace_index);
+    &textures->transfers.obj, name, &replace_index);
 
   if (replace_transfer != NULL) {
     if (!dialogue_confirm(msgs_lookup_subn("DupTransferName", 1,
@@ -1454,7 +1463,7 @@ static void MapMode_create_transfer(Editor *const editor, char const *const name
 
   /* Grab transfer from selected tiles on map */
   _Optional MapTransfer *const transfer = MapTransfers_grab_selection(
-    Session_get_map(session), &mode_data->selection);
+    Session_get_map(session), &mode_data->selection.obj);
 
   if (!transfer) {
     return; /* failed  */
@@ -1462,8 +1471,8 @@ static void MapMode_create_transfer(Editor *const editor, char const *const name
 
   /* Add the new transfer to the linked list for this tiles set */
   int new_index;
-  if (!MapTransfers_add(&textures->transfers, &*transfer, name,
-                     &new_index, &textures->tiles)) {
+  if (!MapTransfers_add(&textures->transfers.obj, &*transfer, name,
+                     &new_index, &textures->tiles.obj)) {
     dfile_release(MapTransfer_get_dfile(&*transfer));
     return; /* failed */
   }
@@ -1494,11 +1503,11 @@ static bool MapMode_auto_select(Editor *const editor, MapPoint const fine_pos, E
   }
 #endif
 
-  if (!MapEditSelection_is_none(&mode_data->selection) ||
+  if (!MapEditSelection_is_none(&mode_data->selection.obj) ||
       Editor_get_tool(editor) != EDITORTOOL_SELECT)
     return false; /* already have a selection or not using that tool */
 
-  MapEditSelection_select(&mode_data->selection, map_pos);
+  MapEditSelection_select(&mode_data->selection.obj, map_pos);
   return true;
 }
 
@@ -1532,7 +1541,7 @@ static void MapMode_update_select(Editor *const editor, bool const only_inside,
   MapArea last_map_area = select_box_to_map_area(last_select_box, only_inside, edit_win);
   bool const last_is_valid = MapArea_is_valid(&last_map_area);
   if (last_is_valid) {
-    MapEditSelection_invert_rect(&mode_data->selection,
+    MapEditSelection_invert_rect(&mode_data->selection.obj,
       last_map_area.min, last_map_area.max, false);
   }
 
@@ -1540,7 +1549,7 @@ static void MapMode_update_select(Editor *const editor, bool const only_inside,
   MapArea map_area = select_box_to_map_area(select_box, only_inside, edit_win);
   bool const new_is_valid = MapArea_is_valid(&map_area);
   if (new_is_valid) {
-    MapEditSelection_invert_rect(&mode_data->selection,
+    MapEditSelection_invert_rect(&mode_data->selection.obj,
       map_area.min, map_area.max, false);
   }
 
@@ -1566,7 +1575,7 @@ static void MapMode_cancel_select(Editor *const editor, bool const only_inside,
 
   MapArea const map_area = select_box_to_map_area(last_select_box, only_inside, edit_win);
   if (MapArea_is_valid(&map_area)) {
-    MapEditSelection_invert_rect(&mode_data->selection,
+    MapEditSelection_invert_rect(&mode_data->selection.obj,
       map_area.min, map_area.max, true);
   }
 }
@@ -1691,7 +1700,7 @@ static bool MapMode_draw_paste(Editor *const editor, MapPoint const map_pos)
   if (!mode_data->pending_paste) {
     return false;
   }
-  if (!paste_generic(editor, &*mode_data->pending_paste, map_pos, &mode_data->selection)) {
+  if (!paste_generic(editor, &*mode_data->pending_paste, map_pos, &mode_data->selection.obj)) {
     return false;
   }
   free_pending_paste(&*mode_data);
@@ -1723,7 +1732,7 @@ static void MapMode_tool_selected(Editor *const editor)
       /* Configure palette to display snakes */
       if (mode_data->palette_type != MAPPALETTE_TYPE_SNAKES)
       {
-        MapSnakesPalette_register(&editor->palette_data);
+        MapSnakesPalette_register(&editor->palette_data.obj);
         mode_data->palette_type = MAPPALETTE_TYPE_SNAKES;
       }
       break;
@@ -1732,7 +1741,7 @@ static void MapMode_tool_selected(Editor *const editor)
       /* Configure palette for transfers */
       if (mode_data->palette_type != MAPPALETTE_TYPE_TRANSFERS)
       {
-        MapTransfersPalette_register(&editor->palette_data);
+        MapTransfersPalette_register(&editor->palette_data.obj);
         mode_data->palette_type = MAPPALETTE_TYPE_TRANSFERS;
       }
       break;
@@ -1741,7 +1750,7 @@ static void MapMode_tool_selected(Editor *const editor)
       /* Configure palette to display map tiles */
       if (mode_data->palette_type != MAPPALETTE_TYPE_TILES)
       {
-        TilesPalette_register(&editor->palette_data);
+        TilesPalette_register(&editor->palette_data.obj);
         mode_data->palette_type = MAPPALETTE_TYPE_TILES;
       }
       break;
@@ -1754,9 +1763,9 @@ static void MapMode_leave(Editor *const editor)
   DEBUG("leaving map mode");
   MapModeData *const mode_data = get_mode_data(editor);
 
-  MapPropDboxes_destroy(&mode_data->prop_dboxes);
+  MapPropDboxes_destroy(&mode_data->prop_dboxes.obj);
 
-  MapEditSelection_destroy(&mode_data->selection);
+  MapEditSelection_destroy(&mode_data->selection.obj);
   free_dragged(mode_data);
   free_pending_drop(mode_data);
   free_pending_paste(mode_data);
@@ -1770,7 +1779,7 @@ static void MapMode_resource_change(Editor *const editor, EditorChange const eve
 
   switch (event) {
   case EDITOR_CHANGE_TEX_ALL_RELOADED:
-    Palette_reinit(&editor->palette_data);
+    Palette_reinit(&editor->palette_data.obj);
     break;
 
   case EDITOR_CHANGE_TEX_TRANSFERS_RELOADED:
@@ -1778,38 +1787,38 @@ static void MapMode_resource_change(Editor *const editor, EditorChange const eve
       if (mode_data->pending_shape == Pending_Transfer) {
         MapMode_wipe_ghost(editor);
       }
-      Palette_reinit(&editor->palette_data);
+      Palette_reinit(&editor->palette_data.obj);
     }
     break;
 
   case EDITOR_CHANGE_TEX_SNAKES_RELOADED:
     if (mode_data->palette_type == MAPPALETTE_TYPE_SNAKES) {
-      Palette_reinit(&editor->palette_data);
+      Palette_reinit(&editor->palette_data.obj);
     }
     break;
 
   case EDITOR_CHANGE_TEX_GROUPS_RELOADED:
     if (mode_data->palette_type == MAPPALETTE_TYPE_TILES) {
-      Palette_reinit(&editor->palette_data);
+      Palette_reinit(&editor->palette_data.obj);
     }
     break;
 
   case EDITOR_CHANGE_TEX_TRANSFER_ADDED:
     assert(params);
     if (mode_data->palette_type == MAPPALETTE_TYPE_TRANSFERS) {
-      Palette_object_added(&editor->palette_data, params->transfer_added.index);
+      Palette_object_added(&editor->palette_data.obj, params->transfer_added.index);
     }
     break;
 
   case EDITOR_CHANGE_TEX_TRANSFER_DELETED:
     assert(params);
     if (mode_data->palette_type == MAPPALETTE_TYPE_TRANSFERS) {
-      if (Palette_get_selection(&editor->palette_data) == params->transfer_deleted.index) {
+      if (Palette_get_selection(&editor->palette_data.obj) == params->transfer_deleted.index) {
         if (mode_data->pending_shape == Pending_Transfer) {
           MapMode_wipe_ghost(editor);
         }
       }
-      Palette_object_deleted(&editor->palette_data, params->transfer_deleted.index);
+      Palette_object_deleted(&editor->palette_data.obj, params->transfer_deleted.index);
     }
     break;
 
@@ -1818,20 +1827,20 @@ static void MapMode_resource_change(Editor *const editor, EditorChange const eve
       if (mode_data->pending_shape == Pending_Transfer) {
         MapMode_wipe_ghost(editor);
       }
-      Palette_object_deleted(&editor->palette_data, NULL_DATA_INDEX);
+      Palette_object_deleted(&editor->palette_data.obj, NULL_DATA_INDEX);
     }
     break;
 
   case EDITOR_CHANGE_TEX_TRANSFER_REPLACED:
     assert(params);
     if (mode_data->palette_type == MAPPALETTE_TYPE_TRANSFERS) {
-      if (Palette_get_selection(&editor->palette_data) == params->transfer_replaced.index) {
+      if (Palette_get_selection(&editor->palette_data.obj) == params->transfer_replaced.index) {
         if (mode_data->pending_shape == Pending_Transfer) {
           MapMode_wipe_ghost(editor);
         }
       }
-      Palette_redraw_name(&editor->palette_data, params->transfer_replaced.index);
-      Palette_redraw_object(&editor->palette_data, params->transfer_replaced.index);
+      Palette_redraw_name(&editor->palette_data.obj, params->transfer_replaced.index);
+      Palette_redraw_object(&editor->palette_data.obj, params->transfer_replaced.index);
     }
     break;
 
@@ -1839,43 +1848,43 @@ static void MapMode_resource_change(Editor *const editor, EditorChange const eve
     assert(params);
     if (mode_data->palette_type == MAPPALETTE_TYPE_TRANSFERS) {
       if (params->transfer_renamed.index == params->transfer_renamed.new_index) {
-        Palette_redraw_name(&editor->palette_data, params->transfer_renamed.index);
+        Palette_redraw_name(&editor->palette_data.obj, params->transfer_renamed.index);
       } else {
-        Palette_object_moved(&editor->palette_data, params->transfer_renamed.index,
+        Palette_object_moved(&editor->palette_data.obj, params->transfer_renamed.index,
                              params->transfer_renamed.new_index);
       }
     }
     break;
 
   case EDITOR_CHANGE_MAP_ALL_REPLACED:
-    MapEditSelection_clear(&mode_data->selection);
-    MapPropDboxes_destroy(&mode_data->prop_dboxes);
-    MapPropDboxes_init(&mode_data->prop_dboxes, editor);
+    MapEditSelection_clear(&mode_data->selection.obj);
+    MapPropDboxes_destroy(&mode_data->prop_dboxes.obj);
+    MapPropDboxes_init(&mode_data->prop_dboxes.obj, editor);
     break;
 
   case EDITOR_CHANGE_MAP_PRECHANGE:
     assert(params);
     if (!mode_data->lock_selection) {
-      MapEditSelection_deselect_area(&mode_data->selection,
+      MapEditSelection_deselect_area(&mode_data->selection.obj,
         &params->map_prechange.bbox);
     }
 
-    MapPropDboxes_update_for_del(&mode_data->prop_dboxes, &params->map_prechange.bbox);
+    MapPropDboxes_update_for_del(&mode_data->prop_dboxes.obj, &params->map_prechange.bbox);
     break;
 
   case EDITOR_CHANGE_MAP_PREMOVE:
     assert(params);
-    if (MapEditSelection_is_selected(&mode_data->selection, params->map_premove.old_pos))
+    if (MapEditSelection_is_selected(&mode_data->selection.obj, params->map_premove.old_pos))
     {
-      MapEditSelection_deselect(&mode_data->selection, params->map_premove.old_pos);
-      MapEditSelection_select(&mode_data->selection, params->map_premove.new_pos);
+      MapEditSelection_deselect(&mode_data->selection.obj, params->map_premove.old_pos);
+      MapEditSelection_select(&mode_data->selection.obj, params->map_premove.new_pos);
     }
 
-    MapPropDboxes_update_for_del(&mode_data->prop_dboxes,
+    MapPropDboxes_update_for_del(&mode_data->prop_dboxes.obj,
                                  &(MapArea){params->map_premove.new_pos,
                                             params->map_premove.new_pos});
 
-    MapPropDboxes_update_for_move(&mode_data->prop_dboxes, params->map_premove.old_pos,
+    MapPropDboxes_update_for_move(&mode_data->prop_dboxes.obj, params->map_premove.old_pos,
                                   params->map_premove.new_pos);
     break;
 
@@ -1895,7 +1904,7 @@ static void MapMode_palette_selection(Editor *const editor, int const object)
     case MAPPALETTE_TYPE_SNAKES:
     {
       char snake_name[16];
-      MapSnakes_get_name(&textures->snakes, object, snake_name, sizeof(snake_name));
+      MapSnakes_get_name(&textures->snakes.obj, object, snake_name, sizeof(snake_name));
       msg = msgs_lookup_subn("StatusSnSel", 1, snake_name);
       break;
     }
@@ -1914,7 +1923,7 @@ static void MapMode_palette_selection(Editor *const editor, int const object)
     {
       assert(mode_data->palette_type == MAPPALETTE_TYPE_TRANSFERS);
       _Optional MapTransfer *const transfer = MapTransfers_find_by_index(
-        &textures->transfers, object);
+        &textures->transfers.obj, object);
 
       if (transfer != NULL) {
         msg = msgs_lookup_subn("StatusTrSel", 1,
@@ -1991,7 +2000,7 @@ static void MapMode_draw_numbers(Editor *const editor,
   size_t last_ulen = 0;
 
   MapAngle const angle = EditWin_get_angle(edit_win);
-  int const tile_count = MapTexBitmaps_get_count(&textures->tiles);
+  int const tile_count = MapTexBitmaps_get_count(&textures->tiles.obj);
 
   for (MapPoint scr_pos = {.y = scr_area.min.y};
        scr_pos.y <= scr_area.max.y;
@@ -2048,7 +2057,7 @@ static void MapMode_draw_numbers(Editor *const editor,
           blend = true;
         }
 
-        font_fg_colour = font_bg_colour = get_contrasting(edit_win, &textures->tiles, tile_no, inv_tile);
+        font_fg_colour = font_bg_colour = get_contrasting(edit_win, &textures->tiles.obj, tile_no, inv_tile);
       }
 
       /* Only set font colours if different from last map location */
@@ -2417,7 +2426,7 @@ static size_t MapMode_num_selected(Editor const *const editor)
   }
 #endif
 
-  return MapEditSelection_size(&mode_data->selection);
+  return MapEditSelection_size(&mode_data->selection.obj);
 }
 
 static size_t MapMode_max_selected(Editor const *const editor)
@@ -2430,7 +2439,7 @@ static size_t MapMode_max_selected(Editor const *const editor)
 static void MapMode_select_all(Editor *const editor)
 {
   MapModeData *const mode_data = get_mode_data(editor);
-  MapEditSelection_select_all(&mode_data->selection);
+  MapEditSelection_select_all(&mode_data->selection.obj);
 }
 
 static void MapMode_clear_selection(Editor *const editor)
@@ -2452,10 +2461,10 @@ static void MapMode_delete_core(Editor *const editor, MapEditContext const *cons
 {
   MapModeData *const mode_data = get_mode_data(editor);
   mode_data->lock_selection = true; // strictly redundant
-  MapEdit_fill_selection(map, &mode_data->selection, map_ref_from_num(DeletedFillRef),
+  MapEdit_fill_selection(map, &mode_data->selection.obj, map_ref_from_num(DeletedFillRef),
                          change_info);
   mode_data->lock_selection = false;
-  MapEditSelection_clear(&mode_data->selection);
+  MapEditSelection_clear(&mode_data->selection.obj);
 }
 
 static void MapMode_delete(Editor *const editor)
@@ -2490,13 +2499,13 @@ static bool MapMode_start_drag_obj(Editor *const editor,
   MapEditContext const *const map = Session_get_map(session);
 
   MapArea sel_box;
-  if (!MapEditSelection_get_bounds(&mode_data->selection, &sel_box)) {
+  if (!MapEditSelection_get_bounds(&mode_data->selection.obj, &sel_box)) {
     return false;
   }
   mode_data->drag_start_pos = sel_box.min;
 
   free_dragged(mode_data);
-  _Optional MapTransfer *const dragged = MapTransfers_grab_selection(map, &mode_data->selection);
+  _Optional MapTransfer *const dragged = MapTransfers_grab_selection(map, &mode_data->selection.obj);
   if (!dragged) {
     return false;
   }
@@ -2554,7 +2563,7 @@ static bool MapMode_show_ghost_drop(Editor *const editor,
       }
 
 #if PENDING_IS_SELECTED
-      MapEditSelection_clear(&mode_data->selection);
+      MapEditSelection_clear(&mode_data->selection.obj);
 #else
       Editor_redraw_ghost(editor); // undraw
 #endif
@@ -2562,7 +2571,7 @@ static bool MapMode_show_ghost_drop(Editor *const editor,
     }
 
 #if PENDING_IS_SELECTED
-    MapTransfers_select(&mode_data->selection, bbox->min, origin_data->dragged);
+    MapTransfers_select(&mode_data->selection.obj, bbox->min, origin_data->dragged);
 #else
     Editor_set_ghost_map_bbox(editor, bbox);
 #endif
@@ -2580,14 +2589,14 @@ static bool MapMode_show_ghost_drop(Editor *const editor,
         return hide_origin_bbox;
       }
 #if PENDING_IS_SELECTED
-      MapEditSelection_clear(&mode_data->selection);
+      MapEditSelection_clear(&mode_data->selection.obj);
 #else
       Editor_redraw_ghost(editor); // undraw
 #endif
     }
 
 #if PENDING_IS_SELECTED
-    MapEditSelection_select_area(&mode_data->selection, bbox);
+    MapEditSelection_select_area(&mode_data->selection.obj, bbox);
 #else
     Editor_set_ghost_map_bbox(editor, bbox);
 #endif
@@ -2605,7 +2614,7 @@ static void MapMode_hide_ghost_drop(Editor *const editor)
 
   if (mode_data->pending_drop) {
 #if PENDING_IS_SELECTED
-    MapEditSelection_clear(&mode_data->selection);
+    MapEditSelection_clear(&mode_data->selection.obj);
 #else
     Editor_redraw_ghost(editor); // undraw
     Editor_clear_ghost_bbox(editor);
@@ -2615,7 +2624,7 @@ static void MapMode_hide_ghost_drop(Editor *const editor)
 
   if (mode_data->uk_drop_pending) {
 #if PENDING_IS_SELECTED
-    MapEditSelection_clear(&mode_data->selection);
+    MapEditSelection_clear(&mode_data->selection.obj);
 #else
     Editor_redraw_ghost(editor); // undraw
     Editor_clear_ghost_bbox(editor);
@@ -2633,9 +2642,9 @@ static void drag_obj_copy_core(Editor *const editor,
   assert(MapArea_is_valid(bbox));
   MapModeData *const mode_data = get_mode_data(editor);
 
-  MapEditSelection_clear(&mode_data->selection);
+  MapEditSelection_clear(&mode_data->selection.obj);
   MapTransfers_plot_to_map(objects, bbox->min, dropped,
-                           &mode_data->selection, &mode_data->change_info);
+                           &mode_data->selection.obj, &mode_data->change_info);
 }
 
 static bool MapMode_drag_obj_copy(Editor *const editor,
@@ -2746,9 +2755,9 @@ static void MapMode_drag_obj_move(Editor *const editor,
                            dragged, map_ref_from_num(DeletedFillRef),
                            &origin_data->change_info);
 
-  MapEditSelection_clear(&dst_data->selection);
+  MapEditSelection_clear(&dst_data->selection.obj);
   MapTransfers_plot_to_map(&no_prechange_cb_ctx, bbox->min, dragged,
-                           &dst_data->selection, &dst_data->change_info);
+                           &dst_data->selection.obj, &dst_data->change_info);
 
   changed_with_msg(editor);
   if (editor != drag_origin) {
@@ -2788,7 +2797,7 @@ static bool MapMode_drop(Editor *const editor, MapArea const *const bbox,
 static void MapMode_update_title(Editor *const editor)
 {
   MapModeData *const mode_data = get_mode_data(editor);
-  MapPropDboxes_update_title(&mode_data->prop_dboxes);
+  MapPropDboxes_update_title(&mode_data->prop_dboxes.obj);
 }
 
 bool MapMode_can_enter(Editor *const editor)
@@ -2930,9 +2939,9 @@ bool MapMode_enter(Editor *const editor)
   };
   editor->mode_functions = &map_mode_fns;
 
-  MapPropDboxes_init(&mode_data->prop_dboxes, editor);
+  MapPropDboxes_init(&mode_data->prop_dboxes.obj, editor);
 
-  if (!report_error(MapEditSelection_init(&mode_data->selection, redraw_selection, editor), "", ""))
+  if (!report_error(MapEditSelection_init(&mode_data->selection.obj, redraw_selection, editor), "", ""))
   {
     Editor_display_msg(editor, msgs_lookup("StatusMapMode"), false);
     return true;

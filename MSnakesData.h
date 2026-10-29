@@ -13,8 +13,14 @@
 
 struct MapSnakes
 {
-  struct Snakes super;
-  SprMem thumbnail_sprites; /* flex anchor for sprite area */
+  union {
+    char nil;
+    struct Snakes obj;
+  } super;
+  union {
+    char nil;
+    SprMem obj;
+  } thumbnail_sprites; /* flex anchor for sprite area */
   bool have_thumbnails;
 };
 

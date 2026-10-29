@@ -90,7 +90,18 @@ typedef enum {
 
 typedef struct
 {
-  ObjEditSelection selection, occluded, tmp;
+  union {
+    char nil;
+    ObjEditSelection obj;
+  } selection;
+  union {
+    char nil;
+    ObjEditSelection obj;
+  } occluded;
+  union {
+    char nil;
+    ObjEditSelection obj;
+  } tmp;
   ObjModePaletteType palette_type;
   bool uk_drop_pending:1, lock_selection:1;
   ObjRef ghost_obj_ref;
@@ -99,8 +110,14 @@ typedef struct
   PendingShape pending_shape;
   MapPoint fine_pos, drag_start_pos, pending_vert[3];
   MapArea drop_bbox, ghost_bbox;
-  ObjSnakesContext snake_ctx;
-  ObjPropDboxes prop_dboxes;
+  union {
+    char nil;
+    ObjSnakesContext obj;
+  } snake_ctx;
+  union {
+    char nil;
+    ObjPropDboxes obj;
+  } prop_dboxes;
 }
 ObjectsModeData;
 
@@ -430,10 +447,10 @@ void ObjectsMode_draw(Editor *const editor,
       Editor_get_edit_mode(editor) == EDITING_MODE_OBJECTS ?
       editor->editingmode_data : NULL;
 
-  _Optional ObjEditSelection const *const selection = mode_data ? &mode_data->selection : NULL,
+  _Optional ObjEditSelection const *const selection = mode_data ? &mode_data->selection.obj : NULL,
                                    *const occluded = mode_data && (mode_data->pending_drop ||
                                                                    mode_data->pending_shape != Pending_None) ?
-                                                     &mode_data->occluded : NULL;
+                                                     &mode_data->occluded.obj : NULL;
 
   ObjReadArgs read_args = {EditWin_get_hills(edit_win), read_obj_ctx, meshes, view, redraw_area};
 
@@ -517,8 +534,8 @@ static void ObjectsMode_wipe_ghost(Editor *const editor)
 
   DEBUGF("Wiping ghost object(s)\n");
 
-  ObjEditSelection_for_each(&mode_data->occluded, occluded_changed, editor);
-  ObjEditSelection_clear(&mode_data->occluded);
+  ObjEditSelection_for_each(&mode_data->occluded.obj, occluded_changed, editor);
+  ObjEditSelection_clear(&mode_data->occluded.obj);
 
   Editor_redraw_ghost(editor); // undraw
   Editor_clear_ghost_bbox(editor);
@@ -561,14 +578,14 @@ static void ObjectsMode_set_pending(Editor *const editor, PendingShape const pen
 
   Editor_clear_ghost_bbox(editor);
 
-  ObjEditSelection_copy(&mode_data->tmp, &mode_data->occluded);
-  ObjEditSelection_clear(&mode_data->occluded);
+  ObjEditSelection_copy(&mode_data->tmp.obj, &mode_data->occluded.obj);
+  ObjEditSelection_clear(&mode_data->occluded.obj);
 
   GetShapeBBox data = {
     .objects = objects,
     .meshes = meshes,
     .obj_ref = obj_ref,
-    .occluded = &mode_data->occluded,
+    .occluded = &mode_data->occluded.obj,
     .editor = editor,
     .any = false,
   };
@@ -610,7 +627,7 @@ static void ObjectsMode_set_pending(Editor *const editor, PendingShape const pen
       if (pending_transfer &&
           ObjTransfers_can_plot_to_map(objects, pos,
                                        &*pending_transfer, meshes,
-                                       &mode_data->occluded)) {
+                                       &mode_data->occluded.obj)) {
 
         ObjectsMode_add_ghost_bbox_for_transfer(editor, pos, &*pending_transfer);
         data.any = true;
@@ -626,13 +643,13 @@ static void ObjectsMode_set_pending(Editor *const editor, PendingShape const pen
   if (!data.any) {
     mode_data->pending_shape = Pending_None;
     mode_data->pending_transfer = NULL;
-    ObjEditSelection_for_each(&mode_data->tmp /* previously occluded */, occluded_changed, editor);
+    ObjEditSelection_for_each(&mode_data->tmp.obj /* previously occluded */, occluded_changed, editor);
   } else {
     mode_data->pending_shape = pending_shape;
     mode_data->ghost_obj_ref = obj_ref;
     mode_data->pending_transfer = pending_transfer;
     mode_data->pending_vert[0] = pos;
-    ObjEditSelection_for_each_changed(&mode_data->occluded, &mode_data->tmp, // previously occluded
+    ObjEditSelection_for_each_changed(&mode_data->occluded.obj, &mode_data->tmp.obj, // previously occluded
        NULL, occluded_changed, editor);
   }
 
@@ -657,7 +674,7 @@ static bool ObjectsMode_can_select_tool(Editor const *const editor, EditorTool c
     break;
 
   case EDITORTOOL_SNAKE:
-    can_select_tool = (ObjSnakes_get_count(&graphics->snakes) > 0);
+    can_select_tool = (ObjSnakes_get_count(&graphics->snakes.obj) > 0);
     break;
   default:
     break;
@@ -670,7 +687,7 @@ static bool ObjectsMode_has_selection(Editor const *const editor)
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
 
-  return !ObjEditSelection_is_none(&mode_data->selection);
+  return !ObjEditSelection_is_none(&mode_data->selection.obj);
 }
 
 static bool ObjectsMode_can_clip_overlay(Editor const *editor)
@@ -685,7 +702,7 @@ static bool ObjectsMode_can_clip_overlay(Editor const *editor)
 static bool ObjectsMode_can_edit_properties(Editor const *const editor)
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
-  return ObjEditSelection_size(&mode_data->selection) == 1;
+  return ObjEditSelection_size(&mode_data->selection.obj) == 1;
 }
 
 static void ObjectsMode_edit_properties(Editor *const editor, EditWin *const edit_win)
@@ -693,9 +710,9 @@ static void ObjectsMode_edit_properties(Editor *const editor, EditWin *const edi
   assert(ObjectsMode_can_edit_properties(editor));
   ObjectsModeData *const mode_data = get_mode_data(editor);
   ObjEditSelIter iter;
-  MapPoint const pos = ObjEditSelIter_get_first(&iter, &mode_data->selection);
+  MapPoint const pos = ObjEditSelIter_get_first(&iter, &mode_data->selection.obj);
   assert(!ObjEditSelIter_done(&iter));
-  ObjPropDboxes_open(&mode_data->prop_dboxes, pos, edit_win);
+  ObjPropDboxes_open(&mode_data->prop_dboxes.obj, pos, edit_win);
 }
 
 static bool ObjectsMode_trigger_is_selected(Editor const *const editor)
@@ -710,7 +727,7 @@ static bool ObjectsMode_trigger_is_selected(Editor const *const editor)
 
   DEBUGF("Searching triggers for the first selected\n");
   MapArea sel_area;
-  if (!ObjEditSelection_get_bounds(&mode_data->selection, &sel_area)) {
+  if (!ObjEditSelection_get_bounds(&mode_data->selection.obj, &sel_area)) {
     return false;
   }
 
@@ -720,7 +737,7 @@ static bool ObjectsMode_trigger_is_selected(Editor const *const editor)
        p = TriggersIter_get_next(&iter, NULL))
   {
     DEBUGF("Trigger at %" PRIMapCoord ",%" PRIMapCoord "\n", p.x, p.y);
-    if (ObjEditSelection_is_selected(&mode_data->selection, p)) {
+    if (ObjEditSelection_is_selected(&mode_data->selection.obj, p)) {
       return true;
     }
   }
@@ -730,7 +747,7 @@ static bool ObjectsMode_trigger_is_selected(Editor const *const editor)
 static void ObjectsMode_update_title(Editor *const editor)
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
-  ObjPropDboxes_update_title(&mode_data->prop_dboxes);
+  ObjPropDboxes_update_title(&mode_data->prop_dboxes.obj);
 }
 
 static void notify_changed(EditSession *const session,
@@ -957,23 +974,23 @@ static void ObjectsMode_update_select(Editor *const editor, bool const only_insi
   View const *const view = EditWin_get_view(edit_win);
 
   // Copy current selection to allow us to determine the changed area later
-  ObjEditSelection_copy(&mode_data->tmp, &mode_data->selection);
+  ObjEditSelection_copy(&mode_data->tmp.obj, &mode_data->selection.obj);
 
   MapArea changed_grid = MapArea_make_invalid();
 
   // Undo the current selection bounding box by inverting the state of objects within it
-  bool changed = drag_select_invert(meshes, view, &mode_data->selection, read_obj_ctx,
+  bool changed = drag_select_invert(meshes, view, &mode_data->selection.obj, read_obj_ctx,
                                   only_inside, last_select_box, &changed_grid, false);
 
   // Apply the new selection bounding box by inverting the state of objects within it
-  if (!drag_select_invert(meshes, view, &mode_data->selection, read_obj_ctx, only_inside,
+  if (!drag_select_invert(meshes, view, &mode_data->selection.obj, read_obj_ctx, only_inside,
                         select_box, &changed_grid, false) &&
       !changed) {
     return;
   }
 
   // Redraw only the objects whose state changed
-  ObjEditSelection_for_each_changed(&mode_data->selection, &mode_data->tmp,
+  ObjEditSelection_for_each_changed(&mode_data->selection.obj, &mode_data->tmp.obj,
                                     &changed_grid, redraw_selection, editor);
 }
 
@@ -988,7 +1005,7 @@ static void ObjectsMode_cancel_select(Editor *const editor,
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
 
-  drag_select_invert(meshes, view, &mode_data->selection, read_obj_ctx,
+  drag_select_invert(meshes, view, &mode_data->selection.obj, read_obj_ctx,
                      only_inside, last_select_box, NULL, true);
 }
 
@@ -1030,9 +1047,9 @@ static bool paste_generic(Editor *const editor,
 
   ObjEditChanges_init(&mode_data->change_info);
 
-  ObjEditSelection_clear(&mode_data->selection);
+  ObjEditSelection_clear(&mode_data->selection.obj);
   ObjTransfers_plot_to_map(objects, map_pos, transfer,
-                           meshes, &mode_data->selection, &mode_data->change_info);
+                           meshes, &mode_data->selection.obj, &mode_data->change_info);
   changed_with_msg(editor);
   return true;
 }
@@ -1053,7 +1070,7 @@ static bool ObjectsMode_start_select(Editor *const editor, bool const only_insid
     fine_pos, &sel_coords);
 
   if (!objects_ref_is_none(obj_ref)) {
-    ObjEditSelection_invert(&mode_data->selection, sel_coords, true);
+    ObjEditSelection_invert(&mode_data->selection.obj, sel_coords, true);
   }
 
   return objects_ref_is_none(obj_ref);
@@ -1075,12 +1092,12 @@ static bool ObjectsMode_start_exclusive_select(Editor *const editor, bool const 
     fine_pos, &sel_coords);
 
   if (!objects_ref_is_none(obj_ref)) {
-    if (!ObjEditSelection_is_selected(&mode_data->selection, sel_coords)) {
-      ObjEditSelection_clear(&mode_data->selection);
-      ObjEditSelection_invert(&mode_data->selection, sel_coords, true);
+    if (!ObjEditSelection_is_selected(&mode_data->selection.obj, sel_coords)) {
+      ObjEditSelection_clear(&mode_data->selection.obj);
+      ObjEditSelection_invert(&mode_data->selection.obj, sel_coords, true);
     }
   } else {
-    ObjEditSelection_clear(&mode_data->selection);
+    ObjEditSelection_clear(&mode_data->selection.obj);
   }
 
   return objects_ref_is_none(obj_ref);
@@ -1089,7 +1106,7 @@ static bool ObjectsMode_start_exclusive_select(Editor *const editor, bool const 
 static ObjRef get_selected_obj(Editor *const editor)
 {
   assert(editor);
-  int const pal_index = Palette_get_selection(&editor->palette_data);
+  int const pal_index = Palette_get_selection(&editor->palette_data.obj);
   return objects_ref_from_num(pal_index != NULL_DATA_INDEX ? pal_index : Obj_RefNone);
 }
 
@@ -1106,7 +1123,7 @@ static void ObjectsMode_edit_properties_at_pos(Editor *const editor, MapPoint co
   ObjRef const obj_ref = get_obj_at_point(meshes, view, read_obj_ctx, fine_pos, &sel_coords);
 
   if (!objects_ref_is_none(obj_ref)) {
-    ObjPropDboxes_open(&mode_data->prop_dboxes, sel_coords, edit_win);
+    ObjPropDboxes_open(&mode_data->prop_dboxes.obj, sel_coords, edit_win);
   }
 }
 
@@ -1127,7 +1144,7 @@ static void set_selected_obj(Editor *const editor, ObjRef const obj_ref)
 {
   assert(editor);
   int const index = objects_ref_to_num(obj_ref);
-  Palette_set_selection(&editor->palette_data, index);
+  Palette_set_selection(&editor->palette_data.obj, index);
 }
 
 static void ObjectsMode_sample_obj(Editor *const editor, MapPoint const fine_pos, MapPoint const map_pos,
@@ -1315,14 +1332,14 @@ static void ObjectsMode_draw_brush(Editor *const editor, int const brush_size,
 
 static void ObjectsMode_pending_snake(Editor *const editor, MapPoint const map_pos)
 {
-  int const snake = Palette_get_selection(&editor->palette_data);
+  int const snake = Palette_get_selection(&editor->palette_data.obj);
   if (snake == NULL_DATA_INDEX) {
     return;
   }
 
   EditSession *const session = Editor_get_session(editor);
   ObjGfx *const graphics = Session_get_graphics(session);
-  ObjSnakes *const snakes_data = &graphics->snakes;
+  ObjSnakes *const snakes_data = &graphics->snakes.obj;
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   ObjRef const obj_ref = ObjSnakes_get_value(session, snakes_data,
@@ -1337,7 +1354,7 @@ static void ObjectsMode_start_snake(Editor *const editor, MapPoint const map_pos
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
 
-  int const snake = Palette_get_selection(&editor->palette_data);
+  int const snake = Palette_get_selection(&editor->palette_data.obj);
   if (snake == NULL_DATA_INDEX) {
     return;
   }
@@ -1346,10 +1363,10 @@ static void ObjectsMode_start_snake(Editor *const editor, MapPoint const map_pos
 
   EditSession *const session = Editor_get_session(editor);
   ObjGfx *const graphics = Session_get_graphics(session);
-  ObjSnakes *const snakes_data = &graphics->snakes;
+  ObjSnakes *const snakes_data = &graphics->snakes.obj;
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
-  ObjSnakes_begin_line(&mode_data->snake_ctx, session,
+  ObjSnakes_begin_line(&mode_data->snake_ctx.obj, session,
     snakes_data, map_pos, snake, inside,
     &mode_data->change_info, meshes);
 
@@ -1360,14 +1377,14 @@ static void ObjectsMode_draw_snake(Editor *const editor, MapPoint const map_pos)
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
 
-  int const snake = Palette_get_selection(&editor->palette_data);
+  int const snake = Palette_get_selection(&editor->palette_data.obj);
   if (snake == NULL_DATA_INDEX) {
     return;
   }
 
   ObjectsMode_wipe_ghost(editor);
 
-  ObjSnakes_plot_line(&mode_data->snake_ctx, map_pos,
+  ObjSnakes_plot_line(&mode_data->snake_ctx.obj, map_pos,
     &mode_data->change_info);
 
   changed_with_msg(editor);
@@ -1506,7 +1523,7 @@ static void ObjectsMode_draw_numbers(Editor *const editor,
       MapPoint const map_pos = ObjLayout_derotate_scr_coords_to_map(angle, scr_pos);
       ObjRef const obj_ref = ObjectsEdit_read_ref(read_obj_ctx, map_pos);
 
-      bool const is_sel = ObjEditSelection_is_selected(&mode_data->selection, map_pos);
+      bool const is_sel = ObjEditSelection_is_selected(&mode_data->selection.obj, map_pos);
       PaletteEntry font_bg_colour = is_sel ? bg_sel_colour : bg_colour;
       PaletteEntry font_fg_colour = (is_sel ? bg_sel_brightness : bg_brightness) >
                        MaxBrightness/2 ? PAL_BLACK : PAL_WHITE;
@@ -1640,11 +1657,11 @@ static void delete_core(Editor *const editor, ObjEditContext *const objects,
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   mode_data->lock_selection = true; // strictly redundant
-  ObjectsEdit_fill_selected(objects, &mode_data->selection, objects_ref_none(),
+  ObjectsEdit_fill_selected(objects, &mode_data->selection.obj, objects_ref_none(),
     change_info, meshes);
   mode_data->lock_selection = false;
 
-  ObjEditSelection_clear(&mode_data->selection);
+  ObjEditSelection_clear(&mode_data->selection.obj);
 }
 
 static void delete_selected_trigs(Editor *const editor)
@@ -1654,7 +1671,7 @@ static void delete_selected_trigs(Editor *const editor)
 
   ObjEditChanges_init(&mode_data->change_info);
   ObjEditContext const *const objects = Session_get_objects(session);
-  ObjectsEdit_wipe_triggers(objects, &mode_data->selection,
+  ObjectsEdit_wipe_triggers(objects, &mode_data->selection.obj,
     &mode_data->change_info);
 
   changed_with_msg(editor);
@@ -1674,7 +1691,7 @@ static void ObjectsMode_paint_selected(Editor *const editor)
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   mode_data->lock_selection = true;
-  ObjectsEdit_fill_selected(objects, &mode_data->selection, obj_ref,
+  ObjectsEdit_fill_selected(objects, &mode_data->selection.obj, obj_ref,
     &mode_data->change_info, meshes);
   mode_data->lock_selection = false;
 
@@ -1686,12 +1703,12 @@ static _Optional ObjTransfer *clipboard;
 static bool cb_copy_core(Editor *const editor)
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
-  assert(!ObjEditSelection_is_none(&mode_data->selection));
+  assert(!ObjEditSelection_is_none(&mode_data->selection.obj));
 
   EditSession *const session = Editor_get_session(editor);
   assert(!clipboard);
   clipboard = ObjTransfers_grab_selection(
-    Session_get_objects(session), &mode_data->selection);
+    Session_get_objects(session), &mode_data->selection.obj);
 
   return clipboard != NULL;
 }
@@ -1700,7 +1717,7 @@ static void cb_status(Editor *const editor, bool const copy)
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
 
-  size_t const refs_count = ObjEditSelection_size(&mode_data->selection);
+  size_t const refs_count = ObjEditSelection_size(&mode_data->selection.obj);
   char refs_count_str[32];
   sprintf(refs_count_str, "%zu", refs_count);
 
@@ -1727,7 +1744,7 @@ static void clear_selection_and_redraw(Editor *const editor)
 {
   /* Deselect all objects on the map */
   ObjectsModeData *const mode_data = get_mode_data(editor);
-  ObjEditSelection_clear(&mode_data->selection);
+  ObjEditSelection_clear(&mode_data->selection.obj);
 }
 
 static size_t ObjectsMode_num_selected(Editor const *const editor)
@@ -1735,7 +1752,7 @@ static size_t ObjectsMode_num_selected(Editor const *const editor)
   assert(editor != NULL);
   ObjectsModeData *const mode_data = get_mode_data(editor);
 
-  return ObjEditSelection_size(&mode_data->selection);
+  return ObjEditSelection_size(&mode_data->selection.obj);
 }
 
 static size_t ObjectsMode_max_selected(Editor const *const editor)
@@ -1770,7 +1787,7 @@ static bool ObjectsMode_auto_select(Editor *const editor, MapPoint const fine_po
   ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
 
-  if (!ObjEditSelection_is_none(&mode_data->selection) ||
+  if (!ObjEditSelection_is_none(&mode_data->selection.obj) ||
       Editor_get_tool(editor) != EDITORTOOL_SELECT) {
     return false; /* already have a selection or not using that tool */
   }
@@ -1781,7 +1798,7 @@ static bool ObjectsMode_auto_select(Editor *const editor, MapPoint const fine_po
     return false;
   }
 
-  ObjEditSelection_select(&mode_data->selection, grid_coords);
+  ObjEditSelection_select(&mode_data->selection.obj, grid_coords);
 
   return true;
 }
@@ -1799,11 +1816,11 @@ static void ObjectsMode_leave(Editor *const editor)
   free_pending_drop(mode_data);
   free_pending_paste(mode_data);
 
-  ObjPropDboxes_destroy(&mode_data->prop_dboxes);
+  ObjPropDboxes_destroy(&mode_data->prop_dboxes.obj);
 
-  ObjEditSelection_destroy(&mode_data->selection);
-  ObjEditSelection_destroy(&mode_data->occluded);
-  ObjEditSelection_destroy(&mode_data->tmp);
+  ObjEditSelection_destroy(&mode_data->selection.obj);
+  ObjEditSelection_destroy(&mode_data->occluded.obj);
+  ObjEditSelection_destroy(&mode_data->tmp.obj);
   free(mode_data);
 }
 
@@ -1817,13 +1834,13 @@ static void ObjectsMode_resource_change(Editor *const editor, EditorChange const
   switch (event) {
   case EDITOR_CHANGE_GFX_ALL_RELOADED:
     ObjectsMode_wipe_ghost(editor);
-    Palette_reinit(&editor->palette_data);
+    Palette_reinit(&editor->palette_data.obj);
     break;
 
   case EDITOR_CHANGE_GFX_SNAKES_RELOADED:
     ObjectsMode_wipe_ghost(editor);
     if (mode_data->palette_type == OBJPALETTE_TYPE_SNAKES) {
-      Palette_reinit(&editor->palette_data);
+      Palette_reinit(&editor->palette_data.obj);
     }
     break;
 
@@ -1831,14 +1848,14 @@ static void ObjectsMode_resource_change(Editor *const editor, EditorChange const
     if (mode_data->palette_type == OBJPALETTE_TYPE_OBJS) {
       for (int cloud_type = Obj_RefMinCloud; cloud_type < Obj_RefMaxCloud; ++cloud_type)
       {
-        Palette_redraw_object(&editor->palette_data, cloud_type);
+        Palette_redraw_object(&editor->palette_data.obj, cloud_type);
       }
     }
     break;
 
   case EDITOR_CHANGE_HILL_COLOURS:
     if (mode_data->palette_type == OBJPALETTE_TYPE_OBJS) {
-      Palette_redraw_object(&editor->palette_data, Obj_RefHill);
+      Palette_redraw_object(&editor->palette_data.obj, Obj_RefHill);
     }
     break;
 
@@ -1847,50 +1864,50 @@ static void ObjectsMode_resource_change(Editor *const editor, EditorChange const
       int const num_objects = ObjGfxMeshes_get_ground_count(&graphics->meshes);
       for (int obj_ref = Obj_RefMinObject; obj_ref < num_objects; ++obj_ref)
       {
-        Palette_redraw_object(&editor->palette_data, obj_ref);
+        Palette_redraw_object(&editor->palette_data.obj, obj_ref);
       }
     }
     break;
 
   case EDITOR_CHANGE_OBJ_ALL_REPLACED:
-    ObjEditSelection_clear(&mode_data->selection);
-    ObjEditSelection_clear(&mode_data->occluded);
-    ObjPropDboxes_destroy(&mode_data->prop_dboxes);
-    ObjPropDboxes_init(&mode_data->prop_dboxes, editor);
+    ObjEditSelection_clear(&mode_data->selection.obj);
+    ObjEditSelection_clear(&mode_data->occluded.obj);
+    ObjPropDboxes_destroy(&mode_data->prop_dboxes.obj);
+    ObjPropDboxes_init(&mode_data->prop_dboxes.obj, editor);
     break;
 
   case EDITOR_CHANGE_OBJ_PRECHANGE:
     assert(params);
     if (!mode_data->lock_selection) {
-      ObjEditSelection_deselect_area(&mode_data->selection,
+      ObjEditSelection_deselect_area(&mode_data->selection.obj,
         &params->obj_prechange.bbox);
     }
 
-    ObjEditSelection_deselect_area(&mode_data->occluded,
+    ObjEditSelection_deselect_area(&mode_data->occluded.obj,
       &params->obj_prechange.bbox);
 
-    ObjPropDboxes_update_for_del(&mode_data->prop_dboxes, &params->obj_prechange.bbox);
+    ObjPropDboxes_update_for_del(&mode_data->prop_dboxes.obj, &params->obj_prechange.bbox);
     break;
 
   case EDITOR_CHANGE_OBJ_PREMOVE:
     assert(params);
-    if (ObjEditSelection_is_selected(&mode_data->selection, params->obj_premove.old_pos))
+    if (ObjEditSelection_is_selected(&mode_data->selection.obj, params->obj_premove.old_pos))
     {
-      ObjEditSelection_deselect(&mode_data->selection,
+      ObjEditSelection_deselect(&mode_data->selection.obj,
         params->obj_premove.old_pos);
 
-      ObjEditSelection_select(&mode_data->selection,
+      ObjEditSelection_select(&mode_data->selection.obj,
         params->obj_premove.new_pos);
     }
 
-    ObjEditSelection_deselect(&mode_data->occluded,
+    ObjEditSelection_deselect(&mode_data->occluded.obj,
                               params->obj_premove.old_pos);
 
-    ObjPropDboxes_update_for_del(&mode_data->prop_dboxes,
+    ObjPropDboxes_update_for_del(&mode_data->prop_dboxes.obj,
                                  &(MapArea){params->obj_premove.new_pos,
                                             params->obj_premove.new_pos});
 
-    ObjPropDboxes_update_for_move(&mode_data->prop_dboxes, params->obj_premove.old_pos,
+    ObjPropDboxes_update_for_move(&mode_data->prop_dboxes.obj, params->obj_premove.old_pos,
                                   params->obj_premove.new_pos);
     break;
 
@@ -1932,7 +1949,7 @@ static void ObjectsMode_palette_selection(Editor *const editor, int const object
     {
       ObjGfx *const graphics = Session_get_graphics(session);
       char snake_name[16];
-      ObjSnakes_get_name(&graphics->snakes, object, snake_name, sizeof(snake_name));
+      ObjSnakes_get_name(&graphics->snakes.obj, object, snake_name, sizeof(snake_name));
       msg = msgs_lookup_subn("StatusSnSel", 1, snake_name);
       break;
     }
@@ -1958,7 +1975,7 @@ static void ObjectsMode_select_all(Editor *const editor)
   {
     ObjRef const obj_ref = ObjectsEdit_read_ref(objects, p);
     if (!objects_ref_is_none(obj_ref)) {
-      ObjEditSelection_select(&mode_data->selection, p);
+      ObjEditSelection_select(&mode_data->selection.obj, p);
     }
   }
 }
@@ -2010,7 +2027,7 @@ static bool ObjectsMode_start_drag_obj(Editor *const editor,
   ObjEditContext const *const objects = Session_get_objects(session);
 
   MapArea sel_box;
-  if (!ObjEditSelection_get_bounds(&mode_data->selection, &sel_box)) {
+  if (!ObjEditSelection_get_bounds(&mode_data->selection.obj, &sel_box)) {
     return false;
   }
 
@@ -2038,7 +2055,7 @@ static bool ObjectsMode_start_drag_obj(Editor *const editor,
   mode_data->drag_start_pos = sel_box.min;
 
   free_dragged(mode_data);
-  _Optional ObjTransfer *const dragged = ObjTransfers_grab_selection(objects, &mode_data->selection);
+  _Optional ObjTransfer *const dragged = ObjTransfers_grab_selection(objects, &mode_data->selection.obj);
   if (!dragged) {
     return false;
   }
@@ -2123,20 +2140,20 @@ static bool ObjectsMode_show_ghost_drop(Editor *const editor,
 
     Editor_clear_ghost_bbox(editor);
 
-    ObjEditSelection_copy(&mode_data->tmp, &mode_data->occluded);
-    ObjEditSelection_clear(&mode_data->occluded);
+    ObjEditSelection_copy(&mode_data->tmp.obj, &mode_data->occluded.obj);
+    ObjEditSelection_clear(&mode_data->occluded.obj);
 
     if (ObjTransfers_can_plot_to_map(objects, bbox->min, &*origin_data->dragged, meshes,
-                                        &mode_data->occluded)) {
+                                        &mode_data->occluded.obj)) {
       ObjectsMode_add_ghost_bbox_for_transfer(editor, bbox->min, &*origin_data->dragged);
 
-      ObjEditSelection_for_each_changed(&mode_data->occluded, &mode_data->tmp,
+      ObjEditSelection_for_each_changed(&mode_data->occluded.obj, &mode_data->tmp.obj,
                                          NULL, occluded_changed, editor);
 
       mode_data->pending_drop = origin_data->dragged;
       dfile_claim(ObjTransfer_get_dfile(&*origin_data->dragged));
     } else {
-      ObjEditSelection_for_each(&mode_data->tmp, occluded_changed, editor);
+      ObjEditSelection_for_each(&mode_data->tmp.obj, occluded_changed, editor);
     }
   } else {
     // Dragging from a window belonging to another task
@@ -2168,8 +2185,8 @@ static void ObjectsMode_hide_ghost_drop(Editor *const editor)
   ObjectsModeData *const mode_data = get_mode_data(editor);
 
   if (mode_data->pending_drop) {
-    ObjEditSelection_for_each(&mode_data->occluded, occluded_changed, editor);
-    ObjEditSelection_clear(&mode_data->occluded);
+    ObjEditSelection_for_each(&mode_data->occluded.obj, occluded_changed, editor);
+    ObjEditSelection_clear(&mode_data->occluded.obj);
     Editor_redraw_ghost(editor); // undraw
     Editor_clear_ghost_bbox(editor);
     free_pending_drop(mode_data);
@@ -2199,10 +2216,10 @@ static bool drag_obj_copy_core(Editor *const editor,
     return false;
   }
 
-  ObjEditSelection_clear(&mode_data->selection);
+  ObjEditSelection_clear(&mode_data->selection.obj);
 
   return ObjTransfers_plot_to_map(objects, bbox->min, dropped,
-                                  meshes, &mode_data->selection, &mode_data->change_info);
+                                  meshes, &mode_data->selection.obj, &mode_data->change_info);
 }
 
 static bool ObjectsMode_drag_obj_copy(Editor *const editor,
@@ -2254,7 +2271,7 @@ static bool ObjectsMode_drag_obj_link(Editor *const editor,
     return false;
   }
 
-  if (!ObjPropDboxes_drag_obj_link(&mode_data->prop_dboxes, window, icon, origin_data->drag_start_pos)) {
+  if (!ObjPropDboxes_drag_obj_link(&mode_data->prop_dboxes.obj, window, icon, origin_data->drag_start_pos)) {
     return false;
   }
 
@@ -2337,9 +2354,9 @@ static void ObjectsMode_drag_obj_move(Editor *const editor,
   ObjTransfers_fill_map(&no_prechange_cb_ctx, origin_data->drag_start_pos, dragged,
                         objects_ref_from_num(Obj_RefNone), meshes, &origin_data->change_info);
 
-  ObjEditSelection_clear(&dst_data->selection);
+  ObjEditSelection_clear(&dst_data->selection.obj);
   ObjTransfers_plot_to_map(&no_prechange_cb_ctx, bbox->min, dragged,
-                           meshes, &dst_data->selection, &dst_data->change_info);
+                           meshes, &dst_data->selection.obj, &dst_data->change_info);
 
   changed_with_msg(editor);
   if (editor != drag_origin) {
@@ -2529,7 +2546,7 @@ static void ObjectsMode_tool_selected(Editor *const editor)
       /* Configure palette to display snakes */
       if (mode_data->palette_type != OBJPALETTE_TYPE_SNAKES)
       {
-        ObjSnakesPalette_register(&editor->palette_data);
+        ObjSnakesPalette_register(&editor->palette_data.obj);
         mode_data->palette_type = OBJPALETTE_TYPE_SNAKES;
       }
       break;
@@ -2538,7 +2555,7 @@ static void ObjectsMode_tool_selected(Editor *const editor)
       /* Configure palette to display objects */
       if (mode_data->palette_type != OBJPALETTE_TYPE_OBJS)
       {
-        ObjsPalette_register(&editor->palette_data);
+        ObjsPalette_register(&editor->palette_data.obj);
         mode_data->palette_type = OBJPALETTE_TYPE_OBJS;
       }
       break;
@@ -2690,21 +2707,21 @@ bool ObjectsMode_enter(Editor *const editor)
   };
   editor->mode_functions = &objects_mode_fns;
 
-  ObjPropDboxes_init(&mode_data->prop_dboxes, editor);
+  ObjPropDboxes_init(&mode_data->prop_dboxes.obj, editor);
 
-  SFError err = ObjEditSelection_init(&mode_data->selection, redraw_selection, editor);
+  SFError err = ObjEditSelection_init(&mode_data->selection.obj, redraw_selection, editor);
   if (!SFError_fail(err)) {
-    err = ObjEditSelection_init(&mode_data->tmp, (ObjEditSelectionRedrawFn *)NULL, editor);
+    err = ObjEditSelection_init(&mode_data->tmp.obj, (ObjEditSelectionRedrawFn *)NULL, editor);
     if (!SFError_fail(err)) {
       // No redraw callback to avoid flickering of objects still occluded from one frame to the next
-      err = ObjEditSelection_init(&mode_data->occluded, (ObjEditSelectionRedrawFn *)NULL, editor);
+      err = ObjEditSelection_init(&mode_data->occluded.obj, (ObjEditSelectionRedrawFn *)NULL, editor);
       if (!SFError_fail(err)) {
         Editor_display_msg(editor, msgs_lookup("StatusObjMode"), false);
         return true;
       }
-      ObjEditSelection_destroy(&mode_data->tmp);
+      ObjEditSelection_destroy(&mode_data->tmp.obj);
     }
-    ObjEditSelection_destroy(&mode_data->selection);
+    ObjEditSelection_destroy(&mode_data->selection.obj);
   }
   report_error(err, "", "");
   free(mode_data);

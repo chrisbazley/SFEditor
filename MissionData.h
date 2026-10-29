@@ -28,7 +28,10 @@ struct MissionData {
   struct PyramidData pyramid;
   struct PlayerData player;
   struct DefencesData defences;
-  struct TriggersData triggers;
+  union {
+    char nil;
+    struct TriggersData obj;
+  } triggers;
   struct TargetInfosData target_infos;
   struct FighterPerformData fighter_perform;
   struct BigPerformData big_perform;

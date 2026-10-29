@@ -17,8 +17,14 @@ struct ObjGfx
 {
   DFile dfile;
   struct ObjGfxMeshes meshes;
-  struct ObjSnakes snakes;
-  struct ObjTransfers transfers;
+  union {
+    char nil;
+    struct ObjSnakes obj;
+  } snakes;
+  union {
+    char nil;
+    struct ObjTransfers obj;
+  } transfers;
 };
 
 #endif

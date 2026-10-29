@@ -33,8 +33,14 @@ struct Editor
 
   EditorTool tool;
   PlotShape shape_to_plot;
-  struct PaletteData palette_data;
-  MapToolbar toolbar;
+  union {
+    char nil;
+    struct PaletteData obj;
+  } palette_data;
+  union {
+    char nil;
+    MapToolbar obj;
+  } toolbar;
   MapPoint map_pos, fine_pos, drag_select_start, drag_select_end, vertex[3];
 
   EditMode editing_mode; /* see editing modes defined above */

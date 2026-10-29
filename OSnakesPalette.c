@@ -78,14 +78,17 @@ enum {
 /* ---------------- Private functions ---------------- */
 
 typedef struct {
-  SnakeContext super;
+  union {
+    char nil;
+    SnakeContext obj;
+  } super;
   ObjRef (*thumb_obj_refs)[THUMB_TILE_SIZE][THUMB_TILE_WIDTH];
 } ObjSnakesMiniContext;
 
 static unsigned char read_mini_map(MapPoint const map_pos, SnakeContext *const ctx)
 {
   assert(ctx);
-  ObjSnakesMiniContext const *const mctx = CONTAINER_OF(ctx, ObjSnakesMiniContext, super);
+  ObjSnakesMiniContext const *const mctx = CONTAINER_OF(ctx, ObjSnakesMiniContext, super.obj);
 
   if (map_pos.x < 0 ||
       map_pos.x >= THUMB_TILE_WIDTH ||
@@ -102,7 +105,7 @@ static void write_mini_map(MapPoint const map_pos, unsigned char const obj_ref,
                            SnakeContext *const ctx)
 {
   assert(ctx);
-  ObjSnakesMiniContext const *const mctx = CONTAINER_OF(ctx, ObjSnakesMiniContext, super);
+  ObjSnakesMiniContext const *const mctx = CONTAINER_OF(ctx, ObjSnakesMiniContext, super.obj);
   assert(map_pos.x >= 0);
   assert(map_pos.x < THUMB_TILE_WIDTH);
   assert(map_pos.y >= 0);
@@ -119,11 +122,11 @@ static void plot_mini_map(ObjSnakesMiniContext *const ctx,
   assert(num_points > 0);
 
   int i = 0;
-  Snakes_begin_line(&ctx->super, &snakes_data->super, points[i++], snake,
+  Snakes_begin_line(&ctx->super.obj, &snakes_data->super.obj, points[i++], snake,
     false, read_mini_map, write_mini_map);
 
   while (i < num_points) {
-    Snakes_plot_line(&ctx->super, points[i++]);
+    Snakes_plot_line(&ctx->super.obj, points[i++]);
   }
 }
 
@@ -138,7 +141,7 @@ static void make_mini_map(ObjSnakes *const snakes_data, int const snake,
 
   ObjSnakesMiniContext ctx = {.thumb_obj_refs = thumb_obj_refs};
 
-  if (Snakes_has_bends(&snakes_data->super, snake)) {
+  if (Snakes_has_bends(&snakes_data->super.obj, snake)) {
     static MapPoint const s_bend[] = {
       {0,                    0},
       {0,                    THUMB_TILE_SIZE - 1},
@@ -156,7 +159,7 @@ static void make_mini_map(ObjSnakes *const snakes_data, int const snake,
     plot_mini_map(&ctx, snakes_data, snake, north_south_cross, ARRAY_SIZE(north_south_cross));
   }
 
-  if (Snakes_has_junctions(&snakes_data->super, snake)) {
+  if (Snakes_has_junctions(&snakes_data->super.obj, snake)) {
     static MapPoint const east_west_cross[] = {
       {0,                    THUMB_TILE_SIZE / 2},
       {THUMB_TILE_WIDTH - 1, THUMB_TILE_SIZE / 2}};
@@ -173,7 +176,7 @@ static bool init(PaletteData *const pal_data, Editor *const editor, int *num_ind
 
   if (num_indices != NULL)
   {
-    *num_indices = ObjSnakes_get_count(&graphics->snakes);
+    *num_indices = ObjSnakes_get_count(&graphics->snakes.obj);
   }
 
   SnakesMenu_attach(pal_data);
@@ -214,7 +217,7 @@ static void redraw_label(Editor *const editor, Vertex const origin,
 
   /* Truncate the file name with a ellipsis if it exceeds the
      width of the object to which it refers */
-  ObjSnakes_get_name(&redraw_graphics->snakes, object_no, truncated_name, sizeof(truncated_name));
+  ObjSnakes_get_name(&redraw_graphics->snakes.obj, object_no, truncated_name, sizeof(truncated_name));
   int const width = truncate_string(truncated_name, bbox->xmax - bbox->xmin);
 
   /* Reduce the width of the label icon to fit the truncated text */
@@ -319,9 +322,9 @@ static void redraw_object(Editor *const editor, Vertex const origin,
   plot_set_window(&temp_window);
 
   ObjRef thumb_refs[THUMB_TILE_SIZE][THUMB_TILE_WIDTH];
-  make_mini_map(&redraw_graphics->snakes, object_no, &thumb_refs);
+  make_mini_map(&redraw_graphics->snakes.obj, object_no, &thumb_refs);
 
-  long int distance = ObjSnakes_get_pal_distance(&redraw_graphics->snakes, object_no);
+  long int distance = ObjSnakes_get_pal_distance(&redraw_graphics->snakes.obj, object_no);
   if (distance < 0)
   {
     for (distance = MinDist; distance < MaxDist; distance += DistStep)
@@ -348,7 +351,7 @@ static void redraw_object(Editor *const editor, Vertex const origin,
     }
 
     distance = LOWEST(distance, MaxDist);
-    ObjSnakes_set_pal_distance(&redraw_graphics->snakes, object_no, distance);
+    ObjSnakes_set_pal_distance(&redraw_graphics->snakes.obj, object_no, distance);
   }
 
   if (selected) {
@@ -378,7 +381,7 @@ static void reload(Editor *const editor)
   FilenamesData const *const filenames = Session_get_filenames(session);
   ObjGfx *const graphics = Session_get_graphics(session);
 
-  ObjSnakes_load(&graphics->snakes,
+  ObjSnakes_load(&graphics->snakes.obj,
                     filenames_get(filenames, DataType_PolygonMeshes),
                     ObjGfxMeshes_get_ground_count(&graphics->meshes));
 

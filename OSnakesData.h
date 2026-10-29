@@ -15,7 +15,10 @@
 
 struct ObjSnakes
 {
-  struct Snakes super;
+  union {
+    char nil;
+    struct Snakes obj;
+  } super;
   _Optional long int *distances;
 };
 

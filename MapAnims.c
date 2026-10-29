@@ -461,7 +461,7 @@ bool MapAnims_get(ConvAnimations *anims, MapPoint const map_pos,
 static MapPoint iter_loop_core(MapAnimsIter *const iter, _Optional MapAnimParam *const param)
 {
   assert(iter);
-  for (; iter->anim != NULL; iter->anim = intdictviter_advance(&iter->viter)) {
+  for (; iter->anim != NULL; iter->anim = intdictviter_advance(&iter->viter.obj)) {
     _Optional MapAnim *const anim = iter->anim;
 
     MapPoint const coords = map_coords_from_coarse(anim->coords);
@@ -500,7 +500,7 @@ MapPoint MapAnimsIter_get_first(MapAnimsIter *const iter,
     .anims = anims,
   };
 
-  iter->anim = intdictviter_init(&iter->viter, &anims->sa_coords, min_key, max_key);
+  iter->anim = intdictviter_init(&iter->viter.obj, &anims->sa_coords, min_key, max_key);
   return iter_loop_core(iter, param);
 }
 
@@ -509,7 +509,7 @@ MapPoint MapAnimsIter_get_next(MapAnimsIter *const iter, _Optional MapAnimParam 
   assert(iter != NULL);
   assert(!iter->done);
   assert(MapArea_is_valid(&iter->map_area));
-  iter->anim = intdictviter_advance(&iter->viter);
+  iter->anim = intdictviter_advance(&iter->viter.obj);
   return iter_loop_core(iter, param);
 }
 
@@ -520,7 +520,7 @@ void MapAnimsIter_del_current(MapAnimsIter *const iter)
   assert(iter->anim != NULL);
   assert(MapArea_is_valid(&iter->map_area));
 
-  intdictviter_remove(&iter->viter);
+  intdictviter_remove(&iter->viter.obj);
   if (iter->anim)
   {
     delete_anim(iter->anims, &*iter->anim);

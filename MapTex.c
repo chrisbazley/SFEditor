@@ -46,20 +46,20 @@ static void init_all(MapTex *const textures)
 {
   assert(textures);
 
-  MapTexBitmaps_init(&textures->tiles);
-  MapTexGroups_init(&textures->groups);
-  MapSnakes_init(&textures->snakes);
-  MapTransfers_init(&textures->transfers);
+  MapTexBitmaps_init(&textures->tiles.obj);
+  MapTexGroups_init(&textures->groups.obj);
+  MapSnakes_init(&textures->snakes.obj);
+  MapTransfers_init(&textures->transfers.obj);
 }
 
 static void destroy_all(MapTex *const textures)
 {
   assert(textures);
 
-  MapTexBitmaps_free(&textures->tiles);
-  MapTexGroups_free(&textures->groups);
-  MapSnakes_free(&textures->snakes);
-  MapTransfers_free(&textures->transfers);
+  MapTexBitmaps_free(&textures->tiles.obj);
+  MapTexGroups_free(&textures->groups.obj);
+  MapSnakes_free(&textures->snakes.obj);
+  MapTransfers_free(&textures->transfers.obj);
 }
 
 static SFError MapTex_read_cb(DFile const *const dfile, Reader *const reader)
@@ -71,7 +71,7 @@ static SFError MapTex_read_cb(DFile const *const dfile, Reader *const reader)
   destroy_all(textures);
   init_all(textures);
 
-  return MapTexBitmaps_read(&textures->tiles, reader);
+  return MapTexBitmaps_read(&textures->tiles.obj, reader);
 }
 
 static void MapTex_destroy_cb(DFile const *const dfile)
@@ -106,16 +106,7 @@ _Optional MapTex *MapTex_create(void)
   _Optional MapTex *const textures = malloc(sizeof(*textures));
   if (textures)
   {
-    *textures = (MapTex){
-      {0},
-      {0},
-      {0},
-      {
-        .super = {0},
-        .thumbnail_sprites = {(void *)NULL},
-        .have_thumbnails = false},
-      {0}
-    };
+    *textures = (MapTex){.dfile = {0}};
 
     dfile_init(&textures->dfile, MapTex_read_cb, (DFileWriteFn *)NULL,
                (DFileGetMinSizeFn *)NULL, MapTex_destroy_cb);
@@ -136,13 +127,13 @@ void MapTex_load_metadata(MapTex *const textures)
 
   char *const leaf_name = pathtail(&*filename, 1);
 
-  MapTransfers_load_all(&textures->transfers, leaf_name);
+  MapTransfers_load_all(&textures->transfers.obj, leaf_name);
 
-  MapTexGroups_load(&textures->groups, leaf_name,
-                    MapTexBitmaps_get_count(&textures->tiles));
+  MapTexGroups_load(&textures->groups.obj, leaf_name,
+                    MapTexBitmaps_get_count(&textures->tiles.obj));
 
-  MapSnakes_load(&textures->snakes, leaf_name,
-                    MapTexBitmaps_get_count(&textures->tiles));
+  MapSnakes_load(&textures->snakes.obj, leaf_name,
+                    MapTexBitmaps_get_count(&textures->tiles.obj));
 }
 
 bool MapTex_share(MapTex *const textures)

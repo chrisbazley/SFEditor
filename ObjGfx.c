@@ -45,14 +45,14 @@ static void init_all(ObjGfx *const graphics)
 {
   assert(graphics);
   ObjGfxMeshes_init(&graphics->meshes);
-  ObjSnakes_init(&graphics->snakes);
+  ObjSnakes_init(&graphics->snakes.obj);
 }
 
 static void destroy_all(ObjGfx *const graphics)
 {
   assert(graphics);
   ObjGfxMeshes_free(&graphics->meshes);
-  ObjSnakes_free(&graphics->snakes);
+  ObjSnakes_free(&graphics->snakes.obj);
 }
 
 static SFError ObjGfx_read_cb(DFile const *const dfile, Reader *const reader)
@@ -99,20 +99,12 @@ _Optional ObjGfx *ObjGfx_create(void)
   _Optional ObjGfx *const graphics = malloc(sizeof(*graphics));
   if (graphics)
   {
-    *graphics = (ObjGfx){
-      {0},
-      {0},
-      {
-        .super = {0},
-        .distances = NULL,
-      },
-      {0},
-    };
+    *graphics = (ObjGfx){.dfile = {0}};
 
     dfile_init(&graphics->dfile, ObjGfx_read_cb, (DFileWriteFn *)NULL, (DFileGetMinSizeFn *)NULL,
                ObjGfx_destroy_cb);
 
-    ObjTransfers_init(&graphics->transfers);
+    ObjTransfers_init(&graphics->transfers.obj);
     init_all(&*graphics);
   }
   return graphics;
@@ -129,7 +121,7 @@ void ObjGfx_load_metadata(ObjGfx *graphics)
   }
   const char *const leaf_name = pathtail(&*filename, 1);
 
-  ObjSnakes_load(&graphics->snakes, leaf_name,
+  ObjSnakes_load(&graphics->snakes.obj, leaf_name,
                     ObjGfxMeshes_get_ground_count(&graphics->meshes));
 }
 

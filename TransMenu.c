@@ -67,7 +67,7 @@ static void update_trans_menu(PaletteData *const pal_data)
   if (selected != NULL_DATA_INDEX)
   {
     MapTex *const textures = Session_get_textures(session);
-    transfer_to_edit = MapTransfers_find_by_index(&textures->transfers, selected);
+    transfer_to_edit = MapTransfers_find_by_index(&textures->transfers.obj, selected);
     assert(transfer_to_edit != NULL);
   }
 

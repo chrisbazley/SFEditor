@@ -136,7 +136,7 @@ static bool add_to_list(ObjTransfers *const transfers_data,
   DEBUG("Adding transfer '%s'", get_leaf_name(&transfer->dfile));
   // Careful! Key string isn't copied on insertion.
   size_t pos;
-  if (!strdict_insert(&transfers_data->dict, get_leaf_name(&transfer->dfile), transfer, &pos)) {
+  if (!strdict_insert(&transfers_data->dict.obj, get_leaf_name(&transfer->dfile), transfer, &pos)) {
     report_error(SFERROR(NoMem), "", "");
     return false;
   }
@@ -156,7 +156,7 @@ static void remove_from_list(ObjTransfers *const transfers_data,
   assert(transfers_data != NULL);
   assert(transfer != NULL);
   _Optional ObjTransfer *const removed = strdict_remove_value(
-                                     &transfers_data->dict, get_leaf_name(&transfer->dfile), NULL);
+                                     &transfers_data->dict.obj, get_leaf_name(&transfer->dfile), NULL);
   assert(removed == transfer);
   NOT_USED(removed);
   assert(transfers_data->count > 0);
@@ -571,7 +571,7 @@ void ObjTransfers_init(ObjTransfers *const transfers_data)
     .directory = NULL,
   };
 
-  strdict_init(&transfers_data->dict);
+  strdict_init(&transfers_data->dict.obj);
 }
 
 void ObjTransfers_load_all(ObjTransfers *const transfers_data,
@@ -678,7 +678,7 @@ void ObjTransfers_free(ObjTransfers *const transfers_data)
 
   assert(transfers_data != NULL);
 
-  strdict_destroy(&transfers_data->dict, free_all_cb, transfers_data);
+  strdict_destroy(&transfers_data->dict.obj, free_all_cb, transfers_data);
 
   FREE_SAFE(transfers_data->directory);
 }
@@ -1217,7 +1217,7 @@ _Optional ObjTransfer *ObjTransfers_find_by_name(ObjTransfers *const transfers_d
   assert(transfers_data != NULL);
 
   size_t index = SIZE_MAX;
-  _Optional ObjTransfer *const transfer = strdict_find_value(&transfers_data->dict, filename, &index);
+  _Optional ObjTransfer *const transfer = strdict_find_value(&transfers_data->dict.obj, filename, &index);
 
   if (!transfer) {
     DEBUG ("Reached end of transfers list without finding record!");
@@ -1241,7 +1241,7 @@ _Optional ObjTransfer *ObjTransfers_find_by_index(ObjTransfers *const transfers_
 
   assert(transfers_data != NULL);
   assert(transfer_index < transfers_data->count);
-  return strdict_get_value_at(&transfers_data->dict, (size_t)transfer_index);
+  return strdict_get_value_at(&transfers_data->dict.obj, (size_t)transfer_index);
 }
 
 bool ObjTransfers_add(ObjTransfers *const transfers_data,
@@ -1260,7 +1260,7 @@ bool ObjTransfers_add(ObjTransfers *const transfers_data,
   }
   char const *const directory = &*transfers_data->directory;
 
-  _Optional ObjTransfer *const existing_transfer = strdict_find_value(&transfers_data->dict, filename, NULL);
+  _Optional ObjTransfer *const existing_transfer = strdict_find_value(&transfers_data->dict.obj, filename, NULL);
   if (existing_transfer) {
     ObjTransfers_remove_and_delete(transfers_data, &*existing_transfer);
   }
@@ -1301,10 +1301,10 @@ bool ObjTransfers_rename(ObjTransfers *const transfers_data,
   char const *const directory = &*transfers_data->directory;
 
   assert(transfer_to_rename != NULL);
-  assert(strdict_find_value(&transfers_data->dict, get_leaf_name(&transfer_to_rename->dfile), NULL) == transfer_to_rename);
+  assert(strdict_find_value(&transfers_data->dict.obj, get_leaf_name(&transfer_to_rename->dfile), NULL) == transfer_to_rename);
 
   if (stricmp(get_leaf_name(&transfer_to_rename->dfile), new_name) != 0) {
-    _Optional ObjTransfer *const dup = strdict_find_value(&transfers_data->dict, new_name, NULL);
+    _Optional ObjTransfer *const dup = strdict_find_value(&transfers_data->dict.obj, new_name, NULL);
     if (dup) {
       ObjTransfers_remove_and_delete(transfers_data, &*dup);
     }
@@ -1320,7 +1320,7 @@ bool ObjTransfers_rename(ObjTransfers *const transfers_data,
       success = verbose_rename(&*filename, &*newpath);
     }
     if (success) {
-      _Optional ObjTransfer *const removed = strdict_remove_value(&transfers_data->dict,
+      _Optional ObjTransfer *const removed = strdict_remove_value(&transfers_data->dict.obj,
                                          get_leaf_name(&transfer_to_rename->dfile), NULL);
       assert(removed == transfer_to_rename);
       NOT_USED(removed);
@@ -1333,7 +1333,7 @@ bool ObjTransfers_rename(ObjTransfers *const transfers_data,
     // Careful! Key string isn't copied on insertion.
     // Should be impossible to fail to insert after removal
     size_t new_index;
-    bool is_inserted = strdict_insert(&transfers_data->dict, get_leaf_name(&transfer_to_rename->dfile),
+    bool is_inserted = strdict_insert(&transfers_data->dict.obj, get_leaf_name(&transfer_to_rename->dfile),
                                       transfer_to_rename, &new_index);
     assert(is_inserted);
     NOT_USED(is_inserted);
@@ -1348,8 +1348,8 @@ bool ObjTransfers_rename(ObjTransfers *const transfers_data,
 
 void ObjTransfers_remove_and_delete_all(ObjTransfers *const transfers_data)
 {
-  strdict_destroy(&transfers_data->dict, delete_all_cb, transfers_data);
-  strdict_init(&transfers_data->dict);
+  strdict_destroy(&transfers_data->dict.obj, delete_all_cb, transfers_data);
+  strdict_init(&transfers_data->dict.obj);
   transfers_data->count = 0;
 }
 

@@ -61,7 +61,10 @@ void MapAnims_wipe_bbox(ConvAnimations *anims, MapArea const *area,
 typedef struct
 {
   ConvAnimations *anims;
-  IntDictVIter viter;
+  union {
+    char nil;
+    IntDictVIter obj;
+  } viter;
   _Optional MapAnim *anim;
   MapArea map_area;
   bool done;

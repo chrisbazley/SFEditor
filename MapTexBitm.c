@@ -181,13 +181,13 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
   assert(nout < SpriteNameSize);
   NOT_USED(nout);
 
-  if (!SprMem_create_sprite(&tiles->sprites[MapAngle_North][0], numstr, false,
+  if (!SprMem_create_sprite(&tiles->sprites[MapAngle_North][0].obj, numstr, false,
          (Vertex){MapTexSize, MapTexSize}, MapTexModeNumber))
   {
     return SFERROR(AlreadyReported);
   }
 
-  _Optional SpriteHeader *const spr = SprMem_get_sprite_address(&tiles->sprites[MapAngle_North][0], numstr);
+  _Optional SpriteHeader *const spr = SprMem_get_sprite_address(&tiles->sprites[MapAngle_North][0].obj, numstr);
   if (!spr)
   {
     return SFERROR(AlreadyReported);
@@ -217,7 +217,7 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
     }
   }
 
-  SprMem_put_sprite_address(&tiles->sprites[MapAngle_North][0], &*spr);
+  SprMem_put_sprite_address(&tiles->sprites[MapAngle_North][0].obj, &*spr);
 
   /* Divide by number of pixels to get averages for tile */
   red_total /= MapTexSize * MapTexSize;
@@ -258,13 +258,13 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
 static void dump_sprites(const MapTexBitmaps *const tiles, MapAngle const angle, int const level)
 {
 #define FILENAME_PREFIX "<Wimp$ScrapDir>.tile_sprites"
-  SprMem_verify(&tiles->sprites[angle][level]);
+  SprMem_verify(&tiles->sprites[angle][level].obj);
 
   if (tiles->count > 0)
   {
     char filename[sizeof(FILENAME_PREFIX) + 16];
     sprintf(filename, FILENAME_PREFIX"%d%d", angle, level);
-    SprMem_save(&tiles->sprites[angle][level], filename);
+    SprMem_save(&tiles->sprites[angle][level].obj, filename);
   }
 }
 #else
@@ -294,7 +294,7 @@ SFError MapTexBitmaps_read(MapTexBitmaps *const tiles, Reader *const reader)
   MapTexBitmaps_init(tiles);
 
   int const level = 0;
-  if (!SprMem_init(&tiles->sprites[MapAngle_North][level], 0))
+  if (!SprMem_init(&tiles->sprites[MapAngle_North][level].obj, 0))
   {
     return SFERROR(AlreadyReported);
   }
@@ -346,7 +346,7 @@ void MapTexBitmaps_free(MapTexBitmaps *const tiles)
     for (int level = 0; level <= MapTexSizeLog2; ++level) {
       if (tiles->have_sprites[angle][level])
       {
-        SprMem_destroy(&tiles->sprites[angle][level]);
+        SprMem_destroy(&tiles->sprites[angle][level].obj);
       }
     }
   }
@@ -394,7 +394,7 @@ static bool make_mip_level(MapTexBitmaps *const tiles, MapAngle const angle, int
   Vertex const pix_size = {1 << level, 1 << level};
   int const sample_count = 1 << (2 * level);
 
-  SprMem *const sm = &tiles->sprites[angle][level];
+  SprMem *const sm = &tiles->sprites[angle][level].obj;
 
   if (!SprMem_init(sm, 0)) {
     return false;
@@ -419,12 +419,12 @@ static bool make_mip_level(MapTexBitmaps *const tiles, MapAngle const angle, int
       return false;
     }
 
-    _Optional SpriteHeader *const src_spr = SprMem_get_sprite_address(&tiles->sprites[angle][0], numstr);
-    _Optional SpriteHeader *const dst_spr = SprMem_get_sprite_address(&tiles->sprites[angle][level], numstr);
+    _Optional SpriteHeader *const src_spr = SprMem_get_sprite_address(&tiles->sprites[angle][0].obj, numstr);
+    _Optional SpriteHeader *const dst_spr = SprMem_get_sprite_address(&tiles->sprites[angle][level].obj, numstr);
 
     if (!src_spr || !dst_spr) {
       if (src_spr) {
-        SprMem_put_sprite_address(&tiles->sprites[angle][0], &*src_spr);
+        SprMem_put_sprite_address(&tiles->sprites[angle][0].obj, &*src_spr);
       }
       hourglass_off();
       SprMem_destroy(sm);
@@ -469,8 +469,8 @@ static bool make_mip_level(MapTexBitmaps *const tiles, MapAngle const angle, int
       oy += pix_size.y;
     }
 
-    SprMem_put_sprite_address(&tiles->sprites[angle][level], &*dst_spr);
-    SprMem_put_sprite_address(&tiles->sprites[angle][0], &*src_spr);
+    SprMem_put_sprite_address(&tiles->sprites[angle][level].obj, &*dst_spr);
+    SprMem_put_sprite_address(&tiles->sprites[angle][0].obj, &*src_spr);
   }
 
   dump_sprites(tiles, angle, level);
@@ -491,7 +491,7 @@ _Optional SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *const tiles, MapAngle
     angle = MapAngle_North;
   }
 
-  SprMem *const sm = &tiles->sprites[angle][level];
+  SprMem *const sm = &tiles->sprites[angle][level].obj;
 
   if (!tiles->have_sprites[MapAngle_North][level]) {
     if (!make_mip_level(tiles, MapAngle_North, level)) {
@@ -538,7 +538,7 @@ _Optional SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *const tiles, MapAngle
           .yymul = 0,
           .xadd = (TranslateFixedPointOne << MapTexModeXEig) * size.y,
         };
-        SprMem_plot_trans_matrix_sprite(&tiles->sprites[MapAngle_North][level], numstr,
+        SprMem_plot_trans_matrix_sprite(&tiles->sprites[MapAngle_North][level].obj, numstr,
                                         NULL,
                                         SPRITE_ACTION_OVERWRITE, &matrix, NULL);
 #else
@@ -554,12 +554,12 @@ _Optional SprMem *MapTexBitmaps_get_sprites(MapTexBitmaps *const tiles, MapAngle
              (TranslateFixedPointOne << MapTexModeYEig) * 0},
           }
         };
-        SprMem_plot_trans_quad_sprite(&tiles->sprites[MapAngle_North][level], name,
+        SprMem_plot_trans_quad_sprite(&tiles->sprites[MapAngle_North][level].obj, name,
                                       NULL,
                                       SPRITE_ACTION_OVERWRITE, &quad, NULL);
 #endif
       } else {
-        SprMem_plot_sprite(&tiles->sprites[MapAngle_North][level], numstr,
+        SprMem_plot_sprite(&tiles->sprites[MapAngle_North][level].obj, numstr,
                            (Vertex){0,0}, SPRITE_ACTION_OVERWRITE);
       }
       SprMem_restore_output(sm);

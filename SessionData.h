@@ -54,7 +54,10 @@ struct EditSession
   LinkedListItem all_link;
   IntDict edit_wins_array;
 #if !PER_VIEW_SELECT
-  Editor editor;
+  union {
+    char nil;
+    Editor obj;
+  } editor;
 #endif
 
   /* Mission filename ("E.E_01"), map filename ("Academy1") or path to oddball
@@ -94,10 +97,22 @@ file ("IDEFS::Tamzin.$.H.H_08") */
   bool has_fperf[ShipType_Fighter4 - ShipType_Fighter1 + 1];
   bool has_bperf[ShipType_Big3 - ShipType_Big1 + 1];
 
-  BriefDboxData briefing_data;
-  FPerfDboxData fperf[ShipType_Fighter4 - ShipType_Fighter1 + 1];
-  BPerfDboxData bperf[ShipType_Big3 - ShipType_Big1 + 1];
-  SpecialShipData special_ship_data;
+  union {
+    char nil;
+    BriefDboxData obj;
+  } briefing_data;
+  union {
+    char nil;
+    FPerfDboxData obj;
+  } fperf[ShipType_Fighter4 - ShipType_Fighter1 + 1];
+  union {
+    char nil;
+    BPerfDboxData obj;
+  } bperf[ShipType_Big3 - ShipType_Big1 + 1];
+  union {
+    char nil;
+    SpecialShipData obj;
+  } special_ship_data;
 
   SchedulerTime last_update_time;
 };
