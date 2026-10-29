@@ -129,7 +129,7 @@ ObjRef ObjSnakes_get_value(EditSession *const session,
 void ObjSnakes_begin_line(ObjSnakesContext *const ctx,
   EditSession *const session,
   ObjSnakes *const snakes_data, MapPoint const map_pos, int const snake,
-  bool const inside, ObjEditChanges *const change_info,
+  bool const inside, _Optional ObjEditChanges *const change_info,
   ObjGfxMeshes *const meshes)
 {
   assert(ctx != NULL);
@@ -145,7 +145,7 @@ void ObjSnakes_begin_line(ObjSnakesContext *const ctx,
 }
 
 void ObjSnakes_plot_line(ObjSnakesContext *const ctx, MapPoint const end,
-  ObjEditChanges *const change_info)
+  _Optional ObjEditChanges *const change_info)
 {
   assert(ctx != NULL);
   ctx->change_info = change_info;

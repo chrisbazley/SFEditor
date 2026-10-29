@@ -63,7 +63,7 @@ void ObjectsEdit_fill_area(ObjEditContext const *objects,
 
 void ObjectsEdit_write_ref(ObjEditContext const *objects, MapPoint pos,
   ObjRef const ref_num, TriggersWipeAction wipe_action,
-  struct ObjEditChanges *change_info, struct ObjGfxMeshes *meshes);
+  _Optional struct ObjEditChanges *change_info, struct ObjGfxMeshes *meshes);
 
 ObjRef ObjectsEdit_read_ref(ObjEditContext const *objects, MapPoint pos);
 ObjRef ObjectsEdit_read_base(ObjEditContext const *objects, MapPoint pos);
