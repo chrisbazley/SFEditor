@@ -666,7 +666,7 @@ static void ObjectsMode_set_pending(Editor *const editor, PendingShape const pen
     mode_data->pending_transfer = pending_transfer;
     mode_data->pending_vert[0] = pos;
     ObjEditSelection_for_each_changed(&mode_data->occluded.obj, &mode_data->tmp.obj, // previously occluded
-       NULL, occluded_changed, editor);
+       NULL, NULL, editor);
   }
 
   Editor_redraw_ghost(editor); // draw
