@@ -56,9 +56,8 @@
 static WimpPlotIconBlock plot_label;
 static char truncated_name[sizeof(Filename) + sizeof("...") - 1];
 /* -1 because both sizeof() values include space for a string terminator. */
-static ObjGfxMeshes *redraw_meshes;
 static _Optional PolyColData const *redraw_poly_colours;
-ObjGfx *redraw_graphics;
+_Optional ObjGfx *redraw_graphics;
 static ObjGfxMeshesView plot_ctx;
 
 enum {
@@ -172,7 +171,10 @@ static bool init(PaletteData *const pal_data, Editor *const editor, int *num_ind
 {
   NOT_USED(reinit);
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return false;
+  }
 
   if (num_indices != NULL)
   {
@@ -188,8 +190,11 @@ static void start_redraw(Editor *const editor, bool const labels)
   /* Initialisation that can be done once before the redraw process starts,
      rather than upon processing each individual redraw rectangle. */
   EditSession *const session = Editor_get_session(editor);
-  redraw_graphics = Session_get_graphics(session);
-  redraw_meshes = &redraw_graphics->meshes;
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  redraw_graphics = graphics;
+  if (!graphics) {
+    return;
+  }
   redraw_poly_colours = Session_get_poly_colours(session);
 
   ObjGfxMeshes_set_direction(&plot_ctx,
@@ -211,13 +216,17 @@ static void start_redraw(Editor *const editor, bool const labels)
 static void redraw_label(Editor *const editor, Vertex const origin,
   BBox const *const bbox, int const object_no, bool const selected)
 {
+  _Optional ObjGfx *const graphics = redraw_graphics;
+  if (!graphics) {
+    return;
+  }
+
   NOT_USED(editor);
   NOT_USED(origin);
-  assert(redraw_graphics);
 
   /* Truncate the file name with a ellipsis if it exceeds the
      width of the object to which it refers */
-  ObjSnakes_get_name(&redraw_graphics->snakes.obj, object_no, truncated_name, sizeof(truncated_name));
+  ObjSnakes_get_name(&graphics->snakes.obj, object_no, truncated_name, sizeof(truncated_name));
   int const width = truncate_string(truncated_name, bbox->xmax - bbox->xmin);
 
   /* Reduce the width of the label icon to fit the truncated text */
@@ -301,8 +310,15 @@ static void draw_snake(ObjGfxMeshes *const meshes, _Optional PolyColData const *
 static void redraw_object(Editor *const editor, Vertex const origin,
   BBox const *const bbox, int const object_no, bool const selected)
 {
+  _Optional ObjGfx *const graphics = redraw_graphics;
+  if (!graphics) {
+    return;
+  }
+
   NOT_USED(origin);
   NOT_USED(editor);
+
+  ObjGfxMeshes *const meshes = &graphics->meshes;
 
   BBox old_window;
   plot_get_window(&old_window);
@@ -322,15 +338,15 @@ static void redraw_object(Editor *const editor, Vertex const origin,
   plot_set_window(&temp_window);
 
   ObjRef thumb_refs[THUMB_TILE_SIZE][THUMB_TILE_WIDTH];
-  make_mini_map(&redraw_graphics->snakes.obj, object_no, &thumb_refs);
+  make_mini_map(&graphics->snakes.obj, object_no, &thumb_refs);
 
-  long int distance = ObjSnakes_get_pal_distance(&redraw_graphics->snakes.obj, object_no);
+  long int distance = ObjSnakes_get_pal_distance(&graphics->snakes.obj, object_no);
   if (distance < 0)
   {
     for (distance = MinDist; distance < MaxDist; distance += DistStep)
     {
       BBox obj_bbox = BBox_make_invalid();
-      draw_snake(redraw_meshes, NULL, centre, distance, &thumb_refs, NULL, &obj_bbox,
+      draw_snake(meshes, NULL, centre, distance, &thumb_refs, NULL, &obj_bbox,
                  ObjGfxMeshStyle_BBox);
 
       assert(distance <= MaxDist);
@@ -351,7 +367,7 @@ static void redraw_object(Editor *const editor, Vertex const origin,
     }
 
     distance = LOWEST(distance, MaxDist);
-    ObjSnakes_set_pal_distance(&redraw_graphics->snakes.obj, object_no, distance);
+    ObjSnakes_set_pal_distance(&graphics->snakes.obj, object_no, distance);
   }
 
   if (selected) {
@@ -362,7 +378,7 @@ static void redraw_object(Editor *const editor, Vertex const origin,
   Vertex const plot_centre = Vertex_add(centre, BBox_get_min(&plot_bbox));
   plot_set_col(PAL_BLACK);
   ObjGfxMeshes_plot_grid(&plot_ctx, plot_centre, distance, (Vertex3D){0, 0, 0});
-  draw_snake(redraw_meshes, redraw_poly_colours, plot_centre, distance, &thumb_refs, palette, NULL,
+  draw_snake(meshes, redraw_poly_colours, plot_centre, distance, &thumb_refs, palette, NULL,
              ObjGfxMeshStyle_Filled);
 
   plot_set_window(&old_window);
@@ -379,13 +395,16 @@ static void reload(Editor *const editor)
 {
   EditSession *const session = Editor_get_session(editor);
   FilenamesData const *const filenames = Session_get_filenames(session);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
 
   ObjSnakes_load(&graphics->snakes.obj,
                     filenames_get(filenames, DataType_PolygonMeshes),
                     ObjGfxMeshes_get_ground_count(&graphics->meshes));
 
-  Session_all_graphics_changed(graphics, EDITOR_CHANGE_GFX_SNAKES_RELOADED, &(EditorChangeParams){0});
+  Session_all_graphics_changed(&*graphics, EDITOR_CHANGE_GFX_SNAKES_RELOADED, &(EditorChangeParams){0});
 }
 
 static void edit(Editor *const editor)

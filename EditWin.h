@@ -171,6 +171,7 @@ void EditWin_set_ghost_map_bbox(EditWin *edit_win, MapArea const *area);
 void EditWin_add_ghost_obj(EditWin *edit_win, MapPoint pos, ObjRef obj_ref);
 void EditWin_add_ghost_unknown_obj(EditWin *edit_win, MapArea const *bbox);
 void EditWin_add_ghost_unknown_info(EditWin *edit_win, MapArea const *bbox);
+/* Returns an invalid area when polygon graphics are unavailable. */
 MapArea EditWin_get_ghost_obj_bbox(EditWin *edit_win, MapPoint const pos, ObjRef obj_ref);
 MapArea EditWin_get_ghost_info_bbox(EditWin *edit_win, MapPoint pos);
 void EditWin_add_ghost_info(EditWin *edit_win, MapPoint pos);

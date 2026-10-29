@@ -3092,7 +3092,10 @@ void EditWin_redraw_object(EditWin *const edit_win, MapPoint const pos,
           objects_ref_to_num(old_ref), objects_ref_to_num(new_ref), objects_ref_to_num(base_ref),
           pos.x, pos.y);
 
-  ObjGfx *const graphics = Session_get_graphics(EditWin_get_session(edit_win));
+  _Optional ObjGfx *const graphics = Session_get_graphics(EditWin_get_session(edit_win));
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
 
   MapPoint const centre = ObjLayout_map_coords_to_centre(&edit_win->view, pos);
@@ -3144,7 +3147,9 @@ void EditWin_occluded_obj_changed(EditWin *const edit_win, MapPoint const pos, O
   DEBUGF("Redraw occluded obj %d at %" PRIMapCoord ",%" PRIMapCoord "\n",
          objects_ref_to_num(obj_ref), pos.x, pos.y);
   MapArea const obj_bbox = EditWin_get_ghost_obj_bbox(edit_win, pos, obj_ref);
-  MapAreaCol_add(&edit_win->pending_redraws, &obj_bbox);
+  if (MapArea_is_valid(&obj_bbox)) {
+    MapAreaCol_add(&edit_win->pending_redraws, &obj_bbox);
+  }
 }
 
 void EditWin_occluded_info_changed(EditWin *const edit_win, MapPoint const pos)
@@ -3171,7 +3176,10 @@ void EditWin_trig_changed(EditWin *const edit_win, MapPoint const pos,
           objects_ref_to_num(obj_ref), pos.x, pos.y);
 
   MapPoint const centre = ObjLayout_map_coords_to_centre(&edit_win->view, pos);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return;
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   MapArea new_area = DrawObjs_get_trigger_bbox(meshes, &edit_win->view, obj_ref, pos, fparam);
   redraw_object(centre, &new_area, edit_win);
@@ -3212,7 +3220,10 @@ void EditWin_set_ghost_map_bbox(EditWin *const edit_win, MapArea const *const ar
 
 MapArea EditWin_get_ghost_obj_bbox(EditWin *const edit_win, MapPoint const pos, ObjRef const obj_ref)
 {
-  ObjGfx *const graphics = Session_get_graphics(EditWin_get_session(edit_win));
+  _Optional ObjGfx *const graphics = Session_get_graphics(EditWin_get_session(edit_win));
+  if (!graphics) {
+    return MapArea_make_invalid();
+  }
   ObjGfxMeshes *const meshes = &graphics->meshes;
   MapArea obj_bbox = DrawObjs_get_bbox(meshes, &edit_win->view, obj_ref);
   MapPoint const obj_centre = ObjLayout_map_coords_to_centre(&edit_win->view, pos);
@@ -3225,7 +3236,9 @@ void EditWin_add_ghost_obj(EditWin *const edit_win, MapPoint const pos, ObjRef c
   DEBUGF("Extend ghost bbox for obj %d at %" PRIMapCoord ",%" PRIMapCoord "\n",
          objects_ref_to_num(obj_ref), pos.x, pos.y);
   MapArea const obj_bbox = EditWin_get_ghost_obj_bbox(edit_win, pos, obj_ref);
-  MapAreaCol_add(&edit_win->ghost_bboxes, &obj_bbox);
+  if (MapArea_is_valid(&obj_bbox)) {
+    MapAreaCol_add(&edit_win->ghost_bboxes, &obj_bbox);
+  }
 }
 
 void EditWin_add_ghost_unknown_obj(EditWin *const edit_win, MapArea const *const bbox)

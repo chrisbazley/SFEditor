@@ -140,7 +140,8 @@ int const *Session_get_file_date(EditSession *session, DataType data_type);
 
 InterfaceType Session_get_ui_type(const EditSession *session);
 struct MapTex *Session_get_textures(const EditSession *session);
-struct ObjGfx *Session_get_graphics(const EditSession *session);
+/* Graphics may be absent when the session does not need polygon meshes. */
+_Optional struct ObjGfx *Session_get_graphics(const EditSession *session);
 _Optional struct PolyColData const *Session_get_poly_colours(const EditSession *session);
 char *Session_get_filename(EditSession *session);
 char *Session_get_save_filename(EditSession *session);

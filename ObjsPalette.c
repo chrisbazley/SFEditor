@@ -86,7 +86,7 @@ static WimpPlotIconBlock plot_label;
 static char const *graphics_set;
 static char truncated_name[MaxNameLen + sizeof("...") - 1];
 /* -1 because both sizeof() values include space for a string terminator. */
-static ObjGfx *redraw_graphics;
+static _Optional ObjGfx *redraw_graphics;
 static _Optional PolyColData const *poly_colours;
 static SprMem back_buffer;
 static bool have_back_buffer, found_cloud;
@@ -168,6 +168,10 @@ static bool init(PaletteData *const pal_data, Editor *const editor, int *const n
 {
   NOT_USED(reinit);
   EditSession *const session = Editor_get_session(editor);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return false;
+  }
 
   if (!Session_has_data(session, DataType_PolygonMeshes))
   {
@@ -182,7 +186,6 @@ static bool init(PaletteData *const pal_data, Editor *const editor, int *const n
   if (num_indices != NULL)
   {
     bool const include_mask = Session_has_data(session, DataType_OverlayObjects);
-    ObjGfx *const graphics = Session_get_graphics(session);
     *num_indices = ObjGfxMeshes_get_ground_count(&graphics->meshes) +
                    (include_mask ? 1 : 0) + Obj_CloudCount + ObjsPaletteNumHills;
   }
@@ -220,9 +223,13 @@ static void start_redraw(Editor *const editor, bool const labels)
   /* Initialisation that can be done once before the redraw process starts,
      rather than upon processing each individual redraw rectangle. */
   EditSession *const session = Editor_get_session(editor);
-  redraw_graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  redraw_graphics = graphics;
+  if (!graphics) {
+    return;
+  }
   poly_colours = Session_get_poly_colours(session);
-  redraw_num_objects = ObjGfxMeshes_get_ground_count(&redraw_graphics->meshes);
+  redraw_num_objects = ObjGfxMeshes_get_ground_count(&graphics->meshes);
 
   /* This inverts the x dimension and swaps y with z
      (z becomes y again when converted to screen coordinates)
@@ -259,6 +266,11 @@ static void start_redraw(Editor *const editor, bool const labels)
 static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
                          int const object_no, bool const selected)
 {
+  _Optional ObjGfx *const graphics = redraw_graphics;
+  if (!graphics) {
+    return;
+  }
+
   NOT_USED(editor);
   NOT_USED(origin);
 
@@ -299,6 +311,11 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
 static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
                           int const object_no, bool const selected)
 {
+  _Optional ObjGfx *const graphics = redraw_graphics;
+  if (!graphics) {
+    return;
+  }
+
   BBox old_window;
   plot_get_window(&old_window);
 
@@ -321,7 +338,7 @@ static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
   if (object_no > 0 && object_no < redraw_num_objects)
   {
     ObjRef const obj_ref = objects_ref_from_num(object_no);
-    distance = ObjGfxMeshes_get_pal_distance(&redraw_graphics->meshes, obj_ref);
+    distance = ObjGfxMeshes_get_pal_distance(&graphics->meshes, obj_ref);
     if (distance < 0)
     {
       for (distance = MinDist; distance < MaxDist; distance += DistStep)
@@ -337,7 +354,7 @@ static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
             (ObjGfxDirection){{rot}, {VerticalAngle}, {0}}, 0);
 
           BBox obj_bbox;
-          ObjGfxMeshes_plot(&redraw_graphics->meshes, &tmp_ctx, NULL, obj_ref,
+          ObjGfxMeshes_plot(&graphics->meshes, &tmp_ctx, NULL, obj_ref,
                             centre, distance, (Vertex3D){0, 0, 0},
                             NULL, &obj_bbox, ObjGfxMeshStyle_BBox);
 
@@ -362,7 +379,7 @@ static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
       }
 
       distance = LOWEST(distance, MaxDist);
-      ObjGfxMeshes_set_pal_distance(&redraw_graphics->meshes, obj_ref, distance);
+      ObjGfxMeshes_set_pal_distance(&graphics->meshes, obj_ref, distance);
     }
   }
 
@@ -473,7 +490,7 @@ static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
       }
       else if (!objects_ref_is_none(obj_ref))
       {
-        ObjGfxMeshes_plot(&redraw_graphics->meshes, ctx, poly_colours, obj_ref,
+        ObjGfxMeshes_plot(&graphics->meshes, ctx, poly_colours, obj_ref,
           plot_centre, distance, pos, palette, NULL, ObjGfxMeshStyle_Filled);
       }
     }
@@ -492,7 +509,10 @@ static void redraw_object(Editor *const editor, Vertex origin, BBox const *bbox,
 static int index_to_object(Editor *const editor, int const index)
 {
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return NULL_DATA_INDEX;
+  }
   int const num_objects = ObjGfxMeshes_get_ground_count(&graphics->meshes);
   ObjRef obj_ref;
 
@@ -515,7 +535,10 @@ static int index_to_object(Editor *const editor, int const index)
 static int object_to_index(Editor *const editor, int const object_no)
 {
   EditSession *const session = Editor_get_session(editor);
-  ObjGfx *const graphics = Session_get_graphics(session);
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (!graphics) {
+    return NULL_DATA_INDEX;
+  }
   int const num_objects = ObjGfxMeshes_get_ground_count(&graphics->meshes);
   int index = object_no;
 
