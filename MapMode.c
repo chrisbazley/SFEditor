@@ -152,21 +152,21 @@ static void redraw_selection(MapArea const *const area, void *const arg)
 static bool MapMode_can_select_tool(Editor const *const editor, EditorTool const tool)
 {
   EditSession *const session = Editor_get_session(editor);
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
   bool can_select_tool = true;
 
   switch (tool)
   {
   case EDITORTOOL_SNAKE:
-    can_select_tool = (MapSnakes_get_count(&textures->snakes.obj) > 0);
+    can_select_tool = textures && (MapSnakes_get_count(&textures->snakes.obj) > 0);
     break;
 
   case EDITORTOOL_SMOOTHWAND:
-    can_select_tool = (MapTexGroups_get_count(&textures->groups.obj) > 0);
+    can_select_tool = textures && (MapTexGroups_get_count(&textures->groups.obj) > 0);
     break;
 
   case EDITORTOOL_TRANSFER:
-    can_select_tool = (MapTransfers_get_count(&textures->transfers.obj) > 0);
+    can_select_tool = textures && (MapTransfers_get_count(&textures->transfers.obj) > 0);
     break;
 
   default:
@@ -464,7 +464,10 @@ static void draw_anims(Editor *const editor,
 
   MapAngle const angle = EditWin_get_angle(edit_win);
 
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
 
   int const tile_count = MapTexBitmaps_get_count(&textures->tiles.obj);
   PaletteEntry last_colour = 1; /* impossible? */
@@ -544,7 +547,10 @@ static bool draw_to_sprite(Editor *const editor,
     return false;
 
   EditSession *const session = Editor_get_session(editor);
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return false;
+  }
 
   bool const needs_mask = DrawTiles_to_sprite(&textures->tiles.obj, sm, "RenderBuffer",
     angle, rot_area, data->read_map_data.base ? read_map : read_overlay, data,
@@ -772,7 +778,10 @@ static _Optional MapTransfer *get_selected_transfer(Editor *const editor)
     return NULL;
 
   EditSession *const session = Editor_get_session(editor);
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return NULL;
+  }
   return MapTransfers_find_by_index(&textures->transfers.obj, sel_index);
 }
 
@@ -889,7 +898,11 @@ static void MapMode_start_snake(Editor *const editor, MapPoint const map_pos, bo
   MapEditChanges_init(&mode_data->change_info);
   EditSession *const session = Editor_get_session(editor);
   MapEditContext const *const map = Session_get_map(session);
-  MapSnakes *const snakes_data = &Session_get_textures(session)->snakes.obj;
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
+  MapSnakes *const snakes_data = &textures->snakes.obj;
 
   MapSnakes_begin_line(&mode_data->snake_ctx.obj, map,
     //&mode_data->selection.obj.selection_map,
@@ -921,7 +934,11 @@ static void smooth_selection(Editor *const editor)
   MapModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
   MapEditContext const *const map = Session_get_map(session);
-  MapTexGroups *const groups_data = &Session_get_textures(session)->groups.obj;
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
+  MapTexGroups *const groups_data = &textures->groups.obj;
 
   MapEditChanges_init(&mode_data->change_info);
 
@@ -990,7 +1007,11 @@ static void MapMode_start_smooth(Editor *const editor, int const wand_size,
   MapEditChanges_init(&mode_data->change_info);
 
   MapEditContext const *const map = Session_get_map(session);
-  MapTexGroups *const groups_data = &Session_get_textures(session)->groups.obj;
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
+  MapTexGroups *const groups_data = &textures->groups.obj;
   SmoothData data = {map, groups_data, &mode_data->change_info};
 
   Shapes_circ(smooth_line_area_cb, &data, map_pos, wand_size);
@@ -1005,7 +1026,11 @@ static void MapMode_draw_smooth(Editor *const editor, int const wand_size,
   EditSession *const session = Editor_get_session(editor);
 
   MapEditContext const *const map = Session_get_map(session);
-  MapTexGroups *const groups_data = &Session_get_textures(session)->groups.obj;
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
+  MapTexGroups *const groups_data = &textures->groups.obj;
   SmoothData data = {map, groups_data, &mode_data->change_info};
 
   MapMode_wipe_ghost(editor);
@@ -1119,8 +1144,12 @@ static bool MapMode_can_smooth(Editor const *const editor)
   MapModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
 
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return false;
+  }
   return !MapEditSelection_is_none(&mode_data->selection.obj) &&
-         MapTexGroups_get_count(&Session_get_textures(session)->groups.obj) != 0;
+         MapTexGroups_get_count(&textures->groups.obj) != 0;
 }
 
 static void edit_properties_at_pos(Editor *const editor, MapPoint const fine_pos, EditWin *const edit_win)
@@ -1449,7 +1478,10 @@ static void MapMode_create_transfer(Editor *const editor, char const *const name
   EditSession *const session = Editor_get_session(editor);
 
   /* Check for an existing transfer with the same name */
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
 
   int replace_index;
   _Optional MapTransfer * const replace_transfer = MapTransfers_find_by_name(
@@ -1479,11 +1511,11 @@ static void MapMode_create_transfer(Editor *const editor, char const *const name
 
   /* Update the palettes */
   if (replace_transfer == NULL) {
-    Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_TRANSFER_ADDED,
+    Session_all_textures_changed(&*textures, EDITOR_CHANGE_TEX_TRANSFER_ADDED,
       &(EditorChangeParams){.transfer_added.index = new_index});
   } else {
     assert(new_index == replace_index);
-    Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_TRANSFER_REPLACED,
+    Session_all_textures_changed(&*textures, EDITOR_CHANGE_TEX_TRANSFER_REPLACED,
       &(EditorChangeParams){.transfer_replaced.index = replace_index});
   }
 
@@ -1897,7 +1929,10 @@ static void MapMode_palette_selection(Editor *const editor, int const object)
 {
   MapModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
   char const *msg;
 
   switch (mode_data->palette_type) {
@@ -1988,7 +2023,10 @@ static void MapMode_draw_numbers(Editor *const editor,
   unsigned int const bg_brightness = palette_entry_brightness(bg_colour);
   unsigned int const bg_sel_brightness = palette_entry_brightness(bg_sel_colour);
 
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
 
   PaletteEntry last_bg_colour = 1, last_fg_colour = 1; /* impossible? */
 

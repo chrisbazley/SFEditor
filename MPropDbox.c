@@ -184,7 +184,10 @@ static void update_sprite(MapPropDbox const *const prop,
   assert(prop != NULL);
   EditSession *const session = get_session(prop);
 
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
   _Optional SprMem *const sprites = MapTexBitmaps_get_sprites(&textures->tiles.obj, PropsAngle, PropsMipLevel);
   if (!sprites) {
     return;
@@ -491,8 +494,12 @@ static int numberrange_value_changed(int const event_code, ToolboxEvent *const e
        frame_index++) {
 
     if (gadgets_tile_num[frame_index] == id_block->self_component) {
+      _Optional MapTex *const textures = Session_get_textures(session);
+      if (!textures) {
+        return 1;
+      }
       if (nrvce->new_value >= 0 &&
-          nrvce->new_value < MapTexBitmaps_get_count(&Session_get_textures(session)->tiles.obj)) {
+          nrvce->new_value < MapTexBitmaps_get_count(&textures->tiles.obj)) {
 
         assert(nrvce->new_value <= UCHAR_MAX);
         prop->tiles_to_display[frame_index] = map_ref_from_num((unsigned char)nrvce->new_value);
@@ -617,7 +624,11 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   }
 
   /* Set limits on number range gadgets according to current tile set */
-  size_t const upper_bound = MapTexBitmaps_get_count(&Session_get_textures(session)->tiles.obj) - 1;
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return 1;
+  }
+  size_t const upper_bound = MapTexBitmaps_get_count(&textures->tiles.obj) - 1;
 
   for (size_t g = 0; g < ARRAY_SIZE(gadgets_tile_num); g++) {
     assert(upper_bound <= INT_MAX);
@@ -655,7 +666,10 @@ static int redraw_window(int const event_code, WimpPollBlock *const event,
   const WimpRedrawWindowRequestEvent *const wrwre = &event->redraw_window_request;
   EditSession *const session = get_session(prop);
 
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return 1;
+  }
   _Optional SprMem *const sprites = MapTexBitmaps_get_sprites(&textures->tiles.obj, PropsAngle, PropsMipLevel);
   if (!sprites) {
     return 1;

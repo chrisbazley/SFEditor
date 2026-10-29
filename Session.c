@@ -633,7 +633,10 @@ static void check_tile_range(EditSession *const session)
      in the loaded tiles set */
   if (Session_has_data(session, DataType_MapTextures))
   {
-    const MapTex *const textures = Session_get_textures(session);
+    _Optional MapTex const *const textures = Session_get_textures(session);
+    if (!textures) {
+      return;
+    }
 
     if (!MapEdit_check_tile_range(Session_get_map(session),
           MapTexBitmaps_get_count(&textures->tiles.obj))) {
@@ -3084,10 +3087,9 @@ InterfaceType Session_get_ui_type(const EditSession *const session)
   return session->ui_type;
 }
 
-MapTex *Session_get_textures(const EditSession *const session)
+_Optional MapTex *Session_get_textures(const EditSession *const session)
 {
   assert(session != NULL);
-  assert(session->textures != NULL);
   return session->textures;
 }
 

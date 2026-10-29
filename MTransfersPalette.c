@@ -64,7 +64,10 @@ static bool init(PaletteData *const pal_data, Editor *const editor,
   int *const num_indices, bool const reinit)
 {
   NOT_USED(reinit);
-  MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  _Optional MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  if (!textures) {
+    return false;
+  }
 
   /* Create thumbnail sprites, if not done already
   (This may be the case if we are sharing with another session) */
@@ -95,7 +98,10 @@ static void start_redraw(Editor *const editor, bool const labels)
   /* Initialisation that can be done once before the redraw process starts,
      rather than upon processing each individual redraw rectangle. */
 
-  MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  _Optional MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  if (!textures) {
+    return;
+  }
   if (!textures->transfers.obj.have_thumbnails)
     return; /* failure */
 
@@ -125,7 +131,10 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
   int object_no, bool const selected)
 {
   NOT_USED(origin);
-  MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  _Optional MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  if (!textures) {
+    return;
+  }
   _Optional MapTransfer *const transfer = MapTransfers_find_by_index(
                                        &textures->transfers.obj, object_no);
   if (transfer == NULL)
@@ -160,7 +169,10 @@ static void redraw_object(Editor *const editor, Vertex const origin,
   BBox const *bbox, int const object_no, bool const selected)
 {
   NOT_USED(origin);
-  MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  _Optional MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  if (!textures) {
+    return;
+  }
   if (!textures->transfers.obj.have_thumbnails)
     return; /* failure */
 
@@ -187,7 +199,10 @@ static void end_redraw(Editor *const editor, bool const labels)
 {
   /* Tidy up at the end of the redraw process. */
   NOT_USED(labels);
-  MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  _Optional MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  if (!textures) {
+    return;
+  }
   if (!textures->transfers.obj.have_thumbnails)
     return; /* failure */
 
@@ -204,16 +219,22 @@ static void reload(Editor *const editor)
 {
   EditSession *const session = Editor_get_session(editor);
   FilenamesData const *const filenames = Session_get_filenames(session);
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
 
   MapTransfers_load_all(&textures->transfers.obj, filenames_get(filenames, DataType_MapTextures));
-  Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_TRANSFERS_RELOADED, &(EditorChangeParams){0});
+  Session_all_textures_changed(&*textures, EDITOR_CHANGE_TEX_TRANSFERS_RELOADED, &(EditorChangeParams){0});
 }
 
 static void edit(Editor *const editor)
 {
   EditSession *const session = Editor_get_session(editor);
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
   MapTransfers_open_dir(&textures->transfers.obj);
 }
 
@@ -224,16 +245,22 @@ static void delete_all(Editor *const editor)
   if (dialogue_confirm(msgs_lookup_subn("DelAllTran", 1,
                        filenames_get(filenames, DataType_MapTextures)), "DelCanBut"))
   {
-    MapTex *const textures = Session_get_textures(session);
+    _Optional MapTex *const textures = Session_get_textures(session);
+    if (!textures) {
+      return;
+    }
     MapTransfers_remove_and_delete_all(&textures->transfers.obj);
-    Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_TRANSFER_ALL_DELETED, &(EditorChangeParams){0});
+    Session_all_textures_changed(&*textures, EDITOR_CHANGE_TEX_TRANSFER_ALL_DELETED, &(EditorChangeParams){0});
   }
 }
 
 static void delete(Editor *const editor, int const object_no)
 {
   EditSession *const session = Editor_get_session(editor);
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
   _Optional MapTransfer *const delete_me = MapTransfers_find_by_index(
     &textures->transfers.obj, object_no);
   assert(delete_me != NULL);
@@ -246,7 +273,7 @@ static void delete(Editor *const editor, int const object_no)
     MapTransfers_remove_and_delete(&textures->transfers.obj,
       &*delete_me, true);
 
-    Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_TRANSFER_DELETED,
+    Session_all_textures_changed(&*textures, EDITOR_CHANGE_TEX_TRANSFER_DELETED,
       &(EditorChangeParams){.transfer_deleted.index = object_no});
   }
 }

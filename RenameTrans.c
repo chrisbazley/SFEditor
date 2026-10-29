@@ -70,7 +70,10 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
     0, id_block->ancestor_id, &pal_data), 0);
 
   EditSession *const session = Palette_get_session(pal_data);
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return 1;
+  }
 
   int sel_index, new_index;
   Filename new_name;
@@ -97,7 +100,7 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
         return 1; /* claim event */
 
       /* Update the palettes */
-      Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_TRANSFER_RENAMED,
+      Session_all_textures_changed(&*textures, EDITOR_CHANGE_TEX_TRANSFER_RENAMED,
         &(EditorChangeParams){.transfer_renamed.index = sel_index,
                               .transfer_renamed.new_index = new_index});
 
@@ -123,7 +126,10 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
     0, id_block->ancestor_id, &pal_data), 0);
 
   EditSession *const session = Palette_get_session(pal_data);
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return 1;
+  }
 
   int const selected = Palette_get_selection(pal_data);
   if (selected == NULL_DATA_INDEX)

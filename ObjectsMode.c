@@ -441,47 +441,48 @@ void ObjectsMode_draw(Editor *const editor,
     return;
   }
 
-  MapArea overlapping_area;
-  _Optional ObjGfx *const graphics = Session_get_graphics(session);
-  if (!graphics) {
-    return;
-  }
-  ObjGfxMeshes *const meshes = &graphics->meshes;
   View const *const view = EditWin_get_view(edit_win);
-  DrawObjs_get_overlapping_draw_area(meshes, view, redraw_area, &overlapping_area);
-
-  ObjEditContext const *const read_obj_ctx = EditWin_get_read_obj_ctx(edit_win);
-
   _Optional ObjectsModeData *const mode_data =
       Editor_get_edit_mode(editor) == EDITING_MODE_OBJECTS ?
       editor->editingmode_data : NULL;
+  MapArea overlapping_area;
+  _Optional ObjGfx *const graphics = Session_get_graphics(session);
+  if (graphics) {
+    ObjGfxMeshes *const meshes = &graphics->meshes;
+    DrawObjs_get_overlapping_draw_area(meshes, view, redraw_area, &overlapping_area);
 
-  _Optional ObjEditSelection const *const selection = mode_data ? &mode_data->selection.obj : NULL,
-                                   *const occluded = mode_data && (mode_data->pending_drop ||
-                                                                   mode_data->pending_shape != Pending_None) ?
-                                                     &mode_data->occluded.obj : NULL;
+    ObjEditContext const *const read_obj_ctx = EditWin_get_read_obj_ctx(edit_win);
 
-  ObjReadArgs read_args = {EditWin_get_hills(edit_win), read_obj_ctx, meshes, view, redraw_area};
+    _Optional ObjEditSelection const *const selection = mode_data ? &mode_data->selection.obj : NULL,
+                                     *const occluded = mode_data && (mode_data->pending_drop ||
+                                                                     mode_data->pending_shape != Pending_None) ?
+                                                       &mode_data->occluded.obj : NULL;
 
-  _Optional PolyColData const *const poly_colours = Session_get_poly_colours(session);
-  _Optional HillColData const *const hill_colours = Session_get_hill_colours(session);
-  struct CloudColData const *const clouds = Session_get_cloud_colours(session);
-  MapArea const scr_area = ObjLayout_rotate_map_area_to_scr(view->config.angle, &overlapping_area);
+    ObjReadArgs read_args = {EditWin_get_hills(edit_win), read_obj_ctx, meshes, view, redraw_area};
 
-  DrawObjs_to_screen(poly_colours, hill_colours, clouds, meshes, EditWin_get_view(edit_win), &scr_area,
-                     read_obj_ctx->base ? redraw_read_grid : redraw_read_overlay,
-                     read_hill, &read_args,
-                     read_obj_ctx->triggers,
-                     selection, scr_orig, false, occluded);
+    _Optional PolyColData const *const poly_colours = Session_get_poly_colours(session);
+    _Optional HillColData const *const hill_colours = Session_get_hill_colours(session);
+    struct CloudColData const *const clouds = Session_get_cloud_colours(session);
+    MapArea const scr_area = ObjLayout_rotate_map_area_to_scr(view->config.angle, &overlapping_area);
 
-  if (mode_data && mode_data->pending_shape != Pending_None) {
-    plot_set_col(EditWin_get_ghost_colour(edit_win));
-    draw_pending(&*mode_data, read_obj_ctx, edit_win, scr_orig, redraw_area, &overlapping_area);
-  }
+    DrawObjs_to_screen(poly_colours, hill_colours, clouds, meshes, EditWin_get_view(edit_win), &scr_area,
+                       read_obj_ctx->base ? redraw_read_grid : redraw_read_overlay,
+                       read_hill, &read_args,
+                       read_obj_ctx->triggers,
+                       selection, scr_orig, false, occluded);
 
-  if (mode_data && mode_data->pending_drop) {
-    draw_ghost_paste(&*mode_data->pending_drop, mode_data->drop_bbox.min, edit_win,
-                     scr_orig, redraw_area, &overlapping_area);
+    if (mode_data && mode_data->pending_shape != Pending_None) {
+      plot_set_col(EditWin_get_ghost_colour(edit_win));
+      draw_pending(&*mode_data, read_obj_ctx, edit_win, scr_orig, redraw_area, &overlapping_area);
+    }
+
+    if (mode_data && mode_data->pending_drop) {
+      draw_ghost_paste(&*mode_data->pending_drop, mode_data->drop_bbox.min, edit_win,
+                       scr_orig, redraw_area, &overlapping_area);
+    }
+
+  } else {
+    overlapping_area = ObjLayout_map_area_from_fine(view, redraw_area);
   }
 
   if (mode_data && mode_data->uk_drop_pending) {
@@ -672,9 +673,6 @@ static bool ObjectsMode_can_select_tool(Editor const *const editor, EditorTool c
 {
   EditSession *const session = Editor_get_session(editor);
   _Optional ObjGfx *const graphics = Session_get_graphics(session);
-  if (!graphics) {
-    return false;
-  }
   bool can_select_tool = false;
 
   switch (tool)
@@ -689,7 +687,7 @@ static bool ObjectsMode_can_select_tool(Editor const *const editor, EditorTool c
     break;
 
   case EDITORTOOL_SNAKE:
-    can_select_tool = (ObjSnakes_get_count(&graphics->snakes.obj) > 0);
+    can_select_tool = graphics && (ObjSnakes_get_count(&graphics->snakes.obj) > 0);
     break;
   default:
     break;

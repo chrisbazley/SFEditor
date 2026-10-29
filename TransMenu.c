@@ -66,9 +66,11 @@ static void update_trans_menu(PaletteData *const pal_data)
   _Optional MapTransfer *transfer_to_edit = NULL;
   if (selected != NULL_DATA_INDEX)
   {
-    MapTex *const textures = Session_get_textures(session);
-    transfer_to_edit = MapTransfers_find_by_index(&textures->transfers.obj, selected);
-    assert(transfer_to_edit != NULL);
+    _Optional MapTex *const textures = Session_get_textures(session);
+    if (textures) {
+      transfer_to_edit = MapTransfers_find_by_index(&textures->transfers.obj, selected);
+      assert(transfer_to_edit != NULL);
+    }
   }
 
   E(menu_set_entry_text(0, trans_menu_id, TRANSMENU_TRANSFER,
@@ -76,7 +78,7 @@ static void update_trans_menu(PaletteData *const pal_data)
                        get_leaf_name(MapTransfer_get_dfile(&*transfer_to_edit)))));
 
   E(menu_set_fade(0, trans_menu_id, TRANSMENU_TRANSFER,
-                  selected == NULL_DATA_INDEX));
+                  transfer_to_edit == NULL));
 
   E(menu_set_tick(0, trans_menu_id, TRANSMENU_NAMES, Palette_get_labels_flag(pal_data)));
 }

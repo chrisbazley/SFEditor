@@ -142,7 +142,10 @@ static void gen_sel_tex_bw_table(EditWin *const edit_win)
   if (!Session_has_data(session, DataType_MapTextures)) {
     return;
   }
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
   int const count = MapTexBitmaps_get_count(&textures->tiles.obj);
 
   for (int bitmap = 0; bitmap < count; ++bitmap) {
@@ -2998,7 +3001,11 @@ bool EditWin_get_sel_tex_is_bright(EditWin const *const edit_win, MapRef const t
 {
   assert(edit_win != NULL);
   unsigned char const index = map_ref_to_num(tile_num);
-  assert(index < MapTexBitmaps_get_count(&Session_get_textures(EditWin_get_session(edit_win))->tiles.obj));
+  _Optional MapTex *const textures = Session_get_textures(EditWin_get_session(edit_win));
+  if (!textures) {
+    return false;
+  }
+  assert(index < MapTexBitmaps_get_count(&textures->tiles.obj));
   assert((index / CHAR_BIT) < ARRAY_SIZE(edit_win->sel_tex_bw_table));
   return TEST_BITS(edit_win->sel_tex_bw_table[index / CHAR_BIT], 1u << (index % CHAR_BIT));
 }
