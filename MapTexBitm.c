@@ -285,7 +285,10 @@ int MapTexBitmaps_get_count(const MapTexBitmaps *const tiles)
 void MapTexBitmaps_init(MapTexBitmaps *const tiles)
 {
   assert(tiles != NULL);
-  *tiles = (MapTexBitmaps){0};
+  *tiles = (MapTexBitmaps){
+    .avcols_table = (void *)NULL,
+    .bw_table = (void *)NULL,
+  };
 }
 
 SFError MapTexBitmaps_read(MapTexBitmaps *const tiles, Reader *const reader)
