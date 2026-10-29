@@ -64,8 +64,10 @@ static char spr_name[12];
 static bool init(PaletteData *const pal_data, Editor *const editor, int *num_indices, bool const reinit)
 {
   NOT_USED(reinit);
-  MapTex *const textures = Session_get_textures(Editor_get_session(editor));
-  assert(textures);
+  _Optional MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  if (!textures) {
+    return false;
+  }
 
   /* Create thumbnail sprites, if not done already
   (This may be the case if we are sharing with another session) */
@@ -85,8 +87,10 @@ static void start_redraw(Editor *const editor, bool const labels)
 {
   /* Initialisation that can be done once before the redraw process starts,
      rather than upon processing each individual redraw rectangle. */
-  MapTex *const textures = Session_get_textures(Editor_get_session(editor));
-  assert(textures);
+  _Optional MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  if (!textures) {
+    return;
+  }
 
   if (!textures->snakes.obj.have_thumbnails)
     return;
@@ -120,8 +124,10 @@ static void redraw_label(Editor *const editor, Vertex const origin,
   BBox const *const bbox, int const object_no, bool const selected)
 {
   NOT_USED(origin);
-  MapTex *const textures = Session_get_textures(Editor_get_session(editor));
-  assert(textures);
+  _Optional MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  if (!textures) {
+    return;
+  }
 
   /* Truncate the file name with a ellipsis if it exceeds the
      width of the object to which it refers */
@@ -151,6 +157,10 @@ static void redraw_label(Editor *const editor, Vertex const origin,
 static void redraw_object(Editor *const editor, Vertex const origin,
   BBox const *const bbox, int const object_no, bool const selected)
 {
+  if (!Session_get_textures(Editor_get_session(editor))) {
+    return;
+  }
+
   NOT_USED(origin);
   NOT_USED(editor);
 
@@ -178,7 +188,10 @@ static void end_redraw(Editor *const editor, bool const labels)
 {
   /* Tidy up at the end of the redraw process. */
   NOT_USED(labels);
-  MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  _Optional MapTex *const textures = Session_get_textures(Editor_get_session(editor));
+  if (!textures) {
+    return;
+  }
   if (!textures->snakes.obj.have_thumbnails)
     return; /* failure */
 
@@ -189,14 +202,16 @@ static void reload(Editor *const editor)
 {
   EditSession *const session = Editor_get_session(editor);
   FilenamesData const *const filenames = Session_get_filenames(session);
-  MapTex *const textures = Session_get_textures(session);
-  assert(textures);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return;
+  }
 
   MapSnakes_load(&textures->snakes.obj,
                     filenames_get(filenames, DataType_MapTextures),
                     MapTexBitmaps_get_count(&textures->tiles.obj));
 
-  Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_SNAKES_RELOADED,
+  Session_all_textures_changed(&*textures, EDITOR_CHANGE_TEX_SNAKES_RELOADED,
                                &(EditorChangeParams){0});
 }
 

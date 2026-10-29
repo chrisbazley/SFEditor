@@ -65,8 +65,9 @@ static void update_tiles_menu(PaletteData *const pal_data)
   E(menu_set_tick(0, tiles_menu_id, ComponentId_Numbers,
              Palette_get_labels_flag(pal_data)));
 
+  _Optional MapTex *const textures = Session_get_textures(session);
   E(menu_set_fade(0, tiles_menu_id, ComponentId_NumOrder,
-    !MapTexGroups_get_count(&Session_get_textures(session)->groups.obj)));
+    !textures || !MapTexGroups_get_count(&textures->groups.obj)));
 
   E(menu_set_tick(0, tiles_menu_id, ComponentId_NumOrder,
              Palette_get_ordered_flag(pal_data)));

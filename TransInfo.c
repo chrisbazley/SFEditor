@@ -69,7 +69,10 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   if (selected == NULL_DATA_INDEX)
     return 1; /* no transfer selected in palette - just claim event */
 
-  MapTex *const textures = Session_get_textures(session);
+  _Optional MapTex *const textures = Session_get_textures(session);
+  if (!textures) {
+    return 1;
+  }
   _Optional MapTransfer *const transfer = MapTransfers_find_by_index(
                                         &textures->transfers.obj, selected);
   assert(transfer);
