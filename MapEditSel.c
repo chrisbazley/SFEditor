@@ -184,7 +184,8 @@ SFError MapEditSelection_init(MapEditSelection *const selection,
 {
   assert(selection != NULL);
 
-  *selection = (MapEditSelection){.num_selected = 0,
+  *selection = (MapEditSelection){
+    .flex = (void *)NULL, .num_selected = 0,
     .redraw_cb = redraw_cb, .redraw_arg = redraw_arg};
   clear_bounds(selection);
   if (!flex_alloc(&selection->flex, MapEditSelection_NBytes)) {

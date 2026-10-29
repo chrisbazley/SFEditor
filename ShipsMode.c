@@ -146,6 +146,8 @@ bool ShipsMode_enter(Editor *const editor)
   static DataType const type_list[] = {DataType_Count};
 
   static EditModeFuncts const ships_mode_fns = {
+    .dragged_data_types = type_list,
+    .import_data_types = type_list,
     .export_data_types = type_list,
     .auto_select = ShipsMode_auto_select,
     .auto_deselect = ShipsMode_auto_deselect,

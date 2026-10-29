@@ -98,7 +98,6 @@ typedef struct
   TriggersData *triggers;
   IntDictVIter viter;
   _Optional Trigger *trigger;
-  Trigger *next_chain;
   MapArea map_area;
   bool done;
 }

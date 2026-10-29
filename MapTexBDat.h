@@ -19,7 +19,6 @@ struct MapTexBitmaps
   void *avcols_table; /* flex anchor (for x1 zoom level) */
   void *bw_table; /* flex anchor for black/white table,
                      one bit per tile graphic */
-  void *bitmaps;
 };
 
 #endif

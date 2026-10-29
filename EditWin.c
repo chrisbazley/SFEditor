@@ -2568,7 +2568,7 @@ static void update_read_obj_ctx(EditWin *const edit_win)
   edit_win->read_obj_ctx = (struct ObjEditContext){
     .base = !display_flags.OBJECTS ? NULL : objects->base,
     .overlay = !display_flags.OBJECTS_OVERLAY ? NULL : objects->overlay,
-    .triggers = objects->triggers};
+    .triggers = objects->triggers, .session = objects->session};
 }
 
 static void update_read_map_ctx(EditWin *const edit_win)
@@ -2579,7 +2579,7 @@ static void update_read_map_ctx(EditWin *const edit_win)
   edit_win->read_map_ctx = (struct MapEditContext){
     .base = !display_flags.MAP ? NULL : map->base,
     .overlay = !display_flags.MAP_OVERLAY ? NULL : map->overlay,
-    .anims = map->anims};
+    .anims = map->anims, .session = map->session};
 }
 
 static void update_read_info_ctx(EditWin *const edit_win)
@@ -2587,8 +2587,8 @@ static void update_read_info_ctx(EditWin *const edit_win)
   struct InfoEditContext const *const infos = Session_get_infos(EditWin_get_session(edit_win));
   ViewDisplayFlags const display_flags = EditWin_get_display_flags(edit_win);
 
-  static struct InfoEditContext const dummy = {.data = NULL};
-  edit_win->read_info_ctx = !display_flags.INFO ? &dummy : infos;
+  edit_win->hidden_info_ctx = (struct InfoEditContext){.session = infos->session};
+  edit_win->read_info_ctx = display_flags.INFO ? infos : &edit_win->hidden_info_ctx;
 }
 
 /* ---------------- Public functions ---------------- */

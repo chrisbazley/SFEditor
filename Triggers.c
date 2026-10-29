@@ -134,7 +134,8 @@ static void write_trigger(Trigger const *const trigger,
 SFError triggers_init(TriggersData *const triggers)
 {
   assert(triggers);
-  *triggers = (TriggersData){0};
+  *triggers = (TriggersData){
+    .bit_map = (void *)NULL};
   linkedlist_init(&triggers->list);
 
   if (!flex_alloc(&triggers->bit_map, TriggerBitmapSize)) {

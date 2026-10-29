@@ -187,7 +187,7 @@ void dfile_destroy(DFile *const dfile)
   assert(dfile);
   if (dfile->dict)
   {
-    _Optional DFile *const removed = strdict_remove_value(dfile->dict, dfile->name ? &*dfile->name : "", NULL);
+    _Optional DFile *const removed = strdict_remove_value(&*dfile->dict, dfile->name ? &*dfile->name : "", NULL);
     assert(removed == dfile);
     NOT_USED(removed);
   }

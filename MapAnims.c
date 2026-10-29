@@ -403,6 +403,7 @@ _Optional ConvAnimations *MapAnims_create(void)
   if (anims)
   {
     *anims = (ConvAnimations){
+      .bit_map = (void *)NULL,
       .dfile = {0},
       .sa_coords = {0},
       .steps_since_reset = 0,

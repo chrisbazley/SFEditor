@@ -66,7 +66,7 @@ ComponentId fsmenu_build(ObjectId const menu,
 {
 
   ComponentId ticked = NULL_ComponentId;
-  MenuTemplateEntry new_entry = {0};
+  MenuTemplateEntry new_entry = {.text = leaf_names[0].leaf_name};
 
   DEBUG("Building menu %d from leafname array %p (%sinclude 'Blank', "
         "%sadd 'None', %sfade internal files)", menu, (void *)leaf_names,

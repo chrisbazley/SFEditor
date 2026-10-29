@@ -286,7 +286,12 @@ void DrawInfos_to_screen(
   int const grid_size = 1 << grid_size_log2;
   Vertex const offset_orig = Vertex_add(scr_orig, (Vertex){grid_size / 2, grid_size / 2});
 
-  PlotInfoArgs plot_info_args = {.offset_orig = offset_orig,
+  DrawInfoContext info_ctx;
+  if (!DrawInfo_init(&info_ctx, &colours, &sel_colours, zoom, is_ghost)) {
+    return;
+  }
+
+  PlotInfoArgs plot_info_args = {.info_ctx = info_ctx, .offset_orig = offset_orig,
                                  .grid_size_log2 = grid_size_log2,
                                  .is_ghost = is_ghost,
                                  .sel_colour = view->config.sel_colour,
@@ -304,10 +309,6 @@ void DrawInfos_to_screen(
   // The bounding box is expected to be invalid after wrapping offscreen coordinates to the opposite side
   plot_info_args.overlapping_area.min = map_wrap_coords(plot_info_args.overlapping_area.min);
   plot_info_args.overlapping_area.max = map_wrap_coords(plot_info_args.overlapping_area.max);
-
-  if (!DrawInfo_init(&plot_info_args.info_ctx, &colours, &sel_colours, zoom, is_ghost)) {
-    return;
-  }
 
   MapPoint map_pos;
   int id;

@@ -1248,6 +1248,7 @@ static _Optional ObjPropDbox *create_dbox(ObjPropDboxes *const prop_dboxes, MapP
   }
 
   *prop = (ObjPropDbox){
+    .items = (void *)NULL,
     .prop_dboxes = prop_dboxes,
     .last_added = {.param.action = TriggerAction_MissionTarget},
     .edited_item = -1,

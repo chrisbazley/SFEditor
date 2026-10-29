@@ -125,7 +125,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 
     /* Rebuild menu for different graphics set */
     STRCPY_SAFE(graphics_set, filenames_get(filenames, DataType_PolygonMeshes));
-    MenuTemplateEntry new_entry = {0};
+    MenuTemplateEntry new_entry = {.text = menu_text[0]};
 
     StringBuffer ship_name;
     stringbuffer_init(&ship_name);

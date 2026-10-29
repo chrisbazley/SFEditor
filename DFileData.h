@@ -35,7 +35,7 @@ void dfile_destroy(DFile *dfile);
 
 struct DFile
 {
-  StrDict *dict;
+  _Optional StrDict *dict;
   int ref_count;
   bool is_modified;
   int date[2];

@@ -22,6 +22,7 @@
 #include "Hill.h"
 #include "ObjEditCtx.h"
 #include "MapEditCtx.h"
+#include "InfoEditCtx.h"
 #include "View.h"
 #include "MapTexBitm.h"
 #include "MapAreaColData.h"
@@ -48,14 +49,13 @@ struct EditWin
   struct EditSession *session;
   PointerType pointer;
 
-  void (*can_paste_fn)(void *arg, bool cb_valid), *can_paste_arg;
-
   HillsData hills;
   struct MapAreaColData pending_redraws, ghost_bboxes;
   MapArea pending_hills_update;
 
   struct ObjEditContext read_obj_ctx;
   struct MapEditContext read_map_ctx;
+  struct InfoEditContext hidden_info_ctx;
   struct InfoEditContext const *read_info_ctx;
   char sel_tex_bw_table[(MapTexMax + CHAR_BIT - 1) / CHAR_BIT];
 
