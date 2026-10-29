@@ -72,7 +72,10 @@ size_t triggers_count_bbox(TriggersData *triggers, MapArea const *map_area);
 typedef struct
 {
   TriggersData *triggers;
-  IntDictVIter viter;
+  union {
+    char nil;
+    IntDictVIter obj;
+  } viter;
   _Optional Trigger *trigger;
   MapArea map_area;
   bool done;
@@ -96,7 +99,10 @@ void TriggersIter_del_current(TriggersIter *iter);
 typedef struct
 {
   TriggersData *triggers;
-  IntDictVIter viter;
+  union {
+    char nil;
+    IntDictVIter obj;
+  } viter;
   _Optional Trigger *trigger;
   MapArea map_area;
   bool done;

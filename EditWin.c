@@ -143,13 +143,13 @@ static void gen_sel_tex_bw_table(EditWin *const edit_win)
     return;
   }
   MapTex *const textures = Session_get_textures(session);
-  int const count = MapTexBitmaps_get_count(&textures->tiles);
+  int const count = MapTexBitmaps_get_count(&textures->tiles.obj);
 
   for (int bitmap = 0; bitmap < count; ++bitmap) {
     assert(bitmap <= UCHAR_MAX);
     unsigned char const index = (unsigned char)bitmap;
 
-    int const av = MapTexBitmaps_get_average_colour(&textures->tiles, map_ref_from_num(index));
+    int const av = MapTexBitmaps_get_average_colour(&textures->tiles.obj, map_ref_from_num(index));
 
     unsigned int const bright =
       palette_entry_brightness(edit_win->view.sel_palette[av]);
@@ -2502,7 +2502,7 @@ static bool split_redraw_area_imm_cb(MapArea const *area, void *arg)
 
 static bool read_hill(EditWin const *const edit_win, MapPoint pos)
 {
-  return objects_ref_is_hill(ObjectsEdit_read_ref(&edit_win->read_obj_ctx, pos));
+  return objects_ref_is_hill(ObjectsEdit_read_ref(&edit_win->read_obj_ctx.obj, pos));
 }
 
 static void redraw_object(MapPoint const centre, MapArea *const area, EditWin *const edit_win)
@@ -2565,7 +2565,7 @@ static void update_read_obj_ctx(EditWin *const edit_win)
   struct ObjEditContext const *const objects = Session_get_objects(EditWin_get_session(edit_win));
   ViewDisplayFlags const display_flags = EditWin_get_display_flags(edit_win);
 
-  edit_win->read_obj_ctx = (struct ObjEditContext){
+  edit_win->read_obj_ctx.obj = (struct ObjEditContext){
     .base = !display_flags.OBJECTS ? NULL : objects->base,
     .overlay = !display_flags.OBJECTS_OVERLAY ? NULL : objects->overlay,
     .triggers = objects->triggers, .session = objects->session};
@@ -2576,7 +2576,7 @@ static void update_read_map_ctx(EditWin *const edit_win)
   struct MapEditContext const *const map = Session_get_map(EditWin_get_session(edit_win));
   ViewDisplayFlags const display_flags = EditWin_get_display_flags(edit_win);
 
-  edit_win->read_map_ctx = (struct MapEditContext){
+  edit_win->read_map_ctx.obj = (struct MapEditContext){
     .base = !display_flags.MAP ? NULL : map->base,
     .overlay = !display_flags.MAP_OVERLAY ? NULL : map->overlay,
     .anims = map->anims, .session = map->session};
@@ -2587,8 +2587,8 @@ static void update_read_info_ctx(EditWin *const edit_win)
   struct InfoEditContext const *const infos = Session_get_infos(EditWin_get_session(edit_win));
   ViewDisplayFlags const display_flags = EditWin_get_display_flags(edit_win);
 
-  edit_win->hidden_info_ctx = (struct InfoEditContext){.session = infos->session};
-  edit_win->read_info_ctx = display_flags.INFO ? infos : &edit_win->hidden_info_ctx;
+  edit_win->hidden_info_ctx.obj = (struct InfoEditContext){.session = infos->session};
+  edit_win->read_info_ctx = display_flags.INFO ? infos : &edit_win->hidden_info_ctx.obj;
 }
 
 /* ---------------- Public functions ---------------- */
@@ -2634,11 +2634,11 @@ bool EditWin_init(EditWin *const edit_win, Editor *const editor,
 
   if (Session_has_data(session, DataType_BaseObjects) ||
       Session_has_data(session, DataType_OverlayObjects)) {
-    if (report_error(hills_init(&edit_win->hills, read_hill, redraw_hill, edit_win), "", "")) {
+    if (report_error(hills_init(&edit_win->hills.obj, read_hill, redraw_hill, edit_win), "", "")) {
       return false;
     }
     edit_win->has_hills = true;
-    hills_make(&edit_win->hills);
+    hills_make(&edit_win->hills.obj);
   }
 
   /* Create new map edit_win window and associate with our data block */
@@ -2707,7 +2707,7 @@ bool EditWin_init(EditWin *const edit_win, Editor *const editor,
     (void)remove_event_handlers_delete(edit_win->window_id);
   }
   if (edit_win->has_hills) {
-    hills_destroy(&edit_win->hills);
+    hills_destroy(&edit_win->hills.obj);
   }
   return false;
 }
@@ -2750,7 +2750,7 @@ void EditWin_destroy(EditWin *const edit_win)
   MainMenu_hide();
 
   if (edit_win->has_hills) {
-    hills_destroy(&edit_win->hills);
+    hills_destroy(&edit_win->hills.obj);
   }
 }
 
@@ -2998,7 +2998,7 @@ bool EditWin_get_sel_tex_is_bright(EditWin const *const edit_win, MapRef const t
 {
   assert(edit_win != NULL);
   unsigned char const index = map_ref_to_num(tile_num);
-  assert(index < MapTexBitmaps_get_count(&Session_get_textures(EditWin_get_session(edit_win))->tiles));
+  assert(index < MapTexBitmaps_get_count(&Session_get_textures(EditWin_get_session(edit_win))->tiles.obj));
   assert((index / CHAR_BIT) < ARRAY_SIZE(edit_win->sel_tex_bw_table));
   return TEST_BITS(edit_win->sel_tex_bw_table[index / CHAR_BIT], 1u << (index % CHAR_BIT));
 }
@@ -3021,19 +3021,19 @@ void EditWin_set_ghost_colour(EditWin *const edit_win, PaletteEntry const colour
 _Optional HillsData const *EditWin_get_hills(EditWin const *const edit_win)
 {
   assert(edit_win != NULL);
-  return edit_win->has_hills ? &edit_win->hills : NULL;
+  return edit_win->has_hills ? &edit_win->hills.obj : NULL;
 }
 
 struct ObjEditContext const *EditWin_get_read_obj_ctx(EditWin const *const edit_win)
 {
   assert(edit_win);
-  return &edit_win->read_obj_ctx;
+  return &edit_win->read_obj_ctx.obj;
 }
 
 struct MapEditContext const *EditWin_get_read_map_ctx(EditWin const *const edit_win)
 {
   assert(edit_win);
-  return &edit_win->read_map_ctx;
+  return &edit_win->read_map_ctx.obj;
 }
 
 struct InfoEditContext const *EditWin_get_read_info_ctx(EditWin const *const edit_win)
@@ -3267,7 +3267,7 @@ void EditWin_redraw_pending(EditWin *const edit_win, bool const immediate)
   assert(edit_win);
 
   if (MapArea_is_valid(&edit_win->pending_hills_update)) {
-    hills_update(&edit_win->hills, &edit_win->pending_hills_update);
+    hills_update(&edit_win->hills.obj, &edit_win->pending_hills_update);
     edit_win->pending_hills_update = MapArea_make_invalid();
     DEBUGF("Cleared hills rect\n");
   }
@@ -3408,7 +3408,7 @@ void EditWin_set_display_flags(EditWin *const edit_win, ViewDisplayFlags const f
     if (old_flags.OBJECTS != flags.OBJECTS ||
         old_flags.OBJECTS_OVERLAY != flags.OBJECTS_OVERLAY) {
       update_read_obj_ctx(edit_win);
-      hills_make(&edit_win->hills);
+      hills_make(&edit_win->hills.obj);
     }
 
     if (old_flags.INFO != flags.INFO) {
@@ -3541,7 +3541,7 @@ void EditWin_resource_change(EditWin *const edit_win, EditorChange const event,
     break;
   case EDITOR_CHANGE_OBJ_ALL_REPLACED:
     update_read_obj_ctx(edit_win);
-    hills_make(&edit_win->hills);
+    hills_make(&edit_win->hills.obj);
     break;
   case EDITOR_CHANGE_MAP_ALL_REPLACED:
     update_read_map_ctx(edit_win);

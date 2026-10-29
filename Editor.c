@@ -234,12 +234,12 @@ bool Editor_init(Editor *const editor, EditSession *const session,
     .allow_drag_select = false,
   };
 
-  if (!Palette_init(&editor->palette_data, editor)) {
+  if (!Palette_init(&editor->palette_data.obj, editor)) {
     return false;
   }
 
-  if (!MapToolbar_init(&editor->toolbar, editor)) {
-    Palette_destroy(&editor->palette_data);
+  if (!MapToolbar_init(&editor->toolbar.obj, editor)) {
+    Palette_destroy(&editor->palette_data.obj);
     return false;
   }
 
@@ -251,15 +251,15 @@ void Editor_destroy(Editor *const editor)
 {
   assert(editor);
   Editor_set_edit_mode(editor, EDITING_MODE_NONE, NULL);
-  MapToolbar_destroy(&editor->toolbar);
-  Palette_destroy(&editor->palette_data);
+  MapToolbar_destroy(&editor->toolbar.obj);
+  Palette_destroy(&editor->palette_data.obj);
   DEBUG("Editor object %p deleted", (void *)editor);
 }
 
 void Editor_update_title(Editor *const editor)
 {
   assert(editor);
-  Palette_update_title(&editor->palette_data);
+  Palette_update_title(&editor->palette_data.obj);
 
   if (editor->mode_functions != NULL &&
       editor->mode_functions->update_title) {
@@ -289,7 +289,7 @@ void Editor_resource_change(Editor *const editor, EditorChange const event,
     case EDITOR_CHANGE_GFX_ALL_RELOADED:
     case EDITOR_CHANGE_GFX_SNAKES_RELOADED:
       select_tool_with_fallback(editor, editor->tool);
-      MapToolbar_update_buttons(&editor->toolbar);
+      MapToolbar_update_buttons(&editor->toolbar.obj);
       break;
     case EDITOR_CHANGE_CLOUD_COLOURS:
       ObjectsMode_redraw_clouds(editor);
@@ -1295,7 +1295,7 @@ bool Editor_set_edit_mode(Editor *const editor, EditMode const new_mode, _Option
 
   if (success)
   {
-    MapToolbar_update_buttons(&editor->toolbar);
+    MapToolbar_update_buttons(&editor->toolbar.obj);
     set_coord_field_width(editor);
     select_tool_with_fallback(editor, tool);
   }
@@ -1331,9 +1331,9 @@ void Editor_set_tools_shown(Editor *const editor, bool const shown, EditWin *con
 {
   assert(editor != NULL);
   if (shown) {
-    MapToolbar_reveal(&editor->toolbar, edit_win);
+    MapToolbar_reveal(&editor->toolbar.obj, edit_win);
   } else {
-    MapToolbar_hide(&editor->toolbar);
+    MapToolbar_hide(&editor->toolbar.obj);
   }
   editor->show_tool_bar = shown;
 }
@@ -1348,9 +1348,9 @@ void Editor_set_pal_shown(Editor *const editor, bool const shown, EditWin *const
 {
   assert(editor != NULL);
   if (shown) {
-    Palette_show(&editor->palette_data, edit_win);
+    Palette_show(&editor->palette_data.obj, edit_win);
   } else {
-    Palette_hide(&editor->palette_data);
+    Palette_hide(&editor->palette_data.obj);
   }
   editor->show_palette = shown;
 }
@@ -1364,7 +1364,7 @@ void Editor_pal_was_hidden(Editor *const editor)
 void Editor_reveal_palette(Editor *const editor)
 {
   editor->show_palette = true;
-  Palette_reveal(&editor->palette_data);
+  Palette_reveal(&editor->palette_data.obj);
 }
 
 void Editor_display_msg(Editor *const editor, const char *hint, bool temp)
@@ -1594,7 +1594,7 @@ void Editor_select_tool(Editor *const editor, EditorTool const tool)
   }
 
   if (tool != EDITORTOOL_NONE) {
-    MapToolbar_tool_selected(&editor->toolbar, editor->tool);
+    MapToolbar_tool_selected(&editor->toolbar.obj, editor->tool);
     set_tool_msg(editor);
   }
 

@@ -71,7 +71,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 
   MapTex *const textures = Session_get_textures(session);
   _Optional MapTransfer *const transfer = MapTransfers_find_by_index(
-                                        &textures->transfers, selected);
+                                        &textures->transfers.obj, selected);
   assert(transfer);
   if (!transfer) {
     return 1;

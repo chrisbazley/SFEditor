@@ -51,14 +51,17 @@
 /* ---------------- Private functions --------------- */
 
 typedef struct {
-  SnakeContext super;
+  union {
+    char nil;
+    SnakeContext obj;
+  } super;
   MapRef (*thumb_tiles)[MapSnakesMiniMapHeight][MapSnakesMiniMapWidth];
 } MapSnakesMiniContext;
 
 static unsigned char read_mini_map(MapPoint const map_pos, SnakeContext *const ctx)
 {
   assert(ctx);
-  MapSnakesMiniContext const *const mctx = CONTAINER_OF(ctx, MapSnakesMiniContext, super);
+  MapSnakesMiniContext const *const mctx = CONTAINER_OF(ctx, MapSnakesMiniContext, super.obj);
 
   if (map_pos.x < 0 ||
       map_pos.x >= MapSnakesMiniMapWidth ||
@@ -75,7 +78,7 @@ static void write_mini_map(MapPoint const map_pos, unsigned char const tile,
                            SnakeContext *const ctx)
 {
   assert(ctx);
-  MapSnakesMiniContext const *const mctx = CONTAINER_OF(ctx, MapSnakesMiniContext, super);
+  MapSnakesMiniContext const *const mctx = CONTAINER_OF(ctx, MapSnakesMiniContext, super.obj);
   assert(map_pos.x >= 0);
   assert(map_pos.x < MapSnakesMiniMapWidth);
   assert(map_pos.y >= 0);
@@ -92,11 +95,11 @@ static void plot_mini_map(MapSnakesMiniContext *const ctx,
   assert(num_points > 0);
 
   size_t i = 0;
-  Snakes_begin_line(&ctx->super, &snakes_data->super, points[i++], snake,
+  Snakes_begin_line(&ctx->super.obj, &snakes_data->super.obj, points[i++], snake,
     false, read_mini_map, write_mini_map);
 
   while (i < num_points) {
-    Snakes_plot_line(&ctx->super, points[i++]);
+    Snakes_plot_line(&ctx->super.obj, points[i++]);
   }
 }
 
@@ -111,7 +114,7 @@ static void make_mini_map(MapSnakes *const snakes_data, int const snake,
 
   MapSnakesMiniContext ctx = {.thumb_tiles = thumb_tiles};
 
-  if (Snakes_has_bends(&snakes_data->super, snake)) {
+  if (Snakes_has_bends(&snakes_data->super.obj, snake)) {
     static MapPoint const s_bend[] = {
       {0,                    0},
       {0,                    MapSnakesMiniMapHeight - 1},
@@ -129,7 +132,7 @@ static void make_mini_map(MapSnakes *const snakes_data, int const snake,
     plot_mini_map(&ctx, snakes_data, snake, north_south_cross, ARRAY_SIZE(north_south_cross));
   }
 
-  if (Snakes_has_junctions(&snakes_data->super, snake)) {
+  if (Snakes_has_junctions(&snakes_data->super.obj, snake)) {
     static MapPoint const east_west_cross[] = {
       {0,                    MapSnakesMiniMapHeight / 2},
       {MapSnakesMiniMapWidth - 1, MapSnakesMiniMapHeight / 2}};
@@ -160,10 +163,10 @@ static bool make_thumbnails(MapSnakes *const snakes_data,
   assert(textures);
 
   hourglass_on();
-  for (int snake = 0; snake < snakes_data->super.count; snake++) {
+  for (int snake = 0; snake < snakes_data->super.obj.count; snake++) {
 
     if (snake <= INT_MAX / 100)
-      hourglass_percentage((snake * 100) / snakes_data->super.count);
+      hourglass_percentage((snake * 100) / snakes_data->super.obj.count);
 
     /* Create thumbnail sprite */
     char sprite_name[32];
@@ -172,7 +175,7 @@ static bool make_thumbnails(MapSnakes *const snakes_data,
     static Vertex const thumbnail_size = {
       MapSnakesThumbnailWidth, MapSnakesThumbnailHeight
     };
-    if (!SprMem_create_sprite(&snakes_data->thumbnail_sprites, sprite_name,
+    if (!SprMem_create_sprite(&snakes_data->thumbnail_sprites.obj, sprite_name,
         false, thumbnail_size, DrawTilesModeNumber))
       return false;
 
@@ -182,7 +185,7 @@ static bool make_thumbnails(MapSnakes *const snakes_data,
     make_mini_map(snakes_data, snake, &thumb_tiles);
 
     bool const needs_mask = DrawTiles_to_sprite(
-      textures, &snakes_data->thumbnail_sprites, sprite_name, MapAngle_North, &scr_area,
+      textures, &snakes_data->thumbnail_sprites.obj, sprite_name, MapAngle_North, &scr_area,
       read_thumbnail, &thumb_tiles,
       0, /* plot at 1:1 */
       NULL /* no colour translation */
@@ -190,21 +193,21 @@ static bool make_thumbnails(MapSnakes *const snakes_data,
 
     /* Create thumbnail mask (with all pixels solid) */
     if (needs_mask &&
-        SprMem_create_mask(&snakes_data->thumbnail_sprites, sprite_name))
+        SprMem_create_mask(&snakes_data->thumbnail_sprites.obj, sprite_name))
     {
-      DrawTiles_to_mask(&snakes_data->thumbnail_sprites, sprite_name, MapAngle_North, &scr_area,
+      DrawTiles_to_mask(&snakes_data->thumbnail_sprites.obj, sprite_name, MapAngle_North, &scr_area,
                        read_thumbnail, &thumb_tiles, 0);
     }
   }
   hourglass_off();
 
-  SprMem_minimize(&snakes_data->thumbnail_sprites);
+  SprMem_minimize(&snakes_data->thumbnail_sprites.obj);
 
 #ifndef NDEBUG
-  SprMem_verify(&snakes_data->thumbnail_sprites);
+  SprMem_verify(&snakes_data->thumbnail_sprites.obj);
 
-  if (snakes_data->super.count > 0)
-    SprMem_save(&snakes_data->thumbnail_sprites, "thumbnail_sprites");
+  if (snakes_data->super.obj.count > 0)
+    SprMem_save(&snakes_data->thumbnail_sprites.obj, "thumbnail_sprites");
 #endif
 
   return true;
@@ -214,25 +217,25 @@ static bool make_thumbnails(MapSnakes *const snakes_data,
 
 int MapSnakes_get_count(const MapSnakes *const snakes_data)
 {
-  return Snakes_get_count(&snakes_data->super);
+  return Snakes_get_count(&snakes_data->super.obj);
 }
 
 void MapSnakes_get_name(const MapSnakes *const snakes_data, int const snake,
   char *const snake_name, int const n)
 {
-  Snakes_get_name(&snakes_data->super, snake, snake_name, n);
+  Snakes_get_name(&snakes_data->super.obj, snake, snake_name, n);
 }
 
 static unsigned char read_map(MapPoint const map_pos, SnakeContext *const ctx)
 {
-  MapSnakesContext const *const mctx = CONTAINER_OF(ctx, MapSnakesContext, super);
+  MapSnakesContext const *const mctx = CONTAINER_OF(ctx, MapSnakesContext, super.obj);
   return map_ref_to_num(MapEdit_read_tile(mctx->map, map_pos));
 }
 
 static void write_map(MapPoint const map_pos, unsigned char const tile,
                       SnakeContext *const ctx)
 {
-  MapSnakesContext const *const mctx = CONTAINER_OF(ctx, MapSnakesContext, super);
+  MapSnakesContext const *const mctx = CONTAINER_OF(ctx, MapSnakesContext, super.obj);
   MapEdit_write_tile(mctx->map, map_pos, map_ref_from_num(tile), mctx->change_info);
 }
 
@@ -246,7 +249,7 @@ void MapSnakes_begin_line(MapSnakesContext *const ctx,
     .map = map,
     .change_info = change_info,
   };
-  Snakes_begin_line(&ctx->super, &snakes_data->super, map_pos, snake, inside,
+  Snakes_begin_line(&ctx->super.obj, &snakes_data->super.obj, map_pos, snake, inside,
                     read_map, write_map);
 }
 
@@ -255,7 +258,7 @@ void MapSnakes_plot_line(MapSnakesContext *const ctx, MapPoint const end,
 {
   assert(ctx != NULL);
   ctx->change_info = change_info;
-  Snakes_plot_line(&ctx->super, end);
+  Snakes_plot_line(&ctx->super.obj, end);
 }
 
 bool MapSnakes_ensure_thumbnails(MapSnakes *const snakes_data,
@@ -270,12 +273,12 @@ bool MapSnakes_ensure_thumbnails(MapSnakes *const snakes_data,
     return true; /* We already have thumbnail sprites */
 
   DEBUG("Creating thumbnails of snakes for tile set %p", (void *)snakes_data);
-  if (!SprMem_init(&snakes_data->thumbnail_sprites, 0))
+  if (!SprMem_init(&snakes_data->thumbnail_sprites.obj, 0))
     return false;
 
   bool const success = make_thumbnails(snakes_data, textures);
   if (!success) {
-    SprMem_destroy(&snakes_data->thumbnail_sprites);
+    SprMem_destroy(&snakes_data->thumbnail_sprites.obj);
   } else {
     snakes_data->have_thumbnails = true;
   }
@@ -293,7 +296,7 @@ void MapSnakes_init(MapSnakes *const snakes_data)
 {
   assert(snakes_data);
   *snakes_data = (MapSnakes){.have_thumbnails = false};
-  Snakes_init(&snakes_data->super);
+  Snakes_init(&snakes_data->super.obj);
 }
 
 void MapSnakes_load(MapSnakes *const snakes_data,
@@ -319,7 +322,7 @@ void MapSnakes_load(MapSnakes *const snakes_data,
     if (file == NULL) {
       err = SFERROR(OpenInFail);
     } else {
-      err = Snakes_load(&*file, &snakes_data->super, ntiles, err_buf);
+      err = Snakes_load(&*file, &snakes_data->super.obj, ntiles, err_buf);
       fclose(&*file);
     }
   }
@@ -332,9 +335,9 @@ void MapSnakes_load(MapSnakes *const snakes_data,
 void MapSnakes_free(MapSnakes *const snakes_data)
 {
   assert(snakes_data != NULL);
-  Snakes_free(&snakes_data->super);
+  Snakes_free(&snakes_data->super.obj);
   if (snakes_data->have_thumbnails)
   {
-    SprMem_destroy(&snakes_data->thumbnail_sprites);
+    SprMem_destroy(&snakes_data->thumbnail_sprites.obj);
   }
 }

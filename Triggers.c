@@ -465,7 +465,7 @@ static void defer_delete(TriggersData *const triggers, Trigger *const trigger)
 
 static MapPoint iter_loop_core(TriggersIter *const iter, _Optional TriggerFullParam *const fparam)
 {
-  for (; iter->trigger != NULL; iter->trigger = intdictviter_advance(&iter->viter)) {
+  for (; iter->trigger != NULL; iter->trigger = intdictviter_advance(&iter->viter.obj)) {
     _Optional Trigger *const trigger = iter->trigger;
     TriggerAction const action = trigger->param.action;
     if (action == TriggerAction_Dummy || action == TriggerAction_Dead) {
@@ -517,7 +517,7 @@ MapPoint TriggersIter_get_first(TriggersIter *const iter,
     .map_area = *map_area,
     .triggers = triggers,
   };
-  iter->trigger = intdictviter_init(&iter->viter, &triggers->all_triggers, min_key, max_key);
+  iter->trigger = intdictviter_init(&iter->viter.obj, &triggers->all_triggers, min_key, max_key);
   return iter_loop_core(iter, fparam);
 }
 
@@ -530,7 +530,7 @@ MapPoint TriggersIter_get_next(TriggersIter *const iter, _Optional TriggerFullPa
     assert(iter->trigger->param.action != TriggerAction_Dead);
   }
   assert(MapArea_is_valid(&iter->map_area));
-  iter->trigger = intdictviter_advance(&iter->viter);
+  iter->trigger = intdictviter_advance(&iter->viter.obj);
   return iter_loop_core(iter, fparam);
 }
 
@@ -587,7 +587,7 @@ void TriggersIter_del_current(TriggersIter *const iter)
   }
 
   if (can_delete) {
-    intdictviter_remove(&iter->viter);
+    intdictviter_remove(&iter->viter.obj);
     delete_trigger(triggers, &*trigger);
 
     /* If deleting any trigger and the next trigger is a dummy with the same
@@ -610,7 +610,7 @@ void TriggersIter_del_current(TriggersIter *const iter)
 static MapPoint chain_iter_loop_core(TriggersChainIter *const iter,
   TriggerFullParam *const fparam)
 {
-  for (; iter->trigger != NULL; iter->trigger = intdictviter_advance(&iter->viter)) {
+  for (; iter->trigger != NULL; iter->trigger = intdictviter_advance(&iter->viter.obj)) {
     _Optional Trigger *const trigger = iter->trigger;
     assert(trigger->param.action == TriggerAction_ChainReaction);
     _Optional LinkedListItem *const prev = linkedlist_get_prev(&trigger->link);
@@ -655,7 +655,7 @@ MapPoint TriggersChainIter_get_first(TriggersChainIter *const iter,
     .map_area = *map_area,
     .triggers = triggers,
   };
-  iter->trigger = intdictviter_init(&iter->viter, &triggers->chain_triggers, min_key, max_key);
+  iter->trigger = intdictviter_init(&iter->viter.obj, &triggers->chain_triggers, min_key, max_key);
   return chain_iter_loop_core(iter, fparam);
 }
 
@@ -668,7 +668,7 @@ MapPoint TriggersChainIter_get_next(TriggersChainIter *const iter, TriggerFullPa
   }
   assert(iter->triggers);
   assert(MapArea_is_valid(&iter->map_area));
-  iter->trigger = intdictviter_advance(&iter->viter);
+  iter->trigger = intdictviter_advance(&iter->viter.obj);
   return chain_iter_loop_core(iter, fparam);
 }
 
@@ -713,7 +713,7 @@ void TriggersChainIter_del_current(TriggersChainIter *const iter)
     }
   }
 
-  intdictviter_remove(&iter->viter);
+  intdictviter_remove(&iter->viter.obj);
 
   if (can_delete) {
     delete_sorted_trigger(triggers, &*trigger);

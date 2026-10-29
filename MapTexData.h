@@ -17,10 +17,22 @@
 struct MapTex
 {
   DFile dfile;
-  struct MapTexBitmaps tiles;
-  struct MapTexGroups groups;
-  struct MapSnakes snakes;
-  struct MapTransfers transfers;
+  union {
+    char nil;
+    struct MapTexBitmaps obj;
+  } tiles;
+  union {
+    char nil;
+    struct MapTexGroups obj;
+  } groups;
+  union {
+    char nil;
+    struct MapSnakes obj;
+  } snakes;
+  union {
+    char nil;
+    struct MapTransfers obj;
+  } transfers;
 };
 
 #endif

@@ -69,12 +69,12 @@ static bool init(PaletteData *const pal_data, Editor *const editor, int *num_ind
 
   /* Create thumbnail sprites, if not done already
   (This may be the case if we are sharing with another session) */
-  if (!MapSnakes_ensure_thumbnails(&textures->snakes, &textures->tiles))
+  if (!MapSnakes_ensure_thumbnails(&textures->snakes.obj, &textures->tiles.obj))
     return false; /* failure */
 
   if (num_indices != NULL)
   {
-    *num_indices = MapSnakes_get_count(&textures->snakes);
+    *num_indices = MapSnakes_get_count(&textures->snakes.obj);
   }
 
   SnakesMenu_attach(pal_data);
@@ -88,7 +88,7 @@ static void start_redraw(Editor *const editor, bool const labels)
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
   assert(textures);
 
-  if (!textures->snakes.have_thumbnails)
+  if (!textures->snakes.obj.have_thumbnails)
     return;
 
   /* Initialise Wimp icon data for the thumbnail sprites */
@@ -98,7 +98,7 @@ static void start_redraw(Editor *const editor, bool const labels)
                     (WimpIcon_BGColour * WimpColour_White);
 
   plot_icon.data.is.sprite_area = SprMem_get_area_address(
-    &textures->snakes.thumbnail_sprites);
+    &textures->snakes.obj.thumbnail_sprites.obj);
 
   plot_icon.data.is.sprite = spr_name;
   plot_icon.data.is.sprite_name_length = sizeof(spr_name);
@@ -125,7 +125,7 @@ static void redraw_label(Editor *const editor, Vertex const origin,
 
   /* Truncate the file name with a ellipsis if it exceeds the
      width of the object to which it refers */
-  MapSnakes_get_name(&textures->snakes, object_no, truncated_name, sizeof(truncated_name));
+  MapSnakes_get_name(&textures->snakes.obj, object_no, truncated_name, sizeof(truncated_name));
   int const width = truncate_string(truncated_name, bbox->xmax - bbox->xmin);
 
   /* Reduce the width of the label icon to fit the truncated text */
@@ -179,10 +179,10 @@ static void end_redraw(Editor *const editor, bool const labels)
   /* Tidy up at the end of the redraw process. */
   NOT_USED(labels);
   MapTex *const textures = Session_get_textures(Editor_get_session(editor));
-  if (!textures->snakes.have_thumbnails)
+  if (!textures->snakes.obj.have_thumbnails)
     return; /* failure */
 
-  SprMem_put_area_address(&textures->snakes.thumbnail_sprites);
+  SprMem_put_area_address(&textures->snakes.obj.thumbnail_sprites.obj);
 }
 
 static void reload(Editor *const editor)
@@ -192,9 +192,9 @@ static void reload(Editor *const editor)
   MapTex *const textures = Session_get_textures(session);
   assert(textures);
 
-  MapSnakes_load(&textures->snakes,
+  MapSnakes_load(&textures->snakes.obj,
                     filenames_get(filenames, DataType_MapTextures),
-                    MapTexBitmaps_get_count(&textures->tiles));
+                    MapTexBitmaps_get_count(&textures->tiles.obj));
 
   Session_all_textures_changed(textures, EDITOR_CHANGE_TEX_SNAKES_RELOADED,
                                &(EditorChangeParams){0});

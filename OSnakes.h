@@ -21,7 +21,10 @@ struct ObjEditChanges;
 struct ObjEditContext;
 
 typedef struct {
-  SnakeContext super;
+  union {
+    char nil;
+    SnakeContext obj;
+  } super;
   struct EditSession *session;
   struct ObjEditContext const *objects;
   struct ObjEditChanges *change_info;

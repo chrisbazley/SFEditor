@@ -82,7 +82,7 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
       if (sel_index == NULL_DATA_INDEX)
         return 1; /* claim event */
 
-      transfer_to_rename = MapTransfers_find_by_index(&textures->transfers,
+      transfer_to_rename = MapTransfers_find_by_index(&textures->transfers.obj,
                               sel_index);
       assert(transfer_to_rename != NULL);
       if (transfer_to_rename == NULL)
@@ -92,7 +92,7 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
                        RENAMETRANS_NAME, new_name, sizeof(new_name), NULL),
                        1 /* claim event */);
 
-      if (!MapTransfers_rename(&textures->transfers,
+      if (!MapTransfers_rename(&textures->transfers.obj,
              &*transfer_to_rename, new_name, &new_index))
         return 1; /* claim event */
 
@@ -130,7 +130,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
     return 1; /* nothing selected - simply claim event */
 
   _Optional MapTransfer *const transfer_to_rename = MapTransfers_find_by_index(
-                                                &textures->transfers, selected);
+                                                &textures->transfers.obj, selected);
   assert(transfer_to_rename != NULL);
   if (transfer_to_rename == NULL)
     return 1; /* erk - fail! */

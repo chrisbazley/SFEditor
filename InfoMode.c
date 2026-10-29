@@ -58,8 +58,22 @@
 
 typedef struct
 {
-  SelectionBitmask selection, occluded, tmp;
-  InfoPropDboxes prop_dboxes;
+  union {
+    char nil;
+    SelectionBitmask obj;
+  } selection;
+  union {
+    char nil;
+    SelectionBitmask obj;
+  } occluded;
+  union {
+    char nil;
+    SelectionBitmask obj;
+  } tmp;
+  union {
+    char nil;
+    InfoPropDboxes obj;
+  } prop_dboxes;
   MapArea ghost_bbox, drop_bbox;
   MapPoint drag_start_pos, pending_vert;
   bool uk_drop_pending:1;
@@ -112,7 +126,7 @@ static Vertex grid_to_os_coords(Vertex const origin, MapPoint const map_pos,
 static void InfoMode_leave(Editor *const editor)
 {
   InfoModeData *const mode_data = get_mode_data(editor);
-  InfoPropDboxes_destroy(&mode_data->prop_dboxes);
+  InfoPropDboxes_destroy(&mode_data->prop_dboxes.obj);
   free(editor->editingmode_data);
 }
 
@@ -298,10 +312,10 @@ void InfoMode_draw(Editor *const editor,
       Editor_get_edit_mode(editor) == EDITING_MODE_INFO ?
       editor->editingmode_data : NULL;
 
-  _Optional SelectionBitmask const *const selection = mode_data ? &mode_data->selection : NULL,
+  _Optional SelectionBitmask const *const selection = mode_data ? &mode_data->selection.obj : NULL,
                                    *const occluded = mode_data && (mode_data->pending_drop ||
                                                                    mode_data->pending_shape != Pending_None) ?
-                                                     &mode_data->occluded : NULL;
+                                                     &mode_data->occluded.obj : NULL;
 
   InfoEditIter iter;
   size_t const first = InfoEdit_get_first_idx(&iter, infos, &overlapping_area);
@@ -359,8 +373,8 @@ static void InfoMode_wipe_ghost(Editor *const editor)
   EditSession *const session = Editor_get_session(editor);
   InfoEditContext const *const infos = Session_get_infos(session);
   OccludedData data = {.editor = editor, .infos = infos};
-  SelectionBitmask_for_each(&mode_data->occluded, occluded_changed, &data);
-  SelectionBitmask_clear(&mode_data->occluded);
+  SelectionBitmask_for_each(&mode_data->occluded.obj, occluded_changed, &data);
+  SelectionBitmask_clear(&mode_data->occluded.obj);
 
   Editor_redraw_ghost(editor); // undraw
   Editor_clear_ghost_bbox(editor);
@@ -398,14 +412,14 @@ static void InfoMode_set_pending(Editor *const editor, PendingShape const pendin
 
   Editor_clear_ghost_bbox(editor);
 
-  SelectionBitmask_copy(&mode_data->tmp, &mode_data->occluded);
-  SelectionBitmask_clear(&mode_data->occluded);
+  SelectionBitmask_copy(&mode_data->tmp.obj, &mode_data->occluded.obj);
+  SelectionBitmask_clear(&mode_data->occluded.obj);
 
   bool any = false;
 
   switch (pending_shape) {
     case Pending_Point:
-      InfoEdit_find_occluded(infos, pos, &mode_data->occluded);
+      InfoEdit_find_occluded(infos, pos, &mode_data->occluded.obj);
       Editor_add_ghost_info(editor, pos);
       any = true;
       break;
@@ -413,9 +427,9 @@ static void InfoMode_set_pending(Editor *const editor, PendingShape const pendin
     case Pending_Transfer:
       if (pending_transfer)
       {
-        InfoTransfers_find_occluded(infos, pos, &*pending_transfer, &mode_data->occluded);
+        InfoTransfers_find_occluded(infos, pos, &*pending_transfer, &mode_data->occluded.obj);
         InfoMode_add_ghost_bbox_for_transfer(editor, infos,
-                                             pos, &*pending_transfer, &mode_data->occluded);
+                                             pos, &*pending_transfer, &mode_data->occluded.obj);
         any = true;
       }
       break;
@@ -428,12 +442,12 @@ static void InfoMode_set_pending(Editor *const editor, PendingShape const pendin
   if (!any) {
     mode_data->pending_shape = Pending_None;
     mode_data->pending_transfer = NULL;
-    SelectionBitmask_for_each(&mode_data->tmp /* previously occluded */, occluded_changed, &data);
+    SelectionBitmask_for_each(&mode_data->tmp.obj /* previously occluded */, occluded_changed, &data);
   } else {
     mode_data->pending_shape = pending_shape;
     mode_data->pending_transfer = pending_transfer;
     mode_data->pending_vert = pos;
-    SelectionBitmask_for_each_changed(&mode_data->occluded, &mode_data->tmp, // previously occluded
+    SelectionBitmask_for_each_changed(&mode_data->occluded.obj, &mode_data->tmp.obj, // previously occluded
        occluded_changed, &data);
   }
 
@@ -463,13 +477,13 @@ static bool InfoMode_has_selection(Editor const *const editor)
 {
   InfoModeData *const mode_data = get_mode_data(editor);
 
-  return !SelectionBitmask_is_none(&mode_data->selection);
+  return !SelectionBitmask_is_none(&mode_data->selection.obj);
 }
 
 static bool InfoMode_can_edit_properties(Editor const *const editor)
 {
   InfoModeData *const mode_data = get_mode_data(editor);
-  return SelectionBitmask_size(&mode_data->selection) == 1;
+  return SelectionBitmask_size(&mode_data->selection.obj) == 1;
 }
 
 static void InfoMode_edit_properties(Editor *const editor, EditWin *const edit_win)
@@ -477,7 +491,7 @@ static void InfoMode_edit_properties(Editor *const editor, EditWin *const edit_w
   assert(InfoMode_can_edit_properties(editor));
   InfoModeData *const mode_data = get_mode_data(editor);
   SelectionBitmaskIter iter;
-  size_t const index = SelectionBitmaskIter_get_first(&iter, &mode_data->selection);
+  size_t const index = SelectionBitmaskIter_get_first(&iter, &mode_data->selection.obj);
   assert(!SelectionBitmaskIter_done(&iter));
 
   EditSession *const session = Editor_get_session(editor);
@@ -485,14 +499,14 @@ static void InfoMode_edit_properties(Editor *const editor, EditWin *const edit_w
   _Optional TargetInfo *info = InfoEdit_get(infos, index);
   assert(info);
   if (info) {
-    InfoPropDboxes_open(&mode_data->prop_dboxes, &*info, edit_win);
+    InfoPropDboxes_open(&mode_data->prop_dboxes.obj, &*info, edit_win);
   }
 }
 
 static void InfoMode_update_title(Editor *const editor)
 {
   InfoModeData *const mode_data = get_mode_data(editor);
-  InfoPropDboxes_update_title(&mode_data->prop_dboxes);
+  InfoPropDboxes_update_title(&mode_data->prop_dboxes.obj);
 }
 
 static void notify_changed(EditSession *const session,
@@ -663,18 +677,18 @@ static void InfoMode_update_select(Editor *const editor, bool const only_inside,
   View const *const view = EditWin_get_view(edit_win);
   InfoEditContext const *const infos = EditWin_get_read_info_ctx(edit_win);
 
-  SelectionBitmask_copy(&mode_data->tmp, &mode_data->selection);
+  SelectionBitmask_copy(&mode_data->tmp.obj, &mode_data->selection.obj);
 
-  bool changed = drag_select_core(view, &mode_data->selection, infos,
+  bool changed = drag_select_core(view, &mode_data->selection.obj, infos,
                                   only_inside, last_select_box, false);
 
-  if (!drag_select_core(view, &mode_data->selection, infos, only_inside,
+  if (!drag_select_core(view, &mode_data->selection.obj, infos, only_inside,
                         select_box, false) &&
       !changed) {
     return;
   }
 
-  SelectionBitmask_for_each_changed(&mode_data->selection, &mode_data->tmp,
+  SelectionBitmask_for_each_changed(&mode_data->selection.obj, &mode_data->tmp.obj,
                                     redraw_selection, editor);
 }
 
@@ -686,7 +700,7 @@ static void InfoMode_cancel_select(Editor *const editor,
   InfoEditContext const *const infos = EditWin_get_read_info_ctx(edit_win);
   View const *const view = EditWin_get_view(edit_win);
 
-  drag_select_core(view, &mode_data->selection, infos,
+  drag_select_core(view, &mode_data->selection.obj, infos,
                    only_inside, last_select_box, true);
 }
 
@@ -722,8 +736,8 @@ static bool paste_generic(Editor *const editor,
 
   InfoEditChanges_init(&mode_data->change_info);
 
-  SelectionBitmask_clear(&mode_data->selection);
-  InfoTransfers_plot_to_map(infos, map_pos, transfer, &mode_data->selection,
+  SelectionBitmask_clear(&mode_data->selection.obj);
+  InfoTransfers_plot_to_map(infos, map_pos, transfer, &mode_data->selection.obj,
                                   &mode_data->change_info);
   changed_with_msg(editor);
   return true;
@@ -741,7 +755,7 @@ static bool InfoMode_start_select(Editor *const editor, bool const only_inside,
   _Optional TargetInfo *const info = get_info_at_point(view, infos, fine_pos, &index);
 
   if (info) {
-    SelectionBitmask_invert(&mode_data->selection, index, true);
+    SelectionBitmask_invert(&mode_data->selection.obj, index, true);
   }
 
   return !info;
@@ -758,12 +772,12 @@ static bool InfoMode_start_exclusive_select(Editor *const editor, bool const onl
   _Optional TargetInfo *const info = get_info_at_point(view, infos, fine_pos, &index);
 
   if (info) {
-    if (!SelectionBitmask_is_selected(&mode_data->selection, index)) {
-      SelectionBitmask_clear(&mode_data->selection);
-      SelectionBitmask_invert(&mode_data->selection, index, true);
+    if (!SelectionBitmask_is_selected(&mode_data->selection.obj, index)) {
+      SelectionBitmask_clear(&mode_data->selection.obj);
+      SelectionBitmask_invert(&mode_data->selection.obj, index, true);
     }
   } else {
-    SelectionBitmask_clear(&mode_data->selection);
+    SelectionBitmask_clear(&mode_data->selection.obj);
   }
 
   return !info;
@@ -778,7 +792,7 @@ static void InfoMode_edit_properties_at_pos(Editor *const editor, MapPoint const
   _Optional TargetInfo *const info = get_info_at_point(view, infos, fine_pos, &index);
 
   if (info) {
-    InfoPropDboxes_open(&mode_data->prop_dboxes, &*info, edit_win);
+    InfoPropDboxes_open(&mode_data->prop_dboxes.obj, &*info, edit_win);
   }
 }
 
@@ -932,7 +946,7 @@ static void delete_core(Editor *const editor, InfoEditContext const *const infos
   _Optional InfoEditChanges *const change_info)
 {
   InfoModeData *const mode_data = get_mode_data(editor);
-  InfoEdit_delete(infos, &mode_data->selection, change_info);
+  InfoEdit_delete(infos, &mode_data->selection.obj, change_info);
 }
 
 static _Optional InfoTransfer *clipboard;
@@ -940,12 +954,12 @@ static _Optional InfoTransfer *clipboard;
 static bool cb_copy_core(Editor *const editor)
 {
   InfoModeData *const mode_data = get_mode_data(editor);
-  assert(!SelectionBitmask_is_none(&mode_data->selection));
+  assert(!SelectionBitmask_is_none(&mode_data->selection.obj));
 
   EditSession *const session = Editor_get_session(editor);
   assert(!clipboard);
   clipboard = InfoTransfers_grab_selection(
-    Session_get_infos(session), &mode_data->selection);
+    Session_get_infos(session), &mode_data->selection.obj);
 
   return clipboard != NULL;
 }
@@ -953,7 +967,7 @@ static bool cb_copy_core(Editor *const editor)
 static void cb_status(Editor *const editor, bool const copy)
 {
   InfoModeData *const mode_data = get_mode_data(editor);
-  size_t const infos_count = SelectionBitmask_size(&mode_data->selection);
+  size_t const infos_count = SelectionBitmask_size(&mode_data->selection.obj);
   char infos_count_str[16];
   sprintf(infos_count_str, "%zu", infos_count);
 
@@ -965,13 +979,13 @@ static void clear_selection_and_redraw(Editor *const editor)
 {
   /* Deselect all infos on the map */
   InfoModeData *const mode_data = get_mode_data(editor);
-  SelectionBitmask_clear(&mode_data->selection);
+  SelectionBitmask_clear(&mode_data->selection.obj);
 }
 
 static size_t InfoMode_num_selected(Editor const *const editor)
 {
   InfoModeData *const mode_data = get_mode_data(editor);
-  return SelectionBitmask_size(&mode_data->selection);
+  return SelectionBitmask_size(&mode_data->selection.obj);
 }
 
 static size_t InfoMode_max_selected(Editor const *const editor)
@@ -982,7 +996,7 @@ static size_t InfoMode_max_selected(Editor const *const editor)
 static bool InfoMode_auto_select(Editor *const editor, MapPoint const fine_pos, EditWin *const edit_win)
 {
   InfoModeData *const mode_data = get_mode_data(editor);
-  if (!SelectionBitmask_is_none(&mode_data->selection) ||
+  if (!SelectionBitmask_is_none(&mode_data->selection.obj) ||
       Editor_get_tool(editor) != EDITORTOOL_SELECT) {
     return false; /* already have a selection or not using that tool */
   }
@@ -996,7 +1010,7 @@ static bool InfoMode_auto_select(Editor *const editor, MapPoint const fine_pos, 
     return false;
   }
 
-  SelectionBitmask_select(&mode_data->selection, index);
+  SelectionBitmask_select(&mode_data->selection.obj, index);
   return true;
 }
 
@@ -1007,14 +1021,14 @@ static void InfoMode_auto_deselect(Editor *const editor)
 
 static void info_deleted(InfoModeData *const mode_data, size_t const index)
 {
-    SelectionBitmask_obj_deleted(&mode_data->selection, index);
-    SelectionBitmask_obj_deleted(&mode_data->occluded, index);
+    SelectionBitmask_obj_deleted(&mode_data->selection.obj, index);
+    SelectionBitmask_obj_deleted(&mode_data->occluded.obj, index);
 }
 
 static void info_inserted(InfoModeData *const mode_data, size_t const index)
 {
-    SelectionBitmask_obj_inserted(&mode_data->selection, index);
-    SelectionBitmask_obj_inserted(&mode_data->occluded, index);
+    SelectionBitmask_obj_inserted(&mode_data->selection.obj, index);
+    SelectionBitmask_obj_inserted(&mode_data->occluded.obj, index);
 }
 
 static void InfoMode_resource_change(Editor *const editor, EditorChange const event,
@@ -1032,31 +1046,31 @@ static void InfoMode_resource_change(Editor *const editor, EditorChange const ev
   case EDITOR_CHANGE_INFO_PREDELETE:
     assert(params);
     info_deleted(mode_data, params->info_predelete.index);
-    InfoPropDboxes_update_for_del(&mode_data->prop_dboxes, params->info_predelete.info);
+    InfoPropDboxes_update_for_del(&mode_data->prop_dboxes.obj, params->info_predelete.info);
     break;
 
   case EDITOR_CHANGE_INFO_MOVED:
     assert(params);
-    is_selected = SelectionBitmask_is_selected(&mode_data->selection, params->info_moved.old_index);
-    is_occluded = SelectionBitmask_is_selected(&mode_data->occluded, params->info_moved.old_index);
+    is_selected = SelectionBitmask_is_selected(&mode_data->selection.obj, params->info_moved.old_index);
+    is_occluded = SelectionBitmask_is_selected(&mode_data->occluded.obj, params->info_moved.old_index);
     info_deleted(mode_data, params->info_moved.old_index);
     info_inserted(mode_data, params->info_moved.new_index);
     if (is_selected) {
-      SelectionBitmask_select(&mode_data->selection, params->info_moved.new_index);
+      SelectionBitmask_select(&mode_data->selection.obj, params->info_moved.new_index);
     }
     if (is_occluded) {
-      SelectionBitmask_select(&mode_data->occluded, params->info_moved.new_index);
+      SelectionBitmask_select(&mode_data->occluded.obj, params->info_moved.new_index);
     }
-    InfoPropDboxes_update_for_move(&mode_data->prop_dboxes, params->info_moved.info,
+    InfoPropDboxes_update_for_move(&mode_data->prop_dboxes.obj, params->info_moved.info,
                                    params->info_moved.old_pos);
     break;
 
   case EDITOR_CHANGE_MISSION_REPLACED:
-    InfoPropDboxes_destroy(&mode_data->prop_dboxes);
-    InfoPropDboxes_init(&mode_data->prop_dboxes, editor);
+    InfoPropDboxes_destroy(&mode_data->prop_dboxes.obj);
+    InfoPropDboxes_init(&mode_data->prop_dboxes.obj, editor);
     {
       size_t const count = InfoEdit_count(Session_get_infos(Editor_get_session(editor)));
-      SelectionBitmask_init(&mode_data->selection, count, redraw_selection, editor);
+      SelectionBitmask_init(&mode_data->selection.obj, count, redraw_selection, editor);
     }
     break;
 
@@ -1069,7 +1083,7 @@ static void InfoMode_select_all(Editor *const editor)
 {
   /* Select all infos on the map */
   InfoModeData *const mode_data = get_mode_data(editor);
-  SelectionBitmask_select_all(&mode_data->selection);
+  SelectionBitmask_select_all(&mode_data->selection.obj);
 }
 
 static void InfoMode_clear_selection(Editor *const editor)
@@ -1118,11 +1132,11 @@ static bool InfoMode_start_drag_obj(Editor *const editor,
   EditSession *const session = Editor_get_session(editor);
   InfoEditContext const *const infos = Session_get_infos(session);
 
-  if (SelectionBitmask_is_none(&mode_data->selection)) {
+  if (SelectionBitmask_is_none(&mode_data->selection.obj)) {
     return false;
   }
 
-  _Optional InfoTransfer *const transfer = InfoTransfers_grab_selection(infos, &mode_data->selection);
+  _Optional InfoTransfer *const transfer = InfoTransfers_grab_selection(infos, &mode_data->selection.obj);
   if (!transfer) {
     return false;
   }
@@ -1219,14 +1233,14 @@ static bool InfoMode_show_ghost_drop(Editor *const editor,
 
     Editor_clear_ghost_bbox(editor);
 
-    SelectionBitmask_copy(&mode_data->tmp, &mode_data->occluded);
-    SelectionBitmask_clear(&mode_data->occluded);
+    SelectionBitmask_copy(&mode_data->tmp.obj, &mode_data->occluded.obj);
+    SelectionBitmask_clear(&mode_data->occluded.obj);
 
-    InfoTransfers_find_occluded(infos, bbox->min, &*origin_data->dragged, &mode_data->occluded);
-    InfoMode_add_ghost_bbox_for_transfer(editor, infos, bbox->min, &*origin_data->dragged, &mode_data->occluded);
+    InfoTransfers_find_occluded(infos, bbox->min, &*origin_data->dragged, &mode_data->occluded.obj);
+    InfoMode_add_ghost_bbox_for_transfer(editor, infos, bbox->min, &*origin_data->dragged, &mode_data->occluded.obj);
 
     OccludedData data = {.editor = editor, .infos = infos};
-    SelectionBitmask_for_each_changed(&mode_data->occluded, &mode_data->tmp,
+    SelectionBitmask_for_each_changed(&mode_data->occluded.obj, &mode_data->tmp.obj,
                                       occluded_changed, &data);
 
     mode_data->pending_drop = origin_data->dragged;
@@ -1268,8 +1282,8 @@ static void InfoMode_hide_ghost_drop(Editor *const editor)
     EditSession *const session = Editor_get_session(editor);
     InfoEditContext const *const infos = Session_get_infos(session);
     OccludedData data = {.editor = editor, .infos = infos};
-    SelectionBitmask_for_each(&mode_data->occluded, occluded_changed, &data);
-    SelectionBitmask_clear(&mode_data->occluded);
+    SelectionBitmask_for_each(&mode_data->occluded.obj, occluded_changed, &data);
+    SelectionBitmask_clear(&mode_data->occluded.obj);
     Editor_redraw_ghost(editor); // undraw
     Editor_clear_ghost_bbox(editor);
     free_pending_drop(mode_data);
@@ -1294,9 +1308,9 @@ static bool drag_obj_copy_core(Editor *const editor,
   assert(MapArea_is_valid(bbox));
   InfoModeData *const mode_data = get_mode_data(editor);
 
-  SelectionBitmask_clear(&mode_data->selection);
+  SelectionBitmask_clear(&mode_data->selection.obj);
 
-  InfoTransfers_plot_to_map(infos, bbox->min, dropped, &mode_data->selection,
+  InfoTransfers_plot_to_map(infos, bbox->min, dropped, &mode_data->selection.obj,
                                    &mode_data->change_info);
   return true;
 }
@@ -1347,7 +1361,7 @@ static void InfoMode_drag_obj_move(Editor *const editor,
   // Don't delete and re-add data to avoid losing its unique identity
   InfoEdit_move(infos,
                 vec,
-                &origin_data->selection,
+                &origin_data->selection.obj,
                 &origin_data->change_info);
 
   changed_with_msg(editor);
@@ -1412,7 +1426,7 @@ static void InfoMode_tool_selected(Editor *const editor)
 
   if (Editor_get_tool(editor) != EDITORTOOL_NONE)
   {
-    InfoPalette_register(&editor->palette_data);
+    InfoPalette_register(&editor->palette_data.obj);
   }
 }
 
@@ -1452,9 +1466,9 @@ bool InfoMode_enter(Editor *const editor)
   };
 
   size_t const count = InfoEdit_count(Session_get_infos(Editor_get_session(editor)));
-  SelectionBitmask_init(&mode_data->selection, count, redraw_selection, editor);
-  SelectionBitmask_init(&mode_data->tmp, count, (SelectionBitmaskRedrawFn *)NULL, editor);
-  SelectionBitmask_init(&mode_data->occluded, count, (SelectionBitmaskRedrawFn *)NULL, editor);
+  SelectionBitmask_init(&mode_data->selection.obj, count, redraw_selection, editor);
+  SelectionBitmask_init(&mode_data->tmp.obj, count, (SelectionBitmaskRedrawFn *)NULL, editor);
+  SelectionBitmask_init(&mode_data->occluded.obj, count, (SelectionBitmaskRedrawFn *)NULL, editor);
 
   editor->editingmode_data = &*mode_data;
 
@@ -1518,7 +1532,7 @@ bool InfoMode_enter(Editor *const editor)
   };
   editor->mode_functions = &info_mode_fns;
 
-  InfoPropDboxes_init(&mode_data->prop_dboxes, editor);
+  InfoPropDboxes_init(&mode_data->prop_dboxes.obj, editor);
   Editor_display_msg(editor, msgs_lookup("StatusInfoMode"), false);
   return true;
 }

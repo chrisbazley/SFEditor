@@ -19,8 +19,14 @@
 struct MapTransfers
 {
   int               count;
-  StrDict           dict;
-  SprMem            thumbnail_sprites; /* flex anchor for sprite area */
+  union {
+    char nil;
+    StrDict           obj;
+  } dict;
+  union {
+    char nil;
+    SprMem            obj;
+  } thumbnail_sprites; /* flex anchor for sprite area */
   bool              have_thumbnails;
   _Optional char *directory;
 };

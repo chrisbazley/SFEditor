@@ -196,7 +196,7 @@ static void delete_thumbnail(MapTransfers *const transfers_data,
   assert(transfer != NULL);
   char const *const spr_name = get_leaf_name(&transfer->dfile);
   DEBUG("Deleting transfer thumbnail sprite '%s'", spr_name);
-  SprMem_delete(&transfers_data->thumbnail_sprites, spr_name);
+  SprMem_delete(&transfers_data->thumbnail_sprites.obj, spr_name);
 }
 
 static bool make_transfer_thumbnail(MapTransfers *const transfers_data,
@@ -218,7 +218,7 @@ static bool make_transfer_thumbnail(MapTransfers *const transfers_data,
 
   /* Create thumbnail sprite */
   char const *const spr_name = get_leaf_name(&transfer->dfile);
-  if (!SprMem_create_sprite(&transfers_data->thumbnail_sprites,
+  if (!SprMem_create_sprite(&transfers_data->thumbnail_sprites.obj,
           spr_name, false, thumbnail_size, DrawTilesModeNumber))
   {
     DEBUG("Failed to create sprite");
@@ -230,7 +230,7 @@ static bool make_transfer_thumbnail(MapTransfers *const transfers_data,
   /* Paint to thumbnail sprite */
   bool const needs_mask = DrawTiles_to_sprite(
     textures,
-    &transfers_data->thumbnail_sprites,
+    &transfers_data->thumbnail_sprites.obj,
     spr_name,
     MapAngle_North, &scr_area,
     read_transfer_tile,
@@ -240,11 +240,11 @@ static bool make_transfer_thumbnail(MapTransfers *const transfers_data,
 
   if (needs_mask) {
     /* Create thumbnail mask (with all pixels solid) */
-    if (!SprMem_create_mask(&transfers_data->thumbnail_sprites, spr_name))
+    if (!SprMem_create_mask(&transfers_data->thumbnail_sprites.obj, spr_name))
       return false;
 
     /* Paint to thumbnail mask */
-    DrawTiles_to_mask(&transfers_data->thumbnail_sprites,
+    DrawTiles_to_mask(&transfers_data->thumbnail_sprites.obj,
                       spr_name, MapAngle_North, &scr_area, read_transfer_tile,
                       transfer, thumb_zoom);
   }
@@ -263,7 +263,7 @@ static bool make_thumbnails(MapTransfers *const transfers_data,
   bool success = true;
 
   StrDictVIter iter;
-  for (_Optional MapTransfer *transfer = strdictviter_all_init(&iter, &transfers_data->dict);
+  for (_Optional MapTransfer *transfer = strdictviter_all_init(&iter, &transfers_data->dict.obj);
        transfer != NULL;
        transfer = strdictviter_advance(&iter)) {
     if (count <= INT_MAX / 100)
@@ -280,13 +280,13 @@ static bool make_thumbnails(MapTransfers *const transfers_data,
   }
   hourglass_off();
 
-  SprMem_minimize(&transfers_data->thumbnail_sprites);
+  SprMem_minimize(&transfers_data->thumbnail_sprites.obj);
 
 #ifndef NDEBUG
-  SprMem_verify(&transfers_data->thumbnail_sprites);
+  SprMem_verify(&transfers_data->thumbnail_sprites.obj);
 
   if (transfers_data->count > 0)
-    SprMem_save(&transfers_data->thumbnail_sprites, "transfers_thumbnails");
+    SprMem_save(&transfers_data->thumbnail_sprites.obj, "transfers_thumbnails");
 #endif
 
   return success;
@@ -300,7 +300,7 @@ static bool add_to_list(MapTransfers *const transfers_data,
   DEBUG("Adding transfer '%s'", get_leaf_name(&transfer->dfile));
   // Careful! Key string isn't copied on insertion.
   size_t new_index;
-  if (!strdict_insert(&transfers_data->dict, get_leaf_name(&transfer->dfile), transfer, &new_index)) {
+  if (!strdict_insert(&transfers_data->dict.obj, get_leaf_name(&transfer->dfile), transfer, &new_index)) {
     report_error(SFERROR(NoMem), "", "");
     return false;
   }
@@ -319,7 +319,7 @@ static void remove_from_list(MapTransfers *const transfers_data,
 {
   assert(transfers_data != NULL);
   assert(transfer != NULL);
-  _Optional MapTransfer *const removed = strdict_remove_value(&transfers_data->dict, get_leaf_name(&transfer->dfile), NULL);
+  _Optional MapTransfer *const removed = strdict_remove_value(&transfers_data->dict.obj, get_leaf_name(&transfer->dfile), NULL);
   assert(removed == transfer);
   NOT_USED(removed);
   assert(transfers_data->count > 0);
@@ -803,7 +803,7 @@ void MapTransfers_init(MapTransfers *const transfers_data)
     .directory = NULL,
   };
 
-  strdict_init(&transfers_data->dict);
+  strdict_init(&transfers_data->dict.obj);
 }
 
 void MapTransfers_load_all(MapTransfers *const transfers_data,
@@ -910,12 +910,12 @@ void MapTransfers_free(MapTransfers *const transfers_data)
 
   assert(transfers_data != NULL);
 
-  strdict_destroy(&transfers_data->dict, free_all_cb, transfers_data);
+  strdict_destroy(&transfers_data->dict.obj, free_all_cb, transfers_data);
 
   FREE_SAFE(transfers_data->directory);
 
   if (transfers_data->have_thumbnails) {
-    SprMem_destroy(&transfers_data->thumbnail_sprites);
+    SprMem_destroy(&transfers_data->thumbnail_sprites.obj);
   }
 
 }
@@ -934,13 +934,13 @@ bool MapTransfers_ensure_thumbnails(MapTransfers *const transfers_data,
   }
 
   DEBUG("Creating thumbnails of transfers for tile set %p", (void *)transfers_data);
-  if (!SprMem_init(&transfers_data->thumbnail_sprites, 0)) {
+  if (!SprMem_init(&transfers_data->thumbnail_sprites.obj, 0)) {
     return false;
   }
 
   bool const success = make_thumbnails(transfers_data, textures);
   if (!success) {
-    SprMem_destroy(&transfers_data->thumbnail_sprites);
+    SprMem_destroy(&transfers_data->thumbnail_sprites.obj);
   } else {
     transfers_data->have_thumbnails = true;
   }
@@ -1289,7 +1289,7 @@ _Optional MapTransfer *MapTransfers_find_by_name(MapTransfers *const transfers_d
   assert(transfers_data != NULL);
 
   size_t index = 0;
-  _Optional MapTransfer *const transfer = strdict_find_value(&transfers_data->dict, filename, &index);
+  _Optional MapTransfer *const transfer = strdict_find_value(&transfers_data->dict.obj, filename, &index);
 
   if (!transfer) {
     DEBUG ("Reached end of transfers list without finding record!");
@@ -1313,7 +1313,7 @@ _Optional MapTransfer *MapTransfers_find_by_index(MapTransfers *const transfers_
 
   assert(transfers_data != NULL);
   assert(transfer_index < transfers_data->count);
-  return strdict_get_value_at(&transfers_data->dict, transfer_index);
+  return strdict_get_value_at(&transfers_data->dict.obj, transfer_index);
 }
 
 bool MapTransfers_add(MapTransfers *const transfers_data,
@@ -1332,7 +1332,7 @@ bool MapTransfers_add(MapTransfers *const transfers_data,
   }
   char const *directory = &*transfers_data->directory;
 
-  _Optional MapTransfer *const existing_transfer = strdict_find_value(&transfers_data->dict, filename, NULL);
+  _Optional MapTransfer *const existing_transfer = strdict_find_value(&transfers_data->dict.obj, filename, NULL);
   if (existing_transfer) {
     MapTransfers_remove_and_delete(transfers_data, &*existing_transfer, false);
   }
@@ -1380,10 +1380,10 @@ bool MapTransfers_rename(MapTransfers *const transfers_data,
   char const *directory = &*transfers_data->directory;
 
   assert(transfer_to_rename != NULL);
-  assert(strdict_find_value(&transfers_data->dict, get_leaf_name(&transfer_to_rename->dfile), NULL) == transfer_to_rename);
+  assert(strdict_find_value(&transfers_data->dict.obj, get_leaf_name(&transfer_to_rename->dfile), NULL) == transfer_to_rename);
 
   if (stricmp(get_leaf_name(&transfer_to_rename->dfile), new_name) != 0) {
-    _Optional MapTransfer *const dup = strdict_find_value(&transfers_data->dict, new_name, NULL);
+    _Optional MapTransfer *const dup = strdict_find_value(&transfers_data->dict.obj, new_name, NULL);
     if (dup) {
       MapTransfers_remove_and_delete(transfers_data, &*dup, false);
     }
@@ -1406,7 +1406,7 @@ bool MapTransfers_rename(MapTransfers *const transfers_data,
       success = verbose_rename(&*filename, &*newpath);
     }
     if (success) {
-      _Optional MapTransfer *const removed = strdict_remove_value(&transfers_data->dict,
+      _Optional MapTransfer *const removed = strdict_remove_value(&transfers_data->dict.obj,
                                   get_leaf_name(&transfer_to_rename->dfile), NULL);
       assert(removed == transfer_to_rename);
       NOT_USED(removed);
@@ -1419,7 +1419,7 @@ bool MapTransfers_rename(MapTransfers *const transfers_data,
     // Careful! Key string isn't copied on insertion.
     // Should be impossible to fail to insert after removal
     size_t new_index;
-    bool is_inserted = strdict_insert(&transfers_data->dict, get_leaf_name(&transfer_to_rename->dfile),
+    bool is_inserted = strdict_insert(&transfers_data->dict.obj, get_leaf_name(&transfer_to_rename->dfile),
                                       transfer_to_rename, &new_index);
     assert(is_inserted);
     NOT_USED(is_inserted);
@@ -1430,7 +1430,7 @@ bool MapTransfers_rename(MapTransfers *const transfers_data,
     }
 
     if (transfers_data->have_thumbnails) {
-      SprMem_rename(&transfers_data->thumbnail_sprites,
+      SprMem_rename(&transfers_data->thumbnail_sprites.obj,
                     &*old_name, new_name);
     }
   }
@@ -1441,10 +1441,10 @@ bool MapTransfers_rename(MapTransfers *const transfers_data,
 
 void MapTransfers_remove_and_delete_all(MapTransfers *const transfers_data)
 {
-  strdict_destroy(&transfers_data->dict, delete_all_cb, transfers_data);
-  strdict_init(&transfers_data->dict);
+  strdict_destroy(&transfers_data->dict.obj, delete_all_cb, transfers_data);
+  strdict_init(&transfers_data->dict.obj);
   transfers_data->count = 0;
-  SprMem_minimize(&transfers_data->thumbnail_sprites);
+  SprMem_minimize(&transfers_data->thumbnail_sprites.obj);
 }
 
 void MapTransfers_remove_and_delete(MapTransfers *const transfers_data,
@@ -1458,7 +1458,7 @@ void MapTransfers_remove_and_delete(MapTransfers *const transfers_data,
   remove_from_list(transfers_data, transfer_to_delete);
   delete_transfer(transfer_to_delete, transfers_data);
   if (shrink_area) {
-    SprMem_minimize(&transfers_data->thumbnail_sprites);
+    SprMem_minimize(&transfers_data->thumbnail_sprites.obj);
   }
 }
 

@@ -26,7 +26,10 @@ enum {
 typedef struct MapSnakes MapSnakes;
 
 typedef struct {
-  SnakeContext super;
+  union {
+    char nil;
+    SnakeContext obj;
+  } super;
   MapEditContext const *map;
   MapEditChanges *change_info;
 } MapSnakesContext;

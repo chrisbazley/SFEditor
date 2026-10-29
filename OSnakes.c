@@ -50,14 +50,14 @@
 
 static unsigned char read_map(MapPoint const map_pos, SnakeContext *const ctx)
 {
-  ObjSnakesContext const *const octx = CONTAINER_OF(ctx, ObjSnakesContext, super);
+  ObjSnakesContext const *const octx = CONTAINER_OF(ctx, ObjSnakesContext, super.obj);
   return objects_ref_to_num(ObjectsEdit_read_ref(octx->objects, map_pos));
 }
 
 static void write_map(MapPoint const map_pos, unsigned char const ref_num,
                       SnakeContext *const ctx)
 {
-  ObjSnakesContext const *const octx = CONTAINER_OF(ctx, ObjSnakesContext, super);
+  ObjSnakesContext const *const octx = CONTAINER_OF(ctx, ObjSnakesContext, super.obj);
 
   ObjectsEdit_write_ref(octx->objects, map_pos, objects_ref_from_num(ref_num),
     TriggersWipeAction_BreakChain, octx->change_info, octx->meshes);
@@ -68,21 +68,21 @@ static void write_map(MapPoint const map_pos, unsigned char const ref_num,
 int ObjSnakes_get_count(const ObjSnakes *const snakes_data)
 {
   assert(snakes_data);
-  return Snakes_get_count(&snakes_data->super);
+  return Snakes_get_count(&snakes_data->super.obj);
 }
 
 void ObjSnakes_get_name(const ObjSnakes *const snakes_data, int const snake,
   char *const snake_name, int const n)
 {
   assert(snakes_data);
-  Snakes_get_name(&snakes_data->super, snake, snake_name, n);
+  Snakes_get_name(&snakes_data->super.obj, snake, snake_name, n);
 }
 
 long int ObjSnakes_get_pal_distance(const ObjSnakes *const snakes_data,
                                     int const snake)
 {
   assert(snakes_data);
-  assert(snake < Snakes_get_count(&snakes_data->super));
+  assert(snake < Snakes_get_count(&snakes_data->super.obj));
 
   return snakes_data->distances ? snakes_data->distances[snake] : -1;
 }
@@ -93,7 +93,7 @@ void ObjSnakes_set_pal_distance(ObjSnakes *const snakes_data,
   assert(snakes_data);
   assert(distance >= 0);
 
-  int const count = Snakes_get_count(&snakes_data->super);
+  int const count = Snakes_get_count(&snakes_data->super.obj);
   assert(snake < count);
 
   if (!snakes_data->distances) {
@@ -122,7 +122,7 @@ ObjRef ObjSnakes_get_value(EditSession *const session,
     .meshes = meshes,
   };
   return objects_ref_from_num(
-    Snakes_begin_line(&ctx.super, &snakes_data->super, map_pos, snake, inside,
+    Snakes_begin_line(&ctx.super.obj, &snakes_data->super.obj, map_pos, snake, inside,
                       read_map, (SnakesWriteFunction *)NULL));
 }
 
@@ -140,7 +140,7 @@ void ObjSnakes_begin_line(ObjSnakesContext *const ctx,
     .change_info = change_info,
     .meshes = meshes,
   };
-  Snakes_begin_line(&ctx->super, &snakes_data->super, map_pos, snake, inside,
+  Snakes_begin_line(&ctx->super.obj, &snakes_data->super.obj, map_pos, snake, inside,
                     read_map, write_map);
 }
 
@@ -149,7 +149,7 @@ void ObjSnakes_plot_line(ObjSnakesContext *const ctx, MapPoint const end,
 {
   assert(ctx != NULL);
   ctx->change_info = change_info;
-  Snakes_plot_line(&ctx->super, end);
+  Snakes_plot_line(&ctx->super.obj, end);
 }
 
 void ObjSnakes_edit(char const *const tiles_set)
@@ -162,8 +162,8 @@ void ObjSnakes_edit(char const *const tiles_set)
 void ObjSnakes_init(ObjSnakes *const snakes_data)
 {
   assert(snakes_data);
-  *snakes_data = (ObjSnakes){.super = {0}, .distances = NULL};
-  Snakes_init(&snakes_data->super);
+  *snakes_data = (ObjSnakes){.super.obj = {0}, .distances = NULL};
+  Snakes_init(&snakes_data->super.obj);
 }
 
 void ObjSnakes_load(ObjSnakes *const snakes_data,
@@ -189,7 +189,7 @@ void ObjSnakes_load(ObjSnakes *const snakes_data,
     if (file == NULL) {
       err = SFERROR(OpenInFail);
     } else {
-      err = Snakes_load(&*file, &snakes_data->super, nobj, err_buf);
+      err = Snakes_load(&*file, &snakes_data->super.obj, nobj, err_buf);
       fclose(&*file);
     }
   }
@@ -202,6 +202,6 @@ void ObjSnakes_load(ObjSnakes *const snakes_data,
 void ObjSnakes_free(ObjSnakes *const snakes_data)
 {
   assert(snakes_data != NULL);
-  Snakes_free(&snakes_data->super);
+  Snakes_free(&snakes_data->super.obj);
   free(snakes_data->distances);
 }

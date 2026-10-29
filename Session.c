@@ -373,7 +373,7 @@ static bool set_main_filename(EditSession *const session, _Optional char const *
     {
       if (session->has_fperf[i])
       {
-        FPerfDbox_update_title(&session->fperf[i]);
+        FPerfDbox_update_title(&session->fperf[i].obj);
       }
     }
 
@@ -381,24 +381,24 @@ static bool set_main_filename(EditSession *const session, _Optional char const *
     {
       if (session->has_bperf[i])
       {
-        BPerfDbox_update_title(&session->bperf[i]);
+        BPerfDbox_update_title(&session->bperf[i].obj);
       }
     }
 
     if (session->has_briefing)
     {
-      BriefDbox_update_title(&session->briefing_data);
+      BriefDbox_update_title(&session->briefing_data.obj);
     }
 
 #if !PER_VIEW_SELECT
     if (session->has_editor) {
-      Editor_update_title(&session->editor);
+      Editor_update_title(&session->editor.obj);
     }
 #endif
 
     if (session->has_special_ship)
     {
-      SpecialShip_update_title(&session->special_ship_data);
+      SpecialShip_update_title(&session->special_ship_data.obj);
     }
   }
 
@@ -636,7 +636,7 @@ static void check_tile_range(EditSession *const session)
     const MapTex *const textures = Session_get_textures(session);
 
     if (!MapEdit_check_tile_range(Session_get_map(session),
-          MapTexBitmaps_get_count(&textures->tiles))) {
+          MapTexBitmaps_get_count(&textures->tiles.obj))) {
       WARN_RTN("TileSet");
     }
   }
@@ -753,16 +753,16 @@ static bool init_edit_win(EditSession *const session,
   return false;
 #else
   if (!session->has_editor) {
-    session->has_editor = Editor_init(&session->editor, session, NULL);
+    session->has_editor = Editor_init(&session->editor.obj, session, NULL);
     if (session->has_editor) {
-      if (EditWin_init(&new_record->edit_win, &session->editor, edit_win_to_copy)) {
+      if (EditWin_init(&new_record->edit_win, &session->editor.obj, edit_win_to_copy)) {
         return true;
       }
-      Editor_destroy(&session->editor);
+      Editor_destroy(&session->editor.obj);
       session->has_editor = false;
     }
   }
-  return EditWin_init(&new_record->edit_win, &session->editor, edit_win_to_copy);
+  return EditWin_init(&new_record->edit_win, &session->editor.obj, edit_win_to_copy);
 #endif
 }
 
@@ -874,7 +874,7 @@ void Session_destroy(EditSession *const session)
 
 #if !PER_VIEW_SELECT
   if (session->has_editor) {
-    Editor_destroy(&session->editor);
+    Editor_destroy(&session->editor.obj);
   }
 #endif
 
@@ -885,7 +885,7 @@ void Session_destroy(EditSession *const session)
   {
     if (session->has_fperf[i])
     {
-      FPerfDbox_destroy(&session->fperf[i]);
+      FPerfDbox_destroy(&session->fperf[i].obj);
     }
   }
 
@@ -893,18 +893,18 @@ void Session_destroy(EditSession *const session)
   {
     if (session->has_bperf[i])
     {
-      BPerfDbox_destroy(&session->bperf[i]);
+      BPerfDbox_destroy(&session->bperf[i].obj);
     }
   }
 
   if (session->has_briefing)
   {
-    BriefDbox_destroy(&session->briefing_data);
+    BriefDbox_destroy(&session->briefing_data.obj);
   }
 
   if (session->has_special_ship)
   {
-    SpecialShip_destroy(&session->special_ship_data);
+    SpecialShip_destroy(&session->special_ship_data.obj);
   }
 
   for (DataType data_type = DataType_First; data_type < DataType_SessionCount; ++data_type)
@@ -2722,7 +2722,7 @@ bool Session_drag_obj_link(EditSession *const session, int const window, int con
   }
   return false;
 #else
-  return session->has_editor ? Editor_drag_obj_link(&session->editor, window, icon, origin) : false;
+  return session->has_editor ? Editor_drag_obj_link(&session->editor.obj, window, icon, origin) : false;
 #endif
 }
 
@@ -2776,7 +2776,7 @@ void Session_resource_change(EditSession *const session,
 
 #if !PER_VIEW_SELECT
   if (session->has_editor) {
-    Editor_resource_change(&session->editor, event, params);
+    Editor_resource_change(&session->editor.obj, event, params);
   }
 #endif
 
@@ -3156,11 +3156,11 @@ void Session_show_special(EditSession *const session)
 
   if (!session->has_special_ship) {
     session->has_special_ship = SpecialShip_init(
-      &session->special_ship_data, session);
+      &session->special_ship_data.obj, session);
   }
 
   if (session->has_special_ship) {
-    SpecialShip_show(&session->special_ship_data);
+    SpecialShip_show(&session->special_ship_data.obj);
   }
 }
 
@@ -3175,12 +3175,12 @@ static void show_perf_big(EditSession *const session,
   if (!session->has_bperf[i])
   {
     session->has_bperf[i] = BPerfDbox_init(
-      &session->bperf[i], session, ship_type);
+      &session->bperf[i].obj, session, ship_type);
   }
 
   if (session->has_bperf[i])
   {
-    BPerfDbox_show(&session->bperf[i]);
+    BPerfDbox_show(&session->bperf[i].obj);
   }
 }
 
@@ -3195,12 +3195,12 @@ static void show_perf_fighter(EditSession *const session,
   if (!session->has_fperf[i])
   {
     session->has_fperf[i] = FPerfDbox_init(
-      &session->fperf[i], session, ship_type);
+      &session->fperf[i].obj, session, ship_type);
   }
 
   if (session->has_fperf[i])
   {
-    FPerfDbox_show(&session->fperf[i]);
+    FPerfDbox_show(&session->fperf[i].obj);
   }
 }
 
@@ -3231,18 +3231,18 @@ void Session_show_briefing(EditSession *const session)
 
   if (!session->has_briefing) {
     session->has_briefing = BriefDbox_init(
-      &session->briefing_data, session);
+      &session->briefing_data.obj, session);
   }
 
   if (session->has_briefing)
-    BriefDbox_show(&session->briefing_data);
+    BriefDbox_show(&session->briefing_data.obj);
 }
 
 #if !PER_VIEW_SELECT
 _Optional Editor *Session_get_editor(EditSession *const session)
 {
   assert(session != NULL);
-  return session->has_editor ? &session->editor : NULL;
+  return session->has_editor ? &session->editor.obj : NULL;
 }
 
 void Session_set_help_and_ptr(EditSession *const session,

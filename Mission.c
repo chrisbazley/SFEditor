@@ -314,7 +314,7 @@ static SFError init_all(MissionData *const mission)
   Fortify_CheckAllMemory();
 #endif
 
-  SFError err = triggers_init(&mission->triggers);
+  SFError err = triggers_init(&mission->triggers.obj);
   if (SFError_fail(err)) {
     return err;
   }
@@ -332,7 +332,7 @@ static SFError init_all(MissionData *const mission)
 static void destroy_all(MissionData *const mission)
 {
   assert(mission);
-  triggers_destroy(&mission->triggers);
+  triggers_destroy(&mission->triggers.obj);
   target_infos_destroy(&mission->target_infos);
   ships_destroy(&mission->ships);
   paths_destroy(&mission->paths);
@@ -348,7 +348,7 @@ static SFError read_inner(MissionData *const mission,
     return err;
   }
 
-  err = triggers_read_max_losses(&mission->triggers, reader);
+  err = triggers_read_max_losses(&mission->triggers.obj, reader);
   if (SFError_fail(err))
   {
     return err;
@@ -378,7 +378,7 @@ static SFError read_inner(MissionData *const mission,
     return err;
   }
 
-  err = triggers_read_pad(&mission->triggers, reader);
+  err = triggers_read_pad(&mission->triggers.obj, reader);
   if (SFError_fail(err))
   {
     return err;
@@ -519,12 +519,12 @@ static void mission_write_cb(DFile const *const dfile, Writer *const writer)
   paths_pre_write(&mission->paths);
 
   player_write(&mission->player, writer);
-  triggers_write_max_losses(&mission->triggers, writer);
+  triggers_write_max_losses(&mission->triggers.obj, writer);
   mission_type_write(mission, writer);
   clouds_write(&mission->clouds, writer);
   write_dock_to_finish(mission, writer);
   player_write_docked(&mission->player, writer);
-  triggers_write_pad(&mission->triggers, writer);
+  triggers_write_pad(&mission->triggers.obj, writer);
   target_infos_write_pad(&mission->target_infos, writer);
   writer_fwrite_int32(mission->time_limit, writer);
   DEBUGF("Finished writing mission timer data at %ld\n", writer_ftell(writer));
@@ -643,7 +643,7 @@ DefencesData *mission_get_defences(MissionData *const mission)
 TriggersData *mission_get_triggers(MissionData *const mission)
 {
   assert(mission);
-  return &mission->triggers;
+  return &mission->triggers.obj;
 }
 
 TargetInfosData *mission_get_target_infos(MissionData *const mission)
