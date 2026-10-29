@@ -90,8 +90,11 @@ enum {
 static inline InfoModeData *get_mode_data(Editor const *const editor)
 {
   assert(Editor_get_edit_mode(editor) == EDITING_MODE_INFO);
-  assert(editor->editingmode_data);
-  return editor->editingmode_data;
+  _Optional InfoModeData *const data = editor->editingmode_data;
+  if (!data) {
+    abort();
+  }
+  return &*data;
 }
 
 static Vertex calc_grid_size(int const zoom)

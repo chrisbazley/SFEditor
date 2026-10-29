@@ -131,8 +131,11 @@ enum {
 static inline ObjectsModeData *get_mode_data(Editor const *const editor)
 {
   assert(Editor_get_edit_mode(editor) == EDITING_MODE_OBJECTS);
-  assert(editor->editingmode_data);
-  return editor->editingmode_data;
+  _Optional ObjectsModeData *const data = editor->editingmode_data;
+  if (!data) {
+    abort();
+  }
+  return &*data;
 }
 
 static ObjRef read_ref_if_overlap(ObjGfxMeshes *const meshes, View const *const view,

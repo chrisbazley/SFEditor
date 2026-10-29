@@ -45,7 +45,7 @@ struct Editor
 
   EditMode editing_mode; /* see editing modes defined above */
   _Optional EditModeFuncts const *mode_functions;
-  void *editingmode_data; /* mode-specific data for selection models etc */
+  _Optional void *editingmode_data; /* mode-specific data for selection models etc */
 };
 
 

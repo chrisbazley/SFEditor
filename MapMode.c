@@ -140,8 +140,11 @@ static _Optional MapTransfer *clipboard;
 static inline MapModeData *get_mode_data(Editor const *const editor)
 {
   assert(Editor_get_edit_mode(editor) == EDITING_MODE_MAP);
-  assert(editor->editingmode_data);
-  return editor->editingmode_data;
+  _Optional MapModeData *const data = editor->editingmode_data;
+  if (!data) {
+    abort();
+  }
+  return &*data;
 }
 
 static void redraw_selection(MapArea const *const area, void *const arg)
