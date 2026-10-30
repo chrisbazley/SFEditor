@@ -230,7 +230,7 @@ static SFError tile_to_sprite(Reader *const reader, MapTexBitmaps *const tiles, 
         map_ref_to_num(tile_num), red_total, green_total, blue_total, bright);
 
   unsigned char const index = map_ref_to_num(tile_num);
-  size_t const bit = (size_t)1 << index;
+  unsigned int const bit = 1u << (index % CHAR_BIT);
   char *const bw_table = tiles->bw_table;
   if (bright > MaxBrightness/2)
   {
