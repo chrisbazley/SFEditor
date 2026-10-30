@@ -496,6 +496,9 @@ bool ObjEditSelection_for_each_changed(
 
   if (map_area) {
     MapArea_intersection(&*map_area, &check_bounds, &check_bounds);
+    if (!MapArea_is_valid(&check_bounds)) {
+      return false;
+    }
   }
 
   MapAreaIter iter;
