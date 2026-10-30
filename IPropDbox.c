@@ -131,7 +131,7 @@ static bool read_win(InfoPropDbox *const prop)
     ComponentId const textarea = text_index_to_component[k];
 
     int nbytes = 0;
-    if (E(textarea_get_text(0, prop->my_object, textarea, &(char){0}, 0, &nbytes)) ||
+    if (E(textarea_get_text(0, prop->my_object, textarea, NULL, 0, &nbytes)) ||
         nbytes < 0) {
       ok = false;
       break;
