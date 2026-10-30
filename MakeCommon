@@ -1,7 +1,7 @@
 # Project:   SFEditor
 
 ObjectList = PolyCol HillCol MapCoord Vertex Config IbarMenu AppIcon \
-        MapsMenu Session Main PreQuit Utils filepaths filescan \
+        MapsMenu Session Main PreQuit Utils DataUtils filepaths filescan \
         BriefDbox graphicsdata MapMode ObjectsMode \
         ShipsMode StatusBar DCS_dialogue MapToolbar ConfigBrush ConfigFill \
         ConfigWand NewTransfer DrawTiles TransMenu Palette \
@@ -11,8 +11,8 @@ ObjectList = PolyCol HillCol MapCoord Vertex Config IbarMenu AppIcon \
         MPropDbox Plot ShipsMenu FPerfDbox BPerfDbox UtilsMenu \
         ORDMenu SaveMap SaveMiss RenameMiss RenameMap EMHmenu \
         RenMissMenu PlotMenu TransMenu2 TransInfo SnakesMenu TilesMenu \
-        ObjGfxMesh MapTex SpecialShip ObjectsEdit \
-        MTransfersPalette TilesPalette MSnakesPalette Picker MapTexBitm \
+        ObjGfxMesh ObjGfxRead MapTex SpecialShip ObjectsEdit \
+        MTransfersPalette TilesPalette MSnakesPalette Picker MapTexBitm MapTexDraw \
         GridCol BackCol MSnakes MapAnims MapEdit MTransfers \
         Smooth EditWin MapEditSel MapEditChg GfxConfig SprMem Desktop \
         Shapes Mission CoarseCoord Briefing Text Filenames Clouds \

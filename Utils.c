@@ -61,31 +61,6 @@
 #include "Session.h"
 #include "DFile.h"
 
-int string_lcount(char const *const string, int *const max_width)
-{
-  assert(string);
-  assert(max_width);
-
-  int line_count = 0;
-  char const *start = string;
-  bool finished = false;
-  do {
-    _Optional char const *end = strchr(start, '\n');
-    if (end == NULL) {
-      end = start + strlen(start);
-      finished = true;
-    }
-    ptrdiff_t nchars = end - start;
-    assert(nchars >= 0);
-    assert(nchars <= INT_MAX);
-    *max_width = HIGHEST((int)nchars, *max_width);
-    line_count++;
-    start = end + 1;
-  } while (!finished);
-
-  return line_count;
-}
-
 static void exec_cmd(char const *command, char const *file_name);
 
 SpriteAreaHeader *get_sprite_area(void)
@@ -166,93 +141,6 @@ void redraw_gadget(ObjectId const window, ComponentId const gadget)
   if (!E(gadget_get_bbox(0, window, gadget, &gadget_bbox))) {
     E(window_force_redraw(0, window, &gadget_bbox));
   }
-}
-
-flex_ptr memset_flex(flex_ptr ptr, unsigned char c, size_t n)
-{
-  /* Version of memset() that doesn't need to be called with flex budge
-  disabled */
-  assert(flex_size(ptr) > 0); /* also validates anchor */
-  c = (char)c;
-
-  if (n % 4) {
-    /* Must write one byte at a time */
-    unsigned char *write_ptr = *ptr; /* careful - flex block must stay put */
-    size_t i = 0;
-    while (i < n) { /* unrolled loop (8 writes per iteration) */
-      write_ptr[i] = c;
-      if (i++ >= n)
-        break;
-
-      write_ptr[i] = c;
-      if (i++ >= n)
-        break;
-
-      write_ptr[i] = c;
-      if (i++ >= n)
-        break;
-
-      write_ptr[i++] = c;
-      if (i++ >= n)
-        break;
-
-      write_ptr[i] = c;
-      if (i++ >= n)
-        break;
-
-      write_ptr[i] = c;
-      if (i++ >= n)
-        break;
-
-      write_ptr[i] = c;
-      if (i++ >= n)
-        break;
-
-      write_ptr[i++] = c;
-    }
-  } else {
-    /* Optimisation - can write words instead of bytes */
-    uint32_t *write_ptr = *ptr; /* careful - flex block must stay put */
-    const uint32_t wide = c |
-                          (uint32_t)c << CHAR_BIT |
-                          (uint32_t)c << (CHAR_BIT * 2) |
-                          (uint32_t)c << (CHAR_BIT * 3);
-    size_t i = 0;
-    while (i < n/sizeof(*write_ptr)) {
-      /* unrolled loop (8 writes per iteration) */
-      write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
-        break;
-
-      write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
-        break;
-
-      write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
-        break;
-
-      write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
-        break;
-
-      write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
-        break;
-
-      write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
-        break;
-
-      write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
-        break;
-
-      write_ptr[i++] = wide;
-    }
-  }
-
-  return ptr;
 }
 
 flex_ptr memcpy_flex(flex_ptr dst, flex_ptr src, size_t n)
@@ -870,27 +758,6 @@ void load_fail(_Optional CONST _kernel_oserror *const error,
   {
     err_check_rep(msgs_error_subn(error->errnum, "LoadFail", 1, error->errmess));
   }
-}
-
-SFError check_trunc_or_ext(Reader *const reader, SFError err)
-{
-  if (!SFError_fail(err))
-  {
-    if (reader_ferror(reader))
-    {
-      err = SFERROR(ReadFail);
-    }
-    else if (reader_fgetc(reader) != EOF)
-    {
-      err = SFERROR(TooLong);
-    }
-  }
-  else if (reader_feof(reader))
-  {
-    err = SFERROR(Trunc);
-  }
-
-  return err;
 }
 
 bool claim_drag(const WimpMessage *const message, int const file_types[],

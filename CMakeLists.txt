@@ -108,6 +108,7 @@ set(SOURCES
     Main.c
     PreQuit.c
     Utils.c
+    DataUtils.c
     FilePaths.c
     FileScan.c
     BriefDbox.c
@@ -163,6 +164,7 @@ set(SOURCES
     SnakesMenu.c
     TilesMenu.c
     ObjGfxMesh.c
+    ObjGfxRead.c
     MapTex.c
     SpecialShip.c
     ObjectsEdit.c
@@ -171,6 +173,7 @@ set(SOURCES
     MSnakesPalette.c
     Picker.c
     MapTexBitm.c
+    MapTexDraw.c
     GridCol.c
     BackCol.c
     MSnakes.c
@@ -284,3 +287,4 @@ include(CTest)
 if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests")
   add_subdirectory(tests)
 endif()
+
