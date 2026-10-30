@@ -30,7 +30,6 @@
 #include "kernel.h"
 #include "flex.h"
 
-#include "SFFormats.h" /* get Fednet filetype */
 #include "Err.h"
 #include "msgtrans.h"
 #include "Macros.h"
@@ -41,9 +40,6 @@
 #include "NoBudge.h"
 #include "Debug.h"
 #include "DirIter.h"
-#include "OSSpriteOp.h"
-#include "FOpenCount.h"
-#include "PathTail.h"
 
 #include "DFileUtils.h"
 #include "SprMem.h"

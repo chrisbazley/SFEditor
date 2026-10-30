@@ -23,7 +23,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <stdint.h>
 #include <inttypes.h>
 
 #include "toolbox.h"
@@ -36,7 +35,6 @@
 #include "Err.h"
 #include "Macros.h"
 #include "scheduler.h"
-#include "TboxBugs.h"
 #include "Debug.h"
 #include "GadgetUtil.h"
 #include "EventExtra.h"
@@ -52,10 +50,6 @@
 #include "PlotMenu.h"
 #include "ZoomMenu.h"
 #include "EditMenu.h"
-#include "Smooth.h"
-#include "MSnakes.h"
-#include "MTransfers.h"
-#include "DataType.h"
 
 #ifdef USE_OPTIONAL
 #include "Optional.h"

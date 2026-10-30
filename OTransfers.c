@@ -30,7 +30,6 @@
 #include "kernel.h"
 #include "flex.h"
 
-#include "SFFormats.h" /* get Fednet filetype */
 #include "Err.h"
 #include "msgtrans.h"
 #include "Macros.h"
@@ -48,7 +47,6 @@
 #include "Session.h"
 #include "Config.h"
 #include "Triggers.h"
-#include "Palette.h"
 #include "ObjectsEdit.h"
 #include "ObjEditSel.h"
 #include "MapCoord.h"
@@ -59,7 +57,6 @@
 #include "WriterGKey.h"
 #include "ReaderGKey.h"
 #include "DFileUtils.h"
-#include "Triggers.h"
 #include "Obj.h"
 #include "CoarseCoord.h"
 

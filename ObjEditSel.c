@@ -19,7 +19,6 @@
  */
 
 #include <stdbool.h>
-#include <stdint.h>
 
 #include "flex.h"
 #include "Err.h"

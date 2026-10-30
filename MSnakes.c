@@ -27,7 +27,6 @@
 
 /* My headers */
 #include "Snakes.h"
-#include "SprFormats.h"
 #include "Hourglass.h"
 #include "Err.h"
 #include "Macros.h"

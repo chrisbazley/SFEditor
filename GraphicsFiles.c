@@ -30,7 +30,6 @@
 #include "msgtrans.h"
 #include "Debug.h"
 
-#include "Config.h"
 #include "Session.h"
 #include "EditWin.h"
 #include "GraphicsFiles.h"

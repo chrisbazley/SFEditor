@@ -19,15 +19,12 @@
  */
 
 #include "stdlib.h"
-#include <stdbool.h>
 #include <assert.h>
-#include <limits.h>
 #include "toolbox.h"
 
 #include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
-#include "Hourglass.h"
 #include "Debug.h"
 
 #include "Infos.h"
@@ -37,8 +34,6 @@
 #include "InfoEditChg.h"
 #include "MapCoord.h"
 #include "Map.h"
-#include "DrawInfo.h"
-#include "DrawTrig.h"
 #include "SelBitmask.h"
 
 #ifdef USE_OPTIONAL

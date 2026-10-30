@@ -18,14 +18,12 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <ctype.h>
 #include <stdbool.h>
 #include "stdio.h"
 #include "stdlib.h"
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
-#include <stdint.h>
 #include <inttypes.h>
 #include <time.h>
 
@@ -81,12 +79,9 @@
 #include "UtilsMenu.h"
 #include "LayersMenu.h"
 #include "MainMenu.h"
-#include "UtilsMenu.h"
 #include "GridCol.h"
 #include "BackCol.h"
 #include "MapCoord.h"
-#include "EditMenu.h"
-#include "EffectMenu.h"
 #include "Desktop.h"
 #include "DataType.h"
 #include "MapTexBitm.h"

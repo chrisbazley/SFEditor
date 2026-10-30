@@ -32,9 +32,6 @@
 #include "EditWin.h"
 #include "Utils.h"
 #include "ToolMenu.h"
-#include "MTransfers.h"
-#include "MSnakes.h"
-#include "DataType.h"
 
 #ifdef USE_OPTIONAL
 #include "Optional.h"

@@ -25,7 +25,6 @@
 #include <limits.h>
 #include <assert.h>
 #include <inttypes.h>
-#include <stdint.h>
 
 #include "toolbox.h"
 #include "window.h"
@@ -37,12 +36,10 @@
 #include "Err.h"
 #include "Macros.h"
 #include "FilePerc.h"
-#include "StrExtra.h"
 #include "PathTail.h"
 #include "WimpExtra.h"
 #include "DeIconise.h"
 #include "Debug.h"
-#include "OSVDU.h"
 #include "EventExtra.h"
 #include "scheduler.h"
 #include "OSReadTime.h"

@@ -36,7 +36,6 @@
 #include "EditorData.h"
 #include "EditMode.h"
 #include "Session.h"
-#include "Mission.h"
 #include "Infos.h"
 #include "Utils.h"
 #include "DataType.h"
@@ -50,7 +49,6 @@
 #include "InfoEditChg.h"
 #include "InfoMode.h"
 #include "DrawInfos.h"
-#include "Infos.h"
 
 #ifdef USE_OPTIONAL
 #include "Optional.h"

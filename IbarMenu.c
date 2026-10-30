@@ -33,8 +33,6 @@
 #include "Macros.h"
 #include "ViewsMenu.h"
 
-#include "FileScan.h"
-#include "FilePaths.h"
 #include "Utils.h"
 #include "IbarMenu.h"
 #include "Session.h"

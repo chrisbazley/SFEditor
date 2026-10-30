@@ -30,10 +30,8 @@
 #include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
-#include "StrExtra.h"
 #include "Debug.h"
 #include "FileUtils.h"
-#include "PathTail.h"
 
 #include "Session.h"
 #include "MissFiles.h"

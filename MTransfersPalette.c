@@ -30,7 +30,6 @@
 #include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
-#include "PathTail.h"
 #include "Debug.h"
 #include "WimpExtra.h"
 

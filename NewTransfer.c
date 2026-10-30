@@ -31,7 +31,6 @@
 #include "Session.h"
 #include "EditWin.h"
 #include "Editor.h"
-#include "EditWin.h"
 #include "NewTransfer.h"
 #include "DataType.h"
 #include "Filenames.h"

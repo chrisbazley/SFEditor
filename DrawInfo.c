@@ -20,7 +20,6 @@
 
 #include <stdbool.h>
 
-#include "swis.h"
 #include "toolbox.h"
 
 #include "Debug.h"
@@ -32,14 +31,12 @@
 #include "OSVDU.h"
 #include "MapTexBitm.h"
 #include "Vertex.h"
-#include "Clouds.h"
 #include "Obj.h"
 #include "DrawInfo.h"
 #include "Desktop.h"
 #include "Utils.h"
 #include "EditWin.h"
 #include "Plot.h"
-#include "ObjLayout.h"
 
 #ifdef USE_OPTIONAL
 #include "Optional.h"

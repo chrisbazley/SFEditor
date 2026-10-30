@@ -11,7 +11,6 @@
 #include "Map.h"
 #include "Hill.h"
 #include "HillCol.h"
-#include "MapCoord.h"
 #include "Obj.h"
 #include "ObjGfxMesh.h"
 #include "SFError.h"

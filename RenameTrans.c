@@ -31,9 +31,7 @@
 
 #include "Err.h"
 #include "Macros.h"
-#include "SprFormats.h"
 #include "msgtrans.h"
-#include "StrExtra.h"
 #include "Debug.h"
 
 #include "Session.h"

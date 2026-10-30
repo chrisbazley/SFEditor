@@ -20,7 +20,6 @@
 
 #include "stdlib.h"
 #include "stdio.h"
-#include <string.h>
 #include <stdbool.h>
 #include <assert.h>
 #include <limits.h>
@@ -35,7 +34,6 @@
 #include "DFile.h"
 #include "DFileUtils.h"
 #include "Utils.h"
-#include "FilePaths.h"
 #include "PathTail.h"
 
 #ifdef USE_OPTIONAL

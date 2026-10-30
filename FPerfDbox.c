@@ -21,7 +21,6 @@
 #include "stdlib.h"
 #include <stdbool.h>
 #include <assert.h>
-#include <limits.h>
 #include <string.h>
 
 #include "event.h"

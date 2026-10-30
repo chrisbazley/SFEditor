@@ -21,7 +21,6 @@
 #include <stdbool.h>
 #include <assert.h>
 #include "stdio.h"
-#include <stdbool.h>
 #include <limits.h>
 
 #include "toolbox.h"
@@ -43,14 +42,12 @@
 #include "TilesMenu.h"
 #include "MapTexBitm.h"
 #include "TilesPalette.h"
-#include "Session.h"
 #include "Editor.h"
 #include "MapTexData.h"
 #include "Smooth.h"
 #include "DataType.h"
 #include "Filenames.h"
 #include "MapTex.h"
-#include "MapTexBitm.h"
 #include "MapCoord.h"
 
 #ifdef USE_OPTIONAL

@@ -27,7 +27,6 @@
 
 #include "kernel.h"
 #include "toolbox.h"
-#include "menu.h"
 
 #include "Err.h"
 #include "msgtrans.h"
@@ -35,7 +34,6 @@
 #include "Macros.h"
 #include "StrExtra.h"
 #include "DirIter.h"
-#include "Hourglass.h"
 #include "StringBuff.h"
 
 #include "FileScan.h"
