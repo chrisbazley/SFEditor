@@ -26,9 +26,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <limits.h>
-#include <stdint.h>
 #include <inttypes.h>
-#include <ctype.h>
 
 #include "toolbox.h"
 #include "event.h"
@@ -36,17 +34,13 @@
 #include "wimp.h"
 #include "wimplib.h"
 #include "gadgets.h"
-#include "menu.h"
 
 #include "Err.h"
 #include "msgtrans.h"
 #include "Macros.h"
 #include "SprFormats.h"
-#include "TboxBugs.h"
 #include "FileUtils.h"
-#include "StrExtra.h"
 #include "Debug.h"
-#include "NoBudge.h"
 
 #include "OurEvents.h"
 #include "Session.h"
@@ -58,7 +52,6 @@
 #ifdef FASTPLOT
 #include "FastPlot.h"
 #endif
-#include "Debug.h"
 #include "Plot.h"
 #include "EditWin.h"
 #include "MPropDbox.h"
@@ -83,7 +76,6 @@
 #include "MapEditCtx.h"
 #include "EditorData.h"
 #include "Filenames.h"
-#include "DataType.h"
 #include "DFileUtils.h"
 #include "IntDict.h"
 #include "MapLayout.h"

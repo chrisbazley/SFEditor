@@ -19,7 +19,6 @@
  */
 
 #include <assert.h>
-#include <limits.h>
 #include <inttypes.h>
 
 #include "event.h"
@@ -40,7 +39,6 @@
 #include "EditWin.h"
 #include "Debug.h"
 #include "IPropDbox.h"
-#include "EditWin.h"
 #include "Map.h"
 #include "Utils.h"
 #include "Infos.h"

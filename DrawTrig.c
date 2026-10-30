@@ -20,7 +20,6 @@
 
 #include <stdbool.h>
 
-#include "swis.h"
 
 #include "Debug.h"
 #include "Macros.h"

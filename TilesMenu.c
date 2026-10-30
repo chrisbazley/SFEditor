@@ -18,7 +18,6 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <stdbool.h>
 #include <assert.h>
 #include <string.h>
 #include "stdio.h"
@@ -39,8 +38,6 @@
 #include "Session.h"
 #include "Smooth.h"
 #include "MapTexData.h"
-#include "Filenames.h"
-#include "DataType.h"
 
 #ifdef USE_OPTIONAL
 #include "Optional.h"

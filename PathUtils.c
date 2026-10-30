@@ -35,7 +35,6 @@
 #include "FilePaths.h"
 #include "PathUtils.h"
 #include "FileScan.h"
-#include "FilePaths.h"
 #include "Filenames.h"
 #include "Mission.h"
 #include "Pyram.h"

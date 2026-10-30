@@ -23,7 +23,6 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <limits.h>
-#include <stdint.h>
 #include <inttypes.h>
 #include <string.h>
 
@@ -40,7 +39,6 @@
 #include "Debug.h"
 #include "Smooth.h"
 #include "MapEdit.h"
-#include "Utils.h"
 #include "MapCoord.h"
 #include "SmoothData.h"
 

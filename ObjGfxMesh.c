@@ -35,10 +35,7 @@
 #include "msgtrans.h"
 #include "Macros.h"
 #include "Err.h"
-#include "NoBudge.h"
 #include "TrigTable.h"
-#include "OSVDU.h"
-#include "SFFormats.h"
 
 #include "Utils.h"
 #include "Plot.h"

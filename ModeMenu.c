@@ -31,7 +31,6 @@
 #include "ModeMenu.h"
 #include "Utils.h"
 #include "MainMenu.h"
-#include "DataType.h"
 #include "Editor.h"
 
 #ifdef USE_OPTIONAL

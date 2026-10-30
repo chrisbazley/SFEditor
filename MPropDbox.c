@@ -46,13 +46,11 @@
 #include "Utils.h"
 #include "Plot.h"
 #include "SFInit.h"
-#include "EditWin.h"
 #include "Map.h"
 #include "MapEdit.h"
 #include "MapAnims.h"
 #include "MapTexData.h"
 #include "MapEditSel.h"
-#include "MapEditChg.h"
 #include "MapTexBitm.h"
 #include "MapEditCtx.h"
 

@@ -29,7 +29,6 @@
 #include "msgtrans.h"
 #include "PathTail.h"
 #include "StringBuff.h"
-#include "msgtrans.h"
 #include "Macros.h"
 #include "Err.h"
 #include "GadgetUtil.h"

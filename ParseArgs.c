@@ -19,16 +19,13 @@
  */
 
 /* ANSI library files */
-#include <stdbool.h>
 #include "stdlib.h"
 #include <string.h>
 #include <assert.h>
-#include <ctype.h>
 
 #include "scheduler.h"
 #include "Err.h"
 #include "msgtrans.h"
-#include "StrExtra.h"
 #include "FilePaths.h"
 #include "FileUtils.h"
 

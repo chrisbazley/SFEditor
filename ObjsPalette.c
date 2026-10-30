@@ -22,8 +22,6 @@
 #include <assert.h>
 #include "stdio.h"
 #include <string.h>
-#include <stdbool.h>
-#include <limits.h>
 
 #include "toolbox.h"
 #include "wimp.h"
@@ -53,7 +51,6 @@
 #include "GraphicsData.h"
 #include "ObjGfx.h"
 #include "ObjGfxData.h"
-#include "Obj.h"
 #include "FilenamesData.h"
 #include "DrawCloud.h"
 

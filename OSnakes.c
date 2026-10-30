@@ -22,9 +22,7 @@
 #include <assert.h>
 #include <string.h>
 #include "stdio.h"
-#include <limits.h>
 #include "stdlib.h"
-#include <stdint.h>
 
 /* My headers */
 #include "Snakes.h"
@@ -41,7 +39,6 @@
 #include "ObjectsEdit.h"
 #include "MapCoord.h"
 #include "FilePaths.h"
-#include "Session.h"
 #include "ObjEditChg.h"
 
 #ifdef USE_OPTIONAL

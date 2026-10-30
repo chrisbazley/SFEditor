@@ -28,10 +28,7 @@
 #include "Writer.h"
 
 #include "Utils.h"
-#include "Hourglass.h"
 #include "MapCoord.h"
-#include "Reader.h"
-#include "Writer.h"
 
 #ifdef USE_OPTIONAL
 #include "Optional.h"

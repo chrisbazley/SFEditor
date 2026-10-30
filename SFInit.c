@@ -24,13 +24,10 @@
 #include <stdbool.h>
 #include "stdio.h"
 #include <signal.h>
-#include <stdint.h>
 #include <inttypes.h>
 #include <assert.h>
-#include <ctype.h>
 
 /* RISC OS library files */
-#include "swis.h"
 #include "kernel.h"
 #include "wimp.h"
 #include "toolbox.h"
@@ -49,18 +46,15 @@
 #include "Entity2.h"
 #include "WimpExtra.h"
 #include "PalEntry.h"
-#include "OSVDU.h"
 #include "Macros.h"
 #include "ClrTrans.h"
 #include "Loader3.h"
 #include "Pal256.h"
-#include "NoBudge.h"
 #include "InputFocus.h"
 #include "SprFormats.h"
 #include "Debug.h"
 #include "scheduler.h"
 #include "MessTrans.h"
-#include "StrExtra.h"
 #include "FileUtils.h"
 
 #include "Utils.h"
@@ -138,7 +132,6 @@
 #include "MapTex.h"
 #include "ObjGfx.h"
 #include "PolyCol.h"
-#include "Session.h"
 
 #ifdef USE_OPTIONAL
 #include "Optional.h"

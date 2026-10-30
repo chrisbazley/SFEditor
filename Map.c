@@ -26,7 +26,6 @@
 #include "Reader.h"
 #include "Writer.h"
 #include "NoBudge.h"
-#include "StrExtra.h"
 #include "StrDict.h"
 
 #include "Map.h"

@@ -50,7 +50,6 @@
 #include "MapAnims.h"
 #include "ObjGfxMesh.h"
 #include "GfxConfig.h"
-#include "MapEditChg.h"
 #include "DataType.h"
 #include "FSMenu.h"
 

@@ -22,7 +22,6 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include <stdint.h>
 #include <math.h>
 
 #include "Macros.h"

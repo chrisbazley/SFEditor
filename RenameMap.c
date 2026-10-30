@@ -33,7 +33,6 @@
 #include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
-#include "PathTail.h"
 #include "StrExtra.h"
 #include "Debug.h"
 #include "GadgetUtil.h"

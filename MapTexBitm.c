@@ -29,7 +29,6 @@
 
 #include "Reader.h"
 #include "Writer.h"
-#include "StrExtra.h"
 
 /* My headers */
 #include "PalEntry.h"

@@ -18,7 +18,6 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <ctype.h>
 #include <stdbool.h>
 #include "stdio.h"
 #include "stdlib.h"
@@ -26,7 +25,6 @@
 #include <assert.h>
 #include <limits.h>
 #include <inttypes.h>
-#include <stdint.h>
 #include <time.h>
 
 #include "flex.h"
@@ -37,18 +35,15 @@
 #include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
-#include "NoBudge.h"
 #include "StrExtra.h"
 #include "FileUtils.h"
 #include "PathTail.h"
-#include "Hourglass.h"
 #include "scheduler.h"
 #include "LinkedList.h"
 #include "StringBuff.h"
 #include "Reader.h"
 #include "ReaderRaw.h"
 #include "ReaderGKey.h"
-#include "WriterGKC.h"
 #include "WriterGKey.h"
 
 #include "DCS_dialogue.h"
@@ -83,7 +78,6 @@
 #include "ObjGfxData.h"
 #include "GfxConfig.h"
 #include "MapEditChg.h"
-#include "Desktop.h"
 #include "MapTexBitm.h"
 #include "MissionData.h"
 #include "Map.h"

@@ -25,7 +25,6 @@
 #include <string.h>
 #include "stdlib.h"
 #include "stdio.h"
-#include <ctype.h>
 
 #include "toolbox.h"
 #include "wimp.h"
@@ -35,9 +34,7 @@
 #include "msgtrans.h"
 #include "Macros.h"
 #include "Err.h"
-#include "Hourglass.h"
 #include "Pal256.h"
-#include "StrExtra.h"
 #include "PalEntry.h"
 
 #include "View.h"
@@ -65,7 +62,6 @@
 #include "ObjGfxData.h"
 #include "OSnakes.h"
 #include "OSnakesPalette.h"
-#include "DataType.h"
 #include "MapTexBitm.h"
 #include "Triggers.h"
 #include "OTransfers.h"
