@@ -62,7 +62,7 @@ enum {
 static bool read_brief_win(BriefingData *const briefing, ObjectId const id)
 {
   int nbytes = 0;
-  if (E(textarea_get_text(0, id, ComponentId_TextArea, &(char){0}, 0, &nbytes)) ||
+  if (E(textarea_get_text(0, id, ComponentId_TextArea, NULL, 0, &nbytes)) ||
       nbytes < 0) {
     return false;
   }
