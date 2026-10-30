@@ -9,7 +9,8 @@ StripBadPre = sed -r 's@/[A-Za-z]+:[^ ]*@@g'
 Delete = delete
 
 # Toolflags:
-CCCommonFlags =  -c -IC: -mlibscl -mthrowback -Wall -Wextra -Wsign-conversion -pedantic -std=c99 -MMD -MP -Wno-missing-field-initializers -Wno-type-limits -o $@
+PER_VIEW_SELECT ?= 1
+CCCommonFlags =  -c -IC: -mlibscl -mthrowback -Wall -Wextra -Wsign-conversion -pedantic -std=c99 -MMD -MP -Wno-missing-field-initializers -Wno-type-limits -DPER_VIEW_SELECT=$(PER_VIEW_SELECT) -o $@
 CCFlags = $(CCCommonFlags) -DNDEBUG -O3
 CCDebugFlags = $(CCCommonFlags) -g -DDEBUG_OUTPUT -DFORTIFY
 LinkFlags = -LC: -mlibscl $(addprefix -l,$(ReleaseLibs)) -o $@
