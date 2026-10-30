@@ -49,6 +49,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Cache verified game archive
+      uses: actions/cache@v4
+      with:
+        path: build/tests/SFEditor-game-data/sf3000.zip
+        key: sfeditor-game-data-4f4eff756d475bd5-build-${{ runner.os }}-${{ matrix.build_type }}
+
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
       id: strings
@@ -65,19 +71,64 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DWARNINGS_AS_ERRORS=ON
         -DUSE_OPTIONAL=OFF
+        -DSFEDITOR_TEST_COVERAGE=${{ matrix.c_compiler == 'gcc' && matrix.build_type == 'Debug' && matrix.per_view_select == 'ON' }}
         -DPER_VIEW_SELECT=${{ matrix.per_view_select }}
         -DUSE_FORTIFY=${{ matrix.build_type == 'Debug' && matrix.c_compiler != 'clang' }}
         -S ${{ github.workspace }}
 
     - name: Build
+      id: build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+      shell: bash
+      run: cmake --build "${{ steps.strings.outputs.build-output-dir }}" --config ${{ matrix.build_type }} 2>&1 | tee "${{ steps.strings.outputs.build-output-dir }}/build.log"
 
     - name: Test
+      id: test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest --build-config ${{ matrix.build_type }} --output-on-failure
+      shell: bash
+      run: ctest --build-config ${{ matrix.build_type }} --verbose --output-junit test-results.xml 2>&1 | tee test.log
+
+    - name: Loading-test coverage
+      if: ${{ !cancelled() && matrix.c_compiler == 'gcc' && matrix.build_type == 'Debug' && matrix.per_view_select == 'ON' }}
+      shell: bash
+      run: |
+        python -m pip install gcovr==8.8
+        mkdir -p build/coverage
+        gcovr --root . --filter "$GITHUB_WORKSPACE/" --exclude 'tests/' --exclude 'build/' \
+          --html-details build/coverage/index.html --xml build/coverage/coverage.xml \
+          --markdown-summary build/coverage/summary.md --json-summary build/coverage/summary.json \
+          --txt-summary > build/coverage/summary.txt
+
+    - name: Job summary
+      if: always()
+      shell: bash
+      run: |
+        echo '## Loading-test results' >> "$GITHUB_STEP_SUMMARY"
+        echo 'Build: ${{ steps.build.outcome }}; tests: ${{ steps.test.outcome }}' >> "$GITHUB_STEP_SUMMARY"
+        for report in build/tests/SFEditor-game-data/summary-*.md; do
+          if test -f "$report"; then cat "$report" >> "$GITHUB_STEP_SUMMARY"; fi
+        done
+        if test -f build/coverage/summary.txt; then
+          echo '### Loading-test model and parser coverage (including untested editing, saving and error paths)' >> "$GITHUB_STEP_SUMMARY"
+          cat build/coverage/summary.md >> "$GITHUB_STEP_SUMMARY"
+        fi
+
+    - name: Upload diagnostics
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: diagnostics-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-selection-${{ matrix.per_view_select }}
+        if-no-files-found: warn
+        path: |
+          build/build.log
+          build/test.log
+          build/test-results.xml
+          build/Testing/Temporary/
+          build/tests/SFEditor-game-data/logs/
+          build/tests/SFEditor-game-data/summary-*.md
+          build/coverage/
 
   optional-clang:
     name: _Optional Clang ${{ matrix.build_type }} Fortify ${{ matrix.use_fortify }} selection ${{ matrix.per_view_select }}
@@ -109,6 +160,12 @@ jobs:
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
+
+      - name: Cache verified game archive
+        uses: actions/cache@v4
+        with:
+          path: build-optional-${{ matrix.build_type }}/tests/SFEditor-game-data/sf3000.zip
+          key: sfeditor-game-data-4f4eff756d475bd5-optional-${{ runner.os }}-${{ matrix.build_type }}
 
       - name: Download _Optional Clang
         shell: bash
@@ -173,16 +230,45 @@ jobs:
             -DENABLE_CLANG_TIDY=ON
 
       - name: Build and analyze
+        id: build
         shell: bash
         run: |
           cmake \
             --build "$GITHUB_WORKSPACE/build-optional-${{ matrix.build_type }}" \
-            --parallel 2
+            --parallel 2 2>&1 | tee "$GITHUB_WORKSPACE/build-optional-${{ matrix.build_type }}/build.log"
 
       - name: Test
+        id: test
         shell: bash
         run: |
           ctest \
             --test-dir "$GITHUB_WORKSPACE/build-optional-${{ matrix.build_type }}" \
             --build-config ${{ matrix.build_type }} \
-            --output-on-failure
+            --verbose --output-junit "$GITHUB_WORKSPACE/build-optional-${{ matrix.build_type }}/test-results.xml" \
+            2>&1 | tee "$GITHUB_WORKSPACE/build-optional-${{ matrix.build_type }}/test.log"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          echo '## _Optional loading-test results' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Build: ${{ steps.build.outcome }}; tests: ${{ steps.test.outcome }}' >> "$GITHUB_STEP_SUMMARY"
+          for report in build-optional-${{ matrix.build_type }}/tests/SFEditor-game-data/summary-*.md; do
+            if test -f "$report"; then cat "$report" >> "$GITHUB_STEP_SUMMARY"; fi
+          done
+          echo 'Build logs, per-resource logs and JUnit results are in the diagnostics artifact.' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics-optional-${{ matrix.build_type }}-fortify-${{ matrix.use_fortify }}-selection-${{ matrix.per_view_select }}
+          if-no-files-found: warn
+          path: |
+            build-optional-${{ matrix.build_type }}/build.log
+            build-optional-${{ matrix.build_type }}/test.log
+            build-optional-${{ matrix.build_type }}/test-results.xml
+            build-optional-${{ matrix.build_type }}/Testing/Temporary/
+            build-optional-${{ matrix.build_type }}/tests/SFEditor-game-data/logs/
+            build-optional-${{ matrix.build_type }}/tests/SFEditor-game-data/summary-*.md
+
