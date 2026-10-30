@@ -1308,9 +1308,9 @@ bool Editor_set_edit_mode(Editor *const editor, EditMode const new_mode, _Option
 #if PER_VIEW_SELECT
   if (edit_win) {
     if (success) {
-      Editor_set_tools_shown(editor, editor->show_tool_bar, edit_win);
+      Editor_set_tools_shown(editor, editor->show_tool_bar, &*edit_win);
     }
-    EditWin_display_mode(edit_win);
+    EditWin_display_mode(&*edit_win);
   }
 #else
   NOT_USED(edit_win);
@@ -1372,9 +1372,9 @@ void Editor_display_msg(Editor *const editor, const char *hint, bool temp)
 {
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_display_hint(edit_win, hint);
+    EditWin_display_hint(&*edit_win, hint);
   }
 #else
   Session_display_msg(editor->session, hint, temp);
@@ -2304,9 +2304,9 @@ void Editor_redraw_map(Editor *const editor, MapArea const *const area)
   DEBUGF("%s\n", __func__);
   assert(editor != NULL);
 #if PER_VIEW_SELECT
-  EditWin *const edit_win = Session_editor_to_win(editor);
+  _Optional EditWin *const edit_win = Session_editor_to_win(editor);
   if (edit_win) {
-    EditWin_redraw_map(edit_win, area);
+    EditWin_redraw_map(&*edit_win, area);
   }
 #else
   Session_redraw_map(editor->session, area);

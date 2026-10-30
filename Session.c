@@ -739,7 +739,7 @@ static bool init_edit_win(EditSession *const session,
 #if PER_VIEW_SELECT
   new_record->edit_win_is_valid = false;
   Editor *const editor = &new_record->editor;
-  if (Editor_init(editor, session, edit_win_to_copy ? EditWin_get_editor(edit_win_to_copy) : NULL))
+  if (Editor_init(editor, session, edit_win_to_copy ? EditWin_get_editor(&*edit_win_to_copy) : NULL))
   {
     if (EditWin_init(&new_record->edit_win, editor, edit_win_to_copy))
     {

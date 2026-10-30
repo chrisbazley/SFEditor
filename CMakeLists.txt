@@ -3,6 +3,7 @@ project(SFEditor C)
 
 option(USE_OPTIONAL "Enable the _Optional qualifier" OFF)
 option(USE_FORTIFY "Enable Fortify memory-allocation checking" OFF)
+option(PER_VIEW_SELECT "Keep a separate selection in each editing window" ON)
 option(ENABLE_CLANG_TIDY "Run clang-tidy during compilation" OFF)
 option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
@@ -256,6 +257,13 @@ target_link_libraries(SFEditor PUBLIC
 target_compile_definitions(SFEditor PRIVATE
     $<$<CONFIG:Debug>:DEBUG_OUTPUT>
 )
+
+# Session.h and SessionData.h depend on the same setting as the library.
+target_compile_definitions(SFEditor PUBLIC
+    PER_VIEW_SELECT=$<BOOL:${PER_VIEW_SELECT}>
+)
+
+message(STATUS "SFEditor per-view selection: ${PER_VIEW_SELECT}")
 
 string(TOUPPER "${CMAKE_SYSTEM_NAME}" SYSTEM_NAME_UPPER)
 
