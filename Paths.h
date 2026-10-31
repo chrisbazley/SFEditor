@@ -35,6 +35,7 @@ int path_get_index(Path const *path);
 _Optional Waypoint *path_add_waypoint(Path *path, CoarsePoint3d coords);
 void path_delete(Path * path);
 
+CoarsePoint3d waypoint_get_coords(Waypoint const *waypoint);
 Path *waypoint_get_path(Waypoint const *waypoint);
 _Optional Waypoint *waypoint_from_index(Path *path, int index);
 int waypoint_get_index(Waypoint const *waypoint);
