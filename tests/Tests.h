@@ -4,6 +4,7 @@
 #ifndef Tests_h
 #define Tests_h
 
+void SelBitmask_tests(void);
 void MapEditSel_tests(void);
 void ObjEditSel_tests(void);
 void LoadGameData_tests(void);
