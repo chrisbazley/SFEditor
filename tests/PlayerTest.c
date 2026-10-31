@@ -133,11 +133,11 @@ static void check_saved(PlayerData const *player, size_t offset, int value)
   }
 }
 
-static void make_record(unsigned char data[RecordSize])
+static void make_record(unsigned char (*data)[RecordSize])
 {
   for (size_t i = 0; i < RecordSize; ++i)
   {
-    data[i] = initial_byte(i);
+    (*data)[i] = initial_byte(i);
   }
 }
 
@@ -355,7 +355,7 @@ static void test14(void)
   /* Player truncation */
 
   unsigned char data[RecordSize];
-  make_record(data);
+  make_record(&data);
   for (size_t length = 0; length < sizeof(data); ++length)
   {
     PlayerData player = initial;
@@ -368,7 +368,7 @@ static void test15(void)
   /* Invalid direction */
 
   unsigned char data[RecordSize];
-  make_record(data);
+  make_record(&data);
   data[3] = ShipDirection_SW + 1;
   PlayerData player = initial;
   assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerDir);
@@ -381,7 +381,7 @@ static void test16(void)
   /* Invalid equipment flag */
 
   unsigned char data[RecordSize];
-  make_record(data);
+  make_record(&data);
   data[4] = 2;
   PlayerData player = initial;
   assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadEnableEquip);
@@ -394,7 +394,7 @@ static void test17(void)
   /* Invalid laser type */
 
   unsigned char data[RecordSize];
-  make_record(data);
+  make_record(&data);
   data[5] = PlayerMaxLaserType + 1;
   PlayerData player = initial;
   assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerLaserType);
@@ -407,7 +407,7 @@ static void test18(void)
   /* Invalid engine */
 
   unsigned char data[RecordSize];
-  make_record(data);
+  make_record(&data);
   data[6] = PlayerMaxEngine + 1;
   PlayerData player = initial;
   assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerEngine);
@@ -420,7 +420,7 @@ static void test19(void)
   /* Invalid control */
 
   unsigned char data[RecordSize];
-  make_record(data);
+  make_record(&data);
   data[7] = PlayerMaxControl + 1;
   PlayerData player = initial;
   assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerControl);
@@ -433,7 +433,7 @@ static void test20(void)
   /* Invalid shields */
 
   unsigned char data[RecordSize];
-  make_record(data);
+  make_record(&data);
   data[8] = PlayerMaxShields + 1;
   PlayerData player = initial;
   assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerShields);
@@ -446,7 +446,7 @@ static void test21(void)
   /* Invalid ship type */
 
   unsigned char data[RecordSize];
-  make_record(data);
+  make_record(&data);
   data[15] = ShipType_Fighter4 + 1;
   PlayerData player = initial;
   assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadSpecialType);

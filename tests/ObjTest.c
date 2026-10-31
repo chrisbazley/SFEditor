@@ -50,10 +50,10 @@ static void check_pattern(ObjectsData const *grid, bool overlay, unsigned offset
   }
 }
 
-static void read_grid(DFile *file, unsigned char const data[Obj_Area])
+static void read_grid(DFile *file, unsigned char C23_CONST (*data)[Obj_Area])
 {
   Reader reader;
-  assert(reader_mem_init(&reader, data, Obj_Area));
+  assert(reader_mem_init(&reader, *data, sizeof(*data)));
   assert(!SFError_fail(dfile_read(file, &reader)));
   assert(!reader_ferror(&reader));
   reader_destroy(&reader);
@@ -66,7 +66,7 @@ static ObjectsData *make_grid(bool overlay)
   memset(input, overlay ? Obj_RefMask : 0, sizeof(input));
   _Optional ObjectsData *const grid = overlay ? objects_create_overlay() : objects_create_base();
   assert(grid);
-  read_grid(objects_get_dfile(&*grid), input);
+  read_grid(objects_get_dfile(&*grid), &input);
   return &*grid;
 }
 
@@ -118,7 +118,7 @@ static void check_round_trip(bool overlay)
 
   _Optional ObjectsData *const reloaded = overlay ? objects_create_overlay() : objects_create_base();
   assert(reloaded);
-  read_grid(objects_get_dfile(&*reloaded), saved);
+  read_grid(objects_get_dfile(&*reloaded), &saved);
   check_pattern(&*reloaded, overlay, 0);
   dfile_release(objects_get_dfile(&*reloaded));
   dfile_release(objects_get_dfile(grid));
@@ -138,7 +138,7 @@ static void check_forbidden_rows(bool overlay)
   }
   _Optional ObjectsData *const grid = overlay ? objects_create_overlay() : objects_create_base();
   assert(grid);
-  read_grid(objects_get_dfile(&*grid), input);
+  read_grid(objects_get_dfile(&*grid), &input);
   check_pattern(&*grid, overlay, 0);
   dfile_release(objects_get_dfile(&*grid));
 }

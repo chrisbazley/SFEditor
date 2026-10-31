@@ -28,7 +28,7 @@ static void check_area(MapArea const *actual, MapArea expected)
   assert(actual->max.y == expected.max.y);
 }
 
-static size_t collect(MapAreaColData const *collection, MapArea output[MapAreaColMax])
+static size_t collect(MapAreaColData const *collection, MapArea (*output)[MapAreaColMax])
 {
   MapAreaColIter iter;
   size_t count = 0;
@@ -37,7 +37,7 @@ static size_t collect(MapAreaColData const *collection, MapArea output[MapAreaCo
   {
     assert(count < MapAreaColMax);
     assert(MapArea_is_valid(&*p));
-    output[count++] = *p;
+    (*output)[count++] = *p;
   }
   return count;
 }
@@ -46,7 +46,7 @@ static void check_coverage(MapAreaColData const *collection,
   MapArea const inputs[], size_t input_count)
 {
   MapArea output[MapAreaColMax];
-  size_t const count = collect(collection, output);
+  size_t const count = collect(collection, &output);
   assert(count > 0);
   for (size_t k = 0; k < input_count; ++k)
   {
@@ -65,7 +65,7 @@ static void check_coverage(MapAreaColData const *collection,
 static void check_single(MapAreaColData const *collection, MapArea expected)
 {
   MapArea output[MapAreaColMax];
-  assert(collect(collection, output) == 1);
+  assert(collect(collection, &output) == 1);
   check_area(&output[0], expected);
 }
 
@@ -165,7 +165,7 @@ static void test9(void)
   MapAreaCol_add(&collection, &inputs[0]);
   MapAreaCol_add(&collection, &inputs[1]);
   MapArea output[MapAreaColMax];
-  assert(collect(&collection, output) == 2);
+  assert(collect(&collection, &output) == 2);
   check_coverage(&collection, inputs, ARRAY_SIZE(inputs));
 }
 
@@ -216,7 +216,7 @@ static void test12(void)
     MapAreaCol_add(&collection, &inputs[i]);
   }
   MapArea output[MapAreaColMax];
-  assert(collect(&collection, output) == MapAreaColMax);
+  assert(collect(&collection, &output) == MapAreaColMax);
   check_coverage(&collection, inputs, ARRAY_SIZE(inputs));
 }
 
@@ -235,7 +235,7 @@ static void test13(void)
   inputs[MapAreaColMax] = area(71, 0, 71, 0);
   MapAreaCol_add(&collection, &inputs[MapAreaColMax]);
   MapArea output[MapAreaColMax];
-  size_t const count = collect(&collection, output);
+  size_t const count = collect(&collection, &output);
   assert(count == MapAreaColMax);
   bool found = false;
   for (size_t i = 0; i < count; ++i)
@@ -267,7 +267,7 @@ static void test14(void)
     MapAreaCol_add(&collection, &inputs[i]);
   }
   MapArea output[MapAreaColMax];
-  size_t const count = collect(&collection, output);
+  size_t const count = collect(&collection, &output);
   assert(count == MapAreaColMax);
   bool found = false;
   for (size_t i = 0; i < count; ++i)

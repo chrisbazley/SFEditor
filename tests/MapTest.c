@@ -46,10 +46,10 @@ static void check_pattern(MapData const *grid, bool overlay, unsigned offset)
   }
 }
 
-static void read_grid(DFile *file, unsigned char const data[Map_Area])
+static void read_grid(DFile *file, unsigned char C23_CONST (*data)[Map_Area])
 {
   Reader reader;
-  assert(reader_mem_init(&reader, data, Map_Area));
+  assert(reader_mem_init(&reader, *data, sizeof(*data)));
   assert(!SFError_fail(dfile_read(file, &reader)));
   assert(!reader_ferror(&reader));
   reader_destroy(&reader);
@@ -62,7 +62,7 @@ static MapData *make_grid(bool overlay)
   memset(input, overlay ? Map_RefMask : 0, sizeof(input));
   _Optional MapData *const grid = overlay ? map_create_overlay() : map_create_base();
   assert(grid);
-  read_grid(map_get_dfile(&*grid), input);
+  read_grid(map_get_dfile(&*grid), &input);
   return &*grid;
 }
 
@@ -114,7 +114,7 @@ static void check_round_trip(bool overlay)
 
   _Optional MapData *const reloaded = overlay ? map_create_overlay() : map_create_base();
   assert(reloaded);
-  read_grid(map_get_dfile(&*reloaded), saved);
+  read_grid(map_get_dfile(&*reloaded), &saved);
   check_pattern(&*reloaded, overlay, 0);
   dfile_release(map_get_dfile(&*reloaded));
   dfile_release(map_get_dfile(grid));

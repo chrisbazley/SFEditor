@@ -59,10 +59,10 @@ static SFError read_block(Text *text, unsigned char const *data, size_t size)
   return err;
 }
 
-static size_t write_block(Text const *text, unsigned char data[Capacity])
+static size_t write_block(Text const *text, unsigned char (*data)[Capacity])
 {
   Writer writer;
-  assert(writer_mem_init(&writer, data, Capacity));
+  assert(writer_mem_init(&writer, *data, sizeof(*data)));
   text_write_block(text, &writer);
   assert(!writer_ferror(&writer));
   long const size = writer_destroy(&writer);
@@ -264,7 +264,7 @@ static void test12(void)
     text_set_params(&source, &params);
     assert(!SFError_fail(text_set_string(&source, input)));
     unsigned char data[Capacity];
-    size_t const size = write_block(&source, data);
+    size_t const size = write_block(&source, &data);
     assert(!SFError_fail(read_block(&loaded, data, size)));
     assert(strcmp(text_get_string(&loaded), input) == 0);
     TextParams actual;
@@ -284,7 +284,7 @@ static void test13(void)
   text_init(&text);
   text_set_params(&text, &params);
   unsigned char data[Capacity];
-  size_t const size = write_block(&text, data);
+  size_t const size = write_block(&text, &data);
   static const struct { size_t offset; int32_t value; } fields[] = {
     {.offset = 8, .value = INT32_MAX}, {.offset = 12, .value = INT32_MAX},
     {.offset = 16, .value = INT32_MAX}, {.offset = 20, .value = Text_NumColumns - 1},
@@ -319,7 +319,7 @@ static void test14(void)
   text_init(&text);
   assert(!SFError_fail(text_set_string(&text, input)));
   unsigned char data[Capacity];
-  write_block(&text, data);
+  write_block(&text, &data);
   for (size_t i = 0; i < sizeof(input) - 1; ++i)
   {
     assert(data[HeaderSize + i] == 10 + i % 26);
