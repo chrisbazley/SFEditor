@@ -2,8 +2,8 @@
 
 `SFEditorTests` follows the SF3KUtils pattern: `Main.c`, `Tests.h`,
 `test_groups`, `unit_tests`, ordinary `assert` checks and Fortify scopes.
-One invocation runs the coordinate, area-collection, selection and game-data
-loading suites. Assertions remain enabled in Release builds.
+One invocation runs the shape, coordinate, area-collection, selection and
+game-data loading suites. Assertions remain enabled in Release builds.
 
 After configuring and building normally, run:
 
@@ -29,6 +29,19 @@ and up to three attempts, so failure cannot leave a partial cached archive.
 For a multi-configuration generator, also specify `-C Debug` or `-C Release`.
 `BUILD_TESTING=OFF` disables the test. Native RISC OS builds do not build the
 host test executable.
+
+## Shape tests
+
+Simple rectangles, lines, circles and triangles use exact expected pixels.
+Awkward strokes and triangles use a 1.25-pixel boundary band: pixels well inside
+must be drawn, and distant pixels must remain untouched. Circle tests allow a
+0.75-pixel band. Collinear triangles require bounded nonempty output without
+prescribing perfect coverage. These checks accommodate the existing rasteriser's
+imperfections rather than freezing every boundary pixel.
+
+Flood fill is checked against an independent four-neighbour queue search for
+holes, disconnected regions, narrow passages, branching regions and wrapping.
+Fortify builds additionally exercise allocation failure and stack growth failure.
 
 ## Coordinate tests
 
