@@ -2,8 +2,8 @@
 
 `SFEditorTests` follows the SF3KUtils pattern: `Main.c`, `Tests.h`,
 `test_groups`, `unit_tests`, ordinary `assert` checks and Fortify scopes.
-One invocation runs the selection bitmask, tile selection, object selection and
-game-data loading suites. Assertions remain enabled in Release builds.
+One invocation runs the coordinate, area-collection, selection and game-data
+loading suites. Assertions remain enabled in Release builds.
 
 After configuring and building normally, run:
 
@@ -29,6 +29,19 @@ and up to three attempts, so failure cannot leave a partial cached archive.
 For a multi-configuration generator, also specify `-C Debug` or `-C Release`.
 `BUILD_TESTING=OFF` disables the test. Native RISC OS builds do not build the
 host test executable.
+
+## Coordinate tests
+
+Rectangle cases cover inclusive bounds, containment, intersection, in-place
+transforms, signed rounding, rotation and iteration. Wrapped splitting is checked
+against a small grid built by independently wrapping each input cell, including
+seams, negative coordinates, full spans and oversized spans.
+
+## Area-collection tests
+
+Cases cover containment, overlap, cascading merges, capacity pressure and scaled
+area costs. At capacity, tests check coverage and the size bound without relying
+on tie-breaking between equally good merge candidates.
 
 ## Selection-model tests
 

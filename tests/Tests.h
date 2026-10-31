@@ -4,6 +4,8 @@
 #ifndef Tests_h
 #define Tests_h
 
+void MapCoord_tests(void);
+void MapAreaCol_tests(void);
 void SelBitmask_tests(void);
 void MapEditSel_tests(void);
 void ObjEditSel_tests(void);
