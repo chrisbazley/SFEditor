@@ -36,6 +36,7 @@ void MapAreaCol_init(MapAreaColData *const coll, int const size_log2)
   coll->size_log2 = size_log2;
 }
 
+/* Rounding down means larger bounds can have the same scaled area. */
 static MapCoord calc_scaled_area(int const size_log2, MapArea const *const map_area)
 {
   return MapPoint_area(MapPoint_div_log2(MapArea_size(map_area), size_log2 / 2));
@@ -122,7 +123,7 @@ void MapAreaCol_add(MapAreaColData *const coll, MapArea const *const area)
     MapArea_expand_for_area(&candidate.bbox, area);
     candidate.area = calc_scaled_area(size_log2, &candidate.bbox);
 
-    assert(coll->areas[i].area < candidate.area);
+    assert(coll->areas[i].area <= candidate.area);
     MapCoord const area_diff = candidate.area - coll->areas[i].area;
     if (area_diff < best_area_diff) {
       DEBUGF("Map area %zu is new best candidate (extra area is %" PRIMapCoord ")\n",
@@ -149,7 +150,7 @@ void MapAreaCol_add(MapAreaColData *const coll, MapArea const *const area)
         MapArea_expand_for_area(&candidate.bbox, &coll->areas[k].bbox);
         candidate.area = calc_scaled_area(size_log2, &candidate.bbox);
 
-        assert(coll->areas[i].area < candidate.area);
+        assert(coll->areas[i].area <= candidate.area);
         MapCoord const area_diff = candidate.area - coll->areas[i].area - coll->areas[k].area;
         if (area_diff < best_area_diff) {
           DEBUGF("Merged map area %zu and %zu is new best candidate (extra area is %" PRIMapCoord ")\n",
