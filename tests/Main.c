@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
   }
   test_groups[] =
   {
+    { "Text", Text_tests },
     { "Map", Map_tests },
     { "Obj", Obj_tests },
     { "Vertex", Vertex_tests },
