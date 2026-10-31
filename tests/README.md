@@ -2,8 +2,8 @@
 
 `SFEditorTests` follows the SF3KUtils pattern: `Main.c`, `Tests.h`,
 `test_groups`, `unit_tests`, ordinary `assert` checks and Fortify scopes.
-One invocation runs the shape, coordinate, area-collection, selection and
-game-data loading suites. Assertions remain enabled in Release builds.
+One invocation runs the vertex, bounding-box, shape, coordinate, area-collection,
+selection and game-data loading suites. Assertions remain enabled in Release builds.
 
 After configuring and building normally, run:
 
@@ -29,6 +29,18 @@ and up to three attempts, so failure cannot leave a partial cached archive.
 For a multi-configuration generator, also specify `-C Debug` or `-C Release`.
 `BUILD_TESTING=OFF` disables the test. Native RISC OS builds do not build the
 host test executable.
+
+## Vertex and bounding-box tests
+
+Vertex cases cover component-wise arithmetic, integer division truncation,
+scalar and per-axis power-of-two scaling, negative exponents and equality.
+Arithmetic inputs avoid signed overflow and left shifts of negative values.
+
+Bounding-box cases cover corner accessors, validity, sizes, expansion from the
+invalid sentinel, containment, translation and intersection. Upper bounds are
+exclusive: sizes are `max - min`. Touching intersections have zero extent but
+remain valid boxes; disjoint intersections are invalid. In-place translation
+and aliased intersection outputs are also exercised.
 
 ## Shape tests
 

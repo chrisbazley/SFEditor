@@ -15,14 +15,15 @@ endforeach()
 # One invocation runs every test group after CMake prepares the game data.
 add_executable(SFEditorTests
     Main.c LoadGameData.c HostSupport.c
-    ShapesTest.c MapCoordTest.c MapAreaColTest.c SelBitmaskTest.c
+    VertexTest.c ShapesTest.c MapCoordTest.c MapAreaColTest.c SelBitmaskTest.c
     MapEditSelTest.c ObjEditSelTest.c
     ${loader_files}
     "${PROJECT_SOURCE_DIR}/MapAreaCol.c"
     "${PROJECT_SOURCE_DIR}/SelBitmask.c"
     "${PROJECT_SOURCE_DIR}/MapEditSel.c"
     "${PROJECT_SOURCE_DIR}/ObjEditSel.c"
-    "${PROJECT_SOURCE_DIR}/Shapes.c")
+    "${PROJECT_SOURCE_DIR}/Shapes.c"
+    "${PROJECT_SOURCE_DIR}/Vertex.c")
 target_link_libraries(SFEditorTests PRIVATE CB CBDebug CBPseudo SF3K)
 
 # SFError's layout depends on NDEBUG, so models and tests must agree.
@@ -35,7 +36,7 @@ endif()
 
 # Show Debug suite names without enabling verbose production diagnostics.
 set_source_files_properties(
-    Main.c LoadGameData.c ShapesTest.c MapCoordTest.c MapAreaColTest.c
+    Main.c LoadGameData.c VertexTest.c ShapesTest.c MapCoordTest.c MapAreaColTest.c
     SelBitmaskTest.c MapEditSelTest.c ObjEditSelTest.c
     PROPERTIES
     COMPILE_DEFINITIONS "$<$<CONFIG:Debug>:DEBUG_OUTPUT>")
