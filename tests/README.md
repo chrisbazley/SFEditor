@@ -2,8 +2,9 @@
 
 `SFEditorTests` follows the SF3KUtils pattern: `Main.c`, `Tests.h`,
 `test_groups`, `unit_tests`, ordinary `assert` checks and Fortify scopes.
-One invocation runs the vertex, bounding-box, shape, coordinate, area-collection,
-selection and game-data loading suites. Assertions remain enabled in Release builds.
+One invocation runs the map, object, vertex, bounding-box, shape, coordinate,
+area-collection, selection and game-data loading suites. Assertions remain enabled
+in Release builds.
 
 After configuring and building normally, run:
 
@@ -29,6 +30,21 @@ and up to three attempts, so failure cannot leave a partial cached archive.
 For a multi-configuration generator, also specify `-C Debug` or `-C Release`.
 `BUILD_TESTING=OFF` disables the test. Native RISC OS builds do not build the
 host test executable.
+
+## Map and object model tests
+
+Tests load zero-filled base grids or mask-filled overlays, then assign a
+coordinate-derived repeating pattern to three quarters of the cells, leaving
+forbidden object rows clear. Validation
+calculates the expected value at each coordinate and checks that untouched cells
+retain zero or mask. No parallel reference grid is maintained. Updates advance
+the pattern and check the previous values; wrapping and mask restoration are
+also covered. Constructors are not assumed to initialise cells.
+
+Base and overlay round trips use the production DFile reader and writer with
+memory streams. Every saved byte and reloaded cell is checked against the
+pattern. Object tests also check that loading clears forbidden rows to none or
+mask while preserving the final row. No additional input files are needed.
 
 ## Vertex and bounding-box tests
 
