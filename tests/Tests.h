@@ -4,6 +4,8 @@
 #ifndef Tests_h
 #define Tests_h
 
+void Map_tests(void);
+void Obj_tests(void);
 void Vertex_tests(void);
 void Shapes_tests(void);
 void MapCoord_tests(void);
