@@ -154,7 +154,11 @@ void SelectionBitmask_select_all(SelectionBitmask *const selection)
   for (size_t index = 0; index < selection->num_objects; ++index) {
     SelectionBitmask_select(selection, index);
   }
-  assert(selection->bitmask == ((SelBitmaskType)1 << selection->num_objects) - 1);
+  if (selection->num_objects == sizeof(selection->bitmask) * CHAR_BIT) {
+    assert(selection->bitmask == UINT32_MAX);
+  } else {
+    assert(selection->bitmask == ((SelBitmaskType)1 << selection->num_objects) - 1);
+  }
   assert(selection->num_selected == selection->num_objects);
 }
 
