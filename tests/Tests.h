@@ -4,6 +4,7 @@
 #ifndef Tests_h
 #define Tests_h
 
+void Text_tests(void);
 void Map_tests(void);
 void Obj_tests(void);
 void Vertex_tests(void);

@@ -2,7 +2,7 @@
 
 `SFEditorTests` follows the SF3KUtils pattern: `Main.c`, `Tests.h`,
 `test_groups`, `unit_tests`, ordinary `assert` checks and Fortify scopes.
-One invocation runs the map, object, vertex, bounding-box, shape, coordinate,
+One invocation runs the text, map, object, vertex, bounding-box, shape, coordinate,
 area-collection, selection and game-data loading suites. Assertions remain enabled
 in Release builds.
 
@@ -30,6 +30,14 @@ and up to three attempts, so failure cannot leave a partial cached archive.
 For a multi-configuration generator, also specify `-C Debug` or `-C Release`.
 `BUILD_TESTING=OFF` disables the test. Native RISC OS builds do not build the
 host test executable.
+
+## Text tests
+
+Repeating alphabet and digit patterns check canonicalisation and binary character
+codes. Cases also cover defaults, punctuation, unsupported characters, string
+replacement, display parameters, aligned offsets and save/reload at varied string
+lengths. Header limits, truncated blocks, unknown codes and reloading an existing
+string are checked separately. Fortify builds exercise allocation failures.
 
 ## Map and object model tests
 
