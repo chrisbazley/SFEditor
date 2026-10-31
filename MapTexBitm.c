@@ -270,8 +270,8 @@ void MapTexBitmaps_init(MapTexBitmaps *const tiles)
 {
   assert(tiles != NULL);
   *tiles = (MapTexBitmaps){
-    .avcols_table = (void *)NULL,
-    .bw_table = (void *)NULL,
+    .avcols_table = FLEX_NULL,
+    .bw_table = FLEX_NULL,
   };
 }
 

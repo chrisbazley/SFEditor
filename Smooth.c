@@ -186,7 +186,7 @@ static void init_group(TexGroupRoot *const tile_group)
 {
   assert(tile_group != NULL);
   *tile_group = (TexGroupRoot){
-    .array_anchor = (void *)NULL,
+    .array_anchor = FLEX_NULL,
     .count = 0,
     .super = false,
   };
@@ -589,7 +589,7 @@ void MapTexGroups_init(MapTexGroups *const groups_data)
 {
   assert(groups_data);
   *groups_data = (MapTexGroups){
-    .smooth_anchor = (void *)NULL, .count = 0, .ntiles = 0};
+    .smooth_anchor = FLEX_NULL, .count = 0, .ntiles = 0};
 }
 
 void MapTexGroups_load(MapTexGroups *const groups_data, char const *tiles_set,

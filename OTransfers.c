@@ -538,7 +538,7 @@ _Optional ObjTransfer *ObjTransfer_create(void)
   DEBUG ("New transfer list record is at %p", (void *)transfer);
 
   *transfer = (ObjTransfer){
-    .refs = (void *)NULL, .triggers = (void *)NULL,
+    .refs = FLEX_NULL, .triggers = FLEX_NULL,
     .dfile = {0},
     .size_minus_one = {0,0},
     .trigger_count = 0,
