@@ -14,8 +14,11 @@ foreach(source IN LISTS loader_sources)
 endforeach()
 # One invocation runs every test group after CMake prepares the game data.
 add_executable(SFEditorTests
-    Main.c LoadGameData.c HostSupport.c SelBitmaskTest.c MapEditSelTest.c ObjEditSelTest.c
+    Main.c LoadGameData.c HostSupport.c
+    MapCoordTest.c MapAreaColTest.c SelBitmaskTest.c
+    MapEditSelTest.c ObjEditSelTest.c
     ${loader_files}
+    "${PROJECT_SOURCE_DIR}/MapAreaCol.c"
     "${PROJECT_SOURCE_DIR}/SelBitmask.c"
     "${PROJECT_SOURCE_DIR}/MapEditSel.c"
     "${PROJECT_SOURCE_DIR}/ObjEditSel.c"
@@ -31,7 +34,10 @@ else()
 endif()
 
 # Show Debug suite names without enabling verbose production diagnostics.
-set_source_files_properties(Main.c LoadGameData.c SelBitmaskTest.c MapEditSelTest.c ObjEditSelTest.c PROPERTIES
+set_source_files_properties(
+    Main.c LoadGameData.c MapCoordTest.c MapAreaColTest.c
+    SelBitmaskTest.c MapEditSelTest.c ObjEditSelTest.c
+    PROPERTIES
     COMPILE_DEFINITIONS "$<$<CONFIG:Debug>:DEBUG_OUTPUT>")
 
 option(SFEDITOR_TEST_COVERAGE "Instrument portable tests for GCC coverage reports" OFF)
