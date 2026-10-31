@@ -71,6 +71,12 @@ int main(int argc, char *argv[])
   }
   test_groups[] =
   {
+    { "CoarseCoord", CoarseCoord_tests },
+    { "Filenames", Filenames_tests },
+    { "Pyram", Pyram_tests },
+    { "Clouds", Clouds_tests },
+    { "Player", Player_tests },
+    { "Defenc", Defenc_tests },
     { "Text", Text_tests },
     { "Map", Map_tests },
     { "Obj", Obj_tests },

@@ -2,9 +2,8 @@
 
 `SFEditorTests` follows the SF3KUtils pattern: `Main.c`, `Tests.h`,
 `test_groups`, `unit_tests`, ordinary `assert` checks and Fortify scopes.
-One invocation runs the text, map, object, vertex, bounding-box, shape, coordinate,
-area-collection, selection and game-data loading suites. Assertions remain enabled
-in Release builds.
+One invocation runs every unit suite and the game-data loading suite.
+Assertions remain enabled in Release builds.
 
 After configuring and building normally, run:
 
@@ -30,6 +29,16 @@ and up to three attempts, so failure cannot leave a partial cached archive.
 For a multi-configuration generator, also specify `-C Debug` or `-C Release`.
 `BUILD_TESTING=OFF` disables the test. Native RISC OS builds do not build the
 host test executable.
+
+## Small model suites
+
+Separate CoarseCoord, Filenames, Player, Defenc, Pyram and Clouds suites exercise
+coordinate conversions, filename slots, equipment fields, defence bit packing,
+pyramid positions and cloud colours. Values are checked with arithmetic patterns
+and explicit field expectations, without reference implementations. Cases cover
+valid boundaries, field independence, saved bytes, round trips, malformed input
+and truncation. Player coverage here concerns equipment and its main record;
+ship docking relationships remain outside this suite.
 
 ## Text tests
 
