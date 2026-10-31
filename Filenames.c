@@ -70,7 +70,7 @@ static SFError read_filename(char *const filename,
       c = '\0';
     }
     filename[nchars] = (char)c;
-    assert(filename[nchars] == c);
+    assert((unsigned char)filename[nchars] == c);
     if (c == '\0') {
       break;
     }
