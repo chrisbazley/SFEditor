@@ -405,6 +405,12 @@ int path_get_index(Path const *const path)
   return path->index;
 }
 
+CoarsePoint3d waypoint_get_coords(Waypoint const *const waypoint)
+{
+  assert(waypoint);
+  return waypoint->coords;
+}
+
 Path *waypoint_get_path(Waypoint const *const waypoint)
 {
   assert(waypoint);

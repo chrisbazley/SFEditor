@@ -12,6 +12,7 @@ void Pyram_tests(void);
 void Clouds_tests(void);
 void Player_tests(void);
 void Defenc_tests(void);
+void Paths_tests(void);
 void Briefing_tests(void);
 void Text_tests(void);
 void Map_tests(void);
