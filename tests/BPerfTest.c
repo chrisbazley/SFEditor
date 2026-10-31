@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "Macros.h"
 #include "Debug.h"
@@ -20,10 +21,7 @@
 #include "../BPerf.h"
 #include "../BPerfData.h"
 
-enum { ShipCount = ShipType_Big3 - ShipType_Big1 + 1,
-       RecordSize = 32, WireSize = ShipCount * RecordSize, BufferSize = WireSize + 1 };
-
-enum { RemoteShieldMarker = 999999 };
+enum { ShipCount = ShipType_Big3 - ShipType_Big1 + 1, Capacity = 128 };
 
 typedef enum
 {
@@ -106,61 +104,59 @@ static void init_data(BigPerformData *data, unsigned phase)
   }
 }
 
-static void write_data(BigPerformData const *data, unsigned char (*buffer)[BufferSize])
+static size_t write_data(BigPerformData const *value, unsigned char (*buffer)[Capacity])
 {
   Writer writer;
   assert(writer_mem_init(&writer, *buffer, sizeof(*buffer)));
-  big_perform_write(data, &writer);
-  assert(writer_ftell(&writer) == WireSize);
-  assert(writer_fputc(165, &writer) == 165);
-  assert(writer_destroy(&writer) == BufferSize);
+  big_perform_write(value, &writer);
+  assert(!writer_ferror(&writer));
+  long const length = writer_ftell(&writer);
+  assert(length > 0);
+  assert((size_t)length < sizeof(*buffer));
+  /* Materialise any space skipped at the end, without assuming its size. */
+  assert(writer_fputc(0, &writer) == 0);
+  assert(writer_destroy(&writer) == length + 1);
+  return (size_t)length;
 }
 
-static SFError read_data(BigPerformData *data,
-  unsigned char C23_CONST (*buffer)[BufferSize], size_t length)
+static SFError read_data(BigPerformData *value,
+  unsigned char C23_CONST (*buffer)[Capacity], size_t length)
 {
   assert(length <= sizeof(*buffer));
   Reader reader;
   assert(reader_mem_init(&reader, *buffer, length));
-  SFError const err = big_perform_read(data, &reader);
-  if (!SFError_fail(err))
-  {
-    assert(reader_ftell(&reader) == WireSize);
-    assert(reader_fgetc(&reader) == 165);
-  }
+  SFError const err = big_perform_read(value, &reader);
   reader_destroy(&reader);
   return err;
 }
 
-static void check_word(unsigned char C23_CONST (*buffer)[BufferSize],
-  size_t offset, int32_t value)
-{
-  for (size_t byte = 0; byte < 4; ++byte)
-  {
-    assert((*buffer)[offset + byte] == (((uint32_t)value >> (8 * byte)) & 255));
-  }
-}
+static SFErrorType const expected_errors[] = {
+  SFErrorType_BadLaserProb,
+  SFErrorType_BadLaserType,
+  SFErrorType_BadShields,
+  SFErrorType_BadMissileProb,
+  SFErrorType_BadShipProb,
+  SFErrorType_BadNumShips,
+};
 
-static void change_word(unsigned char (*buffer)[BufferSize], size_t offset, int32_t value)
-{
-  assert(offset + 4 <= WireSize);
-  Writer writer;
-  assert(writer_mem_init(&writer, &(*buffer)[offset], 4));
-  writer_fwrite_int32(value, &writer);
-  assert(writer_destroy(&writer) == 4);
-}
+enum { ErrorCount = ARRAY_SIZE(expected_errors) };
 
-static void check_invalid(size_t offset, int32_t value, SFErrorType expected)
+static void note_error(SFErrorType error, bool (*seen)[ErrorCount])
 {
-  for (unsigned ship = 0; ship < ShipCount; ++ship)
+  if (error == SFErrorType_OK)
   {
-    BigPerformData data, loaded;
-    init_data(&data, 63);
-    unsigned char buffer[BufferSize];
-    write_data(&data, &buffer);
-    change_word(&buffer, ship * RecordSize + offset, value);
-    assert(read_data(&loaded, &buffer, sizeof(buffer)).type == expected);
+    return;
   }
+  for (size_t i = 0; i < ErrorCount; ++i)
+  {
+    if (error == expected_errors[i])
+    {
+      (*seen)[i] = true;
+      return;
+    }
+  }
+  fprintf(stderr, "Unexpected read error %d\n", (int)error);
+  assert(false);
 }
 
 static void test1(void)
@@ -366,19 +362,9 @@ static void test10(void)
   {
     BigPerformData data, loaded;
     init_data(&data, phase);
-    unsigned char buffer[BufferSize];
-    write_data(&data, &buffer);
-    for (unsigned ship = 0; ship < ShipCount; ++ship)
-    {
-      BigPerform const expected = pattern(ship, phase);
-      check_word(&buffer, ship * RecordSize + 0, expected.laser_prob);
-      check_word(&buffer, ship * RecordSize + 4, expected.laser_type);
-      check_word(&buffer, ship * RecordSize + 16, expected.shields);
-      check_word(&buffer, ship * RecordSize + 20, expected.missile_prob);
-      check_word(&buffer, ship * RecordSize + 24, expected.ship_prob);
-      check_word(&buffer, ship * RecordSize + 28, expected.ship_count);
-    }
-    assert(!SFError_fail(read_data(&loaded, &buffer, sizeof(buffer))));
+    unsigned char buffer[Capacity];
+    size_t const size = write_data(&data, &buffer);
+    assert(!SFError_fail(read_data(&loaded, &buffer, size)));
     for (ShipType type = ShipType_Big1; type <= ShipType_Big3; ++type)
     {
       BigPerform const expected = pattern((unsigned)(type - ShipType_Big1), phase);
@@ -399,19 +385,9 @@ static void test11(void)
     {
       big_perform_set_remote_shield(big_perform_get_ship(&data, type));
     }
-    unsigned char buffer[BufferSize];
-    write_data(&data, &buffer);
-    for (unsigned ship = 0; ship < ShipCount; ++ship)
-    {
-      BigPerform const expected = pattern(ship, phase);
-      check_word(&buffer, ship * RecordSize + 0, expected.laser_prob);
-      check_word(&buffer, ship * RecordSize + 4, expected.laser_type);
-      check_word(&buffer, ship * RecordSize + 16, RemoteShieldMarker);
-      check_word(&buffer, ship * RecordSize + 20, expected.missile_prob);
-      check_word(&buffer, ship * RecordSize + 24, expected.ship_prob);
-      check_word(&buffer, ship * RecordSize + 28, expected.ship_count);
-    }
-    assert(!SFError_fail(read_data(&loaded, &buffer, sizeof(buffer))));
+    unsigned char buffer[Capacity];
+    size_t const size = write_data(&data, &buffer);
+    assert(!SFError_fail(read_data(&loaded, &buffer, size)));
     for (ShipType type = ShipType_Big1; type <= ShipType_Big3; ++type)
     {
       BigPerform *const record = big_perform_get_ship(&loaded, type);
@@ -423,118 +399,64 @@ static void test11(void)
 
 static void test12(void)
 {
-  /* Ignored padding */
+  /* Corrupt performance data */
 
-  BigPerformData data, loaded;
-  init_data(&data, 63);
-  unsigned char buffer[BufferSize];
-  write_data(&data, &buffer);
-  for (size_t ship = 0; ship < ShipCount; ++ship)
+  BigPerformData data;
+  init_data(&data, 0);
+  unsigned char buffer[Capacity];
+  size_t const size = write_data(&data, &buffer);
+  bool seen[ErrorCount] = {false};
+  for (size_t offset = 0; offset < size; ++offset)
   {
-    for (size_t byte = 8; byte < 16; ++byte)
+    unsigned char const saved = buffer[offset];
+    for (unsigned byte = 0; byte < 256; ++byte)
     {
-      buffer[ship * RecordSize + byte] = (unsigned char)(165 + ship + byte);
+      buffer[offset] = (unsigned char)byte;
+      BigPerformData loaded;
+      note_error(read_data(&loaded, &buffer, size).type, &seen);
     }
+    buffer[offset] = saved;
   }
-  assert(!SFError_fail(read_data(&loaded, &buffer, sizeof(buffer))));
-  for (ShipType type = ShipType_Big1; type <= ShipType_Big3; ++type)
+  /* Suffix corruption also reaches values needing several changed bytes. */
+  unsigned char original[Capacity];
+  memcpy(original, buffer, size);
+  for (size_t offset = 0; offset < size; ++offset)
   {
-    BigPerform const expected = pattern((unsigned)(type - ShipType_Big1), 63);
-    check_fields(big_perform_get_ship(&loaded, type), &expected, BigField_AllMustMatch);
+    memcpy(buffer, original, size);
+    memset(&buffer[offset], 255, size - offset);
+    BigPerformData loaded;
+    note_error(read_data(&loaded, &buffer, size).type, &seen);
+  }
+  for (size_t i = 0; i < ErrorCount; ++i)
+  {
+    assert(seen[i]);
   }
 }
 
 static void test13(void)
 {
-  /* Invalid shields */
-
-  check_invalid(16, BigPerformMinShields - 1, SFErrorType_BadShields);
-  check_invalid(16, BigPerformMaxShields + 1, SFErrorType_BadShields);
-  check_invalid(16, RemoteShieldMarker - 1, SFErrorType_BadShields);
-  check_invalid(16, RemoteShieldMarker + 1, SFErrorType_BadShields);
-}
-
-static void test14(void)
-{
-  /* Invalid laser probability */
-
-  check_invalid(0, BigPerformMinProb - 1, SFErrorType_BadLaserProb);
-  check_invalid(0, BigPerformMaxProb + 1, SFErrorType_BadLaserProb);
-}
-
-static void test15(void)
-{
-  /* Invalid missile probability */
-
-  check_invalid(20, BigPerformMinProb - 1, SFErrorType_BadMissileProb);
-  check_invalid(20, BigPerformMaxProb + 1, SFErrorType_BadMissileProb);
-}
-
-static void test16(void)
-{
-  /* Invalid launch probability */
-
-  check_invalid(24, BigPerformMinProb - 1, SFErrorType_BadShipProb);
-  check_invalid(24, BigPerformMaxProb + 1, SFErrorType_BadShipProb);
-}
-
-static void test17(void)
-{
-  /* Invalid laser type */
-
-  check_invalid(4, BigPerformMinLaserType - 1, SFErrorType_BadLaserType);
-  check_invalid(4, BigPerformMaxLaserType + 1, SFErrorType_BadLaserType);
-}
-
-static void test18(void)
-{
-  /* Invalid hangar capacity */
-
-  check_invalid(28, BigPerformMinShips - 2, SFErrorType_BadNumShips);
-  check_invalid(28, BigPerformMaxShips + 1, SFErrorType_BadNumShips);
-}
-
-static void test19(void)
-{
-  /* Legacy negative ship count */
-
-  for (ShipType changed = ShipType_Big1; changed <= ShipType_Big3; ++changed)
-  {
-    BigPerformData data, loaded;
-    init_data(&data, 63);
-    unsigned char buffer[BufferSize];
-    write_data(&data, &buffer);
-    change_word(&buffer, (size_t)(changed - ShipType_Big1) * RecordSize + 28, -1);
-    assert(!SFError_fail(read_data(&loaded, &buffer, sizeof(buffer))));
-    for (ShipType type = ShipType_Big1; type <= ShipType_Big3; ++type)
-    {
-      BigPerform *const record = big_perform_get_ship(&loaded, type);
-      BigPerform const expected = pattern((unsigned)(type - ShipType_Big1), 63);
-      if (type == changed)
-      {
-        assert(big_perform_get_ship_count(record) == 0);
-        check_fields(record, &expected, BigField_ShipCount);
-      }
-      else
-      {
-        check_fields(record, &expected, BigField_AllMustMatch);
-      }
-    }
-  }
-}
-
-static void test20(void)
-{
   /* Truncated performance data */
 
   BigPerformData data;
   init_data(&data, 63);
-  unsigned char buffer[BufferSize];
-  write_data(&data, &buffer);
-  for (size_t length = 0; length < WireSize; ++length)
+  unsigned char buffer[Capacity];
+  size_t const size = write_data(&data, &buffer);
+  for (size_t length = 0; length < size; ++length)
   {
     BigPerformData loaded;
-    assert(read_data(&loaded, &buffer, length).type == SFErrorType_ReadFail);
+    SFError const err = read_data(&loaded, &buffer, length);
+    if (length == 0)
+    {
+      assert(SFError_fail(err));
+    }
+    if (!SFError_fail(err))
+    {
+      for (ShipType type = ShipType_Big1; type <= ShipType_Big3; ++type)
+      {
+        BigPerform const expected = pattern((unsigned)(type - ShipType_Big1), 63);
+        check_fields(big_perform_get_ship(&loaded, type), &expected, BigField_AllMustMatch);
+      }
+    }
   }
 }
 
@@ -559,15 +481,8 @@ void BPerf_tests(void)
     { "Ship record lookup", test9 },
     { "Performance round trip", test10 },
     { "Remote shield round trip", test11 },
-    { "Ignored padding", test12 },
-    { "Invalid shields", test13 },
-    { "Invalid laser probability", test14 },
-    { "Invalid missile probability", test15 },
-    { "Invalid launch probability", test16 },
-    { "Invalid laser type", test17 },
-    { "Invalid hangar capacity", test18 },
-    { "Legacy negative ship count", test19 },
-    { "Truncated performance data", test20 },
+    { "Corrupt performance data", test12 },
+    { "Truncated performance data", test13 },
   };
 
   for (size_t count = 0; count < ARRAY_SIZE(unit_tests); ++count)

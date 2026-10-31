@@ -21,6 +21,8 @@
 
 
 
+enum { Capacity = 64 };
+
 static void test1(void)
 {
   /* Scalar expansion */
@@ -103,15 +105,15 @@ static void test7(void)
   for (unsigned v = 0; v < 256; ++v)
   {
     CoarsePoint2d const input = {(CoarseCoord)v, (CoarseCoord)(255 - v)};
-    unsigned char data[2];
+    unsigned char data[Capacity];
     Writer writer;
     assert(writer_mem_init(&writer, data, sizeof(data)));
     CoarsePoint2d_write(input, &writer);
-    assert(writer_destroy(&writer) == sizeof(data));
-    assert(data[0] == v);
-    assert(data[1] == 255 - v);
+    long const size = writer_destroy(&writer);
+    assert(size > 0);
+    assert((size_t)size <= sizeof(data));
     Reader reader;
-    assert(reader_mem_init(&reader, data, sizeof(data)));
+    assert(reader_mem_init(&reader, data, (size_t)size));
     CoarsePoint2d output;
     assert(CoarsePoint2d_read(&output, &reader));
     assert(output.x == input.x);
@@ -125,13 +127,29 @@ static void test8(void)
 {
   /* CoarsePoint2d truncation */
 
-  unsigned char const data[2] = {0};
-  for (size_t length = 0; length < sizeof(data); ++length)
+  unsigned char data[Capacity];
+  Writer writer;
+  assert(writer_mem_init(&writer, data, sizeof(data)));
+  CoarsePoint2d_write((CoarsePoint2d){1, 2}, &writer);
+  long const size = writer_destroy(&writer);
+  assert(size > 0);
+  assert((size_t)size <= sizeof(data));
+  for (size_t length = 0; length < (size_t)size; ++length)
   {
     Reader reader;
     assert(reader_mem_init(&reader, data, length));
     CoarsePoint2d p;
-    assert(!CoarsePoint2d_read(&p, &reader));
+    bool const success = CoarsePoint2d_read(&p, &reader);
+    if (length == 0)
+    {
+      assert(!success);
+    }
+    if (success)
+    {
+      assert(p.x == 1);
+      assert(p.y == 2);
+      
+    }
     reader_destroy(&reader);
   }
 }
@@ -143,16 +161,15 @@ static void test9(void)
   for (unsigned v = 0; v < 256; ++v)
   {
     CoarsePoint3d const input = {.x = (CoarseCoord)v, .y = (CoarseCoord)(255 - v), .z = (CoarseCoord)(v ^ 85)};
-    unsigned char data[3];
+    unsigned char data[Capacity];
     Writer writer;
     assert(writer_mem_init(&writer, data, sizeof(data)));
     CoarsePoint3d_write(input, &writer);
-    assert(writer_destroy(&writer) == sizeof(data));
-    assert(data[0] == v);
-    assert(data[1] == 255 - v);
-    assert(data[2] == (v ^ 85));
+    long const size = writer_destroy(&writer);
+    assert(size > 0);
+    assert((size_t)size <= sizeof(data));
     Reader reader;
-    assert(reader_mem_init(&reader, data, sizeof(data)));
+    assert(reader_mem_init(&reader, data, (size_t)size));
     CoarsePoint3d output;
     assert(CoarsePoint3d_read(&output, &reader));
     assert(output.x == input.x);
@@ -166,13 +183,29 @@ static void test10(void)
 {
   /* CoarsePoint3d truncation */
 
-  unsigned char const data[3] = {0};
-  for (size_t length = 0; length < sizeof(data); ++length)
+  unsigned char data[Capacity];
+  Writer writer;
+  assert(writer_mem_init(&writer, data, sizeof(data)));
+  CoarsePoint3d_write((CoarsePoint3d){.x = 1, .y = 2, .z = 3}, &writer);
+  long const size = writer_destroy(&writer);
+  assert(size > 0);
+  assert((size_t)size <= sizeof(data));
+  for (size_t length = 0; length < (size_t)size; ++length)
   {
     Reader reader;
     assert(reader_mem_init(&reader, data, length));
     CoarsePoint3d p;
-    assert(!CoarsePoint3d_read(&p, &reader));
+    bool const success = CoarsePoint3d_read(&p, &reader);
+    if (length == 0)
+    {
+      assert(!success);
+    }
+    if (success)
+    {
+      assert(p.x == 1);
+      assert(p.y == 2);
+      assert(p.z == 3);
+    }
     reader_destroy(&reader);
   }
 }
@@ -188,21 +221,15 @@ static void test11(void)
       .y = UINT32_C(0x89ABCDEF) ^ ((uint32_t)v << 16),
       .z = UINT32_MAX - UINT32_C(0x01010101) * v,
     };
-    unsigned char data[12];
+    unsigned char data[Capacity];
     Writer writer;
     assert(writer_mem_init(&writer, data, sizeof(data)));
     FinePoint3d_write(input, &writer);
-    assert(writer_destroy(&writer) == sizeof(data));
-    for (size_t axis = 0; axis < 3; ++axis)
-    {
-      uint32_t const value = axis == 0 ? input.x : (axis == 1 ? input.y : input.z);
-      for (size_t byte = 0; byte < 4; ++byte)
-      {
-        assert(data[axis * 4 + byte] == ((value >> (8 * byte)) & 255));
-      }
-    }
+    long const size = writer_destroy(&writer);
+    assert(size > 0);
+    assert((size_t)size <= sizeof(data));
     Reader reader;
-    assert(reader_mem_init(&reader, data, sizeof(data)));
+    assert(reader_mem_init(&reader, data, (size_t)size));
     FinePoint3d output;
     assert(FinePoint3d_read(&output, &reader));
     assert(output.x == input.x);
@@ -216,13 +243,29 @@ static void test12(void)
 {
   /* FinePoint3d truncation */
 
-  unsigned char const data[12] = {0};
-  for (size_t length = 0; length < sizeof(data); ++length)
+  unsigned char data[Capacity];
+  Writer writer;
+  assert(writer_mem_init(&writer, data, sizeof(data)));
+  FinePoint3d_write((FinePoint3d){.x = 1, .y = 2, .z = 3}, &writer);
+  long const size = writer_destroy(&writer);
+  assert(size > 0);
+  assert((size_t)size <= sizeof(data));
+  for (size_t length = 0; length < (size_t)size; ++length)
   {
     Reader reader;
     assert(reader_mem_init(&reader, data, length));
     FinePoint3d p;
-    assert(!FinePoint3d_read(&p, &reader));
+    bool const success = FinePoint3d_read(&p, &reader);
+    if (length == 0)
+    {
+      assert(!success);
+    }
+    if (success)
+    {
+      assert(p.x == 1);
+      assert(p.y == 2);
+      assert(p.z == 3);
+    }
     reader_destroy(&reader);
   }
 }

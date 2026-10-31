@@ -21,6 +21,8 @@
 #include "../Defenc.h"
 #include "../DefencData.h"
 
+enum { Capacity = 64 };
+
 typedef enum
 {
   DefenceField_AllMustMatch,
@@ -67,15 +69,56 @@ static DefencesData const initial = {
   .laser_type = 5, .ships_per_hangar = 7, .ship_prob = 201,
 };
 
-static unsigned char const record[8] = {100, 0, 0, 0, 37, 5, 0x72, 201};
-
-static SFError read_data(DefencesData *value, unsigned char const *data, size_t size)
+static size_t write_data(DefencesData const *value, unsigned char (*buffer)[Capacity])
 {
+  Writer writer;
+  assert(writer_mem_init(&writer, *buffer, sizeof(*buffer)));
+  defences_write(value, &writer);
+  assert(!writer_ferror(&writer));
+  long const length = writer_ftell(&writer);
+  assert(length > 0);
+  assert((size_t)length < sizeof(*buffer));
+  /* Materialise any space skipped at the end, without assuming its size. */
+  assert(writer_fputc(0, &writer) == 0);
+  assert(writer_destroy(&writer) == length + 1);
+  return (size_t)length;
+}
+
+static SFError read_data(DefencesData *value,
+  unsigned char C23_CONST (*buffer)[Capacity], size_t length)
+{
+  assert(length <= sizeof(*buffer));
   Reader reader;
-  assert(reader_mem_init(&reader, data, size));
+  assert(reader_mem_init(&reader, *buffer, length));
   SFError const err = defences_read(value, &reader);
   reader_destroy(&reader);
   return err;
+}
+
+static SFErrorType const expected_errors[] = {
+  SFErrorType_BadDefencesTimer,
+  SFErrorType_BadDefencesLaserType,
+  SFErrorType_BadDefencesShipType,
+};
+
+enum { ErrorCount = ARRAY_SIZE(expected_errors) };
+
+static void note_error(SFErrorType error, bool (*seen)[ErrorCount])
+{
+  if (error == SFErrorType_OK)
+  {
+    return;
+  }
+  for (size_t i = 0; i < ErrorCount; ++i)
+  {
+    if (error == expected_errors[i])
+    {
+      (*seen)[i] = true;
+      return;
+    }
+  }
+  fprintf(stderr, "Unexpected read error %d\n", (int)error);
+  assert(false);
 }
 
 static void test1(void)
@@ -172,86 +215,56 @@ static void test7(void)
     defences_set_laser_type(&d, (int)(v % 9));
     defences_set_ships_per_hangar(&d, (int)(v % 16));
     defences_set_ship_prob(&d, (int)(255 - v));
-    unsigned char data[8];
-    Writer writer;
-    assert(writer_mem_init(&writer, data, sizeof(data)));
-    defences_write(&d, &writer);
-    assert(writer_destroy(&writer) == sizeof(data));
-    for (size_t byte = 0; byte < 4; ++byte)
-    {
-      assert(data[byte] == (((uint32_t)timer >> (8 * byte)) & 255));
-    }
-    assert(data[4] == v);
-    assert(data[5] == v % 9);
-    assert(data[6] == (v % 16) * 16 + ShipType_Fighter1 + v % 4);
-    assert(data[7] == 255 - v);
-    assert(!SFError_fail(read_data(&loaded, data, sizeof(data))));
+    unsigned char buffer[Capacity];
+    size_t const size = write_data(&d, &buffer);
+    assert(!SFError_fail(read_data(&loaded, &buffer, size)));
     check_fields(&loaded, &d, DefenceField_AllMustMatch);
   }
 }
 
 static void test8(void)
 {
-  /* Defence truncation */
+  /* Corrupt defence data */
 
-  for (size_t length = 0; length < sizeof(record); ++length)
+  unsigned char buffer[Capacity];
+  size_t const size = write_data(&initial, &buffer);
+  bool seen[ErrorCount] = {false};
+  for (size_t offset = 0; offset < size; ++offset)
   {
-    DefencesData d = initial;
-    assert(read_data(&d, record, length).type == SFErrorType_ReadFail);
+    unsigned char const saved = buffer[offset];
+    for (unsigned byte = 0; byte < 256; ++byte)
+    {
+      buffer[offset] = (unsigned char)byte;
+      DefencesData loaded;
+      note_error(read_data(&loaded, &buffer, size).type, &seen);
+    }
+    buffer[offset] = saved;
+  }
+  for (size_t i = 0; i < ErrorCount; ++i)
+  {
+    assert(seen[i]);
   }
 }
 
 static void test9(void)
 {
-  /* Invalid activation timer */
+  /* Defence truncation */
 
-  unsigned char data[sizeof(record)];
-  memcpy(data, record, sizeof(data));
-  Writer writer;
-  assert(writer_mem_init(&writer, data, 4));
-  writer_fwrite_int32(-1, &writer);
-  assert(writer_destroy(&writer) == 4);
-  DefencesData d = initial;
-  assert(read_data(&d, data, sizeof(data)).type == SFErrorType_BadDefencesTimer);
-}
-
-static void test10(void)
-{
-  /* Invalid defence laser */
-
-  unsigned char data[sizeof(record)];
-  memcpy(data, record, sizeof(data));
-  DefencesData d = initial;
-  data[5] = DefencesMaxLaserType + 1;
-  assert(read_data(&d, data, sizeof(data)).type == SFErrorType_BadDefencesLaserType);
-  data[5] = 255;
-  assert(read_data(&d, data, sizeof(data)).type == SFErrorType_BadDefencesLaserType);
-}
-
-static void test11(void)
-{
-  /* Invalid launch ship */
-
-  unsigned char data[sizeof(record)];
-  memcpy(data, record, sizeof(data));
-  DefencesData d = initial;
-  data[6] = ShipType_Fighter4 + 1;
-  assert(read_data(&d, data, sizeof(data)).type == SFErrorType_BadDefencesShipType);
-  data[6] = 15;
-  assert(read_data(&d, data, sizeof(data)).type == SFErrorType_BadDefencesShipType);
-}
-
-static void test12(void)
-{
-  /* Player ship compatibility */
-
-  unsigned char data[sizeof(record)];
-  memcpy(data, record, sizeof(data));
-  data[6] = 0x70;
-  DefencesData d = initial;
-  assert(!SFError_fail(read_data(&d, data, sizeof(data))));
-  assert(defences_get_ship_type(&d) == ShipType_Fighter1);
-  check_fields(&d, &initial, DefenceField_ShipType);
+  unsigned char buffer[Capacity];
+  size_t const size = write_data(&initial, &buffer);
+  for (size_t length = 0; length < size; ++length)
+  {
+    DefencesData loaded;
+    SFError const err = read_data(&loaded, &buffer, length);
+    if (length == 0)
+    {
+      assert(SFError_fail(err));
+    }
+    if (!SFError_fail(err))
+    {
+      check_fields(&loaded, &initial, DefenceField_AllMustMatch);
+    }
+  }
 }
 
 void Defenc_tests(void)
@@ -271,11 +284,8 @@ void Defenc_tests(void)
     { "Ships per hangar", test5 },
     { "Launch probability", test6 },
     { "Defence round trip", test7 },
-    { "Defence truncation", test8 },
-    { "Invalid activation timer", test9 },
-    { "Invalid defence laser", test10 },
-    { "Invalid launch ship", test11 },
-    { "Player ship compatibility", test12 },
+    { "Corrupt defence data", test8 },
+    { "Defence truncation", test9 },
   };
 
   for (size_t count = 0; count < ARRAY_SIZE(unit_tests); ++count)

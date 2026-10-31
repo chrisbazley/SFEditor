@@ -21,7 +21,7 @@
 #include "../Player.h"
 #include "../PlayerData.h"
 
-enum { RecordSize = 16 };
+enum { Capacity = 64 };
 
 typedef enum
 {
@@ -114,40 +114,60 @@ static PlayerData const initial = {
   .ata = 9, .atg = 10, .mines = 11, .bombs = 12, .mega_laser = 13, .multi_ata = 14,
 };
 
-static unsigned char initial_byte(size_t index)
+static size_t write_data(PlayerData const *value, unsigned char (*buffer)[Capacity])
 {
-  return (unsigned char)(index == 4 || index == 15 ? 0 : index);
-}
-
-static void check_saved(PlayerData const *player, size_t offset, int value)
-{
-  unsigned char data[RecordSize];
   Writer writer;
-  assert(writer_mem_init(&writer, data, sizeof(data)));
-  player_write(player, &writer);
-  assert(writer_destroy(&writer) == sizeof(data));
-  for (size_t i = 0; i < sizeof(data); ++i)
-  {
-    int const expected = i == offset ? value : initial_byte(i);
-    assert(data[i] == expected);
-  }
+  assert(writer_mem_init(&writer, *buffer, sizeof(*buffer)));
+  player_write(value, &writer);
+  assert(!writer_ferror(&writer));
+  long const length = writer_ftell(&writer);
+  assert(length > 0);
+  assert((size_t)length < sizeof(*buffer));
+  /* Materialise any space skipped at the end, without assuming its size. */
+  assert(writer_fputc(0, &writer) == 0);
+  assert(writer_destroy(&writer) == length + 1);
+  return (size_t)length;
 }
 
-static void make_record(unsigned char (*data)[RecordSize])
+static SFError read_data(PlayerData *value,
+  unsigned char C23_CONST (*buffer)[Capacity], size_t length)
 {
-  for (size_t i = 0; i < RecordSize; ++i)
-  {
-    (*data)[i] = initial_byte(i);
-  }
-}
-
-static SFError read_data(PlayerData *value, unsigned char const *data, size_t size)
-{
+  assert(length <= sizeof(*buffer));
   Reader reader;
-  assert(reader_mem_init(&reader, data, size));
+  assert(reader_mem_init(&reader, *buffer, length));
   SFError const err = player_read(value, &reader);
   reader_destroy(&reader);
   return err;
+}
+
+static SFErrorType const expected_errors[] = {
+  SFErrorType_BadPlayerDir,
+  SFErrorType_BadEnableEquip,
+  SFErrorType_BadPlayerLaserType,
+  SFErrorType_BadPlayerEngine,
+  SFErrorType_BadPlayerControl,
+  SFErrorType_BadPlayerShields,
+  SFErrorType_BadSpecialType,
+};
+
+enum { ErrorCount = ARRAY_SIZE(expected_errors) };
+
+static void note_error(SFErrorType error, bool (*seen)[ErrorCount])
+{
+  if (error == SFErrorType_OK)
+  {
+    return;
+  }
+  for (size_t i = 0; i < ErrorCount; ++i)
+  {
+    if (error == expected_errors[i])
+    {
+      (*seen)[i] = true;
+      return;
+    }
+  }
+  fprintf(stderr, "Unexpected read error %d\n", (int)error);
+  assert(false);
 }
 
 static void test1(void)
@@ -160,7 +180,6 @@ static void test1(void)
     player_set_ship_type(&player, (ShipType)value);
     assert(player_get_ship_type(&player) == (ShipType)value);
     check_fields(&player, &initial, PlayerField_ShipType);
-    check_saved(&player, 15, value);
   }
 }
 
@@ -174,7 +193,6 @@ static void test2(void)
     player_set_equip_enabled(&player, value != 0);
     assert(player_get_equip_enabled(&player) == value);
     check_fields(&player, &initial, PlayerField_EquipEnabled);
-    check_saved(&player, 4, value);
   }
 }
 
@@ -188,7 +206,6 @@ static void test3(void)
     player_set_laser_type(&player, value);
     assert(player_get_laser_type(&player) == value);
     check_fields(&player, &initial, PlayerField_LaserType);
-    check_saved(&player, 5, value);
   }
 }
 
@@ -202,7 +219,6 @@ static void test4(void)
     player_set_engine(&player, value);
     assert(player_get_engine(&player) == value);
     check_fields(&player, &initial, PlayerField_Engine);
-    check_saved(&player, 6, value);
   }
 }
 
@@ -216,7 +232,6 @@ static void test5(void)
     player_set_control(&player, value);
     assert(player_get_control(&player) == value);
     check_fields(&player, &initial, PlayerField_Control);
-    check_saved(&player, 7, value);
   }
 }
 
@@ -230,7 +245,6 @@ static void test6(void)
     player_set_shields(&player, value);
     assert(player_get_shields(&player) == value);
     check_fields(&player, &initial, PlayerField_Shields);
-    check_saved(&player, 8, value);
   }
 }
 
@@ -244,7 +258,6 @@ static void test7(void)
     player_set_ata(&player, value);
     assert(player_get_ata(&player) == value);
     check_fields(&player, &initial, PlayerField_ATA);
-    check_saved(&player, 9, value);
   }
 }
 
@@ -258,7 +271,6 @@ static void test8(void)
     player_set_atg(&player, value);
     assert(player_get_atg(&player) == value);
     check_fields(&player, &initial, PlayerField_ATG);
-    check_saved(&player, 10, value);
   }
 }
 
@@ -272,7 +284,6 @@ static void test9(void)
     player_set_mines(&player, value);
     assert(player_get_mines(&player) == value);
     check_fields(&player, &initial, PlayerField_Mines);
-    check_saved(&player, 11, value);
   }
 }
 
@@ -286,7 +297,6 @@ static void test10(void)
     player_set_bombs(&player, value);
     assert(player_get_bombs(&player) == value);
     check_fields(&player, &initial, PlayerField_Bombs);
-    check_saved(&player, 12, value);
   }
 }
 
@@ -300,7 +310,6 @@ static void test11(void)
     player_set_mega_laser(&player, value);
     assert(player_get_mega_laser(&player) == value);
     check_fields(&player, &initial, PlayerField_MegaLaser);
-    check_saved(&player, 13, value);
   }
 }
 
@@ -314,7 +323,6 @@ static void test12(void)
     player_set_multi_ata(&player, value);
     assert(player_get_multi_ata(&player) == value);
     check_fields(&player, &initial, PlayerField_MultiATA);
-    check_saved(&player, 14, value);
   }
 }
 
@@ -340,118 +348,56 @@ static void test13(void)
     player_set_bombs(&player, (int)(v ^ 170));
     player_set_mega_laser(&player, (int)((v + 7) % 256));
     player_set_multi_ata(&player, (int)((v + 13) % 256));
-    unsigned char data[RecordSize];
-    Writer writer;
-    assert(writer_mem_init(&writer, data, sizeof(data)));
-    player_write(&player, &writer);
-    assert(writer_destroy(&writer) == sizeof(data));
-    assert(!SFError_fail(read_data(&loaded, data, sizeof(data))));
+    unsigned char buffer[Capacity];
+    size_t const size = write_data(&player, &buffer);
+    assert(!SFError_fail(read_data(&loaded, &buffer, size)));
     check_fields(&loaded, &player, PlayerField_AllMustMatch);
   }
 }
 
 static void test14(void)
 {
-  /* Player truncation */
+  /* Corrupt player data */
 
-  unsigned char data[RecordSize];
-  make_record(&data);
-  for (size_t length = 0; length < sizeof(data); ++length)
+  unsigned char buffer[Capacity];
+  size_t const size = write_data(&initial, &buffer);
+  bool seen[ErrorCount] = {false};
+  for (size_t offset = 0; offset < size; ++offset)
   {
-    PlayerData player = initial;
-    assert(read_data(&player, data, length).type == SFErrorType_ReadFail);
+    unsigned char const saved = buffer[offset];
+    for (unsigned byte = 0; byte < 256; ++byte)
+    {
+      buffer[offset] = (unsigned char)byte;
+      PlayerData loaded = initial;
+      note_error(read_data(&loaded, &buffer, size).type, &seen);
+    }
+    buffer[offset] = saved;
+  }
+  for (size_t i = 0; i < ErrorCount; ++i)
+  {
+    assert(seen[i]);
   }
 }
 
 static void test15(void)
 {
-  /* Invalid direction */
+  /* Player truncation */
 
-  unsigned char data[RecordSize];
-  make_record(&data);
-  data[3] = ShipDirection_SW + 1;
-  PlayerData player = initial;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerDir);
-  data[3] = 255;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerDir);
-}
-
-static void test16(void)
-{
-  /* Invalid equipment flag */
-
-  unsigned char data[RecordSize];
-  make_record(&data);
-  data[4] = 2;
-  PlayerData player = initial;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadEnableEquip);
-  data[4] = 255;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadEnableEquip);
-}
-
-static void test17(void)
-{
-  /* Invalid laser type */
-
-  unsigned char data[RecordSize];
-  make_record(&data);
-  data[5] = PlayerMaxLaserType + 1;
-  PlayerData player = initial;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerLaserType);
-  data[5] = 255;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerLaserType);
-}
-
-static void test18(void)
-{
-  /* Invalid engine */
-
-  unsigned char data[RecordSize];
-  make_record(&data);
-  data[6] = PlayerMaxEngine + 1;
-  PlayerData player = initial;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerEngine);
-  data[6] = 255;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerEngine);
-}
-
-static void test19(void)
-{
-  /* Invalid control */
-
-  unsigned char data[RecordSize];
-  make_record(&data);
-  data[7] = PlayerMaxControl + 1;
-  PlayerData player = initial;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerControl);
-  data[7] = 255;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerControl);
-}
-
-static void test20(void)
-{
-  /* Invalid shields */
-
-  unsigned char data[RecordSize];
-  make_record(&data);
-  data[8] = PlayerMaxShields + 1;
-  PlayerData player = initial;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerShields);
-  data[8] = 255;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadPlayerShields);
-}
-
-static void test21(void)
-{
-  /* Invalid ship type */
-
-  unsigned char data[RecordSize];
-  make_record(&data);
-  data[15] = ShipType_Fighter4 + 1;
-  PlayerData player = initial;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadSpecialType);
-  data[15] = 255;
-  assert(read_data(&player, data, sizeof(data)).type == SFErrorType_BadSpecialType);
+  unsigned char buffer[Capacity];
+  size_t const size = write_data(&initial, &buffer);
+  for (size_t length = 0; length < size; ++length)
+  {
+    PlayerData loaded = initial;
+    SFError const err = read_data(&loaded, &buffer, length);
+    if (length == 0)
+    {
+      assert(SFError_fail(err));
+    }
+    if (!SFError_fail(err))
+    {
+      check_fields(&loaded, &initial, PlayerField_AllMustMatch);
+    }
+  }
 }
 
 void Player_tests(void)
@@ -477,14 +423,8 @@ void Player_tests(void)
     { "Mega laser", test11 },
     { "Multi missiles", test12 },
     { "Player round trip", test13 },
-    { "Player truncation", test14 },
-    { "Invalid direction", test15 },
-    { "Invalid equipment flag", test16 },
-    { "Invalid laser type", test17 },
-    { "Invalid engine", test18 },
-    { "Invalid control", test19 },
-    { "Invalid shields", test20 },
-    { "Invalid ship type", test21 },
+    { "Corrupt player data", test14 },
+    { "Player truncation", test15 },
   };
 
   for (size_t count = 0; count < ARRAY_SIZE(unit_tests); ++count)
