@@ -12,29 +12,41 @@ set(loader_files)
 foreach(source IN LISTS loader_sources)
     list(APPEND loader_files "${PROJECT_SOURCE_DIR}/${source}.c")
 endforeach()
-add_executable(SFEditorLoadTest LoadGameData.c HostSupport.c ${loader_files})
-target_link_libraries(SFEditorLoadTest PRIVATE CB CBDebug CBPseudo SF3K)
-if(NOT MSVC)
-    target_link_libraries(SFEditorLoadTest PRIVATE m)
+# One invocation runs every test group after CMake prepares the game data.
+add_executable(SFEditorTests
+    Main.c LoadGameData.c HostSupport.c MapEditSelTest.c ObjEditSelTest.c
+    ${loader_files}
+    "${PROJECT_SOURCE_DIR}/MapEditSel.c"
+    "${PROJECT_SOURCE_DIR}/ObjEditSel.c"
+    "${PROJECT_SOURCE_DIR}/Shapes.c")
+target_link_libraries(SFEditorTests PRIVATE CB CBDebug CBPseudo SF3K)
+
+# SFError's layout depends on NDEBUG, so models and tests must agree.
+if(MSVC)
+    target_compile_options(SFEditorTests PRIVATE /UNDEBUG)
+else()
+    target_compile_options(SFEditorTests PRIVATE -UNDEBUG)
+    target_link_libraries(SFEditorTests PRIVATE m)
 endif()
 
-option(SFEDITOR_TEST_COVERAGE "Instrument loading tests for GCC coverage reports" OFF)
+# Show Debug suite names without enabling verbose production diagnostics.
+set_source_files_properties(Main.c LoadGameData.c MapEditSelTest.c ObjEditSelTest.c PROPERTIES
+    COMPILE_DEFINITIONS "$<$<CONFIG:Debug>:DEBUG_OUTPUT>")
+
+option(SFEDITOR_TEST_COVERAGE "Instrument portable tests for GCC coverage reports" OFF)
 if(SFEDITOR_TEST_COVERAGE)
     if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
         message(FATAL_ERROR "SFEDITOR_TEST_COVERAGE requires GCC")
     endif()
-    target_compile_options(SFEditorLoadTest PRIVATE --coverage)
-    set_property(TARGET SFEditorLoadTest APPEND_STRING PROPERTY LINK_FLAGS " --coverage")
+    target_compile_options(SFEditorTests PRIVATE --coverage)
+    set_property(TARGET SFEditorTests APPEND_STRING PROPERTY LINK_FLAGS " --coverage")
 endif()
 
-set(SFEDITOR_GAME_ARCHIVE "" CACHE FILEPATH "Existing sf3000.zip for offline loading tests")
-foreach(group shared missions)
-    add_test(NAME SFEditorLoad-${group}
-        COMMAND "${CMAKE_COMMAND}"
-            "-DLOADER=$<TARGET_FILE:SFEditorLoadTest>"
-            "-DARCHIVE=${SFEDITOR_GAME_ARCHIVE}"
-            "-DGROUP=${group}"
-            -P "${CMAKE_CURRENT_SOURCE_DIR}/LoadGameData.cmake")
-    set_tests_properties(SFEditorLoad-${group} PROPERTIES
-        RESOURCE_LOCK SFEditorGameData TIMEOUT 120 LABELS "game-data")
-endforeach()
+set(SFEDITOR_GAME_ARCHIVE "" CACHE FILEPATH "Existing sf3000.zip for offline tests")
+add_test(NAME SFEditorTests
+    COMMAND "${CMAKE_COMMAND}"
+        "-DTEST_PROGRAM=$<TARGET_FILE:SFEditorTests>"
+        "-DARCHIVE=${SFEDITOR_GAME_ARCHIVE}"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/LoadGameData.cmake")
+set_tests_properties(SFEditorTests PROPERTIES
+    TIMEOUT 180 LABELS "unit;selection;game-data")

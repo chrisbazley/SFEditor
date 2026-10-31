@@ -1,24 +1,51 @@
-# Game-data loading tests
+# Portable tests
 
-The two `SFEditorLoad-*` CTest tests load and destroy the supported resources
-from the original `sf3000.zip`, using the production parsers and the production
-Gordon Key decompressor. They run on host platforms without opening any windows.
-
-The archive is downloaded at test time, checked against its SHA-256 digest,
-and extracted once. CI caches the verified archive between runs. Downloads
-use a temporary file and up to three attempts, so network failure cannot leave
-a partial archive masquerading as a cached download. For offline testing, configure with
-`-DSFEDITOR_GAME_ARCHIVE=/absolute/path/to/sf3000.zip`.
+`SFEditorTests` follows the SF3KUtils pattern: `Main.c`, `Tests.h`,
+`test_groups`, `unit_tests`, ordinary `assert` checks and Fortify scopes.
+One invocation runs the tile selection, object selection and game-data loading
+suites. Assertions remain enabled in Release builds.
 
 After configuring and building normally, run:
 
 ```
-ctest --test-dir build --output-on-failure -R '^SFEditorLoad-'
+ctest --test-dir build --output-on-failure -R '^SFEditorTests$'
 ```
 
+The executable needs only a `LandScapes` directory containing the game data in
+its working directory. Resource names and subpaths are hardwired in the loading
+suite. It takes no arguments and one invocation runs every test group:
+
+```
+/path/to/SFEditorTests
+```
+
+CTest's CMake wrapper downloads and verifies `sf3000.zip` if necessary, extracts
+it and invokes the executable once from the directory containing `LandScapes`.
+This fixture preparation is separate from the C test program. For offline CTest
+runs, configure with `-DSFEDITOR_GAME_ARCHIVE=/absolute/path/to/sf3000.zip`.
+CI caches the verified archive between runs. Downloads use a temporary file
+and up to three attempts, so failure cannot leave a partial cached archive.
+
 For a multi-configuration generator, also specify `-C Debug` or `-C Release`.
-`BUILD_TESTING=OFF` disables these tests. Native RISC OS builds do not build the
+`BUILD_TESTING=OFF` disables the test. Native RISC OS builds do not build the
 host test executable.
+
+## Selection-model tests
+
+The suites check membership across the complete grid against explicit expected
+sets, counts, bounds after deselection, empty and full selections, idempotent
+operations, overlapping areas, inversion, coordinate wrapping, iteration and
+redraw notifications. Map tests cover rectangle, line, circle and triangle
+selection entry points. Object tests additionally cover independent copies,
+callback preservation, and clipped change enumeration, including a disjoint
+clipping rectangle.
+
+## Game-data loading tests
+
+The loading suite loads and destroys the supported resources from the original
+`sf3000.zip` using the production parsers and Gordon Key decompressor, without
+opening any windows. It shares the same executable and host facilities as the
+selection suites.
 
 ## Inputs
 
@@ -32,8 +59,8 @@ host test executable.
 | Hill colour tables | 6 |
 | Missions (all three difficulty levels) | 108 |
 
-The tests require these exact file counts, so an empty directory or a missing
-resource cannot silently reduce coverage. The complete mission set is cheap
+The tests explicitly load every required file, so an empty directory or a
+missing resource cannot silently reduce coverage. The complete mission set is cheap
 to load; no hand-picked subset is needed. This covers all those archive files,
 not every parser branch or malformed input.
 
@@ -62,13 +89,14 @@ existing loading behaviour.
 ## CI diagnostics
 
 Every CI job uploads its build log, verbose CTest log, JUnit results and
-per-resource stdout/stderr logs as a `diagnostics-*` artifact, including after
-failure. Resource counts and outcomes appear in the job summary. Loader debug
-output stays in the artifacts; a failure prints the last 30 lines of each log.
+complete program stdout/stderr logs as a `diagnostics-*` artifact, including after
+failure. Resource counts and outcomes appear in the job summary. Program output stays in the artifacts; a failure prints the last 30 lines of
+each log. Every input filename is logged before loading it.
 
-The GCC Debug job with per-view selection enabled also instruments the loading
-test target and uploads browsable HTML source coverage and Cobertura XML.
-The report measures the compiled model/loader modules, including untested
+The GCC Debug job with per-view selection enabled also instruments the single
+portable test target and uploads browsable HTML source coverage and Cobertura XML.
+The report measures the compiled model, loader and selection modules, including
+untested
 editing, saving and error paths. Its overall percentage is not a measure of
 parser completeness. Configure
 `-DSFEDITOR_TEST_COVERAGE=ON` to reproduce instrumentation locally with GCC.

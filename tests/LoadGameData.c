@@ -1,12 +1,16 @@
 /* SFEditor: loading tests using the original game data.
  * Copyright (C) 2026 Christopher Bazley
  */
+#undef NDEBUG
+
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "HostSupport.h"
+#include "Tests.h"
 #include "Reader.h"
 #include "ReaderGKey.h"
 #include "../DFile.h"
@@ -26,16 +30,6 @@
 #include "Optional.h"
 #else
 #define _Optional
-#endif
-
-#ifdef FORTIFY
-static bool fortify_error;
-
-static void fortify_output(char const *text)
-{
-    fputs(text, stderr);
-    fortify_error = true;
-}
 #endif
 
 static _Optional DFile *create_file(char const *const kind)
@@ -127,58 +121,165 @@ static bool load(char const *const kind, Reader *const reader)
     return !reader_ferror(reader);
 }
 
-int main(int argc, char *argv[])
+static void load_file(char const *kind, char const *filename)
 {
-    if (argc < 3) {
-        fprintf(stderr, "Usage: %s kind file...\n", argv[0]);
-        return EXIT_FAILURE;
+    host_set_palette(!strcmp(kind, "tiles-bright"));
+    printf("Loading %s: %s\n", kind, filename);
+    fflush(stdout);
+
+#ifdef FORTIFY
+    unsigned long const allocated = Fortify_GetCurrentAllocation();
+#endif
+    _Optional FILE *const input = fopen(filename, "rb");
+    assert(input);
+    Reader reader;
+    assert(reader_gkey_init(&reader, 9, &*input));
+    assert(load(kind, &reader));
+    reader_destroy(&reader);
+    assert(!fclose(&*input));
+
+#ifdef FORTIFY
+    assert(!Fortify_CheckAllMemory());
+    assert(Fortify_GetCurrentAllocation() == allocated);
+#endif
+}
+
+static void load_files(char const *kind, char const *directory,
+                       char const *const names[], size_t count)
+{
+    for (size_t i = 0; i < count; ++i) {
+        char filename[256];
+        int const length = snprintf(filename, sizeof(filename),
+                                    "%s/%s", directory, names[i]);
+        assert(length > 0);
+        assert((size_t)length < sizeof(filename));
+        load_file(kind, filename);
     }
+}
 
-#ifdef FORTIFY
-    Fortify_SetOutputFunc(fortify_output);
-#endif
-    host_set_palette(!strcmp(argv[1], "tiles-bright"));
-    bool success = true;
+static void test1(void)
+{
+    /* Base maps */
+    static char const *const names[] = {
+        "Academy1", "Basic", "Blank", "Chem1", "Cyber1",
+        "Cyber2", "Death1", "Death2", "Earth1", "Earth2",
+        "Earth3", "Sea", "Warrior1", "Warrior2",
+    };
 
-    for (int i = 2; i < argc; ++i) {
-        printf("Loading %s: %s\n", argv[1], argv[i]);
-        fflush(stdout);
+    load_files("map", "LandScapes/Base/SprScape", names, ARRAY_SIZE(names));
+}
 
-#ifdef FORTIFY
-        unsigned long const allocated = Fortify_GetCurrentAllocation();
-#endif
-        _Optional FILE *const input = fopen(argv[i], "rb");
+static void test2(void)
+{
+    /* Base objects */
+    static char const *const names[] = {
+        "Academy1", "Basic", "Basic2", "Blank", "Chem1",
+        "Death1", "Earth1", "Earth2", "Earth3", "Warrior1",
+        "Warrior2",
+    };
 
-        if (!input) {
-            perror(argv[i]);
-            success = false;
-            continue;
+    load_files("objects", "LandScapes/Base/FxdObj", names, ARRAY_SIZE(names));
+}
+
+static void test3(void)
+{
+    /* Polygon graphics */
+    static char const *const names[] = {
+        "Chemical", "CyberZ", "Earth1", "Earth2", "Space",
+        "Warrior",
+    };
+
+    load_files("graphics", "LandScapes/Graphics", names, ARRAY_SIZE(names));
+}
+
+static void test4(void)
+{
+    /* Dark tile bitmaps */
+    static char const *const names[] = {
+        "Chem", "Cyber", "Death", "Earth", "Ice",
+        "Space", "Warrior",
+    };
+
+    load_files("tiles-dark", "LandScapes/Sprites", names, ARRAY_SIZE(names));
+}
+
+static void test5(void)
+{
+    /* Bright tile bitmaps */
+    static char const *const names[] = {
+        "Chem", "Cyber", "Death", "Earth", "Ice",
+        "Space", "Warrior",
+    };
+
+    load_files("tiles-bright", "LandScapes/Sprites", names, ARRAY_SIZE(names));
+}
+
+static void test6(void)
+{
+    /* Polygon colours */
+    static char const *const names[] = {
+        "Default", "FastLaser", "FastShip", "Normal", "RedShip",
+    };
+
+    load_files("colours", "LandScapes/Palette", names, ARRAY_SIZE(names));
+}
+
+static void test7(void)
+{
+    /* Hill colours */
+    static char const *const names[] = {
+        "Chem", "Earth", "Earth2", "Ice", "Saturn",
+        "Warrior",
+    };
+
+    load_files("hills", "LandScapes/Hill", names, ARRAY_SIZE(names));
+}
+
+static void test8(void)
+{
+    /* Missions */
+    static char const levels[] = "EMH";
+    for (size_t level = 0; level < sizeof(levels) - 1; ++level) {
+        for (int mission = 1; mission <= 36; ++mission) {
+            char filename[256];
+            int const length = snprintf(filename, sizeof(filename),
+                "LandScapes/Missions/%c/%c_%02d", levels[level], levels[level], mission);
+            assert(length > 0);
+            assert((size_t)length < sizeof(filename));
+            load_file("mission", filename);
         }
-
-        Reader reader;
-        if (!reader_gkey_init(&reader, 9, &*input)) {
-            fprintf(stderr, "Cannot initialise decompressor\n");
-            success = false;
-        } else {
-            if (!load(argv[1], &reader)) {
-                fprintf(stderr, "Failed to load %s\n", argv[i]);
-                success = false;
-            }
-
-            reader_destroy(&reader);
-        }
-
-        if (fclose(&*input))
-            success = false;
-
-#ifdef FORTIFY
-        if (Fortify_CheckAllMemory() ||
-            Fortify_GetCurrentAllocation() != allocated || fortify_error) {
-            fprintf(stderr, "Memory check failed after %s\n", argv[i]);
-            success = false;
-        }
-#endif
     }
+}
 
-    return success ? EXIT_SUCCESS : EXIT_FAILURE;
+void LoadGameData_tests(void)
+{
+    /* LoadGameData */
+    static const struct
+    {
+        char const *test_name;
+        void (*test_func)(void);
+    }
+    unit_tests[] =
+    {
+        { "Base maps", test1 },
+        { "Base objects", test2 },
+        { "Polygon graphics", test3 },
+        { "Dark tile bitmaps", test4 },
+        { "Bright tile bitmaps", test5 },
+        { "Polygon colours", test6 },
+        { "Hill colours", test7 },
+        { "Missions", test8 },
+    };
+
+    for (size_t count = 0; count < ARRAY_SIZE(unit_tests); ++count)
+    {
+        DEBUGF("Test %zu/%zu : %s\n",
+               1 + count,
+               ARRAY_SIZE(unit_tests),
+               unit_tests[count].test_name);
+
+        Fortify_EnterScope();
+        unit_tests[count].test_func();
+        Fortify_LeaveScope();
+    }
 }
