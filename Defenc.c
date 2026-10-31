@@ -109,6 +109,10 @@ SFError defences_read(DefencesData *const defences,
   assert(ships_per_hangar <= DefencesMaxShipsPerHangar);
 
   int const ship_prob = reader_fgetc(reader);
+  if (ship_prob == EOF)
+  {
+    return SFERROR(ReadFail);
+  }
   DEBUGF("Defences ship launch probability %d\n", ship_prob);
 
   assert(ship_prob >= DefencesMinProb);
