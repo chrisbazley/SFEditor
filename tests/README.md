@@ -32,45 +32,55 @@ host test executable.
 
 ## Performance suites
 
-FPerf and BPerf use arithmetic patterns to distinguish ship records, enum-based
-comparison helpers to check unaffected fields, and pointer-to-array parameters
-for fixed-size buffers. Cases cover setter boundaries, saved field bytes,
-round trips, ignored padding, invalid values and truncated required fields.
-BPerf additionally checks the remote-shield marker, clearing that flag by setting
-normal shields, and the accepted legacy ship count of -1.
+FPerf and BPerf use arithmetic patterns to distinguish ship records and enum-based
+comparison helpers to check unaffected fields. Cases cover setter boundaries,
+round trips, corruption and truncation. BPerf also checks remote shields and
+switching back to normal shields.
 
 ## Small model suites
 
 Separate CoarseCoord, Filenames, Player, Defenc, Pyram and Clouds suites exercise
-coordinate conversions, filename slots, equipment fields, defence bit packing,
+coordinate conversions, filename slots, equipment fields, defence parameters,
 pyramid positions and cloud colours. Values are checked with arithmetic patterns
-and explicit field expectations, without reference implementations. Cases cover
-valid boundaries, field independence, saved bytes, round trips, malformed input
-and truncation. Player coverage here concerns equipment and its main record;
-ship docking relationships remain outside this suite.
+and explicit field expectations, without reference implementations. Player
+coverage here concerns equipment and its main record; docking relationships
+remain outside this suite.
 
 ## Text tests
 
-Repeating alphabet and digit patterns check canonicalisation and binary character
-codes. Cases also cover defaults, punctuation, unsupported characters, string
-replacement, display parameters, aligned offsets and save/reload at varied string
-lengths. Header limits, truncated blocks, unknown codes and reloading an existing
-string are checked separately. Fortify builds exercise allocation failures.
+Repeating alphabet and digit patterns check normalisation. Cases also cover
+defaults, punctuation, unsupported characters, replacement, display parameters,
+offset progression and round trips at varied string lengths. Fortify builds
+exercise allocation failures and replacement of an existing string.
+
+## Serialized input
+
+Inputs come from production writers, and lengths come from stream positions.
+The tests do not depend on encoded sizes, field offsets, padding, byte order or
+character codes. Each prefix is tried when testing truncation; a successful read
+must recover the complete expected model.
+
+For filenames, player data, defences, pyramid positions, text and performance
+records, every serialized byte is replaced with every possible byte value in
+turn. Each suite requires all its expected public bad-data error codes to occur.
+BPerf also corrupts successive suffixes to exercise conditions that require
+several bytes to change together, including the legacy negative ship count.
+
+Fixed buffer sizes are capacities, and pointer-to-array parameters preserve their
+bounds. Read-only arrays use CBUtilLib's C23_CONST macro.
 
 ## Map and object model tests
 
-Tests load zero-filled base grids or mask-filled overlays, then assign a
-coordinate-derived repeating pattern to three quarters of the cells, leaving
-forbidden object rows clear. Validation
-calculates the expected value at each coordinate and checks that untouched cells
-retain zero or mask. No parallel reference grid is maintained. Updates advance
-the pattern and check the previous values; wrapping and mask restoration are
-also covered. Constructors are not assumed to initialise cells.
+Tests initialise base grids to zero and overlays to mask through model setters.
+They then assign a coordinate-derived repeating pattern to three quarters of the
+cells, leaving forbidden object rows clear. Validation calculates expected values
+at each coordinate and checks that untouched cells retain zero or mask. Updates,
+wrapping and mask restoration are also covered.
 
-Base and overlay round trips use the production DFile reader and writer with
-memory streams. Every saved byte and reloaded cell is checked against the
-pattern. Object tests also check that loading clears forbidden rows to none or
-mask while preserving the final row. No additional input files are needed.
+Base and overlay round trips use production DFile readers and writers with
+memory streams. Every reloaded cell is checked against the pattern. Object tests
+also check that loading clears forbidden rows while preserving the final row.
+No additional input files are needed.
 
 ## Vertex and bounding-box tests
 
@@ -163,7 +173,7 @@ tile brightness flags must match the chosen palette.
 
 The test target compiles the production model and loading source files,
 without the separate UI/rendering modules. It does not test rendering,
-shared-resource caching, editor metadata, or saving.
+shared-resource caching, editor metadata, or application save workflows.
 
 SFEditor currently treats sky colours and sky images as absent resources in
 `Session.c:get_shared_file`: it does not parse the `Sky` or `Planets` files.

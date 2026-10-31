@@ -22,13 +22,7 @@
 #include "../Text.h"
 #include "../TextData.h"
 
-enum { HeaderSize = 48, Capacity = 512 };
-
-/* A minimal valid block, with positive duration and speed, no clipping,
- * and an empty string. All other header fields are zero. */
-static unsigned char const empty_block[HeaderSize + 1] = {
-  [8] = 1, [16] = 1, [32] = 255, [HeaderSize] = 255,
-};
+enum { Capacity = 256 };
 
 static TextParams const params = {
   .duration = INT32_MAX, .delay = INT32_MAX, .speed = INT32_MAX,
@@ -50,40 +44,63 @@ static void check_params(TextParams const *actual, TextParams const *expected)
   assert(actual->cursor_type == expected->cursor_type);
 }
 
-static SFError read_block(Text *text, unsigned char const *data, size_t size)
+static SFError read_data(Text *value,
+  unsigned char C23_CONST (*buffer)[Capacity], size_t length)
 {
+  assert(length <= sizeof(*buffer));
   Reader reader;
-  assert(reader_mem_init(&reader, data, size));
-  SFError const err = text_read_block(text, &reader);
+  assert(reader_mem_init(&reader, *buffer, length));
+  SFError const err = text_read_block(value, &reader);
   reader_destroy(&reader);
   return err;
 }
 
-static size_t write_block(Text const *text, unsigned char (*data)[Capacity])
+static size_t write_block(Text const *value, unsigned char (*buffer)[Capacity])
 {
   Writer writer;
-  assert(writer_mem_init(&writer, *data, sizeof(*data)));
-  text_write_block(text, &writer);
+  assert(writer_mem_init(&writer, *buffer, sizeof(*buffer)));
+  text_write_block(value, &writer);
   assert(!writer_ferror(&writer));
-  long const size = writer_destroy(&writer);
-  assert(size >= HeaderSize + 1);
-  assert(size <= Capacity);
-  return (size_t)size;
+  long const length = writer_ftell(&writer);
+  assert(length > 0);
+  assert((size_t)length < sizeof(*buffer));
+  /* Materialise any space skipped at the end, without assuming its size. */
+  assert(writer_fputc(0, &writer) == 0);
+  assert(writer_destroy(&writer) == length + 1);
+  return (size_t)length;
 }
 
-static void check_field(size_t offset, int32_t value, SFErrorType expected)
-{
-  unsigned char data[sizeof(empty_block)];
-  memcpy(data, empty_block, sizeof(data));
-  Writer writer;
-  assert(writer_mem_init(&writer, data + offset, 4));
-  writer_fwrite_int32(value, &writer);
-  assert(writer_destroy(&writer) == 4);
+static SFErrorType const expected_errors[] = {
+  SFErrorType_BadTextDuration,
+  SFErrorType_BadTextDelay,
+  SFErrorType_BadTextSpeed,
+  SFErrorType_BadTextXPos,
+  SFErrorType_BadTextYPos,
+  SFErrorType_BadTextYClip,
+  SFErrorType_BadTextRepeat,
+  SFErrorType_BadTextCursorType,
+  SFErrorType_BadTextColour,
+  SFErrorType_ReadFail,
+};
 
-  Text text;
-  text_init(&text);
-  assert(read_block(&text, data, sizeof(data)).type == expected);
-  text_destroy(&text);
+enum { ErrorCount = ARRAY_SIZE(expected_errors) };
+
+static void note_error(SFErrorType error, bool (*seen)[ErrorCount])
+{
+  if (error == SFErrorType_OK)
+  {
+    return;
+  }
+  for (size_t i = 0; i < ErrorCount; ++i)
+  {
+    if (error == expected_errors[i])
+    {
+      (*seen)[i] = true;
+      return;
+    }
+  }
+  fprintf(stderr, "Unexpected read error %d\n", (int)error);
+  assert(false);
 }
 
 static void test1(void)
@@ -265,7 +282,7 @@ static void test12(void)
     assert(!SFError_fail(text_set_string(&source, input)));
     unsigned char data[Capacity];
     size_t const size = write_block(&source, &data);
-    assert(!SFError_fail(read_block(&loaded, data, size)));
+    assert(!SFError_fail(read_data(&loaded, &data, size)));
     assert(strcmp(text_get_string(&loaded), input) == 0);
     TextParams actual;
     text_get_params(&loaded, &actual);
@@ -278,59 +295,7 @@ static void test12(void)
 
 static void test13(void)
 {
-  /* Header fields */
-
-  Text text;
-  text_init(&text);
-  text_set_params(&text, &params);
-  unsigned char data[Capacity];
-  size_t const size = write_block(&text, &data);
-  static const struct { size_t offset; int32_t value; } fields[] = {
-    {.offset = 8, .value = INT32_MAX}, {.offset = 12, .value = INT32_MAX},
-    {.offset = 16, .value = INT32_MAX}, {.offset = 20, .value = Text_NumColumns - 1},
-    {.offset = 24, .value = Text_ScreenHeight - 1}, {.offset = 32, .value = Text_NumRows},
-    {.offset = 36, .value = 1}, {.offset = 40, .value = CursorType_Block},
-    {.offset = 44, .value = 255},
-  };
-  Reader reader;
-  assert(reader_mem_init(&reader, data, size));
-  for (size_t i = 0; i < ARRAY_SIZE(fields); ++i)
-  {
-    assert(reader_fseek(&reader, (long)fields[i].offset, SEEK_SET) == 0);
-    int32_t value;
-    assert(reader_fread_int32(&value, &reader));
-    assert(value == fields[i].value);
-  }
-  reader_destroy(&reader);
-  text_destroy(&text);
-}
-
-static void test14(void)
-{
-  /* Encoded alphabet */
-
-  char input[79];
-  for (size_t i = 0; i < sizeof(input) - 1; ++i)
-  {
-    input[i] = (char)('a' + i % 26);
-  }
-  input[sizeof(input) - 1] = '\0';
-  Text text;
-  text_init(&text);
-  assert(!SFError_fail(text_set_string(&text, input)));
-  unsigned char data[Capacity];
-  write_block(&text, &data);
-  for (size_t i = 0; i < sizeof(input) - 1; ++i)
-  {
-    assert(data[HeaderSize + i] == 10 + i % 26);
-  }
-  assert(data[HeaderSize + sizeof(input) - 1] == 255);
-  text_destroy(&text);
-}
-
-static void test15(void)
-{
-  /* Offset alignment */
+  /* Offset progression */
 
   char input[] = "ABCDEFG";
   for (size_t length = 0; length < sizeof(input); ++length)
@@ -340,163 +305,100 @@ static void test15(void)
     Text text;
     text_init(&text);
     assert(!SFError_fail(text_set_string(&text, input)));
-    unsigned char data[8];
+    unsigned char block[Capacity], data[Capacity];
+    size_t const block_size = write_block(&text, &block);
     Writer writer;
     assert(writer_mem_init(&writer, data, sizeof(data)));
     int offset = 100;
     text_write_offset(&text, &writer, &offset);
-    int const block_size = HeaderSize + (int)((length + 4) / 4 * 4);
-    assert(offset == 100 + block_size);
+    assert(offset == 100 + (int)block_size);
     text_write_offset(&text, &writer, &offset);
-    assert(offset == 100 + 2 * block_size);
-    assert(writer_destroy(&writer) == sizeof(data));
-    Reader reader;
-    assert(reader_mem_init(&reader, data, sizeof(data)));
-    int32_t value;
-    assert(reader_fread_int32(&value, &reader));
-    assert(value == 100);
-    assert(reader_fread_int32(&value, &reader));
-    assert(value == 100 + block_size);
-    reader_destroy(&reader);
+    assert(offset == 100 + 2 * (int)block_size);
+    assert(writer_destroy(&writer) >= 0);
     text_destroy(&text);
     input[length] = saved;
   }
 }
 
-static void test16(void)
+static void test14(void)
 {
   /* Truncated block */
 
-  for (size_t length = 0; length < sizeof(empty_block); ++length)
+  Text source;
+  text_init(&source);
+  assert(!SFError_fail(text_set_string(&source, "ABC")));
+  unsigned char buffer[Capacity];
+  size_t const size = write_block(&source, &buffer);
+  for (size_t length = 0; length < size; ++length)
   {
-    Text text;
-    text_init(&text);
-    assert(read_block(&text, empty_block, length).type == SFErrorType_ReadFail);
-    text_destroy(&text);
+    Text loaded;
+    text_init(&loaded);
+    SFError const err = read_data(&loaded, &buffer, length);
+    if (length == 0)
+    {
+      assert(SFError_fail(err));
+    }
+    if (!SFError_fail(err))
+    {
+      assert(strcmp(text_get_string(&loaded), "ABC") == 0);
+    }
+    text_destroy(&loaded);
   }
+  text_destroy(&source);
 }
 
-static void test17(void)
-{
-  /* Zero duration */
-
-  unsigned char data[sizeof(empty_block)];
-  memcpy(data, empty_block, sizeof(data));
-  data[8] = 0;
-  Text text;
-  text_init(&text);
-  assert(!SFError_fail(read_block(&text, data, sizeof(data))));
-  TextParams actual;
-  text_get_params(&text, &actual);
-  assert(actual.duration == INT32_MAX);
-  text_destroy(&text);
-}
-
-static void test18(void)
-{
-  /* Invalid duration */
-
-  check_field(8, -1, SFErrorType_BadTextDuration);
-}
-
-static void test19(void)
-{
-  /* Invalid delay */
-
-  check_field(12, -1, SFErrorType_BadTextDelay);
-}
-
-static void test20(void)
-{
-  /* Invalid speed */
-
-  check_field(16, -1, SFErrorType_BadTextSpeed);
-}
-
-static void test21(void)
-{
-  /* Invalid x position */
-
-  check_field(20, -1, SFErrorType_BadTextXPos);
-  check_field(20, Text_NumColumns, SFErrorType_BadTextXPos);
-}
-
-static void test22(void)
-{
-  /* Invalid y position */
-
-  check_field(24, -1, SFErrorType_BadTextYPos);
-  check_field(24, Text_ScreenHeight, SFErrorType_BadTextYPos);
-}
-
-static void test23(void)
-{
-  /* Invalid clipping */
-
-  check_field(32, -1, SFErrorType_BadTextYClip);
-  check_field(32, Text_NumRows + 1, SFErrorType_BadTextYClip);
-  check_field(32, Text_NoYClip - 1, SFErrorType_BadTextYClip);
-  check_field(32, Text_NoYClip + 1, SFErrorType_BadTextYClip);
-}
-
-static void test24(void)
-{
-  /* Invalid repeat */
-
-  check_field(36, -1, SFErrorType_BadTextRepeat);
-  check_field(36, 2, SFErrorType_BadTextRepeat);
-}
-
-static void test25(void)
-{
-  /* Invalid cursor */
-
-  check_field(40, -1, SFErrorType_BadTextCursorType);
-  check_field(40, CursorType_Count, SFErrorType_BadTextCursorType);
-}
-
-static void test26(void)
-{
-  /* Invalid colour */
-
-  check_field(44, -1, SFErrorType_BadTextColour);
-  check_field(44, 256, SFErrorType_BadTextColour);
-  check_field(44, INT32_MAX, SFErrorType_BadTextColour);
-}
-
-static void test27(void)
-{
-  /* Unknown character codes */
-
-  static unsigned char const codes[] = {36, 37, 42, 45, 46, 50, 51, 52, 53, 54, 56, 62, 63, 66, 253};
-  for (size_t i = 0; i < ARRAY_SIZE(codes); ++i)
-  {
-    unsigned char data[HeaderSize + 2];
-    memcpy(data, empty_block, sizeof(empty_block));
-    data[HeaderSize] = codes[i];
-    data[HeaderSize + 1] = 255;
-    Text text;
-    text_init(&text);
-    assert(!SFError_fail(read_block(&text, data, sizeof(data))));
-    assert(strcmp(text_get_string(&text), "#") == 0);
-    text_destroy(&text);
-  }
-}
-
-static void test28(void)
+static void test15(void)
 {
   /* Read replacement */
 
-  Text text;
+  Text source, text;
+  text_init(&source);
   text_init(&text);
+  unsigned char buffer[Capacity];
+  size_t const size = write_block(&source, &buffer);
   assert(!SFError_fail(text_set_string(&text, "OLD ALLOCATION")));
-  assert(!SFError_fail(read_block(&text, empty_block, sizeof(empty_block))));
+  assert(!SFError_fail(read_data(&text, &buffer, size)));
   assert(strcmp(text_get_string(&text), "") == 0);
   text_destroy(&text);
+  text_destroy(&source);
+}
+
+static void test16(void)
+{
+  /* Corrupt text data */
+
+  Text source;
+  text_init(&source);
+  TextParams settings;
+  text_get_params(&source, &settings);
+  settings.duration = 1;
+  text_set_params(&source, &settings);
+  assert(!SFError_fail(text_set_string(&source, "ABC")));
+  unsigned char buffer[Capacity];
+  size_t const size = write_block(&source, &buffer);
+  text_destroy(&source);
+  bool seen[ErrorCount] = {false};
+  for (size_t offset = 0; offset < size; ++offset)
+  {
+    unsigned char const saved = buffer[offset];
+    for (unsigned byte = 0; byte < 256; ++byte)
+    {
+      buffer[offset] = (unsigned char)byte;
+      Text loaded;
+            text_init(&loaded);
+      note_error(read_data(&loaded, &buffer, size).type, &seen);
+      text_destroy(&loaded);
+    }
+    buffer[offset] = saved;
+  }
+  for (size_t i = 0; i < ErrorCount; ++i)
+  {
+    assert(seen[i]);
+  }
 }
 
 #ifdef FORTIFY
-static void test29(void)
+static void test17(void)
 {
   /* String allocation failure */
 
@@ -512,16 +414,18 @@ static void test29(void)
 #endif
 
 #ifdef FORTIFY
-static void test30(void)
+static void test18(void)
 {
   /* Read allocation failure */
 
-  unsigned char data[HeaderSize + 2];
-  memcpy(data, empty_block, sizeof(empty_block));
-  data[HeaderSize] = 10;
-  data[HeaderSize + 1] = 255;
+  Text source;
+  text_init(&source);
+  assert(!SFError_fail(text_set_string(&source, "ABC")));
+  unsigned char buffer[Capacity];
+  size_t const size = write_block(&source, &buffer);
+  text_destroy(&source);
   Reader reader;
-  assert(reader_mem_init(&reader, data, sizeof(data)));
+  assert(reader_mem_init(&reader, buffer, size));
   Text text;
   text_init(&text);
   Fortify_SetNumAllocationsLimit(0);
@@ -556,27 +460,15 @@ void Text_tests(void)
     { "String preserves parameters", test10 },
     { "Parameters preserve string", test11 },
     { "Block round trip", test12 },
-    { "Header fields", test13 },
-    { "Encoded alphabet", test14 },
-    { "Offset alignment", test15 },
-    { "Truncated block", test16 },
-    { "Zero duration", test17 },
-    { "Invalid duration", test18 },
-    { "Invalid delay", test19 },
-    { "Invalid speed", test20 },
-    { "Invalid x position", test21 },
-    { "Invalid y position", test22 },
-    { "Invalid clipping", test23 },
-    { "Invalid repeat", test24 },
-    { "Invalid cursor", test25 },
-    { "Invalid colour", test26 },
-    { "Unknown character codes", test27 },
-    { "Read replacement", test28 },
+    { "Offset progression", test13 },
+    { "Truncated block", test14 },
+    { "Read replacement", test15 },
+    { "Corrupt text data", test16 },
 #ifdef FORTIFY
-    { "String allocation failure", test29 },
+    { "String allocation failure", test17 },
 #endif
 #ifdef FORTIFY
-    { "Read allocation failure", test30 },
+    { "Read allocation failure", test18 },
 #endif
   };
 

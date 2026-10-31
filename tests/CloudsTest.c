@@ -21,10 +21,29 @@
 #include "../Clouds.h"
 #include "../CloudsData.h"
 
-static SFError read_data(CloudColData *value, unsigned char const *data, size_t size)
+enum { Capacity = 64 };
+
+static size_t write_data(CloudColData const *value, unsigned char (*buffer)[Capacity])
 {
+  Writer writer;
+  assert(writer_mem_init(&writer, *buffer, sizeof(*buffer)));
+  clouds_write(value, &writer);
+  assert(!writer_ferror(&writer));
+  long const length = writer_ftell(&writer);
+  assert(length > 0);
+  assert((size_t)length < sizeof(*buffer));
+  /* Materialise any space skipped at the end, without assuming its size. */
+  assert(writer_fputc(0, &writer) == 0);
+  assert(writer_destroy(&writer) == length + 1);
+  return (size_t)length;
+}
+
+static SFError read_data(CloudColData *value,
+  unsigned char C23_CONST (*buffer)[Capacity], size_t length)
+{
+  assert(length <= sizeof(*buffer));
   Reader reader;
-  assert(reader_mem_init(&reader, data, size));
+  assert(reader_mem_init(&reader, *buffer, length));
   SFError const err = clouds_read(value, &reader);
   reader_destroy(&reader);
   return err;
@@ -58,14 +77,9 @@ static void test2(void)
     CloudColData clouds = {.colours = {0, 0}}, loaded;
     clouds_set_colour(&clouds, 0, colour);
     clouds_set_colour(&clouds, 1, 255 - colour);
-    unsigned char data[Clouds_NumColours];
-    Writer writer;
-    assert(writer_mem_init(&writer, data, sizeof(data)));
-    clouds_write(&clouds, &writer);
-    assert(writer_destroy(&writer) == sizeof(data));
-    assert(data[0] == colour);
-    assert(data[1] == 255 - colour);
-    assert(!SFError_fail(read_data(&loaded, data, sizeof(data))));
+    unsigned char buffer[Capacity];
+    size_t const size = write_data(&clouds, &buffer);
+    assert(!SFError_fail(read_data(&loaded, &buffer, size)));
     assert(clouds_get_colour(&loaded, 0) == colour);
     assert(clouds_get_colour(&loaded, 1) == 255 - colour);
   }
@@ -75,11 +89,22 @@ static void test3(void)
 {
   /* Cloud colour truncation */
 
-  unsigned char const data[Clouds_NumColours] = {17, 203};
-  for (size_t length = 0; length < sizeof(data); ++length)
+  CloudColData clouds = {.colours = {17, 203}};
+  unsigned char buffer[Capacity];
+  size_t const size = write_data(&clouds, &buffer);
+  for (size_t length = 0; length < size; ++length)
   {
-    CloudColData clouds;
-    assert(read_data(&clouds, data, length).type == SFErrorType_ReadFail);
+    CloudColData loaded;
+    SFError const err = read_data(&loaded, &buffer, length);
+    if (length == 0)
+    {
+      assert(SFError_fail(err));
+    }
+    if (!SFError_fail(err))
+    {
+      assert(clouds_get_colour(&loaded, 0) == 17);
+      assert(clouds_get_colour(&loaded, 1) == 203);
+    }
   }
 }
 

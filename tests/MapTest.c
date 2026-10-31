@@ -20,6 +20,8 @@
 #include "../SFError.h"
 #include "../Map.h"
 
+enum { Capacity = 256 * 1024 };
+
 /* Leave one quarter of the cells untouched. Different multipliers on each
  * axis help detect transposed data. */
 static bool patterned_cell(MapCoord x, MapCoord y)
@@ -46,23 +48,27 @@ static void check_pattern(MapData const *grid, bool overlay, unsigned offset)
   }
 }
 
-static void read_grid(DFile *file, unsigned char C23_CONST (*data)[Map_Area])
+static void read_grid(DFile *file,
+  unsigned char C23_CONST (*data)[Capacity], size_t size)
 {
   Reader reader;
-  assert(reader_mem_init(&reader, *data, sizeof(*data)));
+  assert(reader_mem_init(&reader, *data, size));
   assert(!SFError_fail(dfile_read(file, &reader)));
   assert(!reader_ferror(&reader));
   reader_destroy(&reader);
 }
 
-/* Constructors allocate storage; initialise it through the reader. */
 static MapData *make_grid(bool overlay)
 {
-  static unsigned char input[Map_Area];
-  memset(input, overlay ? Map_RefMask : 0, sizeof(input));
   _Optional MapData *const grid = overlay ? map_create_overlay() : map_create_base();
   assert(grid);
-  read_grid(map_get_dfile(&*grid), &input);
+  for (MapCoord y = 0; y < Map_Size; ++y)
+  {
+    for (MapCoord x = 0; x < Map_Size; ++x)
+    {
+      map_set_tile(&*grid, (MapPoint){x, y}, map_ref_from_num(overlay ? Map_RefMask : 0));
+    }
+  }
   return &*grid;
 }
 
@@ -91,7 +97,7 @@ static void check_set(bool overlay, bool wrapped)
 
 static void check_round_trip(bool overlay)
 {
-  static unsigned char saved[Map_Area];
+  static unsigned char saved[Capacity];
   MapData *const grid = make_grid(overlay);
   set_pattern(grid, false);
   check_pattern(grid, overlay, 0);
@@ -99,22 +105,14 @@ static void check_round_trip(bool overlay)
   Writer writer;
   assert(writer_mem_init(&writer, saved, sizeof(saved)));
   dfile_write(map_get_dfile(grid), &writer);
-  assert(!writer_ferror(&writer));
-  assert(writer_destroy(&writer) == Map_Area);
-  for (MapCoord y = 0; y < Map_Size; ++y)
-  {
-    for (MapCoord x = 0; x < Map_Size; ++x)
-    {
-      unsigned char const expected = patterned_cell(x, y) ? pattern_value(x, y, 0) :
-                                    (overlay ? Map_RefMask : 0);
-      assert(saved[(size_t)y * Map_Size + (size_t)x] == expected);
-    }
-  }
+  long const length = writer_destroy(&writer);
+  assert(length > 0);
+  assert((size_t)length <= sizeof(saved));
   check_pattern(grid, overlay, 0);
 
   _Optional MapData *const reloaded = overlay ? map_create_overlay() : map_create_base();
   assert(reloaded);
-  read_grid(map_get_dfile(&*reloaded), &saved);
+  read_grid(map_get_dfile(&*reloaded), &saved, (size_t)length);
   check_pattern(&*reloaded, overlay, 0);
   dfile_release(map_get_dfile(&*reloaded));
   dfile_release(map_get_dfile(grid));

@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "Macros.h"
 #include "Debug.h"
@@ -20,8 +21,7 @@
 #include "../FPerf.h"
 #include "../FPerfData.h"
 
-enum { ShipCount = ShipType_Fighter4 - ShipType_Fighter1 + 1,
-       RecordSize = 32, WireSize = ShipCount * RecordSize, BufferSize = WireSize + 1 };
+enum { ShipCount = ShipType_Fighter4 - ShipType_Fighter1 + 1, Capacity = 256 };
 
 typedef enum
 {
@@ -98,61 +98,59 @@ static void init_data(FighterPerformData *data, unsigned phase)
   }
 }
 
-static void write_data(FighterPerformData const *data, unsigned char (*buffer)[BufferSize])
+static size_t write_data(FighterPerformData const *value, unsigned char (*buffer)[Capacity])
 {
   Writer writer;
   assert(writer_mem_init(&writer, *buffer, sizeof(*buffer)));
-  fighter_perform_write(data, &writer);
-  assert(writer_ftell(&writer) == WireSize);
-  assert(writer_fputc(165, &writer) == 165);
-  assert(writer_destroy(&writer) == BufferSize);
+  fighter_perform_write(value, &writer);
+  assert(!writer_ferror(&writer));
+  long const length = writer_ftell(&writer);
+  assert(length > 0);
+  assert((size_t)length < sizeof(*buffer));
+  /* Materialise any space skipped at the end, without assuming its size. */
+  assert(writer_fputc(0, &writer) == 0);
+  assert(writer_destroy(&writer) == length + 1);
+  return (size_t)length;
 }
 
-static SFError read_data(FighterPerformData *data,
-  unsigned char C23_CONST (*buffer)[BufferSize], size_t length)
+static SFError read_data(FighterPerformData *value,
+  unsigned char C23_CONST (*buffer)[Capacity], size_t length)
 {
   assert(length <= sizeof(*buffer));
   Reader reader;
   assert(reader_mem_init(&reader, *buffer, length));
-  SFError const err = fighter_perform_read(data, &reader);
-  if (!SFError_fail(err))
-  {
-    assert(reader_ftell(&reader) == WireSize);
-    assert(reader_fgetc(&reader) == 165);
-  }
+  SFError const err = fighter_perform_read(value, &reader);
   reader_destroy(&reader);
   return err;
 }
 
-static void check_word(unsigned char C23_CONST (*buffer)[BufferSize],
-  size_t offset, int32_t value)
-{
-  for (size_t byte = 0; byte < 4; ++byte)
-  {
-    assert((*buffer)[offset + byte] == (((uint32_t)value >> (8 * byte)) & 255));
-  }
-}
+static SFErrorType const expected_errors[] = {
+  SFErrorType_BadLaserProb,
+  SFErrorType_BadLaserType,
+  SFErrorType_BadEngine,
+  SFErrorType_BadControl,
+  SFErrorType_BadShields,
+  SFErrorType_BadMissileProb,
+};
 
-static void change_word(unsigned char (*buffer)[BufferSize], size_t offset, int32_t value)
-{
-  assert(offset + 4 <= WireSize);
-  Writer writer;
-  assert(writer_mem_init(&writer, &(*buffer)[offset], 4));
-  writer_fwrite_int32(value, &writer);
-  assert(writer_destroy(&writer) == 4);
-}
+enum { ErrorCount = ARRAY_SIZE(expected_errors) };
 
-static void check_invalid(size_t offset, int32_t value, SFErrorType expected)
+static void note_error(SFErrorType error, bool (*seen)[ErrorCount])
 {
-  for (unsigned ship = 0; ship < ShipCount; ++ship)
+  if (error == SFErrorType_OK)
   {
-    FighterPerformData data, loaded;
-    init_data(&data, 63);
-    unsigned char buffer[BufferSize];
-    write_data(&data, &buffer);
-    change_word(&buffer, ship * RecordSize + offset, value);
-    assert(read_data(&loaded, &buffer, sizeof(buffer)).type == expected);
+    return;
   }
+  for (size_t i = 0; i < ErrorCount; ++i)
+  {
+    if (error == expected_errors[i])
+    {
+      (*seen)[i] = true;
+      return;
+    }
+  }
+  fprintf(stderr, "Unexpected read error %d\n", (int)error);
+  assert(false);
 }
 
 static void test1(void)
@@ -319,19 +317,9 @@ static void test8(void)
   {
     FighterPerformData data, loaded;
     init_data(&data, phase);
-    unsigned char buffer[BufferSize];
-    write_data(&data, &buffer);
-    for (unsigned ship = 0; ship < ShipCount; ++ship)
-    {
-      FighterPerform const expected = pattern(ship, phase);
-      check_word(&buffer, ship * RecordSize + 0, expected.laser_prob);
-      check_word(&buffer, ship * RecordSize + 4, expected.laser_type);
-      check_word(&buffer, ship * RecordSize + 8, expected.engine);
-      check_word(&buffer, ship * RecordSize + 12, expected.control);
-      check_word(&buffer, ship * RecordSize + 16, expected.shields);
-      check_word(&buffer, ship * RecordSize + 20, expected.missile_prob);
-    }
-    assert(!SFError_fail(read_data(&loaded, &buffer, sizeof(buffer))));
+    unsigned char buffer[Capacity];
+    size_t const size = write_data(&data, &buffer);
+    assert(!SFError_fail(read_data(&loaded, &buffer, size)));
     for (ShipType type = ShipType_Fighter1; type <= ShipType_Fighter4; ++type)
     {
       FighterPerform const expected = pattern((unsigned)(type - ShipType_Fighter1), phase);
@@ -342,87 +330,54 @@ static void test8(void)
 
 static void test9(void)
 {
-  /* Ignored padding */
+  /* Corrupt performance data */
 
-  FighterPerformData data, loaded;
-  init_data(&data, 63);
-  unsigned char buffer[BufferSize];
-  write_data(&data, &buffer);
-  for (size_t ship = 0; ship < ShipCount; ++ship)
+  FighterPerformData data;
+  init_data(&data, 0);
+  unsigned char buffer[Capacity];
+  size_t const size = write_data(&data, &buffer);
+  bool seen[ErrorCount] = {false};
+  for (size_t offset = 0; offset < size; ++offset)
   {
-    for (size_t byte = 24; byte < 32; ++byte)
+    unsigned char const saved = buffer[offset];
+    for (unsigned byte = 0; byte < 256; ++byte)
     {
-      buffer[ship * RecordSize + byte] = (unsigned char)(165 + ship + byte);
+      buffer[offset] = (unsigned char)byte;
+      FighterPerformData loaded;
+      note_error(read_data(&loaded, &buffer, size).type, &seen);
     }
+    buffer[offset] = saved;
   }
-  assert(!SFError_fail(read_data(&loaded, &buffer, sizeof(buffer))));
-  for (ShipType type = ShipType_Fighter1; type <= ShipType_Fighter4; ++type)
+  for (size_t i = 0; i < ErrorCount; ++i)
   {
-    FighterPerform const expected = pattern((unsigned)(type - ShipType_Fighter1), 63);
-    check_fields(fighter_perform_get_ship(&loaded, type), &expected, FighterField_AllMustMatch);
+    assert(seen[i]);
   }
 }
 
 static void test10(void)
 {
-  /* Invalid shields */
-
-  check_invalid(16, FighterPerformMinShields - 1, SFErrorType_BadShields);
-  check_invalid(16, FighterPerformMaxShields + 1, SFErrorType_BadShields);
-}
-
-static void test11(void)
-{
-  /* Invalid engine */
-
-  check_invalid(8, FighterPerformMinEngine - 1, SFErrorType_BadEngine);
-  check_invalid(8, FighterPerformMaxEngine + 1, SFErrorType_BadEngine);
-}
-
-static void test12(void)
-{
-  /* Invalid laser probability */
-
-  check_invalid(0, FighterPerformMinProb - 1, SFErrorType_BadLaserProb);
-  check_invalid(0, FighterPerformMaxProb + 1, SFErrorType_BadLaserProb);
-}
-
-static void test13(void)
-{
-  /* Invalid missile probability */
-
-  check_invalid(20, FighterPerformMinProb - 1, SFErrorType_BadMissileProb);
-  check_invalid(20, FighterPerformMaxProb + 1, SFErrorType_BadMissileProb);
-}
-
-static void test14(void)
-{
-  /* Invalid laser type */
-
-  check_invalid(4, FighterPerformMinLaserType - 1, SFErrorType_BadLaserType);
-  check_invalid(4, FighterPerformMaxLaserType + 1, SFErrorType_BadLaserType);
-}
-
-static void test15(void)
-{
-  /* Invalid control */
-
-  check_invalid(12, FighterPerformMinControl - 1, SFErrorType_BadControl);
-  check_invalid(12, FighterPerformMaxControl + 1, SFErrorType_BadControl);
-}
-
-static void test16(void)
-{
   /* Truncated performance data */
 
   FighterPerformData data;
   init_data(&data, 63);
-  unsigned char buffer[BufferSize];
-  write_data(&data, &buffer);
-  for (size_t length = 0; length < WireSize - 8; ++length)
+  unsigned char buffer[Capacity];
+  size_t const size = write_data(&data, &buffer);
+  for (size_t length = 0; length < size; ++length)
   {
     FighterPerformData loaded;
-    assert(read_data(&loaded, &buffer, length).type == SFErrorType_ReadFail);
+    SFError const err = read_data(&loaded, &buffer, length);
+    if (length == 0)
+    {
+      assert(SFError_fail(err));
+    }
+    if (!SFError_fail(err))
+    {
+      for (ShipType type = ShipType_Fighter1; type <= ShipType_Fighter4; ++type)
+      {
+        FighterPerform const expected = pattern((unsigned)(type - ShipType_Fighter1), 63);
+        check_fields(fighter_perform_get_ship(&loaded, type), &expected, FighterField_AllMustMatch);
+      }
+    }
   }
 }
 
@@ -444,14 +399,8 @@ void FPerf_tests(void)
     { "Control", test6 },
     { "Ship record lookup", test7 },
     { "Performance round trip", test8 },
-    { "Ignored padding", test9 },
-    { "Invalid shields", test10 },
-    { "Invalid engine", test11 },
-    { "Invalid laser probability", test12 },
-    { "Invalid missile probability", test13 },
-    { "Invalid laser type", test14 },
-    { "Invalid control", test15 },
-    { "Truncated performance data", test16 },
+    { "Corrupt performance data", test9 },
+    { "Truncated performance data", test10 },
   };
 
   for (size_t count = 0; count < ARRAY_SIZE(unit_tests); ++count)

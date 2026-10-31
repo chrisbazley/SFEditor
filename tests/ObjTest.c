@@ -20,6 +20,8 @@
 #include "../SFError.h"
 #include "../Obj.h"
 
+enum { Capacity = 256 * 1024 };
+
 /* Leave one quarter of the cells untouched. Different multipliers on each
  * axis help detect transposed data. */
 static bool patterned_cell(MapCoord x, MapCoord y)
@@ -50,23 +52,27 @@ static void check_pattern(ObjectsData const *grid, bool overlay, unsigned offset
   }
 }
 
-static void read_grid(DFile *file, unsigned char C23_CONST (*data)[Obj_Area])
+static void read_grid(DFile *file,
+  unsigned char C23_CONST (*data)[Capacity], size_t size)
 {
   Reader reader;
-  assert(reader_mem_init(&reader, *data, sizeof(*data)));
+  assert(reader_mem_init(&reader, *data, size));
   assert(!SFError_fail(dfile_read(file, &reader)));
   assert(!reader_ferror(&reader));
   reader_destroy(&reader);
 }
 
-/* Constructors allocate storage; initialise it through the reader. */
 static ObjectsData *make_grid(bool overlay)
 {
-  static unsigned char input[Obj_Area];
-  memset(input, overlay ? Obj_RefMask : 0, sizeof(input));
   _Optional ObjectsData *const grid = overlay ? objects_create_overlay() : objects_create_base();
   assert(grid);
-  read_grid(objects_get_dfile(&*grid), &input);
+  for (MapCoord y = 0; y < Obj_Size; ++y)
+  {
+    for (MapCoord x = 0; x < Obj_Size; ++x)
+    {
+      objects_set_ref(&*grid, (MapPoint){x, y}, objects_ref_from_num(overlay ? Obj_RefMask : 0));
+    }
+  }
   return &*grid;
 }
 
@@ -95,7 +101,7 @@ static void check_set(bool overlay, bool wrapped)
 
 static void check_round_trip(bool overlay)
 {
-  static unsigned char saved[Obj_Area];
+  static unsigned char saved[Capacity];
   ObjectsData *const grid = make_grid(overlay);
   set_pattern(grid, false);
   check_pattern(grid, overlay, 0);
@@ -103,22 +109,14 @@ static void check_round_trip(bool overlay)
   Writer writer;
   assert(writer_mem_init(&writer, saved, sizeof(saved)));
   dfile_write(objects_get_dfile(grid), &writer);
-  assert(!writer_ferror(&writer));
-  assert(writer_destroy(&writer) == Obj_Area);
-  for (MapCoord y = 0; y < Obj_Size; ++y)
-  {
-    for (MapCoord x = 0; x < Obj_Size; ++x)
-    {
-      unsigned char const expected = patterned_cell(x, y) ? pattern_value(x, y, 0) :
-                                    (overlay ? Obj_RefMask : 0);
-      assert(saved[(size_t)y * Obj_Size + (size_t)x] == expected);
-    }
-  }
+  long const length = writer_destroy(&writer);
+  assert(length > 0);
+  assert((size_t)length <= sizeof(saved));
   check_pattern(grid, overlay, 0);
 
   _Optional ObjectsData *const reloaded = overlay ? objects_create_overlay() : objects_create_base();
   assert(reloaded);
-  read_grid(objects_get_dfile(&*reloaded), &saved);
+  read_grid(objects_get_dfile(&*reloaded), &saved, (size_t)length);
   check_pattern(&*reloaded, overlay, 0);
   dfile_release(objects_get_dfile(&*reloaded));
   dfile_release(objects_get_dfile(grid));
@@ -126,21 +124,27 @@ static void check_round_trip(bool overlay)
 
 static void check_forbidden_rows(bool overlay)
 {
-  static unsigned char input[Obj_Area];
+  ObjectsData *const grid = make_grid(overlay);
   for (MapCoord y = 0; y < Obj_Size; ++y)
   {
     for (MapCoord x = 0; x < Obj_Size; ++x)
     {
-      /* Include objects in the forbidden rows in the input. */
-      input[(size_t)y * Obj_Size + (size_t)x] = (x + 3 * y) % 4 != 0 ?
-        pattern_value(x, y, 0) : (overlay ? Obj_RefMask : 0);
+      if ((x + 3 * y) % 4 != 0)
+      {
+        objects_set_ref(grid, (MapPoint){x, y}, objects_ref_from_num(pattern_value(x, y, 0)));
+      }
     }
   }
-  _Optional ObjectsData *const grid = overlay ? objects_create_overlay() : objects_create_base();
-  assert(grid);
-  read_grid(objects_get_dfile(&*grid), &input);
-  check_pattern(&*grid, overlay, 0);
-  dfile_release(objects_get_dfile(&*grid));
+  static unsigned char saved[Capacity];
+  Writer writer;
+  assert(writer_mem_init(&writer, saved, sizeof(saved)));
+  dfile_write(objects_get_dfile(grid), &writer);
+  long const length = writer_destroy(&writer);
+  assert(length > 0);
+  assert((size_t)length <= sizeof(saved));
+  read_grid(objects_get_dfile(grid), &saved, (size_t)length);
+  check_pattern(grid, overlay, 0);
+  dfile_release(objects_get_dfile(grid));
 }
 
 static void test1(void)

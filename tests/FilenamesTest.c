@@ -21,16 +21,18 @@
 #include "../Filenames.h"
 #include "../FilenamesData.h"
 
-static SFError read_data(FilenamesData *value, unsigned char const *data, size_t size)
+enum { Capacity = 256 };
+
+static SFError read_data(FilenamesData *value,
+  unsigned char C23_CONST (*buffer)[Capacity], size_t length)
 {
+  assert(length <= sizeof(*buffer));
   Reader reader;
-  assert(reader_mem_init(&reader, data, size));
+  assert(reader_mem_init(&reader, *buffer, length));
   SFError const err = filenames_read(value, &reader);
   reader_destroy(&reader);
   return err;
 }
-
-enum { EncodedSize = BytesPerFilename * DataType_FilenamesCount };
 
 static void make_name(char (*name)[BytesPerFilename], DataType type, size_t length)
 {
@@ -41,14 +43,19 @@ static void make_name(char (*name)[BytesPerFilename], DataType type, size_t leng
   (*name)[length] = '\0';
 }
 
-static void write_names(FilenamesData const *names, unsigned char (*data)[EncodedSize + 1])
+static size_t write_names(FilenamesData const *value, unsigned char (*buffer)[Capacity])
 {
   Writer writer;
-  assert(writer_mem_init(&writer, *data, sizeof(*data)));
-  filenames_write(names, &writer);
-  assert(writer_ftell(&writer) == EncodedSize);
-  assert(writer_fputc(165, &writer) == 165);
-  assert(writer_destroy(&writer) == EncodedSize + 1);
+  assert(writer_mem_init(&writer, *buffer, sizeof(*buffer)));
+  filenames_write(value, &writer);
+  assert(!writer_ferror(&writer));
+  long const length = writer_ftell(&writer);
+  assert(length > 0);
+  assert((size_t)length < sizeof(*buffer));
+  /* Materialise any space skipped at the end, without assuming its size. */
+  assert(writer_fputc(0, &writer) == 0);
+  assert(writer_destroy(&writer) == length + 1);
+  return (size_t)length;
 }
 
 static void fill_names(FilenamesData *names, size_t length)
@@ -59,6 +66,30 @@ static void fill_names(FilenamesData *names, size_t length)
     make_name(&name, type, length);
     filenames_set(names, type, name);
   }
+}
+
+static SFErrorType const expected_errors[] = {
+  SFErrorType_FilenameTooLong,
+};
+
+enum { ErrorCount = ARRAY_SIZE(expected_errors) };
+
+static void note_error(SFErrorType error, bool (*seen)[ErrorCount])
+{
+  if (error == SFErrorType_OK)
+  {
+    return;
+  }
+  for (size_t i = 0; i < ErrorCount; ++i)
+  {
+    if (error == expected_errors[i])
+    {
+      (*seen)[i] = true;
+      return;
+    }
+  }
+  fprintf(stderr, "Unexpected read error %d\n", (int)error);
+  assert(false);
 }
 
 static void test1(void)
@@ -106,14 +137,9 @@ static void test3(void)
   {
     FilenamesData names = {0}, loaded = {0};
     fill_names(&names, length);
-    unsigned char data[EncodedSize + 1];
-    write_names(&names, &data);
-    Reader reader;
-    assert(reader_mem_init(&reader, data, sizeof(data)));
-    assert(!SFError_fail(filenames_read(&loaded, &reader)));
-    assert(reader_ftell(&reader) == EncodedSize);
-    assert(reader_fgetc(&reader) == 165);
-    reader_destroy(&reader);
+    unsigned char buffer[Capacity];
+    size_t const size = write_names(&names, &buffer);
+    assert(!SFError_fail(read_data(&loaded, &buffer, size)));
     for (DataType type = DataType_First; type < DataType_FilenamesCount; ++type)
     {
       char expected[BytesPerFilename];
@@ -125,46 +151,69 @@ static void test3(void)
 
 static void test4(void)
 {
-  /* Filename truncation */
+  /* Corrupt filename data */
 
   FilenamesData names = {0};
   fill_names(&names, BytesPerFilename - 1);
-  unsigned char data[EncodedSize + 1];
-  write_names(&names, &data);
-  for (size_t length = 0; length < EncodedSize; ++length)
+  unsigned char buffer[Capacity];
+  size_t const size = write_names(&names, &buffer);
+  bool seen[ErrorCount] = {false};
+  for (size_t offset = 0; offset < size; ++offset)
   {
-    FilenamesData loaded = {0};
-    assert(read_data(&loaded, data, length).type == SFErrorType_ReadFail);
+    unsigned char const saved = buffer[offset];
+    for (unsigned byte = 0; byte < 256; ++byte)
+    {
+      buffer[offset] = (unsigned char)byte;
+      FilenamesData loaded = {0};
+      note_error(read_data(&loaded, &buffer, size).type, &seen);
+    }
+    buffer[offset] = saved;
+  }
+  for (size_t i = 0; i < ErrorCount; ++i)
+  {
+    assert(seen[i]);
   }
 }
 
 static void test5(void)
 {
-  /* Missing filename terminator */
+  /* Filename truncation */
 
-  FilenamesData names = {0}, loaded = {0};
+  FilenamesData names = {0};
   fill_names(&names, BytesPerFilename - 1);
-  unsigned char data[EncodedSize + 1];
-  write_names(&names, &data);
-  /* Scrambling is XOR-based: change the decoded CR terminator to 12. */
-  data[BytesPerFilename - 1] ^= 1;
-  assert(read_data(&loaded, data, EncodedSize).type == SFErrorType_FilenameTooLong);
+  unsigned char buffer[Capacity];
+  size_t const size = write_names(&names, &buffer);
+  for (size_t length = 0; length < size; ++length)
+  {
+    FilenamesData loaded = {0};
+    SFError const err = read_data(&loaded, &buffer, length);
+    if (length == 0)
+    {
+      assert(SFError_fail(err));
+    }
+    if (!SFError_fail(err))
+    {
+      for (DataType type = DataType_First; type < DataType_FilenamesCount; ++type)
+      {
+        char expected[BytesPerFilename];
+        make_name(&expected, type, BytesPerFilename - 1);
+        assert(strcmp(filenames_get(&loaded, type), expected) == 0);
+      }
+    }
+  }
 }
 
 static void test6(void)
 {
-  /* Zero filename terminator */
+  /* Eight-bit filename round trip */
 
   FilenamesData names = {0}, loaded = {0};
-  fill_names(&names, BytesPerFilename - 1);
-  unsigned char data[EncodedSize + 1];
-  write_names(&names, &data);
-  /* Change the decoded CR to NUL without duplicating the scrambler. */
-  data[BytesPerFilename - 1] ^= '\r';
-  assert(!SFError_fail(read_data(&loaded, data, EncodedSize)));
-  char expected[BytesPerFilename];
-  make_name(&expected, DataType_First, BytesPerFilename - 1);
-  assert(strcmp(filenames_get(&loaded, DataType_First), expected) == 0);
+  char const name[] = "\x80\xff";
+  filenames_set(&names, DataType_BaseMap, name);
+  unsigned char buffer[Capacity];
+  size_t const size = write_names(&names, &buffer);
+  assert(!SFError_fail(read_data(&loaded, &buffer, size)));
+  assert(strcmp(filenames_get(&loaded, DataType_BaseMap), name) == 0);
 }
 
 void Filenames_tests(void)
@@ -180,9 +229,9 @@ void Filenames_tests(void)
     { "Independent filename slots", test1 },
     { "Filename replacement", test2 },
     { "Filename round trip", test3 },
-    { "Filename truncation", test4 },
-    { "Missing filename terminator", test5 },
-    { "Zero filename terminator", test6 },
+    { "Corrupt filename data", test4 },
+    { "Filename truncation", test5 },
+    { "Eight-bit filename round trip", test6 },
   };
 
   for (size_t count = 0; count < ARRAY_SIZE(unit_tests); ++count)

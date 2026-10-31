@@ -21,22 +21,57 @@
 #include "../Pyram.h"
 #include "../PyramData.h"
 
-static SFError read_data(PyramidData *value, unsigned char const *data, size_t size)
+enum { Capacity = 64 };
+
+static size_t write_data(PyramidData const *value, unsigned char (*buffer)[Capacity])
 {
+  Writer writer;
+  assert(writer_mem_init(&writer, *buffer, sizeof(*buffer)));
+  pyramid_write(value, &writer);
+  assert(!writer_ferror(&writer));
+  long const length = writer_ftell(&writer);
+  assert(length > 0);
+  assert((size_t)length < sizeof(*buffer));
+  /* Materialise any space skipped at the end, without assuming its size. */
+  assert(writer_fputc(0, &writer) == 0);
+  assert(writer_destroy(&writer) == length + 1);
+  return (size_t)length;
+}
+
+static SFError read_data(PyramidData *value,
+  unsigned char C23_CONST (*buffer)[Capacity], size_t length)
+{
+  assert(length <= sizeof(*buffer));
   Reader reader;
-  assert(reader_mem_init(&reader, data, size));
+  assert(reader_mem_init(&reader, *buffer, length));
   SFError const err = pyramid_read(value, &reader);
   reader_destroy(&reader);
   return err;
 }
 
-static void make_record(unsigned char (*data)[8], int32_t level, int32_t difficulty)
+static SFErrorType const expected_errors[] = {
+  SFErrorType_BadLevelNumber,
+  SFErrorType_BadPyramid,
+};
+
+enum { ErrorCount = ARRAY_SIZE(expected_errors) };
+
+static void note_error(SFErrorType error, bool (*seen)[ErrorCount])
 {
-  Writer writer;
-  assert(writer_mem_init(&writer, *data, sizeof(*data)));
-  writer_fwrite_int32(level, &writer);
-  writer_fwrite_int32(difficulty, &writer);
-  assert(writer_destroy(&writer) == 8);
+  if (error == SFErrorType_OK)
+  {
+    return;
+  }
+  for (size_t i = 0; i < ErrorCount; ++i)
+  {
+    if (error == expected_errors[i])
+    {
+      (*seen)[i] = true;
+      return;
+    }
+  }
+  fprintf(stderr, "Unexpected read error %d\n", (int)error);
+  assert(false);
 }
 
 static void test1(void)
@@ -65,19 +100,9 @@ static void test2(void)
     {
       PyramidData p, loaded;
       pyramid_set_position(&p, difficulty, level);
-      unsigned char data[8];
-      Writer writer;
-      assert(writer_mem_init(&writer, data, sizeof(data)));
-      pyramid_write(&p, &writer);
-      assert(writer_destroy(&writer) == sizeof(data));
-      assert(data[0] == level);
-      assert(data[4] == difficulty);
-      for (size_t i = 0; i < 3; ++i)
-      {
-        assert(data[1 + i] == 0);
-        assert(data[5 + i] == 0);
-      }
-      assert(!SFError_fail(read_data(&loaded, data, sizeof(data))));
+      unsigned char buffer[Capacity];
+      size_t const size = write_data(&p, &buffer);
+      assert(!SFError_fail(read_data(&loaded, &buffer, size)));
       assert(pyramid_get_difficulty(&loaded) == difficulty);
       assert(pyramid_get_level_number(&loaded) == level);
     }
@@ -86,46 +111,51 @@ static void test2(void)
 
 static void test3(void)
 {
-  /* Invalid level number */
+  /* Corrupt pyramid data */
 
-  static int32_t const levels[] = {-1, 0, 37, INT32_MAX};
-  for (size_t i = 0; i < ARRAY_SIZE(levels); ++i)
-  {
-    unsigned char data[8];
-    make_record(&data, levels[i], Pyramid_Easy);
-    PyramidData p;
-    assert(read_data(&p, data, sizeof(data)).type == SFErrorType_BadLevelNumber);
-  }
-  unsigned char data[8];
-  make_record(&data, 2, Pyramid_User);
   PyramidData p;
-  assert(read_data(&p, data, sizeof(data)).type == SFErrorType_BadLevelNumber);
+  pyramid_set_position(&p, Pyramid_User, 1);
+  unsigned char buffer[Capacity];
+  size_t const size = write_data(&p, &buffer);
+  bool seen[ErrorCount] = {false};
+  for (size_t offset = 0; offset < size; ++offset)
+  {
+    unsigned char const saved = buffer[offset];
+    for (unsigned byte = 0; byte < 256; ++byte)
+    {
+      buffer[offset] = (unsigned char)byte;
+      PyramidData loaded;
+      note_error(read_data(&loaded, &buffer, size).type, &seen);
+    }
+    buffer[offset] = saved;
+  }
+  for (size_t i = 0; i < ErrorCount; ++i)
+  {
+    assert(seen[i]);
+  }
 }
 
 static void test4(void)
 {
-  /* Invalid difficulty */
-
-  static int32_t const difficulties[] = {-1, Pyramid_User + 1, INT32_MAX};
-  for (size_t i = 0; i < ARRAY_SIZE(difficulties); ++i)
-  {
-    unsigned char data[8];
-    make_record(&data, 1, difficulties[i]);
-    PyramidData p;
-    assert(read_data(&p, data, sizeof(data)).type == SFErrorType_BadPyramid);
-  }
-}
-
-static void test5(void)
-{
   /* Pyramid truncation */
 
-  unsigned char data[8];
-  make_record(&data, 1, Pyramid_Easy);
-  for (size_t length = 0; length < sizeof(data); ++length)
+  PyramidData p;
+  pyramid_set_position(&p, Pyramid_User, 1);
+  unsigned char buffer[Capacity];
+  size_t const size = write_data(&p, &buffer);
+  for (size_t length = 0; length < size; ++length)
   {
-    PyramidData p;
-    assert(read_data(&p, data, length).type == SFErrorType_ReadFail);
+    PyramidData loaded;
+    SFError const err = read_data(&loaded, &buffer, length);
+    if (length == 0)
+    {
+      assert(SFError_fail(err));
+    }
+    if (!SFError_fail(err))
+    {
+      assert(pyramid_get_difficulty(&loaded) == Pyramid_User);
+      assert(pyramid_get_level_number(&loaded) == 1);
+    }
   }
 }
 
@@ -141,9 +171,8 @@ void Pyram_tests(void)
   {
     { "Pyramid position", test1 },
     { "Pyramid round trip", test2 },
-    { "Invalid level number", test3 },
-    { "Invalid difficulty", test4 },
-    { "Pyramid truncation", test5 },
+    { "Corrupt pyramid data", test3 },
+    { "Pyramid truncation", test4 },
   };
 
   for (size_t count = 0; count < ARRAY_SIZE(unit_tests); ++count)
