@@ -71,6 +71,8 @@ int main(int argc, char *argv[])
   }
   test_groups[] =
   {
+    { "FPerf", FPerf_tests },
+    { "BPerf", BPerf_tests },
     { "CoarseCoord", CoarseCoord_tests },
     { "Filenames", Filenames_tests },
     { "Pyram", Pyram_tests },
