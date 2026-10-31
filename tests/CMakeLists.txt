@@ -15,7 +15,7 @@ endforeach()
 # One invocation runs every test group after CMake prepares the game data.
 add_executable(SFEditorTests
     Main.c LoadGameData.c HostSupport.c
-    MapCoordTest.c MapAreaColTest.c SelBitmaskTest.c
+    ShapesTest.c MapCoordTest.c MapAreaColTest.c SelBitmaskTest.c
     MapEditSelTest.c ObjEditSelTest.c
     ${loader_files}
     "${PROJECT_SOURCE_DIR}/MapAreaCol.c"
@@ -35,7 +35,7 @@ endif()
 
 # Show Debug suite names without enabling verbose production diagnostics.
 set_source_files_properties(
-    Main.c LoadGameData.c MapCoordTest.c MapAreaColTest.c
+    Main.c LoadGameData.c ShapesTest.c MapCoordTest.c MapAreaColTest.c
     SelBitmaskTest.c MapEditSelTest.c ObjEditSelTest.c
     PROPERTIES
     COMPILE_DEFINITIONS "$<$<CONFIG:Debug>:DEBUG_OUTPUT>")
