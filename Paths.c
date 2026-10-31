@@ -267,7 +267,7 @@ static void write_path(Path const *const path, Writer *const writer)
   assert(path);
 
   assert(path->count >= 0);
-  assert(path->count < PathMaxWaypoints);
+  assert(path->count <= PathMaxWaypoints);
   writer_fwrite_int32(path->count, writer);
 
   LINKEDLIST_FOR_EACH(&path->waypoints, item)
