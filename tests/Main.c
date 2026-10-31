@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
   }
   test_groups[] =
   {
+    { "SelBitmask", SelBitmask_tests },
     { "MapEditSel", MapEditSel_tests },
     { "ObjEditSel", ObjEditSel_tests },
     { "LoadGameData", LoadGameData_tests },

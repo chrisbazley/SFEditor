@@ -2,8 +2,8 @@
 
 `SFEditorTests` follows the SF3KUtils pattern: `Main.c`, `Tests.h`,
 `test_groups`, `unit_tests`, ordinary `assert` checks and Fortify scopes.
-One invocation runs the tile selection, object selection and game-data loading
-suites. Assertions remain enabled in Release builds.
+One invocation runs the selection bitmask, tile selection, object selection and
+game-data loading suites. Assertions remain enabled in Release builds.
 
 After configuring and building normally, run:
 
@@ -31,6 +31,11 @@ For a multi-configuration generator, also specify `-C Debug` or `-C Release`.
 host test executable.
 
 ## Selection-model tests
+
+Bitmask cases cover empty and full capacity, membership, callbacks, copying,
+index changes after insertion and deletion, iteration, change enumeration, and
+deleting or moving the current iterator item. Insertion and deletion are checked
+at every valid position against a boolean-array reference.
 
 The suites check membership across the complete grid against explicit expected
 sets, counts, bounds after deselection, empty and full selections, idempotent
