@@ -30,10 +30,10 @@ static SFError read_data(PyramidData *value, unsigned char const *data, size_t s
   return err;
 }
 
-static void make_record(unsigned char data[8], int32_t level, int32_t difficulty)
+static void make_record(unsigned char (*data)[8], int32_t level, int32_t difficulty)
 {
   Writer writer;
-  assert(writer_mem_init(&writer, data, 8));
+  assert(writer_mem_init(&writer, *data, sizeof(*data)));
   writer_fwrite_int32(level, &writer);
   writer_fwrite_int32(difficulty, &writer);
   assert(writer_destroy(&writer) == 8);
@@ -92,12 +92,12 @@ static void test3(void)
   for (size_t i = 0; i < ARRAY_SIZE(levels); ++i)
   {
     unsigned char data[8];
-    make_record(data, levels[i], Pyramid_Easy);
+    make_record(&data, levels[i], Pyramid_Easy);
     PyramidData p;
     assert(read_data(&p, data, sizeof(data)).type == SFErrorType_BadLevelNumber);
   }
   unsigned char data[8];
-  make_record(data, 2, Pyramid_User);
+  make_record(&data, 2, Pyramid_User);
   PyramidData p;
   assert(read_data(&p, data, sizeof(data)).type == SFErrorType_BadLevelNumber);
 }
@@ -110,7 +110,7 @@ static void test4(void)
   for (size_t i = 0; i < ARRAY_SIZE(difficulties); ++i)
   {
     unsigned char data[8];
-    make_record(data, 1, difficulties[i]);
+    make_record(&data, 1, difficulties[i]);
     PyramidData p;
     assert(read_data(&p, data, sizeof(data)).type == SFErrorType_BadPyramid);
   }
@@ -121,7 +121,7 @@ static void test5(void)
   /* Pyramid truncation */
 
   unsigned char data[8];
-  make_record(data, 1, Pyramid_Easy);
+  make_record(&data, 1, Pyramid_Easy);
   for (size_t length = 0; length < sizeof(data); ++length)
   {
     PyramidData p;

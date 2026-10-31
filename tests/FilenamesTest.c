@@ -32,19 +32,19 @@ static SFError read_data(FilenamesData *value, unsigned char const *data, size_t
 
 enum { EncodedSize = BytesPerFilename * DataType_FilenamesCount };
 
-static void make_name(char name[BytesPerFilename], DataType type, size_t length)
+static void make_name(char (*name)[BytesPerFilename], DataType type, size_t length)
 {
   for (size_t i = 0; i < length; ++i)
   {
-    name[i] = (char)('A' + (i + 3 * (size_t)type) % 26);
+    (*name)[i] = (char)('A' + (i + 3 * (size_t)type) % 26);
   }
-  name[length] = '\0';
+  (*name)[length] = '\0';
 }
 
-static void write_names(FilenamesData const *names, unsigned char data[EncodedSize + 1])
+static void write_names(FilenamesData const *names, unsigned char (*data)[EncodedSize + 1])
 {
   Writer writer;
-  assert(writer_mem_init(&writer, data, EncodedSize + 1));
+  assert(writer_mem_init(&writer, *data, sizeof(*data)));
   filenames_write(names, &writer);
   assert(writer_ftell(&writer) == EncodedSize);
   assert(writer_fputc(165, &writer) == 165);
@@ -56,7 +56,7 @@ static void fill_names(FilenamesData *names, size_t length)
   for (DataType type = DataType_First; type < DataType_FilenamesCount; ++type)
   {
     char name[BytesPerFilename];
-    make_name(name, type, length);
+    make_name(&name, type, length);
     filenames_set(names, type, name);
   }
 }
@@ -69,12 +69,12 @@ static void test1(void)
   for (DataType type = DataType_First; type < DataType_Count; ++type)
   {
     char name[BytesPerFilename];
-    make_name(name, type, BytesPerFilename - 1);
+    make_name(&name, type, BytesPerFilename - 1);
     filenames_set(&names, type, name);
     for (DataType other = DataType_First; other < DataType_Count; ++other)
     {
       char expected[BytesPerFilename];
-      make_name(expected, other, other <= type ? BytesPerFilename - 1 : 0);
+      make_name(&expected, other, other <= type ? BytesPerFilename - 1 : 0);
       assert(strcmp(filenames_get(&names, other), expected) == 0);
     }
   }
@@ -93,7 +93,7 @@ static void test2(void)
   for (DataType type = DataType_OverlayMap; type < DataType_FilenamesCount; ++type)
   {
     char expected[BytesPerFilename];
-    make_name(expected, type, BytesPerFilename - 1);
+    make_name(&expected, type, BytesPerFilename - 1);
     assert(strcmp(filenames_get(&names, type), expected) == 0);
   }
 }
@@ -107,7 +107,7 @@ static void test3(void)
     FilenamesData names = {0}, loaded = {0};
     fill_names(&names, length);
     unsigned char data[EncodedSize + 1];
-    write_names(&names, data);
+    write_names(&names, &data);
     Reader reader;
     assert(reader_mem_init(&reader, data, sizeof(data)));
     assert(!SFError_fail(filenames_read(&loaded, &reader)));
@@ -117,7 +117,7 @@ static void test3(void)
     for (DataType type = DataType_First; type < DataType_FilenamesCount; ++type)
     {
       char expected[BytesPerFilename];
-      make_name(expected, type, length);
+      make_name(&expected, type, length);
       assert(strcmp(filenames_get(&loaded, type), expected) == 0);
     }
   }
@@ -130,7 +130,7 @@ static void test4(void)
   FilenamesData names = {0};
   fill_names(&names, BytesPerFilename - 1);
   unsigned char data[EncodedSize + 1];
-  write_names(&names, data);
+  write_names(&names, &data);
   for (size_t length = 0; length < EncodedSize; ++length)
   {
     FilenamesData loaded = {0};
@@ -145,7 +145,7 @@ static void test5(void)
   FilenamesData names = {0}, loaded = {0};
   fill_names(&names, BytesPerFilename - 1);
   unsigned char data[EncodedSize + 1];
-  write_names(&names, data);
+  write_names(&names, &data);
   /* Scrambling is XOR-based: change the decoded CR terminator to 12. */
   data[BytesPerFilename - 1] ^= 1;
   assert(read_data(&loaded, data, EncodedSize).type == SFErrorType_FilenameTooLong);
@@ -158,12 +158,12 @@ static void test6(void)
   FilenamesData names = {0}, loaded = {0};
   fill_names(&names, BytesPerFilename - 1);
   unsigned char data[EncodedSize + 1];
-  write_names(&names, data);
+  write_names(&names, &data);
   /* Change the decoded CR to NUL without duplicating the scrambler. */
   data[BytesPerFilename - 1] ^= '\r';
   assert(!SFError_fail(read_data(&loaded, data, EncodedSize)));
   char expected[BytesPerFilename];
-  make_name(expected, DataType_First, BytesPerFilename - 1);
+  make_name(&expected, DataType_First, BytesPerFilename - 1);
   assert(strcmp(filenames_get(&loaded, DataType_First), expected) == 0);
 }
 
