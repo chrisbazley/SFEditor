@@ -30,6 +30,15 @@ For a multi-configuration generator, also specify `-C Debug` or `-C Release`.
 `BUILD_TESTING=OFF` disables the test. Native RISC OS builds do not build the
 host test executable.
 
+## Performance suites
+
+FPerf and BPerf use arithmetic patterns to distinguish ship records, enum-based
+comparison helpers to check unaffected fields, and pointer-to-array parameters
+for fixed-size buffers. Cases cover setter boundaries, saved field bytes,
+round trips, ignored padding, invalid values and truncated required fields.
+BPerf additionally checks the remote-shield marker, clearing that flag by setting
+normal shields, and the accepted legacy ship count of -1.
+
 ## Small model suites
 
 Separate CoarseCoord, Filenames, Player, Defenc, Pyram and Clouds suites exercise

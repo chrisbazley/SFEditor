@@ -4,6 +4,8 @@
 #ifndef Tests_h
 #define Tests_h
 
+void FPerf_tests(void);
+void BPerf_tests(void);
 void CoarseCoord_tests(void);
 void Filenames_tests(void);
 void Pyram_tests(void);
