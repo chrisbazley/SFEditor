@@ -90,7 +90,7 @@ jobs:
       shell: bash
       run: ctest --build-config ${{ matrix.build_type }} --verbose --output-junit test-results.xml 2>&1 | tee test.log
 
-    - name: Loading-test coverage
+    - name: Portable-test coverage
       if: ${{ !cancelled() && matrix.c_compiler == 'gcc' && matrix.build_type == 'Debug' && matrix.per_view_select == 'ON' }}
       shell: bash
       run: |
@@ -105,13 +105,13 @@ jobs:
       if: always()
       shell: bash
       run: |
-        echo '## Loading-test results' >> "$GITHUB_STEP_SUMMARY"
+        echo '## Portable-test results' >> "$GITHUB_STEP_SUMMARY"
         echo 'Build: ${{ steps.build.outcome }}; tests: ${{ steps.test.outcome }}' >> "$GITHUB_STEP_SUMMARY"
         for report in build/tests/SFEditor-game-data/summary-*.md; do
           if test -f "$report"; then cat "$report" >> "$GITHUB_STEP_SUMMARY"; fi
         done
         if test -f build/coverage/summary.txt; then
-          echo '### Loading-test model and parser coverage (including untested editing, saving and error paths)' >> "$GITHUB_STEP_SUMMARY"
+          echo '### Model, parser and selection coverage (including untested editing, saving and error paths)' >> "$GITHUB_STEP_SUMMARY"
           cat build/coverage/summary.md >> "$GITHUB_STEP_SUMMARY"
         fi
 
@@ -251,7 +251,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          echo '## _Optional loading-test results' >> "$GITHUB_STEP_SUMMARY"
+          echo '## _Optional portable-test results' >> "$GITHUB_STEP_SUMMARY"
           echo 'Build: ${{ steps.build.outcome }}; tests: ${{ steps.test.outcome }}' >> "$GITHUB_STEP_SUMMARY"
           for report in build-optional-${{ matrix.build_type }}/tests/SFEditor-game-data/summary-*.md; do
             if test -f "$report"; then cat "$report" >> "$GITHUB_STEP_SUMMARY"; fi
@@ -271,4 +271,3 @@ jobs:
             build-optional-${{ matrix.build_type }}/Testing/Temporary/
             build-optional-${{ matrix.build_type }}/tests/SFEditor-game-data/logs/
             build-optional-${{ matrix.build_type }}/tests/SFEditor-game-data/summary-*.md
-

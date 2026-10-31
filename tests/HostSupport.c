@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "../flex.h"
+#include "../Utils.h"
 #include "NoBudge.h"
 #include "Hourglass.h"
 #include "HostSupport.h"
@@ -177,4 +178,18 @@ bool SprMem_save(SprMem const *sm, char const *name)
     (void)sm;
     (void)name;
     return true;
+}
+
+flex_ptr memcpy_flex(flex_ptr dst, flex_ptr src, size_t n)
+{
+    memcpy(*dst, *src, n);
+    return dst;
+}
+
+bool report_error(SFError err, char const *path, char const *extra)
+{
+    (void)path;
+    (void)extra;
+    fprintf(stderr, "Unexpected test error: %d\n", (int)err.type);
+    exit(EXIT_FAILURE);
 }
