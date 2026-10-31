@@ -339,9 +339,11 @@ SFError text_read_block(Text *const text, Reader *const reader)
     return SFERROR(BadTextCursorType);
   }
 
-  if (colour < 0 && colour >= NumColours) {
+  if (colour < 0 || colour >= NumColours) {
     return SFERROR(BadTextColour);
   }
+
+  stringbuffer_destroy(&text->string);
 
   *text = (Text){
     .params = {
