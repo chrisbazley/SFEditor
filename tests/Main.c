@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
     { "Player", Player_tests },
     { "Defenc", Defenc_tests },
     { "Ships", Ships_tests },
+    { "MapAnims", MapAnims_tests },
     { "ObjVertex", ObjVertex_tests },
     { "Triggers", Triggers_tests },
     { "DataUtils", DataUtils_tests },

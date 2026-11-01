@@ -6,7 +6,7 @@ endif()
 # sprite implementation. Loaders have no dependencies on UI/rendering code.
 set(loader_sources
     DFile Map Obj MapCoord PolyCol HillCol MapTexBitm ObjGfxRead ObjVertex
-    ObjPolygon Mission Player Triggers Infos Ships Paths Briefing Text
+    ObjPolygon MapAnims Mission Player Triggers Infos Ships Paths Briefing Text
     Filenames Clouds Defenc FPerf BPerf Pyram CoarseCoord DataUtils)
 set(loader_files)
 foreach(source IN LISTS loader_sources)
@@ -18,7 +18,7 @@ add_executable(SFEditorTests
     FPerfTest.c BPerfTest.c
     CoarseCoordTest.c FilenamesTest.c PyramTest.c CloudsTest.c
     PlayerTest.c DefencTest.c
-    ShipsTest.c
+    ShipsTest.c MapAnimsTest.c
     ObjVertexTest.c TriggersTest.c
     DataUtilsTest.c InfosTest.c
     PathsTest.c BriefingTest.c TextTest.c MapTest.c ObjTest.c
@@ -47,7 +47,7 @@ set_source_files_properties(
     FPerfTest.c BPerfTest.c
     CoarseCoordTest.c FilenamesTest.c PyramTest.c CloudsTest.c
     PlayerTest.c DefencTest.c
-    ShipsTest.c
+    ShipsTest.c MapAnimsTest.c
     ObjVertexTest.c TriggersTest.c
     DataUtilsTest.c InfosTest.c
     PathsTest.c BriefingTest.c TextTest.c MapTest.c ObjTest.c
