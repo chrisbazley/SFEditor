@@ -7,6 +7,8 @@
 #ifndef Ships_h
 #define Ships_h
 
+#include <stdbool.h>
+
 struct Reader;
 struct Writer;
 #include "SFError.h"
@@ -84,10 +86,10 @@ typedef enum
 ShipMode;
 
 typedef struct {
-  unsigned int is_friendly : 1;
-  unsigned int is_cloaked : 1;
-  unsigned int is_pacifist : 1;
-  unsigned int is_alert : 1;
+  bool is_friendly : 1;
+  bool is_cloaked : 1;
+  bool is_pacifist : 1;
+  bool is_alert : 1;
 } ShipFlags;
 
 typedef enum {
