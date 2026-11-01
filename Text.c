@@ -178,6 +178,7 @@ SFError text_set_string(Text *const text, char const *const string)
   size_t min_size = len + 1;
   _Optional char *buf = stringbuffer_prepare_append(&text->string, &min_size);
   if (!buf) {
+    stringbuffer_undo(&text->string);
     return SFERROR(NoMem);
   }
 
