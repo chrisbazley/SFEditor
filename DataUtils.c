@@ -42,31 +42,31 @@ flex_ptr memset_flex(flex_ptr ptr, unsigned char c, size_t n)
     size_t i = 0;
     while (i < n) { /* unrolled loop (8 writes per iteration) */
       write_ptr[i] = c;
-      if (i++ >= n)
+      if (++i >= n)
         break;
 
       write_ptr[i] = c;
-      if (i++ >= n)
+      if (++i >= n)
         break;
 
       write_ptr[i] = c;
-      if (i++ >= n)
-        break;
-
-      write_ptr[i++] = c;
-      if (i++ >= n)
+      if (++i >= n)
         break;
 
       write_ptr[i] = c;
-      if (i++ >= n)
+      if (++i >= n)
         break;
 
       write_ptr[i] = c;
-      if (i++ >= n)
+      if (++i >= n)
         break;
 
       write_ptr[i] = c;
-      if (i++ >= n)
+      if (++i >= n)
+        break;
+
+      write_ptr[i] = c;
+      if (++i >= n)
         break;
 
       write_ptr[i++] = c;
@@ -82,31 +82,31 @@ flex_ptr memset_flex(flex_ptr ptr, unsigned char c, size_t n)
     while (i < n/sizeof(*write_ptr)) {
       /* unrolled loop (8 writes per iteration) */
       write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
+      if (++i >= n/sizeof(*write_ptr))
         break;
 
       write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
+      if (++i >= n/sizeof(*write_ptr))
         break;
 
       write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
+      if (++i >= n/sizeof(*write_ptr))
         break;
 
       write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
+      if (++i >= n/sizeof(*write_ptr))
         break;
 
       write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
+      if (++i >= n/sizeof(*write_ptr))
         break;
 
       write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
+      if (++i >= n/sizeof(*write_ptr))
         break;
 
       write_ptr[i] = wide;
-      if (i++ >= n/sizeof(*write_ptr))
+      if (++i >= n/sizeof(*write_ptr))
         break;
 
       write_ptr[i++] = wide;
