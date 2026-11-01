@@ -143,9 +143,9 @@ size_t target_info_delete(TargetInfo *const info)
   TargetInfosData *const target_infos = info->infos;
   assert(target_infos);
   size_t index = 0;
-  _Optional void *const removed = intdict_remove_value(&target_infos->dict,
-                           map_coarse_coords_to_key(info->coords), &index);
-  assert(removed == info);
+  bool const removed = intdict_remove_specific(&target_infos->dict,
+                           map_coarse_coords_to_key(info->coords), info, &index);
+  assert(removed);
   NOT_USED(removed);
   free_info(info);
   return index;
