@@ -186,52 +186,57 @@ SFError target_infos_add(TargetInfosData *const target_infos,
   }
 
   _Optional TargetInfo *const info = malloc(sizeof(*info));
-  if (info)
+  if (!info)
   {
-    *info = (TargetInfo){.coords = map_coords_to_coarse(pos), .infos = target_infos,
-                         .id = target_infos->next++};
-    if (!intdict_insert(&target_infos->dict,
-                       map_coords_to_key(pos), info, index)) {
-      free(info);
-      return SFERROR(NoMem);
-    }
-
-    for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
-         k < TargetInfoTextIndex_Count;
-         ++k) {
-      text_init(&info->texts[k]);
-
-      if (k == TargetInfoTextIndex_Type) {
-        static TextParams const params = {
-          .duration = InfoDuration,
-          .delay = InfoDelay,
-          .speed = InfoSpeed,
-          .x_pos = InfoTypeLeftMargin,
-          .y_pos = InfoTypeTopMargin * Text_CharHeight,
-          .y_clip = Text_NoYClip,
-          .repeat = false,
-          .colour = InfoTypeColour,
-          .cursor_type = CursorType_Block,
-        };
-        text_set_params(&info->texts[k], &params);
-      } else {
-        static TextParams const params = {
-          .duration = InfoDuration,
-          .delay = InfoDelay,
-          .speed = InfoSpeed,
-          .x_pos = InfoDetailsLeftMargin,
-          .y_pos = InfoDetailsTopMargin * Text_CharHeight,
-          .y_clip = Text_NoYClip,
-          .repeat = false,
-          .colour = InfoDetailsColour,
-          .cursor_type = CursorType_Block,
-        };
-        text_set_params(&info->texts[k], &params);
-      }
-
-    }
-    target_infos->count++;
+    return SFERROR(NoMem);
   }
+
+  *info = (TargetInfo){
+    .coords = map_coords_to_coarse(pos),
+    .infos = target_infos,
+    .id = target_infos->next++,
+  };
+  if (!intdict_insert(&target_infos->dict,
+                     map_coords_to_key(pos), info, index)) {
+    free(info);
+    return SFERROR(NoMem);
+  }
+
+  for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
+       k < TargetInfoTextIndex_Count;
+       ++k) {
+    text_init(&info->texts[k]);
+
+    if (k == TargetInfoTextIndex_Type) {
+      static TextParams const params = {
+        .duration = InfoDuration,
+        .delay = InfoDelay,
+        .speed = InfoSpeed,
+        .x_pos = InfoTypeLeftMargin,
+        .y_pos = InfoTypeTopMargin * Text_CharHeight,
+        .y_clip = Text_NoYClip,
+        .repeat = false,
+        .colour = InfoTypeColour,
+        .cursor_type = CursorType_Block,
+      };
+      text_set_params(&info->texts[k], &params);
+    } else {
+      static TextParams const params = {
+        .duration = InfoDuration,
+        .delay = InfoDelay,
+        .speed = InfoSpeed,
+        .x_pos = InfoDetailsLeftMargin,
+        .y_pos = InfoDetailsTopMargin * Text_CharHeight,
+        .y_clip = Text_NoYClip,
+        .repeat = false,
+        .colour = InfoDetailsColour,
+        .cursor_type = CursorType_Block,
+      };
+      text_set_params(&info->texts[k], &params);
+    }
+
+  }
+  target_infos->count++;
 
   return SFERROR(OK);
 }
