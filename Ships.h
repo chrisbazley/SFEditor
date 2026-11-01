@@ -75,6 +75,14 @@ typedef enum
 }
 ShipMission;
 
+typedef enum
+{
+  ShipMode_Attack,
+  ShipMode_FlightPath,
+  ShipMode_FollowShip
+}
+ShipMode;
+
 typedef struct {
   unsigned int is_friendly : 1;
   unsigned int is_cloaked : 1;
@@ -117,8 +125,25 @@ SFError ships_add(ShipsData *ships,
 void ship_delete(Ship *ship);
 
 void ship_set_flightpath(Ship *ship, Waypoint *waypoint);
-void ship_set_follow(Ship *ship, Ship *leader, FinePoint3d offset);
-void ship_set_attack(Ship *ship, Ship *target);
+void ship_set_follow(Ship *ship, _Optional Ship *leader, FinePoint3d offset);
+void ship_set_attack(Ship *ship, _Optional Ship *target);
+
+FinePoint3d ship_get_coords(Ship const *ship);
+ShipDirection ship_get_direction(Ship const *ship);
+ShipType ship_get_type(Ship const *ship);
+ShipBehaviour ship_get_behaviour(Ship const *ship);
+ShipMission ship_get_importance(Ship const *ship);
+ShipFlags ship_get_flags(Ship const *ship);
+ShipPilot ship_get_pilot(Ship const *ship);
+ShipMode ship_get_mode(Ship const *ship);
+
+/* For loaded ships, resolve references with ships_post_read before using
+ * relationship getters. Each requires its corresponding mode to be active.
+ * Null targets or leaders mean the player. */
+Waypoint *ship_get_flightpath(Ship const *ship);
+_Optional Ship *ship_get_attack(Ship const *ship);
+_Optional Ship *ship_get_follow(Ship const *ship);
+FinePoint3d ship_get_follow_offset(Ship const *ship);
 
 SFError ships_read(ShipsData *ships, struct Reader *reader);
 SFError ships_read_pad(ShipsData *ships, struct Reader *reader);

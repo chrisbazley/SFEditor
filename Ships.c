@@ -56,14 +56,6 @@ enum {
   ShipFlag2_ProximityAction = 1u << 1, /* join formation or attack */
 };
 
-typedef enum
-{
-  ShipMode_Attack,
-  ShipMode_FlightPath,
-  ShipMode_FollowShip
-}
-ShipMode;
-
 struct Ship
 {
   ShipsData *ships;
@@ -185,7 +177,7 @@ void ship_set_flightpath(Ship *const ship, Waypoint *const waypoint)
   ship->mode_data.flightpath.start.waypoint = waypoint;
 }
 
-void ship_set_follow(Ship *const ship, Ship *const leader,
+void ship_set_follow(Ship *const ship, _Optional Ship *const leader,
   FinePoint3d const offset)
 {
   assert(ship);
@@ -197,7 +189,7 @@ void ship_set_follow(Ship *const ship, Ship *const leader,
   ship->mode_data.follow.offset = offset;
 }
 
-void ship_set_attack(Ship *const ship, Ship *const target)
+void ship_set_attack(Ship *const ship, _Optional Ship *const target)
 {
   assert(ship);
   assert(ship->ships);
@@ -205,6 +197,90 @@ void ship_set_attack(Ship *const ship, Ship *const target)
 
   ship->mode = ShipMode_Attack;
   ship->mode_data.attack.ship = target; /* null means attack player */
+}
+
+FinePoint3d ship_get_coords(Ship const *const ship)
+{
+  assert(ship);
+  return ship->coords;
+}
+
+ShipDirection ship_get_direction(Ship const *const ship)
+{
+  assert(ship);
+  return ship->direction;
+}
+
+ShipType ship_get_type(Ship const *const ship)
+{
+  assert(ship);
+  return ship->type;
+}
+
+ShipBehaviour ship_get_behaviour(Ship const *const ship)
+{
+  assert(ship);
+  return ship->behaviour;
+}
+
+ShipMission ship_get_importance(Ship const *const ship)
+{
+  assert(ship);
+  return ship->importance;
+}
+
+ShipFlags ship_get_flags(Ship const *const ship)
+{
+  assert(ship);
+  return ship->flags;
+}
+
+ShipPilot ship_get_pilot(Ship const *const ship)
+{
+  assert(ship);
+  return ship->pilot;
+}
+
+ShipMode ship_get_mode(Ship const *const ship)
+{
+  assert(ship);
+  return ship->mode;
+}
+
+Waypoint *ship_get_flightpath(Ship const *const ship)
+{
+  assert(ship);
+  assert(ship->ships);
+  assert(ship->ships->state != ShipsDataState_PostRead);
+  assert(ship->mode == ShipMode_FlightPath);
+  return ship->mode_data.flightpath.start.waypoint;
+}
+
+_Optional Ship *ship_get_attack(Ship const *const ship)
+{
+  assert(ship);
+  assert(ship->ships);
+  assert(ship->ships->state != ShipsDataState_PostRead);
+  assert(ship->mode == ShipMode_Attack);
+  return ship->mode_data.attack.ship;
+}
+
+_Optional Ship *ship_get_follow(Ship const *const ship)
+{
+  assert(ship);
+  assert(ship->ships);
+  assert(ship->ships->state != ShipsDataState_PostRead);
+  assert(ship->mode == ShipMode_FollowShip);
+  return ship->mode_data.follow.leader.ship;
+}
+
+FinePoint3d ship_get_follow_offset(Ship const *const ship)
+{
+  assert(ship);
+  assert(ship->ships);
+  assert(ship->ships->state != ShipsDataState_PostRead);
+  assert(ship->mode == ShipMode_FollowShip);
+  return ship->mode_data.follow.offset;
 }
 
 void ship_delete(Ship *const ship)
