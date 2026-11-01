@@ -79,6 +79,8 @@ int main(int argc, char *argv[])
     { "Clouds", Clouds_tests },
     { "Player", Player_tests },
     { "Defenc", Defenc_tests },
+    { "ObjVertex", ObjVertex_tests },
+    { "Triggers", Triggers_tests },
     { "DataUtils", DataUtils_tests },
     { "Infos", Infos_tests },
     { "Paths", Paths_tests },
