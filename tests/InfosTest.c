@@ -1015,6 +1015,44 @@ static void test27(void)
 #endif
 
 #ifdef FORTIFY
+static void test28(void)
+{
+  /* Target text allocation failure */
+
+  for (TargetInfoTextIndex field = TargetInfoTextIndex_First;
+       field < TargetInfoTextIndex_Count; ++field)
+  {
+    TargetInfosData infos;
+    populate(&infos, 1);
+
+    _Optional TargetInfo *const info = target_info_from_index(&infos, 0);
+    assert(info);
+
+    char string[64];
+    memset(string, 'A', sizeof(string));
+    string[sizeof(string) - 1] = '\0';
+
+    /* A valid multiline replacement longer than the initial text. */
+    for (size_t pos = 12; pos + 1 < sizeof(string); pos += 13)
+    {
+      string[pos] = '\n';
+    }
+
+    Fortify_SetNumAllocationsLimit(0);
+    SFError const err = target_info_set_text(&*info, field, string);
+    Fortify_SetNumAllocationsLimit(ULONG_MAX);
+
+    assert(err.type == SFErrorType_NoMem);
+
+    check_fields(&*info, position(0), "A:0", "A:1", InfoField_AllMustMatch);
+
+    target_infos_destroy(&infos);
+  }
+}
+
+#endif
+
+#ifdef FORTIFY
 static void test29(void)
 {
   /* Target read allocation failure */
@@ -1293,6 +1331,9 @@ void Infos_tests(void)
     { "Target coordinate stream position", test34 },
 #ifdef FORTIFY
     { "Target allocation failure", test27 },
+#endif
+#ifdef FORTIFY
+    { "Target text allocation failure", test28 },
 #endif
 #ifdef FORTIFY
     { "Target read allocation failure", test29 },
