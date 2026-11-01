@@ -12,6 +12,8 @@ void Pyram_tests(void);
 void Clouds_tests(void);
 void Player_tests(void);
 void Defenc_tests(void);
+void ObjVertex_tests(void);
+void Triggers_tests(void);
 void DataUtils_tests(void);
 void Infos_tests(void);
 void Paths_tests(void);
