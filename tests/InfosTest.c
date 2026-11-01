@@ -427,6 +427,39 @@ static void test9(void)
   }
 }
 
+static void test10(void)
+{
+  /* Coincident target deletion */
+
+  for (size_t removed = 0; removed < 3; ++removed)
+  {
+    TargetInfosData infos;
+    target_infos_init(&infos);
+
+    for (size_t index = 0; index < 3; ++index)
+    {
+      assert(!SFError_fail(target_infos_add(&infos, (MapPoint){5, 7}, NULL)));
+    }
+
+    _Optional TargetInfo *const info = target_info_from_index(&infos, removed);
+    assert(info);
+
+    int const id = target_info_get_id(&*info);
+    assert(target_info_delete(&*info) == removed);
+    assert(target_infos_get_count(&infos) == 2);
+
+    for (size_t index = 0; index < 2; ++index)
+    {
+      _Optional TargetInfo *const survivor = target_info_from_index(&infos, index);
+      assert(survivor);
+
+      assert(target_info_get_id(&*survivor) != id);
+    }
+
+    target_infos_destroy(&infos);
+  }
+}
+
 static void test11(void)
 {
   /* Target capacity */
@@ -1236,6 +1269,7 @@ void Infos_tests(void)
     { "Target text clearing", test7 },
     { "Target movement", test8 },
     { "Target deletion", test9 },
+    { "Coincident target deletion", test10 },
     { "Target capacity", test11 },
     { "Target identifier stability", test12 },
     { "Target text width limit", test13 },
