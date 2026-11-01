@@ -18,6 +18,7 @@ add_executable(SFEditorTests
     FPerfTest.c BPerfTest.c
     CoarseCoordTest.c FilenamesTest.c PyramTest.c CloudsTest.c
     PlayerTest.c DefencTest.c
+    DataUtilsTest.c
     PathsTest.c BriefingTest.c TextTest.c MapTest.c ObjTest.c
     VertexTest.c ShapesTest.c MapCoordTest.c MapAreaColTest.c SelBitmaskTest.c
     MapEditSelTest.c ObjEditSelTest.c
@@ -43,7 +44,9 @@ set_source_files_properties(
     Main.c LoadGameData.c
     FPerfTest.c BPerfTest.c
     CoarseCoordTest.c FilenamesTest.c PyramTest.c CloudsTest.c
-    PlayerTest.c DefencTest.c PathsTest.c BriefingTest.c TextTest.c MapTest.c ObjTest.c
+    PlayerTest.c DefencTest.c
+    DataUtilsTest.c
+    PathsTest.c BriefingTest.c TextTest.c MapTest.c ObjTest.c
     VertexTest.c ShapesTest.c MapCoordTest.c MapAreaColTest.c
     SelBitmaskTest.c MapEditSelTest.c ObjEditSelTest.c
     PROPERTIES
