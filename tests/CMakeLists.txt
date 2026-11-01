@@ -18,6 +18,7 @@ add_executable(SFEditorTests
     FPerfTest.c BPerfTest.c
     CoarseCoordTest.c FilenamesTest.c PyramTest.c CloudsTest.c
     PlayerTest.c DefencTest.c
+    MissionTest.c
     ShipsTest.c MapAnimsTest.c
     ObjVertexTest.c TriggersTest.c
     DataUtilsTest.c InfosTest.c
@@ -47,6 +48,7 @@ set_source_files_properties(
     FPerfTest.c BPerfTest.c
     CoarseCoordTest.c FilenamesTest.c PyramTest.c CloudsTest.c
     PlayerTest.c DefencTest.c
+    MissionTest.c
     ShipsTest.c MapAnimsTest.c
     ObjVertexTest.c TriggersTest.c
     DataUtilsTest.c InfosTest.c

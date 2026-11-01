@@ -314,14 +314,17 @@ static SFError init_all(MissionData *const mission)
   Fortify_CheckAllMemory();
 #endif
 
-  SFError err = triggers_init(&mission->triggers.obj);
-  if (SFError_fail(err)) {
-    return err;
-  }
+  /* Reset infallible members before the trigger allocation can fail. */
   target_infos_init(&mission->target_infos);
   ships_init(&mission->ships);
   paths_init(&mission->paths);
   briefing_init(&mission->briefing);
+
+  SFError const err = triggers_init(&mission->triggers.obj);
+  if (SFError_fail(err))
+  {
+    return err;
+  }
 
 #ifdef FORTIFY
   Fortify_CheckAllMemory();
