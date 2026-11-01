@@ -20,6 +20,26 @@
 #include "../flex.h"
 #include "../Utils.h"
 
+static size_t fail_read(void *ptr, size_t size, Reader *reader)
+{
+  NOT_USED(ptr);
+  NOT_USED(size);
+  reader->error = true;
+
+  return 0;
+}
+
+static void end_read(Reader *reader)
+{
+  NOT_USED(reader);
+}
+
+static void init_error_reader(Reader *reader)
+{
+  static ReaderFns const fns = {.fread_fn = fail_read, .term_fn = end_read};
+  reader_internal_init(reader, &fns, reader);
+}
+
 static void test5(void)
 {
   /* Flex fill values */
@@ -77,6 +97,97 @@ static void test6(void)
   flex_free(&block);
 }
 
+static void test7(void)
+{
+  /* Exact stream length */
+
+  unsigned char const data[] = {1};
+  Reader reader;
+  assert(reader_mem_init(&reader, data, sizeof(data)));
+
+  assert(reader_fgetc(&reader) == 1);
+
+  assert(check_trunc_or_ext(&reader, SFERROR(OK)).type == SFErrorType_OK);
+
+  reader_destroy(&reader);
+}
+
+static void test8(void)
+{
+  /* Trailing stream data */
+
+  unsigned char const data[] = {1};
+  Reader reader;
+  assert(reader_mem_init(&reader, data, sizeof(data)));
+
+  assert(check_trunc_or_ext(&reader, SFERROR(OK)).type == SFErrorType_TooLong);
+
+  reader_destroy(&reader);
+}
+
+static void test9(void)
+{
+  /* Truncated stream */
+
+  unsigned char const data[] = {1};
+  Reader reader;
+  assert(reader_mem_init(&reader, data, sizeof(data)));
+
+  assert(reader_fgetc(&reader) == 1);
+  assert(reader_fgetc(&reader) == EOF);
+
+  assert(check_trunc_or_ext(&reader, SFERROR(ReadFail)).type == SFErrorType_Trunc);
+
+  reader_destroy(&reader);
+}
+
+static void test10(void)
+{
+  /* Existing parser error */
+
+  unsigned char const data[] = {1};
+  Reader reader;
+  assert(reader_mem_init(&reader, data, sizeof(data)));
+
+  assert(check_trunc_or_ext(&reader, SFERROR(BadNumTargetInfo)).type ==
+         SFErrorType_BadNumTargetInfo);
+  assert(reader_ftell(&reader) == 0);
+
+  reader_destroy(&reader);
+}
+
+static void test11(void)
+{
+  /* Existing stream error */
+
+  Reader reader;
+  init_error_reader(&reader);
+
+  assert(reader_fgetc(&reader) == EOF);
+  assert(reader_ferror(&reader));
+
+  assert(check_trunc_or_ext(&reader, SFERROR(OK)).type == SFErrorType_ReadFail);
+
+  reader_destroy(&reader);
+}
+
+static void test12(void)
+{
+  /* Final read failure */
+
+  Reader reader;
+  init_error_reader(&reader);
+
+  assert(!reader_ferror(&reader));
+  assert(!reader_feof(&reader));
+
+  assert(check_trunc_or_ext(&reader, SFERROR(OK)).type == SFErrorType_ReadFail);
+  assert(reader_ferror(&reader));
+  assert(!reader_feof(&reader));
+
+  reader_destroy(&reader);
+}
+
 #ifdef FORTIFY
 static void test13(void)
 {
@@ -119,6 +230,12 @@ void DataUtils_tests(void)
 #ifdef FORTIFY
     { "Flex fill allocation bounds", test13 },
 #endif
+    { "Exact stream length", test7 },
+    { "Trailing stream data", test8 },
+    { "Truncated stream", test9 },
+    { "Existing parser error", test10 },
+    { "Existing stream error", test11 },
+    { "Final read failure", test12 },
   };
 
   for (size_t count = 0; count < ARRAY_SIZE(unit_tests); ++count)
