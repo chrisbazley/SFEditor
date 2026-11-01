@@ -40,6 +40,66 @@ static void init_error_reader(Reader *reader)
   reader_internal_init(reader, &fns, reader);
 }
 
+static void test1(void)
+{
+  /* Empty string line count */
+
+  int width = 0;
+  assert(string_lcount("", &width) == 1);
+  assert(width == 0);
+}
+
+static void test2(void)
+{
+  /* String line count */
+
+  enum { StringCapacity = 128 };
+
+  for (size_t lines = 0; lines + 1 < StringCapacity; ++lines)
+  {
+    char string[StringCapacity];
+    memset(string, '\n', lines);
+    string[lines] = '\0';
+
+    int width = 0;
+    assert(string_lcount(string, &width) == (int)lines + 1);
+  }
+}
+
+static void test3(void)
+{
+  /* Maximum line width */
+
+  for (size_t width = 0; width < 32; ++width)
+  {
+    char string[128];
+    size_t pos = 0;
+
+    for (size_t line = 0; line < 3; ++line)
+    {
+      size_t const length = line == 1 ? width : width / 2;
+      memset(string + pos, 'A', length);
+      pos += length;
+      string[pos++] = '\n';
+    }
+
+    string[pos] = '\0';
+
+    int maximum = 0;
+    string_lcount(string, &maximum);
+    assert(maximum == (int)width);
+  }
+}
+
+static void test4(void)
+{
+  /* Existing maximum line width */
+
+  int width = 20;
+  string_lcount("ABC\nDEFG", &width);
+  assert(width == 20);
+}
+
 static void test5(void)
 {
   /* Flex fill values */
@@ -225,6 +285,10 @@ void DataUtils_tests(void)
   }
   unit_tests[] =
   {
+    { "Empty string line count", test1 },
+    { "String line count", test2 },
+    { "Maximum line width", test3 },
+    { "Existing maximum line width", test4 },
     { "Flex fill values", test5 },
     { "Flex fill preserves trailing bytes", test6 },
 #ifdef FORTIFY
