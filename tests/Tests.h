@@ -13,6 +13,7 @@ void Clouds_tests(void);
 void Player_tests(void);
 void Defenc_tests(void);
 void Mission_tests(void);
+void DFile_tests(void);
 void Ships_tests(void);
 void MapAnims_tests(void);
 void ObjVertex_tests(void);
