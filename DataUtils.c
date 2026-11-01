@@ -128,6 +128,10 @@ SFError check_trunc_or_ext(Reader *const reader, SFError err)
     {
       err = SFERROR(TooLong);
     }
+    else if (reader_ferror(reader))
+    {
+      err = SFERROR(ReadFail);
+    }
   }
   else if (reader_feof(reader))
   {
