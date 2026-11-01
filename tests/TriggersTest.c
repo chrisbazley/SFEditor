@@ -901,6 +901,8 @@ static void test29(void)
     if (SFError_fail(err))
     {
       assert(err.type == SFErrorType_NoMem);
+
+      triggers_destroy(&triggers);
     }
     else
     {

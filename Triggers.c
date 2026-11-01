@@ -137,14 +137,15 @@ SFError triggers_init(TriggersData *const triggers)
   *triggers = (TriggersData){
     .bit_map = (void *)NULL};
   linkedlist_init(&triggers->list);
+  linkedlist_init(&triggers->delete_list);
+  intdict_init(&triggers->all_triggers);
+  intdict_init(&triggers->chain_triggers);
 
   if (!flex_alloc(&triggers->bit_map, TriggerBitmapSize)) {
     return SFERROR(NoMem);
   }
 
   memset_flex(&triggers->bit_map, 0, TriggerBitmapSize);
-  intdict_init(&triggers->all_triggers);
-  intdict_init(&triggers->chain_triggers);
   return SFERROR(OK);
 }
 
@@ -159,7 +160,11 @@ void triggers_destroy(TriggersData *const triggers)
     free(trigger);
   }
 
-  flex_free(&triggers->bit_map);
+  if (triggers->bit_map)
+  {
+    flex_free(&triggers->bit_map);
+  }
+
   intdict_destroy(&triggers->all_triggers, (IntDictDestructorFn *)NULL, triggers);
   intdict_destroy(&triggers->chain_triggers, (IntDictDestructorFn *)NULL, triggers);
 }

@@ -59,6 +59,7 @@ size_t triggers_get_max_losses(TriggersData const *triggers);
 void triggers_set_max_losses(TriggersData *triggers, size_t max);
 size_t triggers_get_count(TriggersData *triggers);
 
+/* Destruction is also valid after triggers_init fails. */
 void triggers_destroy(TriggersData *triggers);
 
 SFError triggers_add(TriggersData *triggers,
