@@ -230,49 +230,6 @@ flex_ptr memcpy_flex(flex_ptr dst, flex_ptr src, size_t n)
   return dst;
 }
 
-_Optional char *read_line_comm(char *const s, size_t const n, FILE *const stream,
-                               _Optional int *const line_num)
-{
-  /* Read string from file into buffer s of length n,
-     ignoring comments and blank lines.
-     Returns s if successful; otherwise, NULL for a read error,
-     for EOF, or for an overlong line. */
-  assert(s);
-  assert(stream);
-  assert(n >= 2);
-  assert(n <= INT_MAX);
-  _Optional char *err;
-  size_t len = 0;
-
-  do {
-    /* Read line */
-    if (line_num != NULL)
-      (*line_num)++;
-    err = fgets(s, (int)n, stream);
-
-    if (err != NULL) {
-      len = strlen(s);
-      if (len == n - 1 && s[len - 1] != '\n') {
-        err = NULL; /* Line is too long */
-      }
-    }
-  /* skip comments and blank lines */
-  } while (err != NULL && (*s == '#' || *s == '\n'));
-
-  /* strip trailing spaces and add newline in case necessary */
-  if (err != NULL) {
-    /* work backwards from end of string */
-    size_t c;
-    for (c = len; c > 0 && isspace((unsigned char)s[c-1]); c--) {
-    }
-    /* c is the index of the first character of any trailing white-space
-       in the string, or the index of the string's terminator */
-    assert(c+1 < n);
-    s[c] = '\n';
-    s[c+1] = '\0';
-  }
-  return err;
-}
 
 unsigned int read_binary(char const *bin_string)
 {
