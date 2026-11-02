@@ -8,7 +8,7 @@ set(loader_sources
     DFile Map Obj MapCoord PolyCol HillCol MapTexBitm ObjGfxRead ObjVertex
     ObjPolygon MapAnims Mission Player Triggers Infos Ships Paths Briefing Text
     Filenames Clouds Defenc FPerf BPerf Pyram CoarseCoord DataUtils
-    Snakes Smooth MapEditChg ObjEditChg InfoEditChg)
+    Snakes Smooth MapEditChg ObjEditChg InfoEditChg MapLayout ObjLayout)
 set(loader_files)
 foreach(source IN LISTS loader_sources)
     list(APPEND loader_files "${PROJECT_SOURCE_DIR}/${source}.c")
@@ -26,6 +26,7 @@ add_executable(SFEditorTests
     DataUtilsTest.c InfosTest.c
     PathsTest.c BriefingTest.c TextTest.c MapTest.c ObjTest.c
     VertexTest.c ShapesTest.c MapCoordTest.c MapAreaColTest.c SelBitmaskTest.c
+    MapLayoutTest.c ObjLayoutTest.c
     MapEditSelTest.c ObjEditSelTest.c
     ${loader_files}
     "${PROJECT_SOURCE_DIR}/MapAreaCol.c"
@@ -57,6 +58,7 @@ set_source_files_properties(
     DataUtilsTest.c InfosTest.c
     PathsTest.c BriefingTest.c TextTest.c MapTest.c ObjTest.c
     VertexTest.c ShapesTest.c MapCoordTest.c MapAreaColTest.c
+    MapLayoutTest.c ObjLayoutTest.c
     SelBitmaskTest.c MapEditSelTest.c ObjEditSelTest.c
     PROPERTIES
     COMPILE_DEFINITIONS "$<$<CONFIG:Debug>:DEBUG_OUTPUT>")

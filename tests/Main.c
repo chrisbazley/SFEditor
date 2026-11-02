@@ -98,6 +98,8 @@ int main(int argc, char *argv[])
     { "Vertex", Vertex_tests },
     { "Shapes", Shapes_tests },
     { "MapCoord", MapCoord_tests },
+    { "MapLayout", MapLayout_tests },
+    { "ObjLayout", ObjLayout_tests },
     { "MapAreaCol", MapAreaCol_tests },
     { "SelBitmask", SelBitmask_tests },
     { "MapEditSel", MapEditSel_tests },

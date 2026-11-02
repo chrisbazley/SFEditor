@@ -31,6 +31,8 @@ void Obj_tests(void);
 void Vertex_tests(void);
 void Shapes_tests(void);
 void MapCoord_tests(void);
+void MapLayout_tests(void);
+void ObjLayout_tests(void);
 void MapAreaCol_tests(void);
 void SelBitmask_tests(void);
 void MapEditSel_tests(void);
