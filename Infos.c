@@ -125,7 +125,7 @@ static inline void write_target_info_coords(TargetInfo const *const info,
   writer_fseek(writer, TargetInfoPadding, SEEK_CUR);
 }
 
-static void free_info(TargetInfo *const info)
+static void discard_info(TargetInfo *const info)
 {
   assert(info);
   for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
@@ -133,8 +133,14 @@ static void free_info(TargetInfo *const info)
        ++k) {
     text_destroy(&info->texts[k]);
   }
-  info->infos->count--;
   free(info);
+}
+
+static void free_info(TargetInfo *const info)
+{
+  assert(info);
+  info->infos->count--;
+  discard_info(info);
 }
 
 size_t target_info_delete(TargetInfo *const info)
@@ -177,6 +183,13 @@ void target_infos_destroy(TargetInfosData *const target_infos)
 SFError target_infos_add(TargetInfosData *const target_infos,
   MapPoint const pos, _Optional size_t *const index)
 {
+  return target_infos_add_texts(target_infos, pos, NULL, index);
+}
+
+SFError target_infos_add_texts(TargetInfosData *const target_infos, MapPoint const pos,
+  char const *C23_CONST _Optional (*const strings)[TargetInfoTextIndex_Count],
+  _Optional size_t *const index)
+{
   assert(target_infos);
   assert(target_infos->count <= TargetInfoMax);
 
@@ -194,14 +207,8 @@ SFError target_infos_add(TargetInfosData *const target_infos,
   *info = (TargetInfo){
     .coords = map_coords_to_coarse(pos),
     .infos = target_infos,
-    .id = target_infos->next++,
+    .id = target_infos->next,
   };
-  if (!intdict_insert(&target_infos->dict,
-                     map_coords_to_key(pos), info, index)) {
-    free(info);
-    return SFERROR(NoMem);
-  }
-
   for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
        k < TargetInfoTextIndex_Count;
        ++k) {
@@ -236,7 +243,33 @@ SFError target_infos_add(TargetInfosData *const target_infos,
     }
 
   }
+  if (strings)
+  {
+    for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
+         k < TargetInfoTextIndex_Count; ++k)
+    {
+      SFError const err = target_info_set_text(&*info, k, (*strings)[k]);
+      if (SFError_fail(err))
+      {
+        discard_info(&*info);
+        return err;
+      }
+    }
+  }
+
+  size_t inserted;
+  if (!intdict_insert(&target_infos->dict, map_coords_to_key(pos), info, &inserted))
+  {
+    discard_info(&*info);
+    return SFERROR(NoMem);
+  }
+
   target_infos->count++;
+  target_infos->next++;
+  if (index)
+  {
+    *index = inserted;
+  }
 
   return SFERROR(OK);
 }
@@ -262,6 +295,47 @@ SFError target_info_set_text(TargetInfo *const info,
   }
 
   return text_set_string(&info->texts[index], string);
+}
+
+SFError target_info_set_texts(TargetInfo *const info,
+  char const *C23_CONST (*const strings)[TargetInfoTextIndex_Count])
+{
+  assert(info);
+  TargetInfo replacement = *info;
+  for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
+       k < TargetInfoTextIndex_Count; ++k)
+  {
+    TextParams params;
+    text_get_params(&info->texts[k], &params);
+    text_init(&replacement.texts[k]);
+    text_set_params(&replacement.texts[k], &params);
+  }
+
+  SFError err = SFERROR(OK);
+  for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
+       k < TargetInfoTextIndex_Count; ++k)
+  {
+    err = target_info_set_text(&replacement, k, (*strings)[k]);
+    if (SFError_fail(err))
+    {
+      break;
+    }
+  }
+
+  for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
+       k < TargetInfoTextIndex_Count; ++k)
+  {
+    if (SFError_fail(err))
+    {
+      text_destroy(&replacement.texts[k]);
+    }
+    else
+    {
+      text_destroy(&info->texts[k]);
+      info->texts[k] = replacement.texts[k];
+    }
+  }
+  return err;
 }
 
 size_t target_info_set_pos(TargetInfo *const info, MapPoint const pos)

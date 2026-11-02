@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
     { "EditChanges", EditChanges_tests },
     { "MapEdit", MapEdit_tests },
     { "ObjectsEdit", ObjectsEdit_tests },
+    { "InfoEdit", InfoEdit_tests },
     { "Mission", Mission_tests },
     { "DFile", DFile_tests },
     { "Ships", Ships_tests },
