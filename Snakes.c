@@ -1038,7 +1038,7 @@ void Snakes_get_name(const Snakes *const snakes_data, int const snake,
     SnakeDefinition const *const defs = snakes_data->data_anchor;
     char const *const in = defs[snake].name;
     for (char c = in[len]; c != '\0'; c = in[len]) {
-      if (len++ < n) {
+      if (len++ < n - 1) {
         assert(out < snake_name + n);
         *(out++) = c;
       }
