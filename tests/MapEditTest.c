@@ -355,27 +355,47 @@ static void test13(void)
 
 static void test14(void)
 {
-  /* Map point circle */
+  /* Map unit circle */
 
   init();
 
-  MapEdit_plot_circ(&fixture.map, fixture.probe, 0, map_ref_from_num(9), &fixture.changes);
+  MapEdit_plot_circ(&fixture.map, fixture.probe, 1, map_ref_from_num(9), &fixture.changes);
 
-  check_rect(fixture.overlay, (MapArea){.min = {5, 7}, .max = {5, 7}}, 9, Map_RefMask);
-  check_changes((MapEditChanges){.tiles_changed = 1});
+  for (MapCoord y = 0; y < Map_Size; ++y)
+  {
+    for (MapCoord x = 0; x < Map_Size; ++x)
+    {
+      bool const painted = ((x == 5) && (y >= 6) && (y <= 8)) ||
+                           ((y == 7) && (x >= 4) && (x <= 6));
+      unsigned char const expected = painted ? 9 : Map_RefMask;
+      assert(map_ref_to_num(map_get_tile(fixture.overlay, (MapPoint){x, y})) == expected);
+    }
+  }
+  check_rect(fixture.base, MapArea_make_invalid(), 0, 3);
+  check_changes((MapEditChanges){.tiles_changed = 5});
   destroy();
 }
 
 static void test15(void)
 {
-  /* Map point triangle */
+  /* Map unit right triangle */
 
   init();
 
-  MapEdit_plot_tri(&fixture.map, fixture.probe, fixture.probe, fixture.probe, map_ref_from_num(9), &fixture.changes);
+  MapEdit_plot_tri(&fixture.map, (MapPoint){5, 7}, (MapPoint){6, 7}, (MapPoint){5, 8}, map_ref_from_num(9), &fixture.changes);
 
-  check_rect(fixture.overlay, (MapArea){.min = {5, 7}, .max = {5, 7}}, 9, Map_RefMask);
-  check_changes((MapEditChanges){.tiles_changed = 1});
+  for (MapCoord y = 0; y < Map_Size; ++y)
+  {
+    for (MapCoord x = 0; x < Map_Size; ++x)
+    {
+      bool const painted = ((y == 7) && (x >= 5) && (x <= 6)) ||
+                           ((x == 5) && (y == 8));
+      unsigned char const expected = painted ? 9 : Map_RefMask;
+      assert(map_ref_to_num(map_get_tile(fixture.overlay, (MapPoint){x, y})) == expected);
+    }
+  }
+  check_rect(fixture.base, MapArea_make_invalid(), 0, 3);
+  check_changes((MapEditChanges){.tiles_changed = 3});
   destroy();
 }
 
@@ -683,8 +703,8 @@ void MapEdit_tests(void)
     { "Fill selected map cells", test11 },
     { "Map rectangle plotting", test12 },
     { "Map line plotting", test13 },
-    { "Map point circle", test14 },
-    { "Map point triangle", test15 },
+    { "Map unit circle", test14 },
+    { "Map unit right triangle", test15 },
     { "Map flood fill stays in connected region", test16 },
     { "Map global replacement", test17 },
     { "Map overlay cropping preserves animated cells", test18 },
