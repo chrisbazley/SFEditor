@@ -55,6 +55,12 @@ typedef struct {
 } TriggerFullParam;
 
 SFError triggers_init(TriggersData *triggers);
+/* Destruction is valid even if cloning fails. The source is unchanged. */
+SFError triggers_clone(TriggersData *dest, TriggersData const *src);
+
+/* Exchange contents without allocation or moving flex anchors. */
+void triggers_swap(TriggersData *a, TriggersData *b);
+
 size_t triggers_get_max_losses(TriggersData const *triggers);
 void triggers_set_max_losses(TriggersData *triggers, size_t max);
 size_t triggers_get_count(TriggersData *triggers);

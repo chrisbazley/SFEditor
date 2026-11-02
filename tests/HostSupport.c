@@ -197,6 +197,12 @@ void host_expect_error(SFErrorType type)
     expecting_error = true;
 }
 
+void host_cancel_expected_error(void)
+{
+    assert(expecting_error);
+    expecting_error = false;
+}
+
 void host_check_error(void)
 {
     assert(!expecting_error);

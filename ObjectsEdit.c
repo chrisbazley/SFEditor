@@ -38,6 +38,7 @@
 #include "ObjGfxMesh.h"
 #include "Shapes.h"
 #include "Triggers.h"
+#include "TriggersData.h"
 #include "ObjEditSel.h"
 
 #ifdef USE_OPTIONAL
@@ -130,6 +131,19 @@ static ObjRef read_ref_core(ObjEditContext const *const objects,
   return filter_overlay_ref(objects, pos, read_overlay_core(objects, pos));
 }
 
+static void redraw_triggers(ObjEditContext const *const objects,
+  TriggersData *const triggers)
+{
+  MapArea const all = {{0, 0}, {Obj_Size - 1, Obj_Size - 1}};
+  TriggersIter iter;
+  TriggerFullParam current;
+  for (MapPoint p = TriggersIter_get_first(&iter, triggers, &all, &current);
+       !TriggersIter_done(&iter); p = TriggersIter_get_next(&iter, &current))
+  {
+    redraw_trigger2(objects, read_ref_core(objects, p), p, current);
+  }
+}
+
 static bool write_ref_core(ObjEditContext const *const objects, MapPoint const pos,
   ObjRef const ref_num, _Optional ObjEditChanges *const change_info)
 {
@@ -217,11 +231,19 @@ static void triggers_wipe_locn(ObjEditContext const *const objects,
   triggers_wipe_bbox(objects, &(MapArea){map_pos, map_pos}, wipe_action, change_info);
 }
 
+typedef enum
+{
+  OverlapAction_All,
+  OverlapAction_PrepareTriggers,
+  OverlapAction_Notify,
+  OverlapAction_WriteObjects,
+} OverlapAction;
+
 static void clear_overlapped(ObjEditContext const *const objects,
                              MapPoint const grid_pos,
                              ObjRef const value,
                              _Optional ObjEditChanges *const change_info,
-                             ObjGfxMeshes *const meshes)
+                             ObjGfxMeshes *const meshes, OverlapAction const action)
 {
   MapPoint const wrapped_pos = objects_wrap_coords(grid_pos);
   ObjRef const new_disp_ref = filter_overlay_ref(objects, wrapped_pos, value);
@@ -263,13 +285,20 @@ static void clear_overlapped(ObjEditContext const *const objects,
            objects_ref_to_num(obj_ref), p.x, p.y,
            objects_ref_to_num(new_disp_ref), grid_pos.x, grid_pos.y);
 
-    if (objects->prechange_cb) {
+    if (((action == OverlapAction_All) || (action == OverlapAction_Notify)) &&
+        objects->prechange_cb) {
       objects->prechange_cb(&(MapArea){p, p}, objects->session);
     }
 
-    triggers_wipe_locn(objects, p, TriggersWipeAction_BreakChain, change_info);
+    if ((action == OverlapAction_All) || (action == OverlapAction_PrepareTriggers))
+    {
+      triggers_wipe_locn(objects, p, TriggersWipeAction_BreakChain, change_info);
+    }
 
-    write_ref_core(objects, p, objects_ref_none(), change_info);
+    if ((action == OverlapAction_All) || (action == OverlapAction_WriteObjects))
+    {
+      write_ref_core(objects, p, objects_ref_none(), change_info);
+    }
   }
 }
 
@@ -285,7 +314,7 @@ static void write_ref(ObjEditContext const *const objects,
 
   if (write_ref_core(objects, grid_pos, value, change_info) ||
       objects_ref_is_none(value)) {
-    clear_overlapped(objects, grid_pos, value, change_info, meshes);
+    clear_overlapped(objects, grid_pos, value, change_info, meshes, OverlapAction_All);
   }
 }
 
@@ -591,12 +620,13 @@ bool ObjectsEdit_write_ref_n_triggers(ObjEditContext const *const objects, MapPo
 
   bool matching = true;
 
-  if (triggers) {
-    _Optional bool *const matched = calloc(nitems, sizeof(*matched));
-    if (!matched) {
-      report_error(SFERROR(NoMem), "", "");
+  {
+    if (nitems > TriggersMax)
+    {
+      report_error(SFERROR(NumActions), "", "");
       return false;
     }
+    bool matched[TriggersMax] = {false};
 
     TriggersIter iter;
     TriggerFullParam ex_fparam;
@@ -637,8 +667,6 @@ bool ObjectsEdit_write_ref_n_triggers(ObjEditContext const *const objects, MapPo
       DEBUGF("Not all replacement triggers were matched (%zu < %zu)\n", matched_count, nitems);
       matching = false;
     }
-
-    free(matched);
   }
 
   MapPoint const wrapped_pos = objects_wrap_coords(pos);
@@ -654,49 +682,98 @@ bool ObjectsEdit_write_ref_n_triggers(ObjEditContext const *const objects, MapPo
      triggers at other map locations (if adding new chains), so at best
      this is a heuristic. Assume the best case: no new chains and all
      existing triggers replaced. */
-  if (triggers) {
-    size_t const total_count = triggers_get_count(triggers);
-    size_t const free_count = TriggersMax - total_count;
-    size_t const max_del_count = triggers_count_locn(triggers, wrapped_pos);
-    DEBUGF("Add %zu triggers, currently %zu slots free, may reclaim up to %zu\n",
-           nitems, free_count, max_del_count);
-    if (nitems > free_count + max_del_count) {
-      DEBUGF("Heuristic failed:\n");
-      report_error(SFERROR(NumActions), "", "");
+  size_t const total_count = triggers_get_count(triggers);
+  size_t const free_count = TriggersMax - total_count;
+  size_t const max_del_count = triggers_count_locn(triggers, wrapped_pos);
+  DEBUGF("Add %zu triggers, currently %zu slots free, may reclaim up to %zu\n",
+         nitems, free_count, max_del_count);
+  if (nitems > free_count + max_del_count) {
+    DEBUGF("Heuristic failed:\n");
+    report_error(SFERROR(NumActions), "", "");
+    return false;
+  }
+
+  if (matching || (nitems == 0))
+  {
+    /* No new triggers are needed, so this path cannot fail after mutation. */
+    if (objects->prechange_cb)
+    {
+      objects->prechange_cb(&(MapArea){wrapped_pos, wrapped_pos}, objects->session);
+    }
+    write_ref(objects, wrapped_pos, ref_num,
+      matching ? TriggersWipeAction_None : TriggersWipeAction_KeepChain,
+      change_info, meshes);
+    return true;
+  }
+
+  TriggersData prepared;
+  SFError err = triggers_clone(&prepared, triggers);
+  if (SFError_fail(err))
+  {
+    triggers_destroy(&prepared);
+    report_error(err, "", "");
+    return false;
+  }
+
+  ObjEditContext const staging = {
+    .base = objects->base,
+    .overlay = objects->overlay,
+    .triggers = &prepared,
+    .session = objects->session,
+  };
+  ObjEditChanges delta = {0};
+  triggers_wipe_locn(&staging, wrapped_pos,
+    objects_ref_is_none(ref_num) ? TriggersWipeAction_BreakChain :
+                                 TriggersWipeAction_KeepChain, &delta);
+
+  _Optional ObjectsData *const writable = get_write_objects(objects);
+  assert(writable);
+  bool const clear = objects_ref_is_none(ref_num) ||
+    (writable && !objects_ref_is_equal(objects_get_ref(&*writable, wrapped_pos), ref_num));
+  if (clear)
+  {
+    clear_overlapped(&staging, wrapped_pos, ref_num, &delta, meshes,
+      OverlapAction_PrepareTriggers);
+  }
+
+  for (size_t i = nitems; i-- > 0; )
+  {
+    err = triggers_add(&prepared, wrapped_pos, fparam[i]);
+    if (SFError_fail(err))
+    {
+      triggers_destroy(&prepared);
+      report_error(err, "", "");
       return false;
     }
+    ObjEditChanges_add_trig(&delta);
   }
 
-  if (objects->prechange_cb) {
-    objects->prechange_cb(&(MapArea){wrapped_pos,wrapped_pos}, objects->session);
+  /* Everything fallible is complete. Observers still see the old contents
+     during prechange notifications, including objects removed by overlap. */
+  if (objects->prechange_cb)
+  {
+    objects->prechange_cb(&(MapArea){wrapped_pos, wrapped_pos}, objects->session);
+  }
+  if (clear)
+  {
+    clear_overlapped(objects, wrapped_pos, ref_num, NULL, meshes, OverlapAction_Notify);
   }
 
-
-  TriggersWipeAction wipe_action;
-  if (objects_ref_is_equal(old_ref, ref_num)) {
-    wipe_action = TriggersWipeAction_KeepChain; /* ...to the same object with different triggers */
-  } else if (matching) {
-    wipe_action = TriggersWipeAction_None; /* A different object with the same triggers */
-  } else {
-    wipe_action = TriggersWipeAction_KeepChain; /* ...to a different object with different triggers */
+  triggers_swap(triggers, &prepared);
+  change_info->triggers_added += delta.triggers_added;
+  change_info->triggers_changed += delta.triggers_changed;
+  change_info->triggers_deleted += delta.triggers_deleted;
+  /* Invalidate removed trigger graphics using the old object references. */
+  redraw_triggers(objects, &prepared);
+  write_ref_core(objects, wrapped_pos, ref_num, change_info);
+  if (clear)
+  {
+    clear_overlapped(objects, wrapped_pos, ref_num, change_info, meshes,
+      OverlapAction_WriteObjects);
   }
 
-  write_ref(objects, wrapped_pos, ref_num, wipe_action, change_info, meshes);
-
-  if (triggers && (wipe_action != TriggersWipeAction_None)) {
-    ObjRef const new_disp_ref = filter_overlay_ref(objects, wrapped_pos, ref_num);
-
-    for (size_t i = nitems; i-- > 0; ) {
-      if (report_error(triggers_add(triggers, wrapped_pos, fparam[i]), "", "")) {
-        triggers_wipe_locn(objects, wrapped_pos, TriggersWipeAction_KeepChain, change_info);
-        ObjEditChanges_delete_trig(change_info);
-        return false;
-      }
-
-      ObjEditChanges_add_trig(change_info);
-      redraw_trigger2(objects, new_disp_ref, wrapped_pos, fparam[i]);
-    }
-  }
+  redraw_triggers(objects, triggers);
+  triggers_destroy(&prepared);
 
   return true;
 }

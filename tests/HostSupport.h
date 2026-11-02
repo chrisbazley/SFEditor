@@ -6,4 +6,5 @@
 void host_set_palette(bool bright);
 void host_expect_error(SFErrorType type);
 void host_check_error(void);
+void host_cancel_expected_error(void);
 #endif

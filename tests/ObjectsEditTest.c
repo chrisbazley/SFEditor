@@ -7,6 +7,10 @@
 #include <limits.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
+
+#include "Writer.h"
+#include "WriterMem.h"
 
 #include "Macros.h"
 #include "Debug.h"
@@ -114,8 +118,8 @@ static void init(void)
   {
     for (MapCoord x = 0; x < Obj_Size; ++x)
     {
-      objects_set_ref(fixture.base, (MapPoint){x, y}, objects_ref_none());
-      objects_set_ref(fixture.overlay, (MapPoint){x, y}, objects_ref_mask());
+      objects_update_ref(fixture.base, (MapPoint){x, y}, objects_ref_none());
+      objects_update_ref(fixture.overlay, (MapPoint){x, y}, objects_ref_mask());
     }
   }
 }
@@ -245,8 +249,8 @@ static void test2(void)
   /* Composited object reads */
 
   init();
-  objects_set_ref(fixture.base, fixture.probe, objects_ref_from_num(100));
-  objects_set_ref(fixture.overlay, (MapPoint){6, 7}, objects_ref_from_num(101));
+  objects_update_ref(fixture.base, fixture.probe, objects_ref_from_num(100));
+  objects_update_ref(fixture.overlay, (MapPoint){6, 7}, objects_ref_from_num(101));
 
   assert(objects_ref_to_num(ObjectsEdit_read_ref(&fixture.objects, fixture.probe)) == 100);
   assert(objects_ref_to_num(ObjectsEdit_read_ref(&fixture.objects, (MapPoint){6, 7})) == 101);
@@ -304,7 +308,7 @@ static void test6(void)
   /* Unchanged object write avoids redraw */
 
   init();
-  objects_set_ref(fixture.overlay, fixture.probe, objects_ref_from_num(100));
+  objects_update_ref(fixture.overlay, fixture.probe, objects_ref_from_num(100));
 
   ObjectsEdit_write_ref(&fixture.objects, fixture.probe, objects_ref_from_num(100),
     TriggersWipeAction_None, &fixture.changes, &meshes);
@@ -555,10 +559,10 @@ static void test20(void)
   {
     for (MapCoord x = 4; x <= 6; ++x)
     {
-      objects_set_ref(fixture.base, (MapPoint){x, y}, objects_ref_from_num(101));
+      objects_update_ref(fixture.base, (MapPoint){x, y}, objects_ref_from_num(101));
     }
   }
-  objects_set_ref(fixture.base, (MapPoint){10, 10}, objects_ref_from_num(101));
+  objects_update_ref(fixture.base, (MapPoint){10, 10}, objects_ref_from_num(101));
 
   ObjectsEdit_flood_fill(&fixture.objects, objects_ref_from_num(100), fixture.probe, &fixture.changes, &meshes);
 
@@ -573,7 +577,7 @@ static void test21(void)
   /* Object global replacement */
 
   init();
-  objects_set_ref(fixture.base, fixture.probe, objects_ref_from_num(101));
+  objects_update_ref(fixture.base, fixture.probe, objects_ref_from_num(101));
 
   ObjectsEdit_global_replace(&fixture.objects, objects_ref_from_num(101), objects_ref_from_num(100), &fixture.changes, &meshes);
 
@@ -587,8 +591,8 @@ static void test22(void)
   /* Object overlay cropping preserves trigger locations */
 
   init();
-  objects_set_ref(fixture.overlay, fixture.probe, objects_ref_none());
-  objects_set_ref(fixture.overlay, (MapPoint){6, 7}, objects_ref_none());
+  objects_update_ref(fixture.overlay, fixture.probe, objects_ref_none());
+  objects_update_ref(fixture.overlay, (MapPoint){6, 7}, objects_ref_none());
   assert(!SFError_fail(triggers_add(&fixture.triggers.obj, (MapPoint){6, 7}, target(1))));
 
   ObjectsEdit_crop_overlay(&fixture.objects, &fixture.changes);
@@ -603,8 +607,8 @@ static void test23(void)
   /* Object range checks include hidden base cells */
 
   init();
-  objects_set_ref(fixture.base, fixture.probe, objects_ref_from_num(9));
-  objects_set_ref(fixture.overlay, fixture.probe, objects_ref_from_num(1));
+  objects_update_ref(fixture.base, fixture.probe, objects_ref_from_num(9));
+  objects_update_ref(fixture.overlay, fixture.probe, objects_ref_from_num(1));
 
   assert(!ObjectsEdit_check_ref_range(&fixture.objects, 9));
   assert(ObjectsEdit_check_ref_range(&fixture.objects, 10));
@@ -616,12 +620,12 @@ static void test24(void)
   /* Object range checks ignore special references */
 
   init();
-  objects_set_ref(fixture.base, fixture.probe, objects_ref_from_num(100));
-  objects_set_ref(fixture.overlay, (MapPoint){6, 7}, objects_ref_from_num(Obj_RefHill));
+  objects_update_ref(fixture.base, fixture.probe, objects_ref_from_num(100));
+  objects_update_ref(fixture.overlay, (MapPoint){6, 7}, objects_ref_from_num(Obj_RefHill));
 
   assert(ObjectsEdit_check_ref_range(&fixture.objects, 1));
 
-  objects_set_ref(fixture.overlay, fixture.probe, objects_ref_from_num(9));
+  objects_update_ref(fixture.overlay, fixture.probe, objects_ref_from_num(9));
   assert(!ObjectsEdit_check_ref_range(&fixture.objects, 9));
   destroy();
 }
@@ -696,7 +700,7 @@ static void test29(void)
   /* Object deletion breaks incoming chain */
 
   init();
-  objects_set_ref(fixture.overlay, fixture.probe, objects_ref_from_num(100));
+  objects_update_ref(fixture.overlay, fixture.probe, objects_ref_from_num(100));
   TriggerFullParam const chain = {.param = {.action = TriggerAction_ChainReaction, .value = 1}, .next_coords = {5, 7}};
   assert(!SFError_fail(triggers_add(&fixture.triggers.obj, (MapPoint){10, 10}, chain)));
 
@@ -734,7 +738,7 @@ static void test31(void)
   /* Equivalent trigger replacement avoids mutation */
 
   init();
-  objects_set_ref(fixture.overlay, fixture.probe, objects_ref_from_num(100));
+  objects_update_ref(fixture.overlay, fixture.probe, objects_ref_from_num(100));
   assert(!SFError_fail(triggers_add(&fixture.triggers.obj, fixture.probe, target(1))));
   assert(!SFError_fail(triggers_add(&fixture.triggers.obj, fixture.probe, target(2))));
   TriggerFullParam const replacement[] = {target(2), target(1)};
@@ -754,7 +758,7 @@ static void test32(void)
   /* Replace object trigger set */
 
   init();
-  objects_set_ref(fixture.overlay, fixture.probe, objects_ref_from_num(100));
+  objects_update_ref(fixture.overlay, fixture.probe, objects_ref_from_num(100));
   assert(!SFError_fail(triggers_add(&fixture.triggers.obj, fixture.probe, target(1))));
   TriggerFullParam const replacement[] = {target(2), target(3)};
 
@@ -789,7 +793,7 @@ static void test34(void)
 
   init();
   ObjRef const value = colliding_ref();
-  objects_set_ref(fixture.overlay, (MapPoint){65, 64}, value);
+  objects_update_ref(fixture.overlay, (MapPoint){65, 64}, value);
   ObjEditSelection occluded;
   assert(!SFError_fail(ObjEditSelection_init(&occluded, NULL, &fixture)));
 
@@ -809,7 +813,7 @@ static void test35(void)
 
   init();
   ObjRef const value = colliding_ref();
-  objects_set_ref(fixture.overlay, (MapPoint){65, 64}, value);
+  objects_update_ref(fixture.overlay, (MapPoint){65, 64}, value);
 
   ObjectsEdit_write_ref(&fixture.objects, (MapPoint){64, 64}, value,
     TriggersWipeAction_None, &fixture.changes, &meshes);
@@ -856,7 +860,189 @@ static void test36(void)
   destroy();
 }
 
+static size_t snapshot_triggers(unsigned char (*buffer)[128])
+{
+  Writer writer;
+  assert(writer_mem_init(&writer, *buffer, sizeof(*buffer)));
+  triggers_write(&fixture.triggers.obj, &writer);
+  assert(!writer_ferror(&writer));
+  long const length = writer_ftell(&writer);
+  assert(length >= 0);
+  writer_destroy(&writer);
+  return (size_t)length;
+}
+
+static void test37(void)
+{
+  /* Failed trigger replacement preserves existing state */
+
+  bool succeeded = false;
+  bool failed_after_allocation = false;
+  for (unsigned long limit = 0; limit < 64; ++limit)
+  {
+    init();
+    MapPoint const neighbour = {6, 7};
+    objects_update_ref(fixture.overlay, fixture.probe, objects_ref_from_num(100));
+    objects_update_ref(fixture.overlay, neighbour, objects_ref_from_num(100));
+    assert(!SFError_fail(triggers_add(&fixture.triggers.obj, fixture.probe, target(1))));
+    assert(!SFError_fail(triggers_add(&fixture.triggers.obj, neighbour, target(2))));
+    assert(!SFError_fail(triggers_add(&fixture.triggers.obj, (MapPoint){40, 40}, target(3))));
+    TriggerFullParam chain = {
+      .param = {.action = TriggerAction_ChainReaction, .value = 1},
+      .next_coords = fixture.probe,
+    };
+    assert(!SFError_fail(triggers_add(&fixture.triggers.obj, (MapPoint){20, 20}, chain)));
+    chain.next_coords = neighbour;
+    assert(!SFError_fail(triggers_add(&fixture.triggers.obj, (MapPoint){21, 20}, chain)));
+    triggers_set_max_losses(&fixture.triggers.obj, 1);
+    ObjEditChanges const initial = {.refs_changed = 3, .triggers_added = 4,
+      .triggers_changed = 5, .triggers_deleted = 6};
+    fixture.changes = initial;
+    unsigned char saved[128];
+    size_t const length = snapshot_triggers(&saved);
+    TriggerFullParam const replacement[] = {
+      target(7),
+      {.param = {.action = TriggerAction_ChainReaction, .value = 2},
+       .next_coords = {30, 30}},
+    };
+    ObjRef const ref = colliding_ref();
+
+    host_expect_error(SFErrorType_NoMem);
+    Fortify_SetNumAllocationsLimit(limit);
+    succeeded = ObjectsEdit_write_ref_n_triggers(&fixture.objects, fixture.probe,
+      ref, replacement, ARRAY_SIZE(replacement), &fixture.changes, &meshes);
+    Fortify_SetNumAllocationsLimit(ULONG_MAX);
+
+    if (succeeded)
+    {
+      host_cancel_expected_error();
+      assert(count_actions(fixture.probe) == 2);
+      assert(count_actions(neighbour) == 0);
+      assert(count_chains_to(fixture.probe) == 1);
+      assert(count_chains_to(neighbour) == 0);
+      assert(count_chains_to((MapPoint){30, 30}) == 1);
+      assert(count_actions((MapPoint){40, 40}) == 1);
+      check_changes((ObjEditChanges){.refs_changed = 5, .triggers_added = 6,
+        .triggers_changed = 5, .triggers_deleted = 9});
+    }
+    else
+    {
+      host_check_error();
+      failed_after_allocation |= limit > 0;
+      unsigned char actual[128];
+      assert(snapshot_triggers(&actual) == length);
+      assert(memcmp(saved, actual, length) == 0);
+      assert(triggers_get_max_losses(&fixture.triggers.obj) == 1);
+      check_changes(initial);
+      assert(fixture.before_count == 0);
+      assert(fixture.redraw_count == 0);
+      assert(fixture.trigger_count == 0);
+    }
+
+    for (MapCoord y = 0; y < Obj_Size; ++y)
+    {
+      for (MapCoord x = 0; x < Obj_Size; ++x)
+      {
+        MapPoint const p = {x, y};
+        ObjRef expected = objects_ref_mask();
+        if (MapPoint_compare(p, fixture.probe))
+        {
+          expected = succeeded ? ref : objects_ref_from_num(100);
+        }
+        else if (MapPoint_compare(p, neighbour))
+        {
+          expected = succeeded ? objects_ref_none() : objects_ref_from_num(100);
+        }
+        assert(objects_ref_is_equal(objects_get_ref(fixture.overlay, p), expected));
+        assert(objects_ref_is_none(objects_get_ref(fixture.base, p)));
+      }
+    }
+    destroy();
+    if (succeeded)
+    {
+      break;
+    }
+  }
+  assert(failed_after_allocation);
+  assert(succeeded);
+}
+
 #endif
+
+static void test38(void)
+{
+  /* Trigger capacity failure preserves existing state */
+
+  init();
+  objects_update_ref(fixture.overlay, fixture.probe, objects_ref_from_num(100));
+  assert(!SFError_fail(triggers_add(&fixture.triggers.obj, fixture.probe, target(1))));
+  for (MapCoord x = 0; x < TriggersMax - 1; ++x)
+  {
+    assert(!SFError_fail(triggers_add(&fixture.triggers.obj, (MapPoint){x, 40}, target(2))));
+  }
+  triggers_set_max_losses(&fixture.triggers.obj, 3);
+  ObjEditChanges const initial = {.refs_changed = 3, .triggers_added = 4,
+    .triggers_changed = 5, .triggers_deleted = 6};
+  fixture.changes = initial;
+  TriggerFullParam const replacement[] = {
+    {.param = {.action = TriggerAction_ChainReaction, .value = 2},
+     .next_coords = {30, 30}},
+  };
+
+  host_expect_error(SFErrorType_NumActions);
+  bool const success = ObjectsEdit_write_ref_n_triggers(&fixture.objects, fixture.probe,
+    objects_ref_from_num(101), replacement, ARRAY_SIZE(replacement), &fixture.changes, &meshes);
+  host_check_error();
+
+  assert(!success);
+  assert(triggers_get_count(&fixture.triggers.obj) == TriggersMax);
+  assert(triggers_get_max_losses(&fixture.triggers.obj) == 3);
+  for (MapCoord x = 0; x < TriggersMax - 1; ++x)
+  {
+    MapPoint const p = {x, 40};
+    assert(count_actions(p) == 1);
+    TriggerFullParam actual;
+    TriggersIter iter;
+    TriggersIter_get_first(&iter, &fixture.triggers.obj, &(MapArea){p, p}, &actual);
+    check_trigger(actual, target(2));
+  }
+  assert(count_actions(fixture.probe) == 1);
+  TriggerFullParam actual;
+  TriggersIter iter;
+  TriggersIter_get_first(&iter, &fixture.triggers.obj,
+    &(MapArea){fixture.probe, fixture.probe}, &actual);
+  check_trigger(actual, target(1));
+  assert(!triggers_check_locn(&fixture.triggers.obj, (MapPoint){30, 30}));
+  check_rect(fixture.overlay, (MapArea){.min = {5, 7}, .max = {5, 7}}, 100, Obj_RefMask);
+  check_changes(initial);
+  assert(fixture.before_count == 0);
+  assert(fixture.redraw_count == 0);
+  assert(fixture.trigger_count == 0);
+  destroy();
+}
+
+static void test39(void)
+{
+  /* Empty trigger replacement requires no allocation */
+
+  init();
+  assert(!SFError_fail(triggers_add(&fixture.triggers.obj, fixture.probe, target(1))));
+  TriggerFullParam const replacement[] = {target(2)};
+#ifdef FORTIFY
+  Fortify_SetNumAllocationsLimit(0);
+#endif
+
+  bool const success = ObjectsEdit_write_ref_n_triggers(&fixture.objects, fixture.probe,
+    objects_ref_from_num(100), replacement, 0, &fixture.changes, &meshes);
+
+#ifdef FORTIFY
+  Fortify_SetNumAllocationsLimit(ULONG_MAX);
+#endif
+  assert(success);
+  assert(count_actions(fixture.probe) == 0);
+  check_changes((ObjEditChanges){.refs_changed = 1, .triggers_deleted = 1});
+  destroy();
+}
 
 void ObjectsEdit_tests(void)
 {
@@ -905,8 +1091,11 @@ void ObjectsEdit_tests(void)
     { "Trigger replacement without trigger data fails", test33 },
     { "Collision preflight identifies occluded object", test34 },
     { "Object placement clears overlap", test35 },
+    { "Trigger capacity failure preserves existing state", test38 },
+    { "Empty trigger replacement requires no allocation", test39 },
 #ifdef FORTIFY
     { "Trigger allocation failure leaves objects unchanged", test36 },
+    { "Failed trigger replacement preserves existing state", test37 },
 #endif
   };
 

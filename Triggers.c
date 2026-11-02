@@ -249,6 +249,66 @@ static SFError add_trigger(TriggersData *const triggers, _Optional Trigger *cons
   return SFERROR(OK);
 }
 
+SFError triggers_clone(TriggersData *const dest, TriggersData const *const src)
+{
+  assert(dest != src);
+  SFError err = triggers_init(dest);
+  if (SFError_fail(err))
+  {
+    return err;
+  }
+
+  dest->max_losses = src->max_losses;
+  _Optional Trigger *prev = NULL;
+  LINKEDLIST_FOR_EACH_SAFE(&src->list, item, tmp)
+  {
+    Trigger const *const original = CONTAINER_OF(item, Trigger, link);
+    _Optional Trigger *copy = NULL;
+    err = add_trigger(dest, prev, objects_coords_from_coarse(original->coords),
+      original->param, &copy);
+    if (SFError_fail(err))
+    {
+      return err;
+    }
+
+    assert(copy);
+    if (prev && (original->param.action == TriggerAction_ChainReaction))
+    {
+      IntDictKey const key = objects_coords_to_key(objects_coords_from_coarse(prev->coords));
+      if (!intdict_insert(&dest->chain_triggers, key, copy, NULL))
+      {
+        return SFERROR(NoMem);
+      }
+    }
+    prev = copy;
+  }
+
+  return SFERROR(OK);
+}
+
+void triggers_swap(TriggersData *const a, TriggersData *const b)
+{
+  assert(a != b);
+  void *const a_bitmap = a->bit_map;
+  void *const b_bitmap = b->bit_map;
+  TriggersData const tmp = *a;
+  *a = *b;
+  *b = tmp;
+
+  /* Keep each flex block attached to its registered anchor. Both bitmaps
+     have the same size, so their contents can be exchanged without allocation. */
+  a->bit_map = a_bitmap;
+  b->bit_map = b_bitmap;
+  unsigned char *const a_bytes = a_bitmap;
+  unsigned char *const b_bytes = b_bitmap;
+  for (size_t i = 0; i < TriggerBitmapSize; ++i)
+  {
+    unsigned char const byte = a_bytes[i];
+    a_bytes[i] = b_bytes[i];
+    b_bytes[i] = byte;
+  }
+}
+
 static void delete_trigger(TriggersData *const triggers, Trigger *const trigger)
 {
   assert(triggers);
