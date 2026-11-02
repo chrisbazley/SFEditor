@@ -192,5 +192,5 @@ long int worst_compressed_size(DFile *const dfile)
   /* Worst-case estimate */
   long int const orig_size = dfile_get_min_size(dfile);
   return (long int)sizeof(int32_t) +
-    ((orig_size * WorstBitsPerChar) / CHAR_BIT);
+    ((orig_size * WorstBitsPerChar + CHAR_BIT - 1) / CHAR_BIT);
 }
