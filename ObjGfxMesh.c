@@ -73,20 +73,6 @@ enum {
   FixedMapScaler = ToScreenDivisor / FixedMapDivisor,
 };
 
-static ObjGfxMesh *obj_array_get(ObjGfxMeshArray const *const array, ObjRef const obj_ref)
-{
-  assert(array);
-  assert(array->ocount <= array->oalloc);
-  unsigned char const n = objects_ref_to_num(obj_ref);
-  assert(n < array->ocount);
-  assert(array->objects);
-  if (!array->objects) {
-    static ObjGfxMesh dummy;
-    return &dummy;
-  }
-  return array->objects[n];
-}
-
 static _Optional TrigTable *trig_table;
 static long int divide_table[DIV_TABLE_SIZE];
 
@@ -362,20 +348,6 @@ static void plot_group(
       break;
     }
   }
-}
-
-int ObjGfxMeshes_get_ground_count(const ObjGfxMeshes *const meshes)
-{
-  assert(meshes);
-  assert(meshes->ground.ocount <= meshes->ground.oalloc);
-  return meshes->ground.ocount;
-}
-
-int ObjGfxMeshes_get_ships_count(const ObjGfxMeshes *const meshes)
-{
-  assert(meshes);
-  assert(meshes->ships.ocount <= meshes->ships.oalloc);
-  return meshes->ships.ocount;
 }
 
 static MapArea plot_area_to_map_area(BBox const *const bounding_box)
@@ -941,30 +913,3 @@ void ObjGfxMeshes_set_pal_distance(ObjGfxMeshes *const meshes, ObjRef const obj_
   obj->misc.pal_dist = distance;
 }
 
-MapPoint ObjGfxMeshes_get_collision_size(ObjGfxMeshes const *const meshes, ObjRef const obj_ref)
-{
-  assert(meshes);
-  ObjGfxMesh const *const obj = obj_array_get(&meshes->ground, obj_ref);
-  return (MapPoint){obj->misc.coll_x, obj->misc.coll_y};
-}
-
-MapPoint ObjGfxMeshes_get_max_collision_size(ObjGfxMeshes *const meshes)
-{
-  assert(meshes);
-
-  if (!meshes->have_max_collision_size) {
-    meshes->have_max_collision_size = true;
-    meshes->max_collision_size = (MapPoint){0,0};
-
-    for (int n = 0; n < meshes->ground.ocount; ++n) {
-      MapPoint const size = ObjGfxMeshes_get_collision_size(meshes, objects_ref_from_num(n));
-      meshes->max_collision_size =
-        MapPoint_max(meshes->max_collision_size, size);
-    }
-  }
-
-  DEBUGF("Largest object collision size is %" PRIMapCoord ",%" PRIMapCoord "\n",
-         meshes->max_collision_size.x, meshes->max_collision_size.y);
-
-  return meshes->max_collision_size;
-}

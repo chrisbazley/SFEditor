@@ -613,3 +613,45 @@ SFError ObjGfxMeshes_read(ObjGfxMeshes *const meshes, Reader *const reader)
   return check_trunc_or_ext(reader, read_inner(meshes, reader));
 }
 
+
+int ObjGfxMeshes_get_ground_count(const ObjGfxMeshes *const meshes)
+{
+  assert(meshes);
+  assert(meshes->ground.ocount <= meshes->ground.oalloc);
+  return meshes->ground.ocount;
+}
+
+int ObjGfxMeshes_get_ships_count(const ObjGfxMeshes *const meshes)
+{
+  assert(meshes);
+  assert(meshes->ships.ocount <= meshes->ships.oalloc);
+  return meshes->ships.ocount;
+}
+
+MapPoint ObjGfxMeshes_get_collision_size(ObjGfxMeshes const *const meshes, ObjRef const obj_ref)
+{
+  assert(meshes);
+  ObjGfxMesh const *const obj = obj_array_get(&meshes->ground, obj_ref);
+  return (MapPoint){obj->misc.coll_x, obj->misc.coll_y};
+}
+
+MapPoint ObjGfxMeshes_get_max_collision_size(ObjGfxMeshes *const meshes)
+{
+  assert(meshes);
+
+  if (!meshes->have_max_collision_size) {
+    meshes->have_max_collision_size = true;
+    meshes->max_collision_size = (MapPoint){0,0};
+
+    for (int n = 0; n < meshes->ground.ocount; ++n) {
+      MapPoint const size = ObjGfxMeshes_get_collision_size(meshes, objects_ref_from_num((unsigned char)n));
+      meshes->max_collision_size =
+        MapPoint_max(meshes->max_collision_size, size);
+    }
+  }
+
+  DEBUGF("Largest object collision size is %" PRIMapCoord ",%" PRIMapCoord "\n",
+         meshes->max_collision_size.x, meshes->max_collision_size.y);
+
+  return meshes->max_collision_size;
+}
