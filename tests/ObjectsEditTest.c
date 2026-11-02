@@ -501,27 +501,47 @@ static void test17(void)
 
 static void test18(void)
 {
-  /* Object point circle */
+  /* Object unit circle */
 
   init();
 
-  ObjectsEdit_plot_circ(&fixture.objects, fixture.probe, 0, objects_ref_from_num(100), &fixture.changes, &meshes);
+  ObjectsEdit_plot_circ(&fixture.objects, fixture.probe, 1, objects_ref_from_num(100), &fixture.changes, &meshes);
 
-  check_rect(fixture.overlay, (MapArea){.min = {5, 7}, .max = {5, 7}}, 100, Obj_RefMask);
-  check_changes((ObjEditChanges){.refs_changed = 1});
+  for (MapCoord y = 0; y < Obj_Size; ++y)
+  {
+    for (MapCoord x = 0; x < Obj_Size; ++x)
+    {
+      bool const painted = ((x == 5) && (y >= 6) && (y <= 8)) ||
+                           ((y == 7) && (x >= 4) && (x <= 6));
+      unsigned char const expected = painted ? 100 : Obj_RefMask;
+      assert(objects_ref_to_num(objects_get_ref(fixture.overlay, (MapPoint){x, y})) == expected);
+    }
+  }
+  check_rect(fixture.base, MapArea_make_invalid(), 0, 0);
+  check_changes((ObjEditChanges){.refs_changed = 5});
   destroy();
 }
 
 static void test19(void)
 {
-  /* Object point triangle */
+  /* Object unit right triangle */
 
   init();
 
-  ObjectsEdit_plot_tri(&fixture.objects, fixture.probe, fixture.probe, fixture.probe, objects_ref_from_num(100), &fixture.changes, &meshes);
+  ObjectsEdit_plot_tri(&fixture.objects, (MapPoint){5, 7}, (MapPoint){6, 7}, (MapPoint){5, 8}, objects_ref_from_num(100), &fixture.changes, &meshes);
 
-  check_rect(fixture.overlay, (MapArea){.min = {5, 7}, .max = {5, 7}}, 100, Obj_RefMask);
-  check_changes((ObjEditChanges){.refs_changed = 1});
+  for (MapCoord y = 0; y < Obj_Size; ++y)
+  {
+    for (MapCoord x = 0; x < Obj_Size; ++x)
+    {
+      bool const painted = ((y == 7) && (x >= 5) && (x <= 6)) ||
+                           ((x == 5) && (y == 8));
+      unsigned char const expected = painted ? 100 : Obj_RefMask;
+      assert(objects_ref_to_num(objects_get_ref(fixture.overlay, (MapPoint){x, y})) == expected);
+    }
+  }
+  check_rect(fixture.base, MapArea_make_invalid(), 0, 0);
+  check_changes((ObjEditChanges){.refs_changed = 3});
   destroy();
 }
 
@@ -867,8 +887,8 @@ void ObjectsEdit_tests(void)
     { "Fill selected objects", test15 },
     { "Object rectangle plotting", test16 },
     { "Object line plotting", test17 },
-    { "Object point circle", test18 },
-    { "Object point triangle", test19 },
+    { "Object unit circle", test18 },
+    { "Object unit right triangle", test19 },
     { "Object flood fill stays in connected region", test20 },
     { "Object global replacement", test21 },
     { "Object overlay cropping preserves trigger locations", test22 },
