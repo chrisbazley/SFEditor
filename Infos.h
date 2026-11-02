@@ -40,10 +40,17 @@ void target_infos_destroy(TargetInfosData *target_infos);
 SFError target_infos_add(TargetInfosData *target_infos,
   MapPoint pos, _Optional size_t *index);
 
+SFError target_infos_add_texts(TargetInfosData *target_infos, MapPoint pos,
+  char const *C23_CONST _Optional (*strings)[TargetInfoTextIndex_Count],
+  _Optional size_t *index);
+
 /* set_text not add_text because a fixed number of strings appear
    at predetermined screen coordinates */
 SFError target_info_set_text(TargetInfo *info,
   TargetInfoTextIndex index, char const *string);
+
+SFError target_info_set_texts(TargetInfo *info,
+  char const *C23_CONST (*strings)[TargetInfoTextIndex_Count]);
 
 char const *target_info_get_text(TargetInfo const *info,
   TargetInfoTextIndex index);

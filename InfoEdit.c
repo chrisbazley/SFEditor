@@ -45,13 +45,14 @@ SFError InfoEdit_add(InfoEditContext const *const infos, MapPoint const pos,
                      _Optional InfoEditChanges *const change_info, _Optional size_t *const index)
 {
   assert(infos);
-  if (!infos->data) {
+  if (!infos->data)
+  {
     return SFERROR(OK);
   }
   TargetInfosData *const target_infos = &*infos->data;
 
   size_t index2 = 0;
-  SFError err = target_infos_add(target_infos, pos, &index2);
+  SFError const err = target_infos_add_texts(target_infos, pos, strings, &index2);
   if (SFError_fail(err)) {
     return err;
   }
@@ -59,21 +60,9 @@ SFError InfoEdit_add(InfoEditContext const *const infos, MapPoint const pos,
   TargetInfo *const info = target_info_from_index(target_infos, index2);
   assert(info);
 
-  if (strings) {
-    for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
-         k < TargetInfoTextIndex_Count;
-         ++k) {
-      err = target_info_set_text(&*info, k, (*strings)[k]);
-      if (SFError_fail(err)) {
-        target_info_delete(&*info);
-        return err;
-      }
-    }
-  }
-
   InfoEditChanges_add(change_info);
   if (infos->added_cb) {
-    infos->added_cb(&*info, index2, infos->session);
+    infos->added_cb(info, index2, infos->session);
   }
 
   if (index) {
@@ -121,16 +110,9 @@ SFError InfoEdit_set_texts(
   char const *C23_CONST (*const strings)[TargetInfoTextIndex_Count],
   _Optional InfoEditChanges *const change_info)
 {
-  SFError err = SFERROR(OK);
-  for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
-       k < TargetInfoTextIndex_Count;
-       ++k) {
-    err = target_info_set_text(info, k, (*strings)[k]);
-    if (SFError_fail(err)) {
-      break;
-    }
-  }
-  if (!SFError_fail(err)) {
+  SFError const err = target_info_set_texts(info, strings);
+  if (!SFError_fail(err))
+  {
     InfoEditChanges_change(change_info);
   }
   return err;
