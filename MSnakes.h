@@ -8,6 +8,7 @@
 #define MSnakes_h
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "MapCoord.h"
 #include "MapEdit.h"
@@ -39,7 +40,7 @@ void MapSnakes_init(MapSnakes *snakes_data);
 int MapSnakes_get_count(const MapSnakes *snakes_data);
 
 void MapSnakes_get_name(const MapSnakes *snakes_data, int snake,
-  char *snake_name, int n);
+  char *snake_name, size_t n);
 
 bool MapSnakes_ensure_thumbnails(MapSnakes *snakes_data,
   MapTexBitmaps *textures);

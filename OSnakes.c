@@ -69,7 +69,7 @@ int ObjSnakes_get_count(const ObjSnakes *const snakes_data)
 }
 
 void ObjSnakes_get_name(const ObjSnakes *const snakes_data, int const snake,
-  char *const snake_name, int const n)
+  char *const snake_name, size_t const n)
 {
   assert(snakes_data);
   Snakes_get_name(&snakes_data->super.obj, snake, snake_name, n);

@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "SFError.h"
 #include "MapCoord.h"
@@ -43,7 +44,7 @@ int Snakes_get_count(const Snakes *snakes_data);
 
 /* n is the output-buffer capacity, including the terminator. */
 void Snakes_get_name(const Snakes *snakes_data, int snake,
-  char *snake_name, int n);
+  char *snake_name, size_t n);
 
 bool Snakes_has_junctions(const Snakes *snakes_data, int snake);
 bool Snakes_has_bends(const Snakes *snakes_data, int snake);
