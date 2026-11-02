@@ -594,6 +594,7 @@ void ObjGfxMeshes_init(ObjGfxMeshes *const meshes)
     meshes->max_bounding_box[angle] = MapArea_make_invalid();
   }
   meshes->num_plot_types = 0;
+  meshes->have_max_collision_size = false;
   obj_array_init(&meshes->ground);
   obj_array_init(&meshes->ships);
 }

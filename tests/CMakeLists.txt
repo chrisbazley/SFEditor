@@ -20,6 +20,7 @@ add_executable(SFEditorTests
     CoarseCoordTest.c FilenamesTest.c PyramTest.c CloudsTest.c
     PlayerTest.c DefencTest.c
     SnakesTest.c SmoothTest.c EditChangesTest.c
+    ObjectsEditTest.c
     MissionTest.c DFileTest.c
     ShipsTest.c MapAnimsTest.c
     ObjVertexTest.c TriggersTest.c
@@ -52,6 +53,7 @@ set_source_files_properties(
     CoarseCoordTest.c FilenamesTest.c PyramTest.c CloudsTest.c
     PlayerTest.c DefencTest.c
     SnakesTest.c SmoothTest.c EditChangesTest.c
+    ObjectsEditTest.c
     MissionTest.c DFileTest.c
     ShipsTest.c MapAnimsTest.c
     ObjVertexTest.c TriggersTest.c
