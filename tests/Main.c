@@ -87,6 +87,8 @@ int main(int argc, char *argv[])
     { "InfoEdit", InfoEdit_tests },
     { "Mission", Mission_tests },
     { "DFile", DFile_tests },
+    { "DFileUtils", DFileUtils_tests },
+    { "FilePaths", FilePaths_tests },
     { "Ships", Ships_tests },
     { "MapAnims", MapAnims_tests },
     { "ObjVertex", ObjVertex_tests },

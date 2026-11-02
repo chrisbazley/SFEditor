@@ -20,6 +20,8 @@ void ObjectsEdit_tests(void);
 void InfoEdit_tests(void);
 void Mission_tests(void);
 void DFile_tests(void);
+void DFileUtils_tests(void);
+void FilePaths_tests(void);
 void Ships_tests(void);
 void MapAnims_tests(void);
 void ObjVertex_tests(void);
