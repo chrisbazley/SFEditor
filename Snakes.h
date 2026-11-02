@@ -41,6 +41,7 @@ void Snakes_init(Snakes *snakes_data);
 
 int Snakes_get_count(const Snakes *snakes_data);
 
+/* n is the output-buffer capacity, including the terminator. */
 void Snakes_get_name(const Snakes *snakes_data, int snake,
   char *snake_name, int n);
 
