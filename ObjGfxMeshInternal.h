@@ -2,6 +2,8 @@
 #ifndef ObjGfxMeshInternal_h
 #define ObjGfxMeshInternal_h
 #include "MapCoord.h"
+#include "Obj.h"
+#include "ObjGfxMeshData.h"
 #include "ObjVertex.h"
 #include "ObjPolygon.h"
 
@@ -34,5 +36,20 @@ struct ObjGfxMesh {
   ObjVertices varray;
   ObjPolygons polygons;
 };
+
+static inline ObjGfxMesh *obj_array_get(ObjGfxMeshArray const *const array, ObjRef const obj_ref)
+{
+  assert(array);
+  assert(array->ocount <= array->oalloc);
+  unsigned char const n = objects_ref_to_num(obj_ref);
+  assert(n < array->ocount);
+  assert(array->objects);
+  if (!array->objects) {
+    static ObjGfxMesh dummy;
+    return &dummy;
+  }
+  assert(array->objects[n]);
+  return &*array->objects[n];
+}
 
 #endif
