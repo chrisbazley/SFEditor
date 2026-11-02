@@ -181,6 +181,7 @@ set(SOURCES
     MapEdit.c
     MTransfers.c
     Smooth.c
+    SmoothUI.c
     EditWin.c
     MapEditSel.c
     MapEditChg.c
