@@ -28,13 +28,8 @@
 
 #include "flex.h"
 
-#include "Err.h"
-#include "msgtrans.h"
 #include "Macros.h"
-#include "FilePaths.h"
 #include "Utils.h"
-#include "Hourglass.h"
-#include "FileUtils.h"
 #include "SFError.h"
 #include "Debug.h"
 #include "Smooth.h"
@@ -67,7 +62,6 @@ enum {
   MinScore = NumAdjacent * ChangesMismatch,
   MaxScore = NumAdjacent * PerfectMatch,
   MinFuzzyScore = NumAdjacent * FuzzyMatch,
-  ErrBufferSize = 64,
 };
 
 /* array of TileSmoothData, in tile number order */
@@ -580,11 +574,6 @@ static SFError read_from_file(FILE *const file,
 
 /* ----------------- Public functions ---------------- */
 
-void MapTexGroups_edit(char const *const tiles_set)
-{
-  edit_file(TILEGROUPS_DIR, tiles_set);
-}
-
 void MapTexGroups_init(MapTexGroups *const groups_data)
 {
   assert(groups_data);
@@ -592,74 +581,70 @@ void MapTexGroups_init(MapTexGroups *const groups_data)
     .smooth_anchor = (void *)NULL, .count = 0, .ntiles = 0};
 }
 
-void MapTexGroups_load(MapTexGroups *const groups_data, char const *tiles_set,
-                       int const ntiles)
+SFError MapTexGroups_read(FILE *const file, MapTexGroups *const groups_data,
+  int const ntiles, char (*const err_buf)[MapTexGroupsErrBufferSize])
 {
-  _Optional char *const full_path = make_file_path_in_dir(
-                          CHOICES_READ_PATH TILEGROUPS_DIR, tiles_set);
-  if (!full_path) {
-    return;
-  }
+  assert(file);
+  assert(groups_data);
+  assert(err_buf);
 
   MapTexGroups_free(groups_data);
   MapTexGroups_init(groups_data);
+  (*err_buf)[0] = '\0';
 
-  char err_buf[ErrBufferSize] = "";
-  SFError err = SFERROR(OK);
+  /*
+    Make table for quick look-up of smoothing data for a given tile
+  */
+  if (!flex_alloc(&groups_data->smooth_anchor, ntiles * sizeof(TileSmoothData)))
+  {
+    return SFERROR(NoMem);
+  }
 
-  hourglass_on();
-  if (file_exists(&*full_path)) {
-    /*
-      Make table for quick look-up of smoothing data for a given tile
-    */
-    if (!flex_alloc(&groups_data->smooth_anchor,
-                    ntiles * sizeof(TileSmoothData))) {
-      err = SFERROR(NoMem);
-    } else {
-      /*
-        Mark all tiles with magic (reserved) group number
-      */
-      init_smooth_data(groups_data, ntiles);
+  /*
+    Mark all tiles with magic (reserved) group number
+  */
+  init_smooth_data(groups_data, ntiles);
 
-      unsigned char undef_group = UCHAR_MAX; /* default is to append undefined tiles to no group */
+  /*
+    First pass over file is to establish the maximum group number
+    (Cannot extend the pointers array using realloc() since the flex anchors
+    would be be invalidated)
+  */
+  groups_data->count = count_groups_in_file(file);
+  if (groups_data->count == 0)
+  {
+    return SFERROR(OK);
+  }
 
-      DEBUG("Opening tile groups file '%s'", &*full_path);
-      _Optional FILE *const file = fopen(&*full_path, "r");
-      if (file == NULL) {
-        err = SFERROR(OpenInFail);
-      } else {
-        /*
-          First pass over file is to establish the maximum group number
-          (Cannot extend the pointers array using realloc() since the flex anchors
-          would be be invalidated)
-        */
-        groups_data->count = count_groups_in_file(&*file);
-        if (groups_data->count > 0) {
-          groups_data->array = alloc_groups(groups_data->count);
-          if (groups_data->array == NULL) {
-            err = SFERROR(NoMem);
-          } else {
-            /*
-              Second pass over file is to actually read the smoothing data
-            */
-            fseek(&*file, 0, SEEK_SET); /* back to beginning of file */
-            err = read_from_file(&*file, groups_data, &undef_group, ntiles, err_buf);
-          }
-        } /* endif (groups_data->count > 0) */
-        fclose(&*file);
-      }
+  groups_data->array = alloc_groups(groups_data->count);
+  if (!groups_data->array)
+  {
+    return SFERROR(NoMem);
+  }
 
-      if (!SFError_fail(err) && undef_group != UCHAR_MAX) {
-        if (!add_undef_to_group(groups_data, undef_group, ntiles)) {
-          err = SFERROR(NoMem);
-        }
-      }
+  /*
+    Second pass over file is to actually read the smoothing data
+  */
+  if (fseek(file, 0, SEEK_SET)) /* back to beginning of file */
+  {
+    return SFERROR(BadSeek);
+  }
+  unsigned char undef_group = UCHAR_MAX; /* default is to append undefined tiles to no group */
+  SFError const err = read_from_file(file, groups_data, &undef_group, ntiles, *err_buf);
+  if (SFError_fail(err))
+  {
+    return err;
+  }
+
+  if (undef_group != UCHAR_MAX)
+  {
+    if (!add_undef_to_group(groups_data, undef_group, ntiles))
+    {
+      return SFERROR(NoMem);
     }
   }
-  hourglass_off();
 
-  report_error(err, &*full_path, err_buf);
-  free(full_path);
+  return SFERROR(OK);
 }
 
 int MapTexGroups_get_count(MapTexGroups const *const groups_data)

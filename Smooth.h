@@ -7,6 +7,9 @@
 #ifndef Smooth_h
 #define Smooth_h
 
+#include <stdio.h>
+
+#include "SFError.h"
 #include "MapCoord.h"
 #include "MapEdit.h"
 #include "MapEditChg.h"
@@ -22,6 +25,12 @@ void MapTexGroups_init(MapTexGroups *groups_data);
 void MapTexGroups_smooth(MapEditContext const *map,
   MapTexGroups *groups_data, MapPoint map_pos,
   _Optional MapEditChanges *change_info);
+
+enum { MapTexGroupsErrBufferSize = 64 };
+
+/* Read definitions from a seekable stream into initialised groups_data. */
+SFError MapTexGroups_read(FILE *file, MapTexGroups *groups_data,
+  int ntiles, char (*err_buf)[MapTexGroupsErrBufferSize]);
 
 void MapTexGroups_edit(const char *tiles_set);
 
