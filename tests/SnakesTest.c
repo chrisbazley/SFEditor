@@ -69,6 +69,33 @@ static void load_definition(Snakes *snakes, int side)
   assert(fclose(&*file) == 0);
 }
 
+static FILE *open_many(int count)
+{
+  _Optional FILE *const file = tmpfile();
+  assert(file);
+
+  for (int i = 0; i < count; ++i)
+  {
+    assert(fprintf(&*file, "StartSnake 'Snake%d'\nEndSnake\n", i) > 0);
+  }
+
+  rewind(&*file);
+  return &*file;
+}
+
+static void check_names(Snakes const *snakes, int count)
+{
+  assert(Snakes_get_count(snakes) == count);
+
+  for (int i = 0; i < count; ++i)
+  {
+    char actual[NameSize], expected[NameSize];
+    assert(snprintf(expected, sizeof(expected), "Snake%d", i) > 0);
+    Snakes_get_name(snakes, i, actual, NameSize);
+    assert(strcmp(actual, expected) == 0);
+  }
+}
+
 static void test1(void)
 {
   /* Initial snake count */
@@ -139,6 +166,68 @@ static void test4(void)
   Snakes_free(&snakes);
 }
 
+static void test5(void)
+{
+  /* Snake storage growth */
+
+  Snakes snakes;
+  Snakes_init(&snakes);
+  FILE *const file = open_many(17);
+  char error[ErrBufferSize];
+
+  assert(!SFError_fail(Snakes_load(file, &snakes, TileCount, error)));
+
+  check_names(&snakes, 17);
+
+  assert(fclose(file) == 0);
+  Snakes_free(&snakes);
+}
+
+#ifdef FORTIFY
+static void test6(void)
+{
+  /* Snake allocation failures preserve loaded prefix */
+
+  bool succeeded = false;
+
+  for (unsigned long limit = 0; limit < 16; ++limit)
+  {
+    FILE *const file = open_many(9);
+    Snakes snakes;
+    Snakes_init(&snakes);
+    char error[ErrBufferSize];
+
+    Fortify_SetNumAllocationsLimit(limit);
+    SFError const err = Snakes_load(file, &snakes, TileCount, error);
+    Fortify_SetNumAllocationsLimit(ULONG_MAX);
+
+    if (SFError_fail(err))
+    {
+      assert(err.type == SFErrorType_NoMem);
+      assert(Snakes_get_count(&snakes) < 9);
+      check_names(&snakes, Snakes_get_count(&snakes));
+      assert(error[0] != '\0');
+    }
+    else
+    {
+      check_names(&snakes, 9);
+      succeeded = true;
+    }
+
+    Snakes_free(&snakes);
+    assert(fclose(file) == 0);
+
+    if (succeeded)
+    {
+      break;
+    }
+  }
+
+  assert(succeeded);
+}
+
+#endif
+
 void Snakes_tests(void)
 {
   /* Snakes */
@@ -153,6 +242,10 @@ void Snakes_tests(void)
     { "Full snake definition", test2 },
     { "Bounded snake name", test3 },
     { "Zero-capacity snake name", test4 },
+    { "Snake storage growth", test5 },
+#ifdef FORTIFY
+    { "Snake allocation failures preserve loaded prefix", test6 },
+#endif
   };
 
   for (size_t count = 0; count < ARRAY_SIZE(unit_tests); ++count)

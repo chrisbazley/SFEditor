@@ -277,7 +277,7 @@ static bool add_snake(Snakes *const snakes_data, SnakeDefinition *const snake)
     int const size = flex_size(&snakes_data->data_anchor);
     if (snakes_data->count * sizeof(SnakeDefinition) >= (unsigned)size) {
       success = flex_extend(&snakes_data->data_anchor,
-                            size * SnakesArrayGrowthFactor * (int)sizeof(SnakeDefinition));
+                            size * SnakesArrayGrowthFactor);
     }
   }
 
