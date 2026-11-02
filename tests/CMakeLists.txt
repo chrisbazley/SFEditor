@@ -9,7 +9,7 @@ set(loader_sources
     ObjPolygon MapAnims Mission Player Triggers Infos Ships Paths Briefing Text
     Filenames Clouds Defenc FPerf BPerf Pyram CoarseCoord DataUtils
     Snakes Smooth MapEditChg ObjEditChg InfoEditChg MapLayout ObjLayout
-    MapEdit ObjectsEdit InfoEdit)
+    MapEdit ObjectsEdit InfoEdit DFileUtils FilePaths)
 set(loader_files)
 foreach(source IN LISTS loader_sources)
     list(APPEND loader_files "${PROJECT_SOURCE_DIR}/${source}.c")
@@ -23,7 +23,7 @@ add_executable(SFEditorTests
     SnakesTest.c SmoothTest.c EditChangesTest.c
     MapEditTest.c ObjectsEditTest.c
     InfoEditTest.c
-    MissionTest.c DFileTest.c
+    MissionTest.c DFileTest.c DFileUtilsTest.c FilePathsTest.c
     ShipsTest.c MapAnimsTest.c
     ObjVertexTest.c TriggersTest.c
     DataUtilsTest.c InfosTest.c
@@ -57,7 +57,7 @@ set_source_files_properties(
     SnakesTest.c SmoothTest.c EditChangesTest.c
     MapEditTest.c ObjectsEditTest.c
     InfoEditTest.c
-    MissionTest.c DFileTest.c
+    MissionTest.c DFileTest.c DFileUtilsTest.c FilePathsTest.c
     ShipsTest.c MapAnimsTest.c
     ObjVertexTest.c TriggersTest.c
     DataUtilsTest.c InfosTest.c
