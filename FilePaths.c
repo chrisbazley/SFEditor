@@ -115,7 +115,10 @@ DataType file_type_to_data_type(int const file_type, char const *const filename)
   if (file_type == FileType_SFMapAni) {
     /* More tricky to work out whether session type should be map or mission
        in case of animations (same file type) */
-    if (strnicmp(pathtail(filename, 3), BASE_DIR, strlen(BASE_DIR)) == 0) {
+    char const *const directory = pathtail(filename, 3);
+    if ((strnicmp(directory, BASE_DIR, strlen(BASE_DIR)) == 0) &&
+        (directory[strlen(BASE_DIR)] == DIR_SEP[0]))
+    {
       data_type = DataType_BaseMapAnimations;
     } else {
       data_type = DataType_OverlayMapAnimations;
