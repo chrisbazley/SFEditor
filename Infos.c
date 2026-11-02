@@ -382,10 +382,12 @@ size_t target_infos_get_text_count(TargetInfosData const *const target_infos)
   return target_infos_get_count(target_infos) * TargetInfoTextIndex_Count;
 }
 
-_Optional TargetInfo *target_info_from_index(TargetInfosData const *const target_infos,
+TargetInfo *target_info_from_index(TargetInfosData const *const target_infos,
   size_t const index)
 {
-  return intdict_get_value_at(&target_infos->dict, index);
+  TargetInfo *const info = (TargetInfo *)intdict_get_value_at(&target_infos->dict, index);
+  assert(info);
+  return info;
 }
 
 void target_infos_write_pad(TargetInfosData *const target_infos, Writer *const writer)
