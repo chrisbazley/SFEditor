@@ -58,7 +58,7 @@ size_t target_info_delete(TargetInfo *info);
 size_t target_infos_get_count(TargetInfosData const *target_infos);
 size_t target_infos_get_text_count(TargetInfosData const *target_infos);
 
-_Optional TargetInfo *target_info_from_index(TargetInfosData const *target_infos, size_t index);
+TargetInfo *target_info_from_index(TargetInfosData const *target_infos, size_t index);
 
 SFError target_infos_read(TargetInfosData *target_infos,
   struct Reader *reader);
