@@ -16,6 +16,8 @@
 #include "../Smooth.h"
 #include "../SmoothData.h"
 #include "../MapEditCtx.h"
+#include "../Map.h"
+#include "../DFile.h"
 
 enum { TileCount = 32, GridSize = 3 };
 
@@ -24,30 +26,41 @@ static struct
   MapEditContext map;
   unsigned char cells[GridSize][GridSize], before[GridSize][GridSize];
   unsigned writes;
-  _Optional MapEditChanges *changes;
+  _Optional MapData *data;
 } fixture;
 
-/* Only the map-access boundary is substituted. The smoothing implementation
- * never accesses MapEditContext members; this object supplies its identity. */
-MapRef MapEdit_read_tile(MapEditContext const *map, MapPoint pos)
+static void redraw(MapArea const *area, struct EditSession *session)
 {
-  assert(map == &fixture.map);
-  assert(pos.x >= 0);
-  assert(pos.x < GridSize);
-  assert(pos.y >= 0);
-  assert(pos.y < GridSize);
-  return map_ref_from_num(fixture.cells[pos.y][pos.x]);
+  assert(session == fixture.map.session);
+  assert(area->min.x == 1);
+  assert(area->min.y == 1);
+  assert(area->max.x == 1);
+  assert(area->max.y == 1);
+  ++fixture.writes;
 }
 
-void MapEdit_write_tile(MapEditContext const *map, MapPoint pos, MapRef tile,
-  _Optional MapEditChanges *changes)
+/* The session pointer is passed back as an opaque callback cookie. */
+static void smooth(MapTexGroups *groups, _Optional MapEditChanges *changes)
 {
-  assert(map == &fixture.map);
-  assert(pos.x == 1);
-  assert(pos.y == 1);
-  fixture.cells[pos.y][pos.x] = map_ref_to_num(tile);
-  ++fixture.writes;
-  fixture.changes = changes;
+  assert(fixture.data);
+  MapData *const data = &*fixture.data;
+  for (MapCoord y = 0; y < GridSize; ++y)
+  {
+    for (MapCoord x = 0; x < GridSize; ++x)
+    {
+      map_set_tile(data, (MapPoint){x, y}, map_ref_from_num(fixture.cells[y][x]));
+    }
+  }
+
+  MapTexGroups_smooth(&fixture.map, groups, (MapPoint){1, 1}, changes);
+
+  for (MapCoord y = 0; y < GridSize; ++y)
+  {
+    for (MapCoord x = 0; x < GridSize; ++x)
+    {
+      fixture.cells[y][x] = map_ref_to_num(map_get_tile(data, (MapPoint){x, y}));
+    }
+  }
 }
 
 static void init_grid(unsigned char centre, unsigned char neighbour)
@@ -62,7 +75,13 @@ static void init_grid(unsigned char centre, unsigned char neighbour)
   fixture.cells[1][1] = centre;
   memcpy(fixture.before, fixture.cells, sizeof(fixture.before));
   fixture.writes = 0;
-  fixture.changes = NULL;
+  fixture.data = map_create_overlay();
+  assert(fixture.data);
+  fixture.map = (MapEditContext){
+    .overlay = &*fixture.data,
+    .redraw_cb = redraw,
+    .session = (struct EditSession *)&fixture,
+  };
 }
 
 static void check_grid(unsigned centre, unsigned writes)
@@ -81,6 +100,9 @@ static void check_grid(unsigned centre, unsigned writes)
       assert(fixture.cells[y][x] == fixture.before[y][x]);
     }
   }
+  assert(fixture.data);
+  dfile_release(map_get_dfile(&*fixture.data));
+  fixture.data = NULL;
 }
 
 static FILE *open_text(char const *text)
@@ -164,7 +186,7 @@ static void edge_case(int candidate, int ideal, unsigned char expected)
   assert(fclose(&*file) == 0);
   init_grid(0, 10);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   check_grid(expected, expected == 0 ? 0 : 1);
   MapTexGroups_free(&groups);
@@ -443,7 +465,7 @@ static void test28(void)
     }
     memcpy(fixture.before, fixture.cells, sizeof(fixture.before));
 
-    MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+    smooth(&groups, NULL);
 
     check_grid(part == 0 ? 0 : part + 1, part == 0 ? 0 : 1);
   }
@@ -459,7 +481,7 @@ static void test29(void)
   load_patterns(&groups);
   init_grid(16, 17);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   check_grid(16, 0);
   MapTexGroups_free(&groups);
@@ -474,7 +496,7 @@ static void test30(void)
   load_patterns(&groups);
   init_grid(19, 17);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   check_grid(19, 0);
   MapTexGroups_free(&groups);
@@ -489,7 +511,7 @@ static void test31(void)
   load_patterns(&groups);
   init_grid(20, 17);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   check_grid(20, 0);
   MapTexGroups_free(&groups);
@@ -504,7 +526,7 @@ static void test32(void)
   load_patterns(&groups);
   init_grid(255, 17);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   check_grid(255, 0);
   MapTexGroups_free(&groups);
@@ -519,7 +541,7 @@ static void test33(void)
   load_patterns(&groups);
   init_grid(100, 17);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   check_grid(100, 0);
   MapTexGroups_free(&groups);
@@ -534,7 +556,7 @@ static void test34(void)
   load_patterns(&groups);
   init_grid(0, 255);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   check_grid(0, 0);
   MapTexGroups_free(&groups);
@@ -549,7 +571,7 @@ static void test35(void)
   load_patterns(&groups);
   init_grid(0, 100);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   check_grid(0, 0);
   MapTexGroups_free(&groups);
@@ -563,7 +585,7 @@ static void test36(void)
   MapTexGroups_init(&groups);
   init_grid(0, 17);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   check_grid(0, 0);
   MapTexGroups_free(&groups);
@@ -578,7 +600,7 @@ static void test37(void)
   load_text(&groups, "");
   init_grid(0, 17);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   check_grid(0, 0);
   MapTexGroups_free(&groups);
@@ -650,7 +672,7 @@ static void test46(void)
     "StartGroup 1\n1:0,1,1,1,1\nEndGroup\n");
   init_grid(0, 1);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   check_grid(0, 0);
   MapTexGroups_free(&groups);
@@ -667,10 +689,10 @@ static void test47(void)
   MapEditChanges changes;
   MapEditChanges_init(&changes);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, &changes);
+  smooth(&groups, &changes);
 
   check_grid(16, 1);
-  assert(fixture.changes == &changes);
+  assert(changes.tiles_changed == 1);
   MapTexGroups_free(&groups);
 }
 
@@ -713,7 +735,7 @@ static void test50(void)
     "2:0,1,1,1,1\nEndGroup\nStartGroup 1\n10:0,1,1,1,1\nEndGroup\n");
   init_grid(0, 10);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   check_grid(2, 1);
   MapTexGroups_free(&groups);
@@ -729,7 +751,7 @@ static void test51(void)
     "StartGroup 1\n10:0,1,1,1,1\nEndGroup\nStartGroup 2\nEndGroup\n");
   init_grid(0, 10);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   check_grid(1, 1);
   MapTexGroups_free(&groups);
@@ -745,7 +767,7 @@ static void test52(void)
     "2:0,1,1,1,1\nEndGroup\nStartGroup 1\n10:0,1,1,1,1\nEndGroup\n");
   init_grid(0, 10);
 
-  MapTexGroups_smooth(&fixture.map, &groups, (MapPoint){1, 1}, NULL);
+  smooth(&groups, NULL);
 
   unsigned char const replacement = fixture.cells[1][1];
   assert(replacement >= 1);

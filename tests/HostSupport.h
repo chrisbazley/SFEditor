@@ -2,5 +2,8 @@
 #ifndef HostSupport_h
 #define HostSupport_h
 #include <stdbool.h>
+#include "../SFError.h"
 void host_set_palette(bool bright);
+void host_expect_error(SFErrorType type);
+void host_check_error(void);
 #endif

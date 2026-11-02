@@ -15,6 +15,7 @@ void Defenc_tests(void);
 void Snakes_tests(void);
 void Smooth_tests(void);
 void EditChanges_tests(void);
+void MapEdit_tests(void);
 void ObjectsEdit_tests(void);
 void Mission_tests(void);
 void DFile_tests(void);
