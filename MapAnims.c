@@ -438,6 +438,35 @@ SFError MapAnims_add(ConvAnimations *const anims, _Optional MapData *const write
   return add_anim(anims, write_map, &anim_templ);
 }
 
+size_t MapAnims_replace(ConvAnimations *const anims, MapPoint const map_pos,
+  MapAnimParam const param)
+{
+  MapAnimsIter iter;
+  MapArea const area = {map_pos, map_pos};
+  MapAnimsIter_get_first(&iter, anims, &area, NULL);
+  if (!iter.anim)
+  {
+    return 0;
+  }
+
+  MapAnim *const anim = &*iter.anim;
+  anim->param = param;
+  calc_current_frame(anims, anim);
+
+  /* Preserve the previous replacement behaviour: remove any other entries
+     at this location. */
+  size_t replaced = 1;
+  for (MapAnimsIter_get_next(&iter, NULL); !MapAnimsIter_done(&iter);
+       MapAnimsIter_get_next(&iter, NULL))
+  {
+    MapAnimsIter_del_current(&iter);
+    ++replaced;
+  }
+
+  update_anims_map(anims, anim->coords, true);
+  return replaced;
+}
+
 bool MapAnims_check_locn(ConvAnimations *const anims, MapPoint const map_pos)
 {
   return check_wrapped(anims, map_wrap_coords(map_pos));

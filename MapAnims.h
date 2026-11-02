@@ -47,6 +47,9 @@ extern bool fixed_last_anims_load; /* a bit of a hack */
 SFError MapAnims_add(ConvAnimations *anims, _Optional MapData *write_map,
   MapPoint map_pos, MapAnimParam param);
 
+/* Replace existing animations without allocating; return the number replaced. */
+size_t MapAnims_replace(ConvAnimations *anims, MapPoint map_pos, MapAnimParam param);
+
 bool MapAnims_get(ConvAnimations *anims, MapPoint map_pos,
   MapAnimParam *param);
 

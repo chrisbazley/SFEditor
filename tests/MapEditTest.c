@@ -679,7 +679,97 @@ static void test31(void)
   destroy();
 }
 
+static void test32(void)
+{
+  /* Animation replacement requires no allocation */
+
+  init();
+  assert(!SFError_fail(MapAnims_add(fixture.anims, NULL, fixture.probe, param())));
+  assert(!SFError_fail(MapAnims_add(fixture.anims, NULL, (MapPoint){6, 7}, param())));
+  MapAnimParam replacement = param();
+  replacement.period = 7;
+  fixture.changes = (MapEditChanges){.tiles_changed = 3, .anims_added = 4,
+    .anims_changed = 5, .anims_deleted = 6};
+
+  Fortify_SetNumAllocationsLimit(0);
+  bool const success = MapEdit_write_anim(&fixture.map, fixture.probe,
+    replacement, &fixture.changes);
+  Fortify_SetNumAllocationsLimit(ULONG_MAX);
+
+  assert(success);
+  assert(MapEdit_count_anims(&fixture.map) == 2);
+  check_param(fixture.probe, replacement);
+  check_param((MapPoint){6, 7}, param());
+  check_rect(fixture.overlay, MapArea_make_invalid(), 0, Map_RefMask);
+  check_changes((MapEditChanges){.tiles_changed = 3, .anims_added = 5,
+    .anims_changed = 5, .anims_deleted = 7});
+  assert(fixture.before_count == 0);
+  assert(fixture.redraw_count == 0);
+  destroy();
+}
+
 #endif
+
+static void test33(void)
+{
+  /* Animation replacement at capacity */
+
+  init();
+  for (MapCoord x = 0; x < AnimsMax; ++x)
+  {
+    assert(!SFError_fail(MapAnims_add(fixture.anims, NULL, (MapPoint){x, 7}, param())));
+  }
+  MapAnimParam replacement = param();
+  replacement.period = 7;
+
+  assert(MapEdit_write_anim(&fixture.map, fixture.probe, replacement, &fixture.changes));
+
+  assert(MapEdit_count_anims(&fixture.map) == AnimsMax);
+  for (MapCoord x = 0; x < AnimsMax; ++x)
+  {
+    check_param((MapPoint){x, 7}, x == fixture.probe.x ? replacement : param());
+  }
+  check_changes((MapEditChanges){.anims_added = 1, .anims_deleted = 1});
+  destroy();
+}
+
+static void test34(void)
+{
+  /* Animation replacement recalculates playback position */
+
+  init();
+  assert(!SFError_fail(MapAnims_add(fixture.anims, NULL, fixture.probe, param())));
+  (void)MapEdit_update_anims(&fixture.map, 7, NULL);
+  MapAnimParam replacement = param();
+  replacement.period = 1;
+
+  assert(MapEdit_write_anim(&fixture.map, fixture.probe, replacement, &fixture.changes));
+  MapEdit_anims_to_map(&fixture.map, &fixture.changes);
+
+  assert(map_ref_to_num(MapEdit_read_tile(&fixture.map, fixture.probe)) == 7);
+  (void)MapEdit_update_anims(&fixture.map, 1, NULL);
+  assert(map_ref_to_num(MapEdit_read_tile(&fixture.map, fixture.probe)) == 4);
+  destroy();
+}
+
+static void test35(void)
+{
+  /* Animation replacement removes duplicates */
+
+  init();
+  assert(!SFError_fail(MapAnims_add(fixture.anims, NULL, fixture.probe, param())));
+  assert(!SFError_fail(MapAnims_add(fixture.anims, NULL, fixture.probe, param())));
+  MapAnimParam replacement = param();
+  replacement.period = 7;
+
+  assert(MapEdit_write_anim(&fixture.map, fixture.probe, replacement, &fixture.changes));
+
+  assert(MapEdit_count_anims(&fixture.map) == 1);
+  check_param(fixture.probe, replacement);
+  assert(MapAnims_check_locn(fixture.anims, fixture.probe));
+  check_changes((MapEditChanges){.anims_added = 1, .anims_deleted = 2});
+  destroy();
+}
 
 void MapEdit_tests(void)
 {
@@ -720,8 +810,12 @@ void MapEdit_tests(void)
     { "Animation reset restores first frame", test28 },
     { "Map editing without animation data", test29 },
     { "Smooth selected map cells", test30 },
+    { "Animation replacement at capacity", test33 },
+    { "Animation replacement recalculates playback position", test34 },
+    { "Animation replacement removes duplicates", test35 },
 #ifdef FORTIFY
     { "Animation allocation failure leaves map unchanged", test31 },
+    { "Animation replacement requires no allocation", test32 },
 #endif
   };
 

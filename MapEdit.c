@@ -620,13 +620,17 @@ bool MapEdit_write_anim(MapEditContext const *const map,
                         _Optional MapEditChanges *const change_info)
 {
   assert(map != NULL);
-  wipe_anim(map, map_pos, change_info);
-
   if (map->anims)
   {
-    if (report_error(MapAnims_add(&*map->anims, get_write_map(map), map_pos, param), "", ""))
+    size_t const replaced = MapAnims_replace(&*map->anims, map_pos, param);
+    if ((replaced == 0) && report_error(MapAnims_add(&*map->anims, get_write_map(map), map_pos, param), "", ""))
     {
       return false;
+    }
+
+    for (size_t i = 0; i < replaced; ++i)
+    {
+      MapEditChanges_delete_anim(change_info);
     }
     MapEditChanges_add_anim(change_info);
   }
