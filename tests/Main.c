@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
     { "Player", Player_tests },
     { "Defenc", Defenc_tests },
     { "Snakes", Snakes_tests },
+    { "Smooth", Smooth_tests },
     { "EditChanges", EditChanges_tests },
     { "Mission", Mission_tests },
     { "DFile", DFile_tests },
