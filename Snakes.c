@@ -1026,14 +1026,14 @@ int Snakes_get_count(const Snakes *const snakes_data)
 }
 
 void Snakes_get_name(const Snakes *const snakes_data, int const snake,
-  char *const snake_name, int const n)
+  char *const snake_name, size_t const n)
 {
   assert(snakes_data != NULL);
   assert(snake < snakes_data->count);
   assert(snake_name != NULL);
 
   if (n > 0) {
-    int len = 0;
+    size_t len = 0;
     char *out = snake_name;
     SnakeDefinition const *const defs = snakes_data->data_anchor;
     char const *const in = defs[snake].name;

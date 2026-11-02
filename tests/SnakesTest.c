@@ -283,7 +283,7 @@ static void test3(void)
   Snakes_init(&snakes);
   load_definition(&snakes, -1);
 
-  for (int capacity = 1; capacity <= 5; ++capacity)
+  for (size_t capacity = 1; capacity <= 5; ++capacity)
   {
     char name[7] = {'L', '?', '?', '?', '?', '?', 'R'};
 

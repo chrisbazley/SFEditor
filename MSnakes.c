@@ -220,7 +220,7 @@ int MapSnakes_get_count(const MapSnakes *const snakes_data)
 }
 
 void MapSnakes_get_name(const MapSnakes *const snakes_data, int const snake,
-  char *const snake_name, int const n)
+  char *const snake_name, size_t const n)
 {
   Snakes_get_name(&snakes_data->super.obj, snake, snake_name, n);
 }

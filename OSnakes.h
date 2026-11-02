@@ -8,6 +8,7 @@
 #define OSnakes_h
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "MapCoord.h"
 #include "Snakes.h"
@@ -36,7 +37,7 @@ void ObjSnakes_init(ObjSnakes *snakes_data);
 int ObjSnakes_get_count(const ObjSnakes *snakes_data);
 
 void ObjSnakes_get_name(const ObjSnakes *snakes_data, int snake,
-  char *snake_name, int n);
+  char *snake_name, size_t n);
 
 long int ObjSnakes_get_pal_distance(const ObjSnakes *snakes_data, int snake);
 
