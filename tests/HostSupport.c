@@ -2,6 +2,7 @@
  * Copyright (C) 2026 Christopher Bazley
  */
 #include <stdbool.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -186,8 +187,30 @@ flex_ptr memcpy_flex(flex_ptr dst, flex_ptr src, size_t n)
     return dst;
 }
 
+static bool expecting_error;
+static SFErrorType expected_error;
+
+void host_expect_error(SFErrorType type)
+{
+    assert(!expecting_error);
+    expected_error = type;
+    expecting_error = true;
+}
+
+void host_check_error(void)
+{
+    assert(!expecting_error);
+}
+
 bool report_error(SFError err, char const *path, char const *extra)
 {
+    if (!SFError_fail(err)) {
+        return false;
+    }
+    if (expecting_error && err.type == expected_error) {
+        expecting_error = false;
+        return true;
+    }
     (void)path;
     (void)extra;
     fprintf(stderr, "Unexpected test error: %d\n", (int)err.type);
