@@ -153,7 +153,7 @@ jobs:
             per_view_select: "ON"
 
     env:
-      OPTIONAL_CLANG_TAG: v1.0.12-optional
+      OPTIONAL_CLANG_TAG: v1.0.14-optional
       OPTIONAL_CLANG_PLATFORM: linux-x86_64
       GH_TOKEN: ${{ github.token }}
 
@@ -222,6 +222,7 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_C_COMPILER="$OPTIONAL_CLANG_ROOT/bin/clang" \
+            -DCMAKE_C_FLAGS="-Werror=null-to-nonoptional -Werror=implicit-null-initialization" \
             -DCLANG_TIDY_EXE="$OPTIONAL_CLANG_ROOT/bin/clang-tidy" \
             -DWARNINGS_AS_ERRORS=ON \
             -DUSE_OPTIONAL=ON \
