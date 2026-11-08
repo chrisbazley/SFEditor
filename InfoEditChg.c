@@ -19,6 +19,8 @@
  */
 
 #include "stdio.h"
+#include "stdlib.h"
+#include "strb.h"
 
 #include "msgtrans.h"
 #include "Debug.h"
@@ -39,8 +41,10 @@ void InfoEditChanges_init(InfoEditChanges *const change_info)
 
 _Optional char *InfoEditChanges_get_message(const InfoEditChanges *const change_info)
 {
-  char infos_added_str[24], infos_changed_str[24],
-       infos_deleted_str[24], token[sizeof(TOKEN_STEM "ACK")];
+  STRB_DECL_FIXED(infos_added_str, 23);
+  STRB_DECL_FIXED(infos_changed_str, 23);
+  STRB_DECL_FIXED(infos_deleted_str, 23);
+  STRB_DECL_FIXED(token, sizeof(TOKEN_STEM "ACK") - 1);
   char const *sub[3];
 
   if (!InfoEditChanges_is_changed(change_info)) {
@@ -48,36 +52,44 @@ _Optional char *InfoEditChanges_get_message(const InfoEditChanges *const change_
     return NULL;
   }
 
-  sprintf(token, TOKEN_STEM "%s%s%s",
-           change_info->infos_added ? "A" : "",
-           change_info->infos_changed ? "C" : "",
-           change_info->infos_deleted ? "K" : "");
+  if (strb_printf(token, TOKEN_STEM "%s%s%s",
+                  change_info->infos_added ? "A" : "",
+                  change_info->infos_changed ? "C" : "",
+                  change_info->infos_deleted ? "K" : "")) {
+    abort();
+  }
 
   size_t p = 0;
 
   if (change_info->infos_added) {
-    sprintf(infos_added_str, "%lu",
-             change_info->infos_added);
-    sub[p++] = infos_added_str;
+    if (strb_printf(infos_added_str, "%lu",
+                    change_info->infos_added)) {
+      abort();
+    }
+    sub[p++] = strb_cptr(infos_added_str);
   } else {
     sub[p++] = "";
   }
 
   if (change_info->infos_changed) {
-    sprintf(infos_changed_str, "%lu",
-             change_info->infos_changed);
-    sub[p++] = infos_changed_str;
+    if (strb_printf(infos_changed_str, "%lu",
+                    change_info->infos_changed)) {
+      abort();
+    }
+    sub[p++] = strb_cptr(infos_changed_str);
   } else {
     sub[p++] = "";
   }
 
   if (change_info->infos_deleted) {
-    sprintf(infos_deleted_str, "%lu",
-             change_info->infos_deleted);
-    sub[p++] = infos_deleted_str;
+    if (strb_printf(infos_deleted_str, "%lu",
+                    change_info->infos_deleted)) {
+      abort();
+    }
+    sub[p++] = strb_cptr(infos_deleted_str);
   } else {
     sub[p++] = "";
   }
 
-  return msgs_lookup_subn(token, p, sub[0], sub[1], sub[2]);
+  return msgs_lookup_subn(strb_cptr(token), p, sub[0], sub[1], sub[2]);
 }

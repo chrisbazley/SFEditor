@@ -34,7 +34,7 @@
 #include "msgtrans.h"
 #include "PathTail.h"
 #include "GadgetUtil.h"
-#include "StringBuff.h"
+#include "strb.h"
 #include "EventExtra.h"
 
 #include "SFError.h"
@@ -291,16 +291,15 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
     STRCPY_SAFE(special_ship_data->polygonal_objects_set,
                 filenames_get(filenames, DataType_PolygonMeshes));
 
-    StringBuffer ships_stringset;
-    stringbuffer_init(&ships_stringset);
-    if (!build_ships_stringset(&ships_stringset, special_ship_data->polygonal_objects_set,
+    STRB_DECL_ALLOC(ships_stringset, 0);
+    if (!build_ships_stringset(ships_stringset, special_ship_data->polygonal_objects_set,
                                true, true, false, false)) {
       report_error(SFERROR(NoMem), "", "");
     } else {
       E(stringset_set_available(0, id_block->self_id,
-                 ComponentId_SHIPTYPE, stringbuffer_get_pointer(&ships_stringset)));
+                 ComponentId_SHIPTYPE, strb_cptr(ships_stringset)));
     }
-    stringbuffer_destroy(&ships_stringset);
+    strb_free(ships_stringset);
   }
 
   setup_win(special_ship_data->session, id_block->self_id);

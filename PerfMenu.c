@@ -74,21 +74,20 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 
   STRCPY_SAFE(graphics_set, filenames_get(filenames, DataType_PolygonMeshes));
 
-  StringBuffer ship_name;
-  stringbuffer_init(&ship_name);
+  STRB_DECL_ALLOC(ship_name, 0);
 
   for (ShipType ship_no = ShipType_Fighter1;
        ship_no <= ShipType_Fighter4;
        ship_no++)
   {
-    if (!get_shipname_from_type(&ship_name, graphics_set, ship_no))
+    if (!get_shipname_from_type(ship_name, graphics_set, ship_no))
     {
       report_error(SFERROR(NoMem), "", "");
       break;
     }
 
     if (E(menu_set_entry_text(0, id_block->self_id, (ComponentId)ship_no,
-           msgs_lookup_subn("PerfMenuEntry", 1, stringbuffer_get_pointer(&ship_name)))))
+           msgs_lookup_subn("PerfMenuEntry", 1, strb_cptr(ship_name)))))
     {
       break;
     }
@@ -98,20 +97,20 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
        ship_no <= ShipType_Big3;
        ship_no++)
   {
-    if (!get_shipname_from_type(&ship_name, graphics_set, ship_no))
+    if (!get_shipname_from_type(ship_name, graphics_set, ship_no))
     {
       report_error(SFERROR(NoMem), "", "");
       break;
     }
 
     if (E(menu_set_entry_text(0, id_block->self_id, (ComponentId)ship_no,
-            msgs_lookup_subn("PerfMenuEntry", 1, stringbuffer_get_pointer(&ship_name)))))
+            msgs_lookup_subn("PerfMenuEntry", 1, strb_cptr(ship_name)))))
     {
       break;
     }
   }
 
-  stringbuffer_destroy(&ship_name);
+  strb_free(ship_name);
   return 1; /* claim event */
 }
 

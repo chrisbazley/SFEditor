@@ -9,22 +9,22 @@
 
 #include <stdbool.h>
 
-#include "StringBuff.h"
+#include "strb.h"
 #include "Ships.h"
 #include "Obj.h"
 
-bool get_shipname_from_type(StringBuffer *output_string,
+bool get_shipname_from_type(strb_t *output_string,
   char const *graphics_set, ShipType shipnum);
 
-bool get_objname_from_type(StringBuffer *output_string,
+bool get_objname_from_type(strb_t *output_string,
   char const *graphics_set, ObjRef obj_no);
 
-bool build_ships_stringset(StringBuffer *output_string,
+bool build_ships_stringset(strb_t *output_string,
   char const *graphics_set,
   bool include_player, bool include_fighters,
   bool include_bigships, bool include_satellite);
 
-bool build_objs_stringset(StringBuffer *output_string,
+bool build_objs_stringset(strb_t *output_string,
   char const *graphics_set,
   bool include_none, bool include_objects, bool include_clouds,
   bool include_hills, bool include_mask);

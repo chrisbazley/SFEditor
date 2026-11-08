@@ -8,12 +8,12 @@
 #define TextData_h
 
 #include "Text.h"
-#include "StringBuff.h"
+#include "strb.h"
 
 struct Text
 {
   TextParams params;
-  StringBuffer string;
+  _Optional strb_t *string;
 };
 
 #endif

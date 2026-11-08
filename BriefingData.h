@@ -11,9 +11,12 @@
 #ifndef BriefingData_h
 #define BriefingData_h
 
+#include "Briefing.h"
+#include "TextData.h"
+
 struct BriefingData {
   size_t count;
-  _Optional struct Text *texts;
+  Text texts[BriefingMax];
   char prefix[12];
   int line_count;
   unsigned char title_colour;

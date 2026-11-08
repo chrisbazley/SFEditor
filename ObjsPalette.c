@@ -271,16 +271,15 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
   NOT_USED(editor);
   NOT_USED(origin);
 
-  StringBuffer obj_name;
-  stringbuffer_init(&obj_name);
-  if (!get_objname_from_type(&obj_name, graphics_set, objects_ref_from_num(object_no)))
+  STRB_DECL_ALLOC(obj_name, 0);
+  if (!get_objname_from_type(obj_name, graphics_set, objects_ref_from_num(object_no)))
   {
     report_error(SFERROR(NoMem), "", "");
     return;
   }
   *truncated_name = '\0';
-  strncat(truncated_name, stringbuffer_get_pointer(&obj_name), MaxNameLen);
-  stringbuffer_destroy(&obj_name);
+  strncat(truncated_name, strb_cptr(obj_name), MaxNameLen);
+  strb_free(obj_name);
 
   int const width = truncate_string(truncated_name, bbox->xmax - bbox->xmin);
 

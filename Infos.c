@@ -301,7 +301,11 @@ SFError target_info_set_texts(TargetInfo *const info,
   char const *C23_CONST (*const strings)[TargetInfoTextIndex_Count])
 {
   assert(info);
-  TargetInfo replacement = *info;
+  TargetInfo replacement = {
+    .infos = info->infos,
+    .coords = info->coords,
+    .id = info->id,
+  };
   for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
        k < TargetInfoTextIndex_Count; ++k)
   {
@@ -322,16 +326,17 @@ SFError target_info_set_texts(TargetInfo *const info,
     }
   }
 
+  Text *const discarded = SFError_fail(err) ? replacement.texts : info->texts;
   for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
        k < TargetInfoTextIndex_Count; ++k)
   {
-    if (SFError_fail(err))
+    text_destroy(&discarded[k]);
+  }
+  if (!SFError_fail(err))
+  {
+    for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
+         k < TargetInfoTextIndex_Count; ++k)
     {
-      text_destroy(&replacement.texts[k]);
-    }
-    else
-    {
-      text_destroy(&info->texts[k]);
       info->texts[k] = replacement.texts[k];
     }
   }

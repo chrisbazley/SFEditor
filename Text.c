@@ -26,7 +26,7 @@
 #include "Macros.h"
 #include "Reader.h"
 #include "Writer.h"
-#include "StringBuff.h"
+#include "strb.h"
 
 #include "SFInit.h"
 #include "SFError.h"
@@ -138,7 +138,7 @@ static int decode_char(int const ch)
 void text_destroy(Text *const text)
 {
   assert(text != NULL);
-  stringbuffer_destroy(&text->string);
+  strb_free(text->string);
 }
 
 void text_init(Text *const text)
@@ -157,13 +157,12 @@ void text_init(Text *const text)
       .cursor_type = DefaultCursorType,
     }
   };
-  stringbuffer_init(&text->string);
 }
 
 char const *text_get_string(Text const *const text)
 {
   assert(text != NULL);
-  char const *const s = stringbuffer_get_pointer(&text->string);
+  char const *const s = text->string ? strb_cptr(&*text->string) : "";
   DEBUGF("Text string: '%s'\n", s);
   return s;
 }
@@ -172,25 +171,38 @@ SFError text_set_string(Text *const text, char const *const string)
 {
   assert(text != NULL);
   DEBUGF("Set text string '%s'\n", string);
-  stringbuffer_truncate(&text->string, 0);
-
   size_t const len = strlen(string);
-  size_t min_size = len + 1;
-  _Optional char *buf = stringbuffer_prepare_append(&text->string, &min_size);
-  if (!buf) {
-    stringbuffer_undo(&text->string);
+  _Optional strb_t *buffer = text->string;
+  if (!buffer)
+  {
+    if (!len)
+    {
+      return SFERROR(OK);
+    }
+    buffer = strb_alloc(len);
+    if (!buffer)
+    {
+      return SFERROR(NoMem);
+    }
+    text->string = &*buffer;
+  }
+  strb_t *const sb = &*buffer;
+  size_t const old_len = strb_len(sb);
+  // The position is at the end; reserve any growth before changing characters.
+  if (len > old_len && !strb_write(sb, len - old_len))
+  {
     return SFERROR(NoMem);
   }
+  char *const buf = strb_ptr(sb);
 
-  // Round trip to ensure stored string is representative
-  for (size_t i = 0; string[i] != '\0'; ++i) {
-    assert(i < len);
+  // Round trip to ensure stored string is representative.
+  for (size_t i = 0; i < len; ++i) {
     int const c = decode_char(encode_char(string[i]));
     buf[i] = (char)c;
     assert(c == buf[i]);
   }
 
-  stringbuffer_finish_append(&text->string, len);
+  strb_delto(sb, len);
   return SFERROR(OK);
 }
 
@@ -226,13 +238,14 @@ void text_write_offset(Text const *const text, Writer *const writer,
   assert(text != NULL);
   assert(offset != NULL);
   writer_fwrite_int32(*offset, writer);
-  *offset += BytesPerTextHeader + (int)WORD_ALIGN_SZ(stringbuffer_get_length(&text->string) + 1);
+  size_t const len = text->string ? strb_len(&*text->string) : 0;
+  *offset += BytesPerTextHeader + (int)WORD_ALIGN_SZ(len + 1);
 }
 
 void text_write_block(Text const *const text, Writer *const writer)
 {
   assert(text != NULL);
-  char const *const str = stringbuffer_get_pointer(&text->string);
+  char const *const str = text_get_string(text);
   size_t const str_size = strlen(str) + 1; /* for terminator */
 
   writer_fseek(writer, BytesPerAddresses, SEEK_CUR);
@@ -344,48 +357,61 @@ SFError text_read_block(Text *const text, Reader *const reader)
     return SFERROR(BadTextColour);
   }
 
-  stringbuffer_destroy(&text->string);
-
-  *text = (Text){
-    .params = {
-      .duration = duration,
-      .delay = delay,
-      .speed = speed,
-      .x_pos = (unsigned char)x_pos,
-      .y_pos = y_pos,
-      .y_clip = (unsigned char)y_clip,
-      .repeat = repeat,
-      .colour = (unsigned char)colour,
-      .cursor_type = cursor_type,
-    }
+  _Optional strb_t *buffer = text->string;
+  if (buffer)
+  {
+    strb_empty(&*buffer);
+  }
+  text->params = (TextParams){
+    .duration = duration,
+    .delay = delay,
+    .speed = speed,
+    .x_pos = (unsigned char)x_pos,
+    .y_pos = y_pos,
+    .y_clip = (unsigned char)y_clip,
+    .repeat = repeat,
+    .colour = (unsigned char)colour,
+    .cursor_type = cursor_type,
   };
 
   assert(x_pos == text->params.x_pos);
   assert(y_clip == text->params.y_clip);
   assert(colour == text->params.colour);
 
-  stringbuffer_init(&text->string);
-
-  for (int ch = decode_char(reader_fgetc(reader));
-       ch != '\0';
-       ch = decode_char(reader_fgetc(reader)))
+  int ch = decode_char(reader_fgetc(reader));
+  if (ch == EOF)
+  {
+    return SFERROR(ReadFail);
+  }
+  if (!ch)
+  {
+    return SFERROR(OK);
+  }
+  if (!buffer)
+  {
+    buffer = strb_alloc(0);
+    if (!buffer)
+    {
+      return SFERROR(NoMem);
+    }
+    text->string = &*buffer;
+  }
+  strb_t *const sb = &*buffer;
+  for (; ch != '\0'; ch = decode_char(reader_fgetc(reader)))
   {
     if (ch == EOF)
     {
       return SFERROR(ReadFail);
     }
 
-    char const tmp[2] = {(char)ch, '\0'};
-    assert(tmp[0] == ch);
-    if (!stringbuffer_append_all(&text->string, tmp))
+    if (strb_putc(sb, ch) == EOF)
     {
       return SFERROR(NoMem);
     }
   }
 
   DEBUGF("Finished reading %zu-character string, '%s', at %ld\n",
-         stringbuffer_get_length(&text->string),
-         stringbuffer_get_pointer(&text->string), reader_ftell(reader));
+         strb_len(sb), strb_cptr(sb), reader_ftell(reader));
 
   return SFERROR(OK);
 }

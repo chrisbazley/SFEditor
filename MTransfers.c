@@ -27,6 +27,8 @@
 #include <stdint.h>
 #include <inttypes.h>
 
+#include "strb.h"
+
 #include "kernel.h"
 #include "flex.h"
 
@@ -824,6 +826,7 @@ void MapTransfers_load_all(MapTransfers *const transfers_data,
   _Optional DirIterator *iter = NULL;
   _Optional const _kernel_oserror *e = diriterator_make(&iter, 0, &*dir, NULL);
   int const expected_ftype = data_type_to_file_type(DataType_MapTransfer);
+  STRB_DECL_ALLOC(path_buffer, 0);
   for (;
        !E(e) && iter && !diriterator_is_empty(&*iter);
        e = diriterator_advance(&*iter)) {
@@ -846,38 +849,31 @@ void MapTransfers_load_all(MapTransfers *const transfers_data,
     DEBUG("File name is '%s'", filename);
 
     /* Load tiles transfer */
-    size_t const n = diriterator_get_object_path_name(&*iter, NULL, 0);
     {
-      _Optional char *const full_path = malloc(n + 1);
-      if (!full_path) {
-        report_error(SFERROR(NoMem), "", "");
+      strb_empty(path_buffer);
+      if (E(diriterator_get_object_path_name_sb(&*iter, path_buffer))) {
         break;
       }
-      (void)diriterator_get_object_path_name(&*iter, &*full_path, n + 1);
+      char const *const full_path = strb_cptr(path_buffer);
 
       _Optional MapTransfer *const transfer = MapTransfer_create();
       if (!transfer) {
-        free(full_path);
         break;
       }
 
-      if (report_error(load_compressed(&transfer->dfile, &*full_path), &*full_path, "")) {
+      if (report_error(load_compressed(&transfer->dfile, full_path), full_path, "")) {
         dfile_release(&transfer->dfile);
-        free(full_path);
         break;
       }
 
       int tmp[2] = {0};
       memcpy(tmp, &info.date_stamp, sizeof(info.date_stamp));
 
-      if (!dfile_set_saved(&transfer->dfile, &*full_path, tmp)) {
+      if (!dfile_set_saved(&transfer->dfile, full_path, tmp)) {
         report_error(SFERROR(NoMem), "", "");
         dfile_release(&transfer->dfile);
-        free(full_path);
         break;
       }
-
-      free(full_path);
 
       if (!add_to_list(transfers_data, &*transfer, NULL)) {
         dfile_release(&transfer->dfile);
@@ -887,6 +883,7 @@ void MapTransfers_load_all(MapTransfers *const transfers_data,
   }
 
   DEBUG("Number of transfers in list is %d", transfers_data->count);
+  strb_free(path_buffer);
   diriterator_destroy(iter);
   hourglass_off();
 }

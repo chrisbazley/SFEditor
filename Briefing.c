@@ -25,7 +25,6 @@
 #include "Macros.h"
 #include "Reader.h"
 #include "Writer.h"
-#include "StringBuff.h"
 
 #include "Utils.h"
 #include "Text.h"
@@ -63,7 +62,6 @@ void briefing_init(BriefingData *const briefing)
   assert(briefing);
   *briefing = (BriefingData){
     .count = 0,
-    .texts = NULL,
     .line_count = TopMargin,
     .title_colour = TitleColour,
     .brief_colours = {BriefingColour1, BriefingColour2},
@@ -74,24 +72,15 @@ void briefing_init(BriefingData *const briefing)
 void briefing_destroy(BriefingData *const briefing)
 {
   assert(briefing);
-  if (!briefing->texts)
-  {
-    return;
-  }
   for (size_t i = 0; i < briefing->count; ++i) {
     text_destroy(&briefing->texts[i]);
   }
-  free(briefing->texts);
 }
 
 int briefing_write_text_offsets(BriefingData *const briefing, Writer *const writer,
   int offset)
 {
   assert(briefing);
-  if (!briefing->texts)
-  {
-    return offset;
-  }
 
   for (size_t i = 0; i < briefing->count; ++i)
   {
@@ -108,10 +97,6 @@ int briefing_write_text_offsets(BriefingData *const briefing, Writer *const writ
 void briefing_write_texts(BriefingData *const briefing, Writer *const writer)
 {
   assert(briefing);
-  if (!briefing->texts)
-  {
-    return;
-  }
 
   for (size_t i = 0; i < briefing->count; ++i)
   {
@@ -130,12 +115,6 @@ SFError briefing_read_texts(BriefingData *const briefing,
   assert(briefing);
   assert(offsets);
   assert(count <= BriefingMax);
-
-  briefing->texts = malloc(sizeof(briefing->texts[0]) * count);
-  if (!briefing->texts)
-  {
-    return SFERROR(NoMem);
-  }
 
   for (size_t i = 0; i < count; ++i)
   {
@@ -171,12 +150,8 @@ size_t briefing_get_text_count(BriefingData const *const briefing)
 char const *briefing_get_text(BriefingData const *const briefing, size_t const index)
 {
   assert(briefing);
-  assert(briefing->texts);
   assert(briefing->count <= BriefingMax);
   assert(index < briefing->count);
-  if (!briefing->texts) {
-    return "";
-  }
   return text_get_string(&briefing->texts[index]);
 }
 
@@ -203,18 +178,12 @@ SFError briefing_add_text(BriefingData *const briefing,
     return SFERROR(TooManyBriefingLines);
   }
 
-  _Optional Text *const texts = realloc(briefing->texts,
-                        sizeof(briefing->texts[0]) * (briefing->count + 1));
-  if (!texts) {
-    return SFERROR(NoMem);
-  }
-  briefing->texts = texts;
-
   size_t const index = briefing->count;
   text_init(&briefing->texts[index]);
 
   SFError err = text_set_string(&briefing->texts[index], string);
   if (SFError_fail(err)) {
+    text_destroy(&briefing->texts[index]);
     return err;
   }
 

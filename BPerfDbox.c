@@ -298,23 +298,22 @@ void BPerfDbox_update_title(BPerfDboxData *const performance_data)
   assert(performance_data != NULL);
   char const *const file_name = Session_get_filename(performance_data->session);
 
-  StringBuffer ship_name;
-  stringbuffer_init(&ship_name);
+  STRB_DECL_ALLOC(ship_name, 0);
 
   FilenamesData const *const filenames = Session_get_filenames(performance_data->session);
 
-  if (get_shipname_from_type(&ship_name, filenames_get(filenames, DataType_PolygonMeshes),
+  if (get_shipname_from_type(ship_name, filenames_get(filenames, DataType_PolygonMeshes),
                              performance_data->ship_type))
   {
     E(window_set_title(0, performance_data->my_object,
                                 msgs_lookup_subn("PerfTitle", 2,
-                                pathtail(file_name, 1), stringbuffer_get_pointer(&ship_name))));
+                                pathtail(file_name, 1), strb_cptr(ship_name))));
   }
   else
   {
     report_error(SFERROR(NoMem), "", "");
   }
-  stringbuffer_destroy(&ship_name);
+  strb_free(ship_name);
 }
 
 void BPerfDbox_show(BPerfDboxData *const performance_data)
