@@ -19,6 +19,8 @@
  */
 
 #include "stdio.h"
+#include "stdlib.h"
+#include "strb.h"
 
 #include "msgtrans.h"
 #include "Debug.h"
@@ -39,8 +41,11 @@ void ObjEditChanges_init(ObjEditChanges *const change_info)
 
 _Optional char *ObjEditChanges_get_message(const ObjEditChanges *const change_info)
 {
-  char refs_changed_str[24], triggers_added_str[24], triggers_changed_str[24],
-       triggers_deleted_str[24], token[sizeof(TOKEN_STEM "OACK")];
+  STRB_DECL_FIXED(refs_changed_str, 23);
+  STRB_DECL_FIXED(triggers_added_str, 23);
+  STRB_DECL_FIXED(triggers_changed_str, 23);
+  STRB_DECL_FIXED(triggers_deleted_str, 23);
+  STRB_DECL_FIXED(token, sizeof(TOKEN_STEM "OACK") - 1);
   char const *sub[4];
 
   if (!ObjEditChanges_is_changed(change_info)) {
@@ -48,45 +53,55 @@ _Optional char *ObjEditChanges_get_message(const ObjEditChanges *const change_in
     return NULL;
   }
 
-  sprintf(token, TOKEN_STEM "%s%s%s%s",
-           change_info->refs_changed ? "O" : "",
-           change_info->triggers_added ? "A" : "",
-           change_info->triggers_changed ? "C" : "",
-           change_info->triggers_deleted ? "K" : "");
+  if (strb_printf(token, TOKEN_STEM "%s%s%s%s",
+                  change_info->refs_changed ? "O" : "",
+                  change_info->triggers_added ? "A" : "",
+                  change_info->triggers_changed ? "C" : "",
+                  change_info->triggers_deleted ? "K" : "")) {
+    abort();
+  }
 
   size_t p = 0;
 
   if (change_info->refs_changed) {
-    sprintf(refs_changed_str, "%lu",
-             change_info->refs_changed);
-    sub[p++] = refs_changed_str;
+    if (strb_printf(refs_changed_str, "%lu",
+                    change_info->refs_changed)) {
+      abort();
+    }
+    sub[p++] = strb_cptr(refs_changed_str);
   } else {
     sub[p++] = "";
   }
 
   if (change_info->triggers_added) {
-    sprintf(triggers_added_str, "%lu",
-             change_info->triggers_added);
-    sub[p++] = triggers_added_str;
+    if (strb_printf(triggers_added_str, "%lu",
+                    change_info->triggers_added)) {
+      abort();
+    }
+    sub[p++] = strb_cptr(triggers_added_str);
   } else {
     sub[p++] = "";
   }
 
   if (change_info->triggers_changed) {
-    sprintf(triggers_changed_str, "%lu",
-             change_info->triggers_changed);
-    sub[p++] = triggers_changed_str;
+    if (strb_printf(triggers_changed_str, "%lu",
+                    change_info->triggers_changed)) {
+      abort();
+    }
+    sub[p++] = strb_cptr(triggers_changed_str);
   } else {
     sub[p++] = "";
   }
 
   if (change_info->triggers_deleted) {
-    sprintf(triggers_deleted_str, "%lu",
-             change_info->triggers_deleted);
-    sub[p++] = triggers_deleted_str;
+    if (strb_printf(triggers_deleted_str, "%lu",
+                    change_info->triggers_deleted)) {
+      abort();
+    }
+    sub[p++] = strb_cptr(triggers_deleted_str);
   } else {
     sub[p++] = "";
   }
 
-  return msgs_lookup_subn(token, p, sub[0], sub[1], sub[2], sub[3]);
+  return msgs_lookup_subn(strb_cptr(token), p, sub[0], sub[1], sub[2], sub[3]);
 }
