@@ -65,7 +65,7 @@ struct TargetInfo
   TargetInfosData *infos;
   CoarsePoint2d coords;
   uint8_t id;
-  Text *texts;
+  Text texts[TargetInfoTextIndex_Count];
 };
 
 static inline SFError read_target_info_text(TargetInfo *const info,
@@ -133,7 +133,6 @@ static void discard_info(TargetInfo *const info)
        ++k) {
     text_destroy(&info->texts[k]);
   }
-  free(info->texts);
   free(info);
 }
 
@@ -205,15 +204,7 @@ SFError target_infos_add_texts(TargetInfosData *const target_infos, MapPoint con
     return SFERROR(NoMem);
   }
 
-  _Optional Text *const texts = malloc(sizeof(*texts) * TargetInfoTextIndex_Count);
-  if (!texts)
-  {
-    free(info);
-    return SFERROR(NoMem);
-  }
-
   *info = (TargetInfo){
-    .texts = &*texts,
     .coords = map_coords_to_coarse(pos),
     .infos = target_infos,
     .id = target_infos->next,
@@ -310,13 +301,11 @@ SFError target_info_set_texts(TargetInfo *const info,
   char const *C23_CONST (*const strings)[TargetInfoTextIndex_Count])
 {
   assert(info);
-  _Optional Text *const texts = malloc(sizeof(*texts) * TargetInfoTextIndex_Count);
-  if (!texts)
-  {
-    return SFERROR(NoMem);
-  }
-  TargetInfo replacement = *info;
-  replacement.texts = &*texts;
+  TargetInfo replacement = {
+    .infos = info->infos,
+    .coords = info->coords,
+    .id = info->id,
+  };
   for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
        k < TargetInfoTextIndex_Count; ++k)
   {
@@ -343,10 +332,13 @@ SFError target_info_set_texts(TargetInfo *const info,
   {
     text_destroy(&discarded[k]);
   }
-  free(discarded);
   if (!SFError_fail(err))
   {
-    info->texts = replacement.texts;
+    for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
+         k < TargetInfoTextIndex_Count; ++k)
+    {
+      info->texts[k] = replacement.texts[k];
+    }
   }
   return err;
 }

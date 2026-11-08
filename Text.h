@@ -45,7 +45,7 @@ typedef struct {
 
 typedef struct Text Text;
 
-/* Initialises embedded state. A live Text must not be copied or relocated. */
+/* Initialises embedded state. Copying a live Text transfers ownership to the copy. */
 void text_init(Text *text);
 void text_destroy(Text *text);
 

@@ -62,8 +62,7 @@ struct EditSession
 
   /* Mission filename ("E.E_01"), map filename ("Academy1") or path to oddball
 file ("IDEFS::Tamzin.$.H.H_08") */
-  strbstate_t filename_state, titles_state;
-  union { char nil; strb_t *buf; } filename, edit_win_titles;
+  strbstate_t filename, edit_win_titles;
 
   _Optional DFile *dfiles[DataType_SessionCount];
 

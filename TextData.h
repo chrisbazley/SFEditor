@@ -13,8 +13,7 @@
 struct Text
 {
   TextParams params;
-  strbstate_t state;
-  union { char nil; strb_t *buf; } string;
+  strbstate_t string;
 };
 
 #endif

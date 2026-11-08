@@ -461,6 +461,25 @@ static void test19(void)
 }
 #endif
 
+static void test_state_transfer(void)
+{
+  /* Text ownership transfer */
+  Text source[2], destination[2];
+  text_init(&source[0]);
+  text_init(&source[1]);
+  SFError err = text_set_string(&source[1], "KEPT");
+  assert(!SFError_fail(err));
+  memcpy(destination, source, sizeof destination);
+  memset(source, 0x5a, sizeof source);
+  assert(strcmp(text_get_string(&destination[0]), "") == 0);
+  assert(strcmp(text_get_string(&destination[1]), "KEPT") == 0);
+  err = text_set_string(&destination[0], "NEW");
+  assert(!SFError_fail(err));
+  assert(strcmp(text_get_string(&destination[0]), "NEW") == 0);
+  text_destroy(&destination[0]);
+  text_destroy(&destination[1]);
+}
+
 void Text_tests(void)
 {
   /* Text */
@@ -472,6 +491,7 @@ void Text_tests(void)
   unit_tests[] =
   {
     { "Empty initial string", test1 },
+    { "Text ownership transfer", test_state_transfer },
     { "Default parameters", test2 },
     { "Alphabet normalisation", test3 },
     { "Decimal digits", test4 },

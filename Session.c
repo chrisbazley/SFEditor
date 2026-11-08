@@ -129,7 +129,7 @@ static void set_edit_win_titles(EditSession *const session)
     DEBUG("Updating window titles for session %p", (void *)session);
     assert(Session_get_filename(session) != NULL);
 
-    strb_empty(session->edit_win_titles.buf);
+    strb_empty(strb_from(&session->edit_win_titles));
 
     char *title_start = "";
     if (session->oddball_file)
@@ -154,14 +154,14 @@ static void set_edit_win_titles(EditSession *const session)
       title_start = msgs_lookup_subn("MissTitle", 2, Session_get_filename(session), misstitle);
     }
 
-    if (strb_puts(session->edit_win_titles.buf, title_start))
+    if (strb_puts(strb_from(&session->edit_win_titles), title_start))
     {
       break;
     }
 
     if (Session_count_modified(session) > 0)
     {
-      if (strb_puts(session->edit_win_titles.buf, " *"))
+      if (strb_puts(strb_from(&session->edit_win_titles), " *"))
       {
         break;
       }
@@ -172,7 +172,7 @@ static void set_edit_win_titles(EditSession *const session)
     {
       char nbuf[11];
       sprintf(nbuf, " %d", session->number_of_edit_wins);
-      if (strb_puts(session->edit_win_titles.buf, nbuf))
+      if (strb_puts(strb_from(&session->edit_win_titles), nbuf))
       {
         break;
       }
@@ -180,7 +180,7 @@ static void set_edit_win_titles(EditSession *const session)
 
     SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
       EditWin_set_title(&this_edit_win->edit_win,
-                        strb_cptr(session->edit_win_titles.buf));
+                        strb_cptr(strb_from(&session->edit_win_titles)));
     }
     return;
 
@@ -359,8 +359,8 @@ static bool set_main_filename(EditSession *const session, _Optional char const *
     assert(removed == NULL || removed == session);
     NOT_USED(removed);
 
-    strb_empty(session->filename.buf);
-    if (strb_puts(session->filename.buf, &*filename) ||
+    strb_empty(strb_from(&session->filename));
+    if (strb_puts(strb_from(&session->filename), &*filename) ||
         !strdict_insert(dict_for_session(session), Session_get_filename(session), session, NULL))
     {
       report_error(SFERROR(NoMem), "", "");
@@ -716,8 +716,8 @@ static _Optional EditSession *create_session(InterfaceType const ui_type,
               .moved_cb = info_moved,
               .session = &*session},
   };
-  session->filename.buf = strb_make(&session->filename_state, 0);
-  session->edit_win_titles.buf = strb_make(&session->titles_state, 0);
+  strb_make(&session->filename, 0);
+  strb_make(&session->edit_win_titles, 0);
 
 
   intdict_init(&session->edit_wins_array);
@@ -728,8 +728,8 @@ static _Optional EditSession *create_session(InterfaceType const ui_type,
     return session;
   }
 
-  strb_free(session->filename.buf);
-  strb_free(session->edit_win_titles.buf);
+  strb_free(strb_from(&session->filename));
+  strb_free(strb_from(&session->edit_win_titles));
   free(session);
 
   return NULL;
@@ -921,8 +921,8 @@ void Session_destroy(EditSession *const session)
     }
   }
 
-  strb_free(session->filename.buf);
-  strb_free(session->edit_win_titles.buf);
+  strb_free(strb_from(&session->filename));
+  strb_free(strb_from(&session->edit_win_titles));
   linkedlist_remove(&all_list, &session->all_link);
   free(session);
 }
@@ -1863,7 +1863,7 @@ _Optional MissionData *Session_get_mission(const EditSession *const session)
 char *Session_get_filename(EditSession *const session)
 {
   assert(session != NULL);
-  return strb_ptr(session->filename.buf);
+  return strb_ptr(strb_from(&session->filename));
 }
 
 char *Session_get_save_filename(EditSession *const session)
