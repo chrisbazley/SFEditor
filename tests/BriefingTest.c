@@ -432,7 +432,8 @@ static void test21(void)
   unsigned char buffer[Capacity];
   long offsets[BriefingMax];
   size_t const length = make_data(&source, 2, &offsets, &buffer);
-  for (unsigned long limit = 0; limit < 3; ++limit)
+  bool failed = false, succeeded = false;
+  for (unsigned long limit = 0; limit < 8 && !succeeded; ++limit)
   {
     Reader reader;
     assert(reader_mem_init(&reader, buffer, length));
@@ -440,10 +441,21 @@ static void test21(void)
     Fortify_SetNumAllocationsLimit(limit);
     SFError const err = briefing_read_texts(&loaded, offsets, 2, &reader);
     Fortify_SetNumAllocationsLimit(ULONG_MAX);
-    assert(err.type == SFErrorType_NoMem);
+    if (SFError_fail(err))
+    {
+      assert(err.type == SFErrorType_NoMem);
+      failed = true;
+    }
+    else
+    {
+      check_texts(&loaded, 2);
+      succeeded = true;
+    }
     briefing_destroy(&loaded);
     reader_destroy(&reader);
   }
+  assert(failed);
+  assert(succeeded);
   briefing_destroy(&source);
 }
 

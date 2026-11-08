@@ -45,7 +45,8 @@ typedef struct {
 
 typedef struct Text Text;
 
-/* Initialises embedded state. A live Text must not be copied or relocated. */
+/* Initialises empty text without allocation. A null buffer represents an empty
+ * string. Copying a live Text transfers ownership; use only the copy afterwards. */
 void text_init(Text *text);
 void text_destroy(Text *text);
 

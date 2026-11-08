@@ -138,7 +138,7 @@ static int decode_char(int const ch)
 void text_destroy(Text *const text)
 {
   assert(text != NULL);
-  strb_free(text->string.buf);
+  strb_free(text->string);
 }
 
 void text_init(Text *const text)
@@ -157,13 +157,12 @@ void text_init(Text *const text)
       .cursor_type = DefaultCursorType,
     }
   };
-  text->string.buf = strb_make(&text->state, 0);
 }
 
 char const *text_get_string(Text const *const text)
 {
   assert(text != NULL);
-  char const *const s = strb_cptr(text->string.buf);
+  char const *const s = text->string ? strb_cptr(&*text->string) : "";
   DEBUGF("Text string: '%s'\n", s);
   return s;
 }
@@ -172,8 +171,23 @@ SFError text_set_string(Text *const text, char const *const string)
 {
   assert(text != NULL);
   DEBUGF("Set text string '%s'\n", string);
-  strb_t *const sb = text->string.buf;
-  size_t const len = strlen(string), old_len = strb_len(sb);
+  size_t const len = strlen(string);
+  _Optional strb_t *buffer = text->string;
+  if (!buffer)
+  {
+    if (!len)
+    {
+      return SFERROR(OK);
+    }
+    buffer = strb_alloc(len);
+    if (!buffer)
+    {
+      return SFERROR(NoMem);
+    }
+    text->string = &*buffer;
+  }
+  strb_t *const sb = &*buffer;
+  size_t const old_len = strb_len(sb);
   // The position is at the end; reserve any growth before changing characters.
   if (len > old_len && !strb_write(sb, len - old_len))
   {
@@ -224,7 +238,8 @@ void text_write_offset(Text const *const text, Writer *const writer,
   assert(text != NULL);
   assert(offset != NULL);
   writer_fwrite_int32(*offset, writer);
-  *offset += BytesPerTextHeader + (int)WORD_ALIGN_SZ(strb_len(text->string.buf) + 1);
+  size_t const len = text->string ? strb_len(&*text->string) : 0;
+  *offset += BytesPerTextHeader + (int)WORD_ALIGN_SZ(len + 1);
 }
 
 void text_write_block(Text const *const text, Writer *const writer)
@@ -342,7 +357,11 @@ SFError text_read_block(Text *const text, Reader *const reader)
     return SFERROR(BadTextColour);
   }
 
-  strb_empty(text->string.buf);
+  _Optional strb_t *buffer = text->string;
+  if (buffer)
+  {
+    strb_empty(&*buffer);
+  }
   text->params = (TextParams){
     .duration = duration,
     .delay = delay,
@@ -359,24 +378,40 @@ SFError text_read_block(Text *const text, Reader *const reader)
   assert(y_clip == text->params.y_clip);
   assert(colour == text->params.colour);
 
-  for (int ch = decode_char(reader_fgetc(reader));
-       ch != '\0';
-       ch = decode_char(reader_fgetc(reader)))
+  int ch = decode_char(reader_fgetc(reader));
+  if (ch == EOF)
+  {
+    return SFERROR(ReadFail);
+  }
+  if (!ch)
+  {
+    return SFERROR(OK);
+  }
+  if (!buffer)
+  {
+    buffer = strb_alloc(0);
+    if (!buffer)
+    {
+      return SFERROR(NoMem);
+    }
+    text->string = &*buffer;
+  }
+  strb_t *const sb = &*buffer;
+  for (; ch != '\0'; ch = decode_char(reader_fgetc(reader)))
   {
     if (ch == EOF)
     {
       return SFERROR(ReadFail);
     }
 
-    if (strb_putc(text->string.buf, ch) == EOF)
+    if (strb_putc(sb, ch) == EOF)
     {
       return SFERROR(NoMem);
     }
   }
 
   DEBUGF("Finished reading %zu-character string, '%s', at %ld\n",
-         strb_len(text->string.buf),
-         strb_cptr(text->string.buf), reader_ftell(reader));
+         strb_len(sb), strb_cptr(sb), reader_ftell(reader));
 
   return SFERROR(OK);
 }
