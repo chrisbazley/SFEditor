@@ -9,3 +9,8 @@ Both native makefiles also enable per-view selection. With GMakefile, use
 `make -f GMakefile PER_VIEW_SELECT=0` to select the legacy mode; with CMake,
 use `-DPER_VIEW_SELECT=OFF`. CI compiles both modes, including with the
 _Optional checker. Host builds do not run SFEditor's user interface.
+
+The experimental string-buffer migration also requires
+[strb_t](https://github.com/chrisbazley/strb_t). CMake fetches a pinned revision;
+manual builds need its header and dynamic-allocation library (`strb` or
+`strbdbg`).

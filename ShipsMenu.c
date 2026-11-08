@@ -127,8 +127,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
     STRCPY_SAFE(graphics_set, filenames_get(filenames, DataType_PolygonMeshes));
     MenuTemplateEntry new_entry = {.text = menu_text[0]};
 
-    StringBuffer ship_name;
-    stringbuffer_init(&ship_name);
+    STRB_DECL_ALLOC(ship_name, 0);
 
     for (ShipType ship_no = ShipType_Fighter1;
          ship_no <= ShipType_Fighter4;
@@ -145,14 +144,14 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
       }
       new_entry.click_event = Menu_Selection;
 
-      if (!get_shipname_from_type(&ship_name, graphics_set, ship_no))
+      if (!get_shipname_from_type(ship_name, graphics_set, ship_no))
       {
         report_error(SFERROR(NoMem), "", "");
         break;
       }
 
       STRCPY_SAFE(menu_text[new_entry.component_id],
-                  stringbuffer_get_pointer(&ship_name));
+                  strb_cptr(ship_name));
 
       new_entry.text = menu_text[new_entry.component_id];
       new_entry.max_text = sizeof(menu_text[new_entry.component_id]);
@@ -167,7 +166,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
       new_entry.component_id++;
     } /* next ship_no */
 
-    stringbuffer_destroy(&ship_name);
+    strb_free(ship_name);
 
   } else {
     ComponentId const new_tick = (ComponentId)(launch_type - ShipType_Fighter1);

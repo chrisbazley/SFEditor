@@ -16,7 +16,7 @@
 #include "flex.h"
 
 #include "PalEntry.h"
-#include "StringBuff.h"
+#include "strb.h"
 #include "Loader2.h"
 #include "SprFormats.h"
 #include "SFError.h"
@@ -101,7 +101,7 @@ void hourglass_and_esc_off(void);
 bool object_is_showing(ObjectId id);
 
 void edit_file(char const *dir, char const *tiles_set);
-bool append_to_csv(StringBuffer *csv, char const *value);
+bool append_to_csv(strb_t *csv, char const *value);
 
 _Optional char *make_file_path_in_dir_on_path(char const *path, char const *subdir,
   char const *leaf);

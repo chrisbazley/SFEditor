@@ -34,7 +34,7 @@
 #include "Macros.h"
 #include "StrExtra.h"
 #include "DirIter.h"
-#include "StringBuff.h"
+#include "strb.h"
 
 #include "FileScan.h"
 #include "FilePaths.h"
@@ -267,8 +267,6 @@ static _Optional filescan_leafname *fs_scanlevelspath(filescan_type const direct
 {
   /* Scan the currently configured levels paths, and combine */
   _Optional filescan_leafname *combined = NULL;
-  StringBuffer full_path;
-  stringbuffer_init(&full_path);
 
   /* construct FULL path for internal game directory to scan */
   _Optional filescan_leafname *intern_files = NULL;

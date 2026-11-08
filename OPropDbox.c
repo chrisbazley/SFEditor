@@ -28,7 +28,7 @@
 
 #include "msgtrans.h"
 #include "PathTail.h"
-#include "StringBuff.h"
+#include "strb.h"
 #include "Macros.h"
 #include "Err.h"
 #include "GadgetUtil.h"
@@ -413,11 +413,10 @@ static char const *get_list_text(ObjPropDbox const *const prop, TriggerFullParam
         char delay[32];
         sprintf(delay, "%d", item.param.value * TriggerChainReactionMultipler);
 
-        StringBuffer obj_name;
-        stringbuffer_init(&obj_name);
+        STRB_DECL_ALLOC(obj_name, 0);
         FilenamesData const *const filenames = Session_get_filenames(session);
         ObjEditContext const *const objects = Session_get_objects(session);
-        if (!get_objname_from_type(&obj_name, filenames_get(filenames, DataType_PolygonMeshes),
+        if (!get_objname_from_type(obj_name, filenames_get(filenames, DataType_PolygonMeshes),
                                    ObjectsEdit_read_ref(objects, item.next_coords)))
         {
           report_error(SFERROR(NoMem), "", "");
@@ -426,23 +425,22 @@ static char const *get_list_text(ObjPropDbox const *const prop, TriggerFullParam
         char loc[32] = "";
         sprintf(loc, "%03" PRIMapCoord ",%03" PRIMapCoord, item.next_coords.x, item.next_coords.y);
 
-        text = msgs_lookup_subn(token, 3, delay, stringbuffer_get_pointer(&obj_name), loc);
-        stringbuffer_destroy(&obj_name);
+        text = msgs_lookup_subn(token, 3, delay, strb_cptr(obj_name), loc);
+        strb_free(obj_name);
       }
       break;
 
     case UITriggerAction_CrippleShipType:
       {
-        StringBuffer ship_name;
-        stringbuffer_init(&ship_name);
+        STRB_DECL_ALLOC(ship_name, 0);
         FilenamesData const *const filenames = Session_get_filenames(session);
-        if (!get_shipname_from_type(&ship_name, filenames_get(filenames, DataType_PolygonMeshes),
+        if (!get_shipname_from_type(ship_name, filenames_get(filenames, DataType_PolygonMeshes),
                                    item.param.value))
         {
           report_error(SFERROR(NoMem), "", "");
         }
-        text = msgs_lookup_subn(token, 1, stringbuffer_get_pointer(&ship_name));
-        stringbuffer_destroy(&ship_name);
+        text = msgs_lookup_subn(token, 1, strb_cptr(ship_name));
+        strb_free(ship_name);
       }
       break;
 
@@ -685,56 +683,53 @@ static void populate_type_set(ObjPropDbox const *const prop)
 {
   assert(prop);
 
-  StringBuffer objs_stringset;
-  stringbuffer_init(&objs_stringset);
+  STRB_DECL_ALLOC(objs_stringset, 0);
   FilenamesData const *const filenames = Session_get_filenames(get_session(prop));
-  if (!build_objs_stringset(&objs_stringset, filenames_get(filenames, DataType_PolygonMeshes),
+  if (!build_objs_stringset(objs_stringset, filenames_get(filenames, DataType_PolygonMeshes),
                              false, true, true, true, false)) {
     report_error(SFERROR(NoMem), "", "");
   } else {
     E(stringset_set_available(0, prop->my_object,
-               ComponentId_TypeSet, stringbuffer_get_pointer(&objs_stringset)));
+               ComponentId_TypeSet, strb_cptr(objs_stringset)));
   }
-  stringbuffer_destroy(&objs_stringset);
+  strb_free(objs_stringset);
 }
 
 static void populate_ship_set(ObjPropDbox const *const prop)
 {
   assert(prop);
 
-  StringBuffer ships_stringset;
-  stringbuffer_init(&ships_stringset);
+  STRB_DECL_ALLOC(ships_stringset, 0);
   FilenamesData const *const filenames = Session_get_filenames(get_session(prop));
-  if (!build_ships_stringset(&ships_stringset, filenames_get(filenames, DataType_PolygonMeshes),
+  if (!build_ships_stringset(ships_stringset, filenames_get(filenames, DataType_PolygonMeshes),
                              true, true, true, true)) {
     report_error(SFERROR(NoMem), "", "");
   } else {
     E(stringset_set_available(0, prop->my_add_object,
-               ComponentId_ShieldType, stringbuffer_get_pointer(&ships_stringset)));
+               ComponentId_ShieldType, strb_cptr(ships_stringset)));
   }
-  stringbuffer_destroy(&ships_stringset);
+  strb_free(ships_stringset);
 }
 
 static void display_chain_name(ObjPropDbox const *const prop)
 {
   assert(prop);
 
-  StringBuffer obj_name;
-  stringbuffer_init(&obj_name);
+  STRB_DECL_ALLOC(obj_name, 0);
 
   EditSession *const session = get_session(prop);
   FilenamesData const *const filenames = Session_get_filenames(session);
   ObjEditContext const *const objects = Session_get_objects(session);
-  if (!get_objname_from_type(&obj_name, filenames_get(filenames, DataType_PolygonMeshes),
+  if (!get_objname_from_type(obj_name, filenames_get(filenames, DataType_PolygonMeshes),
                              ObjectsEdit_read_ref(objects, read_chain_coords(prop))))
   {
     report_error(SFERROR(NoMem), "", "");
   }
 
   E(displayfield_set_value(0, prop->my_add_object, ComponentId_ChainNext,
-                           stringbuffer_get_pointer(&obj_name)));
+                           strb_cptr(obj_name)));
 
-  stringbuffer_destroy(&obj_name);
+  strb_free(obj_name);
 }
 
 static void maybe_set_faded(ObjPropDbox const *const prop, ComponentId const component_id,

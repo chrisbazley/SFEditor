@@ -38,7 +38,7 @@
 #include "PathTail.h"
 #include "StrExtra.h"
 #include "GadgetUtil.h"
-#include "StringBuff.h"
+#include "strb.h"
 #include "SFError.h"
 #include "Config.h"
 #include "Utils.h"
@@ -345,16 +345,15 @@ static int dataload_message(WimpMessage *const message, void *const handle)
         WARN_RTN_V("NeedApp", 1 /* claim message */);
 
       /* Set location of levels directory inside !Star3000 application */
-      StringBuffer add_leaf;
-      stringbuffer_init(&add_leaf);
-      if (!stringbuffer_append_all(&add_leaf, message->data.data_load.leaf_name) ||
-          !stringbuffer_append_all(&add_leaf, ".Landscapes")) {
+      STRB_DECL_ALLOC(add_leaf, 0);
+      if (strb_puts(add_leaf, message->data.data_load.leaf_name) ||
+          strb_puts(add_leaf, ".Landscapes")) {
         report_error(SFERROR(NoMem), "", "");
       } else {
         E(writablefield_set_value(0, Config_tboxID,
-                   ComponentId_CustomGamePath, stringbuffer_get_pointer(&add_leaf)));
+                   ComponentId_CustomGamePath, strb_cptr(add_leaf)));
       }
-      stringbuffer_destroy(&add_leaf);
+      strb_free(add_leaf);
 
       send_dataloadack(message);
       return 1; /* claim message */

@@ -38,7 +38,7 @@ add_executable(SFEditorTests
     "${PROJECT_SOURCE_DIR}/ObjEditSel.c"
     "${PROJECT_SOURCE_DIR}/Shapes.c"
     "${PROJECT_SOURCE_DIR}/Vertex.c")
-target_link_libraries(SFEditorTests PRIVATE CB CBDebug CBPseudo SF3K)
+target_link_libraries(SFEditorTests PRIVATE strb CB CBDebug CBPseudo SF3K)
 
 # SFError's layout depends on NDEBUG, so models and tests must agree.
 if(MSVC)

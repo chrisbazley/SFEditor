@@ -25,7 +25,6 @@
 #include "Macros.h"
 #include "Reader.h"
 #include "Writer.h"
-#include "StringBuff.h"
 
 #include "Utils.h"
 #include "Text.h"
@@ -131,7 +130,7 @@ SFError briefing_read_texts(BriefingData *const briefing,
   assert(offsets);
   assert(count <= BriefingMax);
 
-  briefing->texts = malloc(sizeof(briefing->texts[0]) * count);
+  briefing->texts = malloc(sizeof(briefing->texts[0]) * BriefingMax);
   if (!briefing->texts)
   {
     return SFERROR(NoMem);
@@ -203,18 +202,19 @@ SFError briefing_add_text(BriefingData *const briefing,
     return SFERROR(TooManyBriefingLines);
   }
 
-  _Optional Text *const texts = realloc(briefing->texts,
-                        sizeof(briefing->texts[0]) * (briefing->count + 1));
-  if (!texts) {
-    return SFERROR(NoMem);
+  if (!briefing->texts) {
+    briefing->texts = malloc(sizeof(briefing->texts[0]) * BriefingMax);
+    if (!briefing->texts) {
+      return SFERROR(NoMem);
+    }
   }
-  briefing->texts = texts;
 
   size_t const index = briefing->count;
   text_init(&briefing->texts[index]);
 
   SFError err = text_set_string(&briefing->texts[index], string);
   if (SFError_fail(err)) {
+    text_destroy(&briefing->texts[index]);
     return err;
   }
 

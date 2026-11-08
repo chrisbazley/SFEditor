@@ -41,7 +41,7 @@
 #include "Platform.h"
 #include "Plot.h"
 #include "PalEntry.h"
-#include "StringBuff.h"
+#include "strb.h"
 #include "OSSpriteOp.h"
 #include "OSFSCntrl.h"
 #include "msgtrans.h"
@@ -528,15 +528,14 @@ static void exec_cmd(char const *const prefix, char const *const file_name)
   assert(prefix != NULL);
   assert(file_name != NULL);
 
-  StringBuffer cmd;
-  stringbuffer_init(&cmd);
-  if (!stringbuffer_append_all(&cmd, prefix) ||
-      !stringbuffer_append_all(&cmd, file_name)) {
+  STRB_DECL_ALLOC(cmd, 0);
+  if (strb_puts(cmd, prefix) ||
+      strb_puts(cmd, file_name)) {
     report_error(SFERROR(NoMem), "", "");
-  } else if (_kernel_oscli(stringbuffer_get_pointer(&cmd)) == _kernel_ERROR) {
+  } else if (_kernel_oscli(strb_cptr(cmd)) == _kernel_ERROR) {
     E(_kernel_last_oserror());
   }
-  stringbuffer_destroy(&cmd);
+  strb_free(cmd);
 }
 
 void open_file(char const *const file_name)
@@ -628,51 +627,48 @@ void edit_file(char const *const dir, char const *const tiles_set)
   }
 }
 
-bool append_to_csv(StringBuffer *const csv, char const *const value)
+bool append_to_csv(strb_t *const csv, char const *const value)
 {
-  return (stringbuffer_get_length(csv) == 0 || stringbuffer_append_all(csv, ",")) &&
-         stringbuffer_append_all(csv, value);
+  return !strb_putf(csv, "%s%s", strb_len(csv) ? "," : "", value);
 }
 
 _Optional char *make_file_path_in_dir_on_path(char const *const path,
   char const *const subdir, char const *const leaf)
 {
-  StringBuffer full_path;
-  stringbuffer_init(&full_path);
+  STRB_DECL_ALLOC(full_path, 0);
 
   _Optional char *canonical = NULL;
-  if (stringbuffer_append_all(&full_path, path) &&
-      stringbuffer_append_all(&full_path, subdir) &&
-      stringbuffer_append_separated(&full_path, PATH_SEPARATOR, leaf))
+  if (!strb_puts(full_path, path) &&
+      !strb_puts(full_path, subdir) &&
+      !strb_putf(full_path, "%c%s", PATH_SEPARATOR, leaf))
   {
     E(canonicalise(&canonical, NULL, NULL,
-      stringbuffer_get_pointer(&full_path)));
+      strb_cptr(full_path)));
   } else {
     report_error(SFERROR(NoMem), "", "");
   }
 
-  stringbuffer_destroy(&full_path);
+  strb_free(full_path);
   return canonical;
 }
 
 _Optional char *make_file_path_in_subdir(char const *const dir,
   char const *const subdir, char const *const leaf)
 {
-  StringBuffer path;
-  stringbuffer_init(&path);
+  STRB_DECL_ALLOC(path, 0);
 
   _Optional char *canonical = NULL;
-  if (stringbuffer_append_all(&path, dir) &&
-      stringbuffer_append_separated(&path, PATH_SEPARATOR, subdir) &&
-      stringbuffer_append_separated(&path, PATH_SEPARATOR, leaf))
+  if (!strb_puts(path, dir) &&
+      !strb_putf(path, "%c%s", PATH_SEPARATOR, subdir) &&
+      !strb_putf(path, "%c%s", PATH_SEPARATOR, leaf))
   {
     E(canonicalise(&canonical, NULL, NULL,
-      stringbuffer_get_pointer(&path)));
+      strb_cptr(path)));
   } else {
     report_error(SFERROR(NoMem), "", "");
   }
 
-  stringbuffer_destroy(&path);
+  strb_free(path);
   return canonical;
 }
 

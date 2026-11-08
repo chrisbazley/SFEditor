@@ -438,6 +438,29 @@ static void test18(void)
 
 #endif
 
+#ifdef FORTIFY
+static void test19(void)
+{
+  /* Failed growth preserves the previous string. */
+
+  Text text;
+  text_init(&text);
+  assert(!SFError_fail(text_set_string(&text, "OLD")));
+
+  char replacement[257];
+  memset(replacement, 'A', sizeof replacement - 1);
+  replacement[sizeof replacement - 1] = '\0';
+
+  Fortify_SetNumAllocationsLimit(0);
+  SFError const err = text_set_string(&text, replacement);
+  Fortify_SetNumAllocationsLimit(ULONG_MAX);
+
+  assert(err.type == SFErrorType_NoMem);
+  assert(!strcmp(text_get_string(&text), "OLD"));
+  text_destroy(&text);
+}
+#endif
+
 void Text_tests(void)
 {
   /* Text */
@@ -469,6 +492,7 @@ void Text_tests(void)
 #endif
 #ifdef FORTIFY
     { "Read allocation failure", test18 },
+    { "Failed growth preserves string", test19 },
 #endif
   };
 
