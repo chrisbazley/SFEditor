@@ -23,8 +23,8 @@ include MakeCommon
 DebugList = $(addsuffix .debug,$(ObjectList))
 ReleaseList = $(addsuffix .o,$(ObjectList))
 LibList = toolbox event wimp CB GKey
-DebugLibs =  CBPseudo CBDebug $(LibList) Fortify
-ReleaseLibs = $(LibList) flex
+DebugLibs = strbdbg  CBPseudo CBDebug $(LibList) Fortify
+ReleaseLibs = strb $(LibList) flex
 DebugObjects = $(DebugList)
 ReleaseObjects = $(ReleaseList)
 

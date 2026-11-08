@@ -19,6 +19,8 @@
  */
 
 #include "stdio.h"
+#include "stdlib.h"
+#include "strb.h"
 
 #include "msgtrans.h"
 #include "Debug.h"
@@ -39,8 +41,11 @@ void MapEditChanges_init(MapEditChanges *const change_info)
 
 _Optional char *MapEditChanges_get_message(const MapEditChanges *const change_info)
 {
-  char tiles_changed_str[24], anims_added_str[24], anims_changed_str[24],
-       anims_deleted_str[24], token[sizeof(TOKEN_STEM "TACK")];
+  STRB_DECL_FIXED(tiles_changed_str, 23);
+  STRB_DECL_FIXED(anims_added_str, 23);
+  STRB_DECL_FIXED(anims_changed_str, 23);
+  STRB_DECL_FIXED(anims_deleted_str, 23);
+  STRB_DECL_FIXED(token, sizeof(TOKEN_STEM "TACK") - 1);
   char const *sub[4];
 
   if (!MapEditChanges_is_changed(change_info)) {
@@ -48,45 +53,55 @@ _Optional char *MapEditChanges_get_message(const MapEditChanges *const change_in
     return NULL;
   }
 
-  sprintf(token, TOKEN_STEM "%s%s%s%s",
-           change_info->tiles_changed ? "T" : "",
-           change_info->anims_added ? "A" : "",
-           change_info->anims_changed ? "C" : "",
-           change_info->anims_deleted ? "K" : "");
+  if (strb_printf(token, TOKEN_STEM "%s%s%s%s",
+                  change_info->tiles_changed ? "T" : "",
+                  change_info->anims_added ? "A" : "",
+                  change_info->anims_changed ? "C" : "",
+                  change_info->anims_deleted ? "K" : "")) {
+    abort();
+  }
 
   size_t p = 0;
 
   if (change_info->tiles_changed) {
-    sprintf(tiles_changed_str, "%lu",
-             change_info->tiles_changed);
-    sub[p++] = tiles_changed_str;
+    if (strb_printf(tiles_changed_str, "%lu",
+                    change_info->tiles_changed)) {
+      abort();
+    }
+    sub[p++] = strb_cptr(tiles_changed_str);
   } else {
     sub[p++] = "";
   }
 
   if (change_info->anims_added) {
-    sprintf(anims_added_str, "%lu",
-             change_info->anims_added);
-    sub[p++] = anims_added_str;
+    if (strb_printf(anims_added_str, "%lu",
+                    change_info->anims_added)) {
+      abort();
+    }
+    sub[p++] = strb_cptr(anims_added_str);
   } else {
     sub[p++] = "";
   }
 
   if (change_info->anims_changed) {
-    sprintf(anims_changed_str, "%lu",
-             change_info->anims_changed);
-    sub[p++] = anims_changed_str;
+    if (strb_printf(anims_changed_str, "%lu",
+                    change_info->anims_changed)) {
+      abort();
+    }
+    sub[p++] = strb_cptr(anims_changed_str);
   } else {
     sub[p++] = "";
   }
 
   if (change_info->anims_deleted) {
-    sprintf(anims_deleted_str, "%lu",
-             change_info->anims_deleted);
-    sub[p++] = anims_deleted_str;
+    if (strb_printf(anims_deleted_str, "%lu",
+                    change_info->anims_deleted)) {
+      abort();
+    }
+    sub[p++] = strb_cptr(anims_deleted_str);
   } else {
     sub[p++] = "";
   }
 
-  return msgs_lookup_subn(token, p, sub[0], sub[1], sub[2], sub[3]);
+  return msgs_lookup_subn(strb_cptr(token), p, sub[0], sub[1], sub[2], sub[3]);
 }

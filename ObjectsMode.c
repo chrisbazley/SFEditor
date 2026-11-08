@@ -2000,17 +2000,16 @@ static void ObjectsMode_palette_selection(Editor *const editor, int const object
       FilenamesData const *const filenames = Session_get_filenames(session);
       char const *const graphics_set = filenames_get(filenames, DataType_PolygonMeshes);
 
-      StringBuffer obj_name;
-      stringbuffer_init(&obj_name);
+      STRB_DECL_ALLOC(obj_name, 0);
 
-      if (!get_objname_from_type(&obj_name, graphics_set, objects_ref_from_num((size_t)object)))
+      if (!get_objname_from_type(obj_name, graphics_set, objects_ref_from_num((size_t)object)))
       {
         report_error(SFERROR(NoMem), "", "");
         return;
       }
 
-      msg = msgs_lookup_subn("StatusObSel", 1, stringbuffer_get_pointer(&obj_name));
-      stringbuffer_destroy(&obj_name);
+      msg = msgs_lookup_subn("StatusObSel", 1, strb_cptr(obj_name));
+      strb_free(obj_name);
       break;
     }
 

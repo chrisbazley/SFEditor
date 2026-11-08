@@ -387,7 +387,8 @@ static void test20(void)
 {
   /* Add allocation failure */
 
-  for (unsigned long limit = 0; limit < 2; ++limit)
+  bool failed = false, succeeded = false;
+  for (unsigned long limit = 0; limit < 8; ++limit)
   {
     BriefingData briefing;
     briefing_init(&briefing);
@@ -395,12 +396,29 @@ static void test20(void)
     Fortify_SetNumAllocationsLimit(limit);
     SFError const err = briefing_add_text(&briefing, "SECOND TEXT");
     Fortify_SetNumAllocationsLimit(ULONG_MAX);
-    assert(err.type == SFErrorType_NoMem);
-    check_texts(&briefing, 1);
-    assert(!SFError_fail(briefing_add_text(&briefing, "B")));
-    check_texts(&briefing, 2);
+    if (SFError_fail(err))
+    {
+      assert(err.type == SFErrorType_NoMem);
+      check_texts(&briefing, 1);
+      assert(!SFError_fail(briefing_add_text(&briefing, "B")));
+      check_texts(&briefing, 2);
+      failed = true;
+    }
+    else
+    {
+      assert(briefing_get_text_count(&briefing) == 2);
+      assert(!strcmp(briefing_get_text(&briefing, 0), "A"));
+      assert(!strcmp(briefing_get_text(&briefing, 1), "SECOND TEXT"));
+      succeeded = true;
+    }
     briefing_destroy(&briefing);
+    if (succeeded)
+    {
+      break;
+    }
   }
+  assert(failed);
+  assert(succeeded);
 }
 
 #endif
@@ -414,7 +432,8 @@ static void test21(void)
   unsigned char buffer[Capacity];
   long offsets[BriefingMax];
   size_t const length = make_data(&source, 2, &offsets, &buffer);
-  for (unsigned long limit = 0; limit < 3; ++limit)
+  bool failed = false, succeeded = false;
+  for (unsigned long limit = 0; limit < 8 && !succeeded; ++limit)
   {
     Reader reader;
     assert(reader_mem_init(&reader, buffer, length));
@@ -422,10 +441,21 @@ static void test21(void)
     Fortify_SetNumAllocationsLimit(limit);
     SFError const err = briefing_read_texts(&loaded, offsets, 2, &reader);
     Fortify_SetNumAllocationsLimit(ULONG_MAX);
-    assert(err.type == SFErrorType_NoMem);
+    if (SFError_fail(err))
+    {
+      assert(err.type == SFErrorType_NoMem);
+      failed = true;
+    }
+    else
+    {
+      check_texts(&loaded, 2);
+      succeeded = true;
+    }
     briefing_destroy(&loaded);
     reader_destroy(&reader);
   }
+  assert(failed);
+  assert(succeeded);
   briefing_destroy(&source);
 }
 
@@ -477,6 +507,26 @@ static void test23(void)
   briefing_destroy(&source);
 }
 
+static void test_transfer(void)
+{
+  /* Ownership transfer preserves text state. */
+  BriefingData source, destination;
+  briefing_init(&source);
+  briefing_init(&destination);
+  SFError err = briefing_add_text(&source, "A");
+  assert(!SFError_fail(err));
+  err = briefing_add_text(&destination, "OLD");
+  assert(!SFError_fail(err));
+  briefing_destroy(&destination);
+  destination = source;
+  briefing_init(&source);
+  err = briefing_add_text(&destination, "B");
+  assert(!SFError_fail(err));
+  check_texts(&destination, 2);
+  briefing_destroy(&destination);
+  briefing_destroy(&source);
+}
+
 void Briefing_tests(void)
 {
   /* Briefing */
@@ -488,6 +538,7 @@ void Briefing_tests(void)
   unit_tests[] =
   {
     { "Initial text count", test1 },
+    { "Ownership transfer", test_transfer },
     { "Missing title", test2 },
     { "Added text order", test3 },
     { "Empty text", test4 },

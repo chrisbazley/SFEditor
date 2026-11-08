@@ -1028,12 +1028,13 @@ static void test28(void)
     _Optional TargetInfo *const info = target_info_from_index(&infos, 0);
     assert(info);
 
-    char string[64];
+    char string[300];
     memset(string, 'A', sizeof(string));
     string[sizeof(string) - 1] = '\0';
 
-    /* A valid multiline replacement longer than the initial text. */
-    for (size_t pos = 12; pos + 1 < sizeof(string); pos += 13)
+    /* A valid multiline replacement that exceeds the initial capacity. */
+    size_t const line_length = field == TargetInfoTextIndex_Type ? 20 : 40;
+    for (size_t pos = line_length; pos + 1 < sizeof(string); pos += line_length + 1)
     {
       string[pos] = '\n';
     }

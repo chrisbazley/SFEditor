@@ -9,7 +9,7 @@
 
 #include <stdbool.h>
 
-#include "StringBuff.h"
+#include "strb.h"
 #include "DataType.h"
 #include "FilenamesData.h"
 

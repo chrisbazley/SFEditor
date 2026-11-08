@@ -40,7 +40,7 @@
 #include "PathTail.h"
 #include "scheduler.h"
 #include "LinkedList.h"
-#include "StringBuff.h"
+#include "strb.h"
 #include "Reader.h"
 #include "ReaderRaw.h"
 #include "ReaderGKey.h"
@@ -129,7 +129,7 @@ static void set_edit_win_titles(EditSession *const session)
     DEBUG("Updating window titles for session %p", (void *)session);
     assert(Session_get_filename(session) != NULL);
 
-    stringbuffer_truncate(&session->edit_win_titles, 0);
+    strb_empty(session->edit_win_titles.buf);
 
     char *title_start = "";
     if (session->oddball_file)
@@ -154,15 +154,17 @@ static void set_edit_win_titles(EditSession *const session)
       title_start = msgs_lookup_subn("MissTitle", 2, Session_get_filename(session), misstitle);
     }
 
-    if (!stringbuffer_append_all(&session->edit_win_titles, title_start))
+    if (strb_puts(session->edit_win_titles.buf, title_start))
     {
       break;
     }
 
     if (Session_count_modified(session) > 0)
     {
-      if (!stringbuffer_append_all(&session->edit_win_titles, " *"))
+      if (strb_puts(session->edit_win_titles.buf, " *"))
+      {
         break;
+      }
     }
 
     DEBUG("No. of edit_wins: %d", session->number_of_edit_wins);
@@ -170,13 +172,15 @@ static void set_edit_win_titles(EditSession *const session)
     {
       char nbuf[11];
       sprintf(nbuf, " %d", session->number_of_edit_wins);
-      if (!stringbuffer_append_all(&session->edit_win_titles, nbuf))
+      if (strb_puts(session->edit_win_titles.buf, nbuf))
+      {
         break;
+      }
     }
 
     SESSION_FOR_EACH_EDIT_WIN(session, this_edit_win) {
       EditWin_set_title(&this_edit_win->edit_win,
-                        stringbuffer_get_pointer(&session->edit_win_titles));
+                        strb_cptr(session->edit_win_titles.buf));
     }
     return;
 
@@ -355,8 +359,8 @@ static bool set_main_filename(EditSession *const session, _Optional char const *
     assert(removed == NULL || removed == session);
     NOT_USED(removed);
 
-    stringbuffer_truncate(&session->filename, 0);
-    if (!stringbuffer_append_all(&session->filename, &*filename) ||
+    strb_empty(session->filename.buf);
+    if (strb_puts(session->filename.buf, &*filename) ||
         !strdict_insert(dict_for_session(session), Session_get_filename(session), session, NULL))
     {
       report_error(SFERROR(NoMem), "", "");
@@ -712,9 +716,10 @@ static _Optional EditSession *create_session(InterfaceType const ui_type,
               .moved_cb = info_moved,
               .session = &*session},
   };
+  session->filename.buf = strb_make(&session->filename_state, 0);
+  session->edit_win_titles.buf = strb_make(&session->titles_state, 0);
 
-  stringbuffer_init(&session->filename);
-  stringbuffer_init(&session->edit_win_titles);
+
   intdict_init(&session->edit_wins_array);
 
   if (set_main_filename(&*session, filename))
@@ -723,8 +728,8 @@ static _Optional EditSession *create_session(InterfaceType const ui_type,
     return session;
   }
 
-  stringbuffer_destroy(&session->filename);
-  stringbuffer_destroy(&session->edit_win_titles);
+  strb_free(session->filename.buf);
+  strb_free(session->edit_win_titles.buf);
   free(session);
 
   return NULL;
@@ -916,8 +921,8 @@ void Session_destroy(EditSession *const session)
     }
   }
 
-  stringbuffer_destroy(&session->filename);
-  stringbuffer_destroy(&session->edit_win_titles);
+  strb_free(session->filename.buf);
+  strb_free(session->edit_win_titles.buf);
   linkedlist_remove(&all_list, &session->all_link);
   free(session);
 }
@@ -1858,7 +1863,7 @@ _Optional MissionData *Session_get_mission(const EditSession *const session)
 char *Session_get_filename(EditSession *const session)
 {
   assert(session != NULL);
-  return stringbuffer_get_pointer(&session->filename);
+  return strb_ptr(session->filename.buf);
 }
 
 char *Session_get_save_filename(EditSession *const session)

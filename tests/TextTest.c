@@ -408,6 +408,7 @@ static void test17(void)
   SFError const err = text_set_string(&text, "NEW ALLOCATION");
   Fortify_SetNumAllocationsLimit(ULONG_MAX);
   assert(err.type == SFErrorType_NoMem);
+  assert(!strcmp(text_get_string(&text), ""));
   text_destroy(&text);
 }
 
@@ -438,6 +439,98 @@ static void test18(void)
 
 #endif
 
+#ifdef FORTIFY
+static void test19(void)
+{
+  /* Failed growth preserves the previous string. */
+
+  Text text;
+  text_init(&text);
+  assert(!SFError_fail(text_set_string(&text, "OLD")));
+
+  char replacement[257];
+  memset(replacement, 'A', sizeof replacement - 1);
+  replacement[sizeof replacement - 1] = '\0';
+
+  Fortify_SetNumAllocationsLimit(0);
+  SFError const err = text_set_string(&text, replacement);
+  Fortify_SetNumAllocationsLimit(ULONG_MAX);
+
+  assert(err.type == SFErrorType_NoMem);
+  assert(!strcmp(text_get_string(&text), "OLD"));
+  text_destroy(&text);
+}
+#endif
+
+static void test_state_transfer(void)
+{
+  /* Text ownership transfer */
+  Text source[2], destination[2];
+  text_init(&source[0]);
+  text_init(&source[1]);
+  SFError err = text_set_string(&source[1], "KEPT");
+  assert(!SFError_fail(err));
+  memcpy(destination, source, sizeof destination);
+  memset(source, 0x5a, sizeof source);
+  assert(strcmp(text_get_string(&destination[0]), "") == 0);
+  assert(strcmp(text_get_string(&destination[1]), "KEPT") == 0);
+  err = text_set_string(&destination[0], "NEW");
+  assert(!SFError_fail(err));
+  assert(strcmp(text_get_string(&destination[0]), "NEW") == 0);
+  text_destroy(&destination[0]);
+  text_destroy(&destination[1]);
+}
+
+#ifdef FORTIFY
+static void test_empty_without_allocation(void)
+{
+  /* Empty text needs no allocation. */
+  Text text;
+  Fortify_SetNumAllocationsLimit(0);
+  text_init(&text);
+  SFError const err = text_set_string(&text, "");
+  Fortify_SetNumAllocationsLimit(ULONG_MAX);
+  assert(!SFError_fail(err));
+  assert(!strcmp(text_get_string(&text), ""));
+  text_destroy(&text);
+}
+
+static void test_empty_read_without_allocation(void)
+{
+  /* Reading an empty string needs no allocation. */
+  Text text;
+  text_init(&text);
+  unsigned char buffer[Capacity];
+  size_t const size = write_block(&text, &buffer);
+  Reader reader;
+  assert(reader_mem_init(&reader, buffer, size));
+  Fortify_SetNumAllocationsLimit(0);
+  SFError const err = text_read_block(&text, &reader);
+  Fortify_SetNumAllocationsLimit(ULONG_MAX);
+  assert(!SFError_fail(err));
+  assert(!strcmp(text_get_string(&text), ""));
+  reader_destroy(&reader);
+  text_destroy(&text);
+}
+
+static void test_reuse_after_clear(void)
+{
+  /* Clearing text retains its allocated storage. */
+  Text text;
+  text_init(&text);
+  assert(!SFError_fail(text_set_string(&text, "OLD")));
+  Fortify_SetNumAllocationsLimit(0);
+  SFError err = text_set_string(&text, "");
+  assert(!SFError_fail(err));
+  assert(!strcmp(text_get_string(&text), ""));
+  err = text_set_string(&text, "NEW");
+  Fortify_SetNumAllocationsLimit(ULONG_MAX);
+  assert(!SFError_fail(err));
+  assert(!strcmp(text_get_string(&text), "NEW"));
+  text_destroy(&text);
+}
+#endif
+
 void Text_tests(void)
 {
   /* Text */
@@ -449,6 +542,7 @@ void Text_tests(void)
   unit_tests[] =
   {
     { "Empty initial string", test1 },
+    { "Text ownership transfer", test_state_transfer },
     { "Default parameters", test2 },
     { "Alphabet normalisation", test3 },
     { "Decimal digits", test4 },
@@ -466,9 +560,13 @@ void Text_tests(void)
     { "Corrupt text data", test16 },
 #ifdef FORTIFY
     { "String allocation failure", test17 },
+    { "Empty text without allocation", test_empty_without_allocation },
+    { "Empty read without allocation", test_empty_read_without_allocation },
+    { "Reuse after clear", test_reuse_after_clear },
 #endif
 #ifdef FORTIFY
     { "Read allocation failure", test18 },
+    { "Failed growth preserves string", test19 },
 #endif
   };
 
