@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.14)
 project(SFEditor C)
 
 option(USE_OPTIONAL "Enable the _Optional qualifier" OFF)
@@ -8,6 +8,9 @@ option(ENABLE_CLANG_TIDY "Run clang-tidy during compilation" OFF)
 option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
 include(FetchContent)
+
+FetchContent_Declare(strb GIT_REPOSITORY https://github.com/chrisbazley/strb_t.git
+    GIT_TAG d049b77abd5a26a4870db9565c3f190d28f9946b)
 
 # Match SFEditor's use of the pseudo interfaces, including Fortify I/O.
 set(CBLIB_USE_CBDEBUG ON)
@@ -21,7 +24,16 @@ FetchContent_Declare(GKey GIT_REPOSITORY https://github.com/chrisbazley/GKeyLib.
 FetchContent_Declare(CBOS GIT_REPOSITORY https://github.com/chrisbazley/CBOSLib.git GIT_TAG main)
 FetchContent_Declare(SF3K GIT_REPOSITORY https://github.com/chrisbazley/SF3KLib.git GIT_TAG main)
 
-FetchContent_MakeAvailable(CBUtil CB CBOS GKey CBDebug CBPseudo SF3K OptionalAcornC)
+FetchContent_MakeAvailable(strb CBUtil CB CBOS GKey CBDebug CBPseudo SF3K OptionalAcornC)
+# Apply the existing fault-injection allocator to strb's character storage too.
+if(USE_FORTIFY)
+    target_link_libraries(strb PRIVATE Fortify)
+    if(MSVC)
+        target_compile_options(strb PRIVATE /FIfortify.h)
+    else()
+        target_compile_options(strb PRIVATE -include fortify.h)
+    endif()
+endif()
 
 if(USE_OPTIONAL)
     if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang|AppleClang")
@@ -254,6 +266,7 @@ set(SOURCES
 add_library(SFEditor ${SOURCES} ${HEADER_FILES})
 
 target_link_libraries(SFEditor PUBLIC
+    strb
     CB
     CBDebug
     CBPseudo
@@ -283,6 +296,7 @@ else()
 endif()
 
 target_link_libraries(SFEditorApp PRIVATE
+    strb
     SFEditor
 )
 

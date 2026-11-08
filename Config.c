@@ -32,7 +32,7 @@
 #include "Macros.h"
 #include "FileUtils.h"
 #include "Debug.h"
-#include "StringBuff.h"
+#include "strb.h"
 #include "SFError.h"
 #include "Config.h"
 #include "Utils.h"
@@ -760,25 +760,24 @@ bool Config_setup_levels_path(void)
   char const *const gd = config.use_custom_game_dir ? config.custom_game_dir : FIXED_GAME_DIR;
 
   /* Set up path for reading files */
-  StringBuffer levels_path;
-  stringbuffer_init(&levels_path);
+  STRB_DECL_ALLOC(levels_path, 0);
 
   if (config.use_extern_levels_dir) {
-    if (!stringbuffer_append_all(&levels_path, config.extern_levels_dir) ||
-        !stringbuffer_append_all(&levels_path, ".,")) {
+    if (strb_puts(levels_path, config.extern_levels_dir) ||
+        strb_puts(levels_path, ".,")) {
       report_error(SFERROR(NoMem), "", "");
       success = false;
     }
   }
 
-  if (!stringbuffer_append_all(&levels_path, gd) ||
-      !stringbuffer_append_all(&levels_path, ".")) {
+  if (strb_puts(levels_path, gd) ||
+      strb_puts(levels_path, ".")) {
     report_error(SFERROR(NoMem), "", "");
     success = false;
   }
 
   if (success && E(_kernel_setenv("SFeditorLevels$Path",
-                                  stringbuffer_get_pointer(&levels_path)))) {
+                                  strb_cptr(levels_path)))) {
     success = false;
   }
 
@@ -792,7 +791,7 @@ bool Config_setup_levels_path(void)
     }
   }
 
-  stringbuffer_destroy(&levels_path);
+  strb_free(levels_path);
   return success;
 }
 

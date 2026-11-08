@@ -23,7 +23,7 @@
 #include <stdbool.h>
 #include "stdio.h"
 
-#include "StringBuff.h"
+#include "strb.h"
 #include "Debug.h"
 #include "msgtrans.h"
 #include "Err.h"
@@ -41,62 +41,48 @@
 #include "Optional.h"
 #endif
 
-enum {
-  TokenTailMaxBytes = 16 /* two characters, decimal integer and terminator */
-};
-
-static bool get_name_from_type(StringBuffer *const output_string,
+static bool get_name_from_type(strb_t *const output_string,
   char const *const graphics_set, int const type_prefix, unsigned char const obj_no)
 {
+  STRB_DECL_ALLOC(token, 0);
   bool success = false;
 
-  StringBuffer token;
-  stringbuffer_init(&token);
-
-  if (stringbuffer_append_all(&token, graphics_set))
+  if (!strb_printf(token, "%s@%c%d", graphics_set, type_prefix, obj_no))
   {
-    size_t toksize = TokenTailMaxBytes;
-    _Optional char *const toktail = stringbuffer_prepare_append(&token, &toksize);
-    if (toktail)
+    strb_empty(output_string);
+    size_t msgsize = 0;
+    if (messagetrans_lookup(&messages, strb_cptr(token),
+                           NULL, 0, &msgsize, 0) == NULL)
     {
-      int const nchars = sprintf(&*toktail, "@%c%d", type_prefix, obj_no);
-      assert(nchars >= 0);
-      stringbuffer_finish_append(&token, (size_t)nchars);
-
-      stringbuffer_truncate(output_string, 0);
-      size_t msgsize = 0;
-      if (messagetrans_lookup(&messages, stringbuffer_get_pointer(&token),
-                               NULL, 0, &msgsize, 0) == NULL)
+      assert(msgsize > 0);
+      _Optional char *const outtail = strb_write(output_string, msgsize - 1);
+      if (outtail &&
+          messagetrans_lookup(&messages, strb_cptr(token),
+                             &*outtail, msgsize, &msgsize, 0) == NULL)
       {
-        _Optional char *const outtail = stringbuffer_prepare_append(output_string, &msgsize);
-        if (outtail &&
-            messagetrans_lookup(&messages, stringbuffer_get_pointer(&token),
-                                &*outtail, msgsize, &msgsize, 0) == NULL)
-        {
-          stringbuffer_finish_append(output_string, msgsize - 1);
-          success = true;
-        }
+        strb_delto(output_string, msgsize - 1);
+        success = true;
       }
+    }
 
-      if (!success)
-      {
-        success = stringbuffer_append_all(output_string,
-                                          stringbuffer_get_pointer(&token));
-      }
+    if (!success)
+    {
+      strb_clearerr(output_string);
+      success = !strb_cpy(output_string, strb_cptr(token));
     }
   }
 
-  stringbuffer_destroy(&token);
+  strb_free(token);
   return success;
 }
 
-bool get_objname_from_type(StringBuffer *const output_string,
+bool get_objname_from_type(strb_t *const output_string,
   char const *const graphics_set, ObjRef const obj_no)
 {
   if (objects_ref_is_cloud(obj_no)) {
     int const height = objects_ref_get_cloud_height(obj_no);
 
-    stringbuffer_truncate(output_string, 0);
+    strb_empty(output_string);
     size_t msgsize = 0;
 
     static char const *const categories[] = {
@@ -115,29 +101,30 @@ bool get_objname_from_type(StringBuffer *const output_string,
     if (messagetrans_lookup(&messages, token,
                              NULL, 0, &msgsize, 1, id_string) == NULL)
     {
-      _Optional char *const outtail = stringbuffer_prepare_append(output_string, &msgsize);
+      _Optional char *const outtail = strb_write(output_string, msgsize - 1);
       if (outtail &&
           messagetrans_lookup(&messages, token,
                               &*outtail, msgsize, &msgsize, 1, id_string) == NULL)
       {
-        stringbuffer_finish_append(output_string, msgsize - 1);
+        strb_delto(output_string, msgsize - 1);
         return true;
       }
     }
 
-    return stringbuffer_append_all(output_string, token);
+    strb_clearerr(output_string);
+    return !strb_cpy(output_string, token);
   } else {
     return get_name_from_type(output_string, graphics_set, 'O', objects_ref_to_num(obj_no));
   }
 }
 
-bool get_shipname_from_type(StringBuffer *const output_string,
+bool get_shipname_from_type(strb_t *const output_string,
   char const *const graphics_set, ShipType const ship_no)
 {
   return get_name_from_type(output_string, graphics_set, 'S', ship_no);
 }
 
-bool build_ships_stringset(StringBuffer *const output_string,
+bool build_ships_stringset(strb_t *const output_string,
   char const *const graphics_set,
   bool const include_player, bool const include_fighters,
   bool const include_bigships, bool const include_satellite)
@@ -145,17 +132,16 @@ bool build_ships_stringset(StringBuffer *const output_string,
   /* Build string suitable to pass to stringset_set_available() */
   bool success = true;
 
-  stringbuffer_truncate(output_string, 0);
+  strb_empty(output_string);
 
-  StringBuffer ship_name;
-  stringbuffer_init(&ship_name);
+  STRB_DECL_ALLOC(ship_name, 0);
 
   if (include_player)
   {
-    success = get_shipname_from_type(&ship_name, graphics_set, ShipType_Player);
+    success = get_shipname_from_type(ship_name, graphics_set, ShipType_Player);
     if (success)
     {
-      success = stringbuffer_append_all(output_string, stringbuffer_get_pointer(&ship_name));
+      success = !strb_puts(output_string, strb_cptr(ship_name));
     }
   }
 
@@ -163,10 +149,10 @@ bool build_ships_stringset(StringBuffer *const output_string,
   {
     for (ShipType i = ShipType_Fighter1; i <= ShipType_Fighter4 && success; i++)
     {
-      success = get_shipname_from_type(&ship_name, graphics_set, i);
+      success = get_shipname_from_type(ship_name, graphics_set, i);
       if (success)
       {
-        success = append_to_csv(output_string, stringbuffer_get_pointer(&ship_name));
+        success = append_to_csv(output_string, strb_cptr(ship_name));
       }
     }
   }
@@ -175,29 +161,29 @@ bool build_ships_stringset(StringBuffer *const output_string,
   {
     for (ShipType i = ShipType_Big1; i <= ShipType_Big3 && success; i++)
     {
-      success = get_shipname_from_type(&ship_name, graphics_set, i);
+      success = get_shipname_from_type(ship_name, graphics_set, i);
       if (success)
       {
-        success = append_to_csv(output_string, stringbuffer_get_pointer(&ship_name));
+        success = append_to_csv(output_string, strb_cptr(ship_name));
       }
     }
   }
 
   if (include_satellite && success)
   {
-    success = get_shipname_from_type(&ship_name, graphics_set, ShipType_Satellite);
+    success = get_shipname_from_type(ship_name, graphics_set, ShipType_Satellite);
     if (success)
     {
-      success = append_to_csv(output_string, stringbuffer_get_pointer(&ship_name));
+      success = append_to_csv(output_string, strb_cptr(ship_name));
     }
   }
 
-  stringbuffer_destroy(&ship_name);
+  strb_free(ship_name);
 
   return success;
 }
 
-bool build_objs_stringset(StringBuffer *const output_string,
+bool build_objs_stringset(strb_t *const output_string,
   char const *const graphics_set,
   bool const include_none, bool const include_objects, bool const include_clouds,
   bool const include_hills, bool const include_mask)
@@ -205,17 +191,16 @@ bool build_objs_stringset(StringBuffer *const output_string,
   /* Build string suitable to pass to stringset_set_available() */
   bool success = true;
 
-  stringbuffer_truncate(output_string, 0);
+  strb_empty(output_string);
 
-  StringBuffer obj_name;
-  stringbuffer_init(&obj_name);
+  STRB_DECL_ALLOC(obj_name, 0);
 
   if (include_none)
   {
-    success = get_objname_from_type(&obj_name, graphics_set, objects_ref_none());
+    success = get_objname_from_type(obj_name, graphics_set, objects_ref_none());
     if (success)
     {
-      success = append_to_csv(output_string, stringbuffer_get_pointer(&obj_name));
+      success = append_to_csv(output_string, strb_cptr(obj_name));
     }
   }
 
@@ -223,10 +208,10 @@ bool build_objs_stringset(StringBuffer *const output_string,
   {
     for (size_t i = Obj_RefMinObject; i <= Obj_RefMaxObject && success; i++)
     {
-      success = get_objname_from_type(&obj_name, graphics_set, objects_ref_from_num(i));
+      success = get_objname_from_type(obj_name, graphics_set, objects_ref_from_num(i));
       if (success)
       {
-        success = append_to_csv(output_string, stringbuffer_get_pointer(&obj_name));
+        success = append_to_csv(output_string, strb_cptr(obj_name));
       }
     }
   }
@@ -235,33 +220,33 @@ bool build_objs_stringset(StringBuffer *const output_string,
   {
     for (size_t i = Obj_RefMinCloud; i <= Obj_RefMaxCloud && success; i++)
     {
-      success = get_objname_from_type(&obj_name, graphics_set, objects_ref_from_num(i));
+      success = get_objname_from_type(obj_name, graphics_set, objects_ref_from_num(i));
       if (success)
       {
-        success = append_to_csv(output_string, stringbuffer_get_pointer(&obj_name));
+        success = append_to_csv(output_string, strb_cptr(obj_name));
       }
     }
   }
 
   if (include_hills && success)
   {
-    success = get_objname_from_type(&obj_name, graphics_set, objects_ref_hill());
+    success = get_objname_from_type(obj_name, graphics_set, objects_ref_hill());
     if (success)
     {
-      success = append_to_csv(output_string, stringbuffer_get_pointer(&obj_name));
+      success = append_to_csv(output_string, strb_cptr(obj_name));
     }
   }
 
   if (include_mask && success)
   {
-    success = get_objname_from_type(&obj_name, graphics_set, objects_ref_mask());
+    success = get_objname_from_type(obj_name, graphics_set, objects_ref_mask());
     if (success)
     {
-      success = append_to_csv(output_string, stringbuffer_get_pointer(&obj_name));
+      success = append_to_csv(output_string, strb_cptr(obj_name));
     }
   }
 
-  stringbuffer_destroy(&obj_name);
+  strb_free(obj_name);
 
   return success;
 }

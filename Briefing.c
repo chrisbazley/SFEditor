@@ -25,7 +25,6 @@
 #include "Macros.h"
 #include "Reader.h"
 #include "Writer.h"
-#include "StringBuff.h"
 
 #include "Utils.h"
 #include "Text.h"
