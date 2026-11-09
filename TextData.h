@@ -13,7 +13,7 @@
 struct Text
 {
   TextParams params;
-  _Optional strb_t *string;
+  strb_t string;
 };
 
 #endif

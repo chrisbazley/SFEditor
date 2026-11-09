@@ -45,8 +45,8 @@ typedef struct {
 
 typedef struct Text Text;
 
-/* Initialises empty text without allocation. A null buffer represents an empty
- * string. Copying a live Text transfers ownership; use only the copy afterwards. */
+/* Initialises empty text without allocation. Copying a live Text transfers
+ * ownership; use only the copy afterwards. */
 void text_init(Text *text);
 void text_destroy(Text *text);
 
