@@ -19,6 +19,8 @@
  */
 
 /* ANSI library files */
+#include "strb.h"
+#include "OSFSCntrl.h"
 #include "stdlib.h"
 #include <string.h>
 #include <assert.h>
@@ -60,7 +62,7 @@ void parse_arguments(int argc, char *argv[])
                                              catalogue_info.exec, NULL);
       /* Attempt to load the file, if it is a recognised type */
       STRB_DECL_ALLOC(filename, 0);
-      if (!E(canonicalise_sb(filename, NULL, NULL, argv[i]))) {
+      if (!E(os_fscontrol_canonicalise_sb(filename, NULL, NULL, argv[i]))) {
         DataType const data_type = file_type_to_data_type(file_type, strb_cptr(filename));
         if (data_type != DataType_Count) {
           Session_open_single_file(strb_cptr(filename), data_type);

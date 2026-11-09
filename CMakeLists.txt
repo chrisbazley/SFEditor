@@ -17,12 +17,12 @@ set(CBLIB_USE_CBDEBUG ON)
 
 FetchContent_Declare(CBUtil GIT_REPOSITORY https://github.com/chrisbazley/CBUtilLib.git GIT_TAG main)
 FetchContent_Declare(CB GIT_REPOSITORY https://github.com/chrisbazley/CBLibrary.git
-    GIT_TAG 48558990ea079fa9a8b08c09eaed5148563290f5)
+    GIT_TAG 8e171106466806c639f42022afded59467310215)
 FetchContent_Declare(CBDebug GIT_REPOSITORY https://github.com/chrisbazley/CBDebugLib.git GIT_TAG main)
 FetchContent_Declare(CBPseudo GIT_REPOSITORY https://github.com/chrisbazley/CBPseudoLib.git GIT_TAG main)
 FetchContent_Declare(OptionalAcornC GIT_REPOSITORY https://github.com/chrisbazley/OptionalAcornC.git GIT_TAG main)
 FetchContent_Declare(GKey GIT_REPOSITORY https://github.com/chrisbazley/GKeyLib.git GIT_TAG main)
-FetchContent_Declare(CBOS GIT_REPOSITORY https://github.com/chrisbazley/CBOSLib.git GIT_TAG main)
+FetchContent_Declare(CBOS GIT_REPOSITORY https://github.com/chrisbazley/CBOSLib.git GIT_TAG 782092644cedffd8fccdb4d816d0b0d05d5453fe)
 FetchContent_Declare(SF3K GIT_REPOSITORY https://github.com/chrisbazley/SF3KLib.git GIT_TAG main)
 
 FetchContent_MakeAvailable(strb CBUtil CB CBOS GKey CBDebug CBPseudo SF3K OptionalAcornC)

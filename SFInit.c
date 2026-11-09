@@ -19,6 +19,8 @@
  */
 
 /* ANSI library files */
+#include "strb.h"
+#include "OSFSCntrl.h"
 #include "stdlib.h"
 #include <string.h>
 #include <stdbool.h>
@@ -242,7 +244,7 @@ static int DataOpen_handler(WimpMessage *const message, void *const handle)
 
   bool claim = false;
   STRB_DECL_ALLOC(filename, 0);
-  if (!E(canonicalise_sb(filename, NULL, NULL, message->data.data_open.path_name)))
+  if (!E(os_fscontrol_canonicalise_sb(filename, NULL, NULL, message->data.data_open.path_name)))
   {
     DataType const data_type = file_type_to_data_type(
       message->data.data_open.file_type, strb_cptr(filename));

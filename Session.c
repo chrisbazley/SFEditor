@@ -18,6 +18,8 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#include "strb.h"
+#include "OSFSCntrl.h"
 #include <stdbool.h>
 #include "stdio.h"
 #include "stdlib.h"
@@ -40,7 +42,6 @@
 #include "PathTail.h"
 #include "scheduler.h"
 #include "LinkedList.h"
-#include "strb.h"
 #include "Reader.h"
 #include "ReaderRaw.h"
 #include "ReaderGKey.h"
@@ -1925,7 +1926,7 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
 
   /* Canonicalise path file was saved as (for comparison purposes) */
   STRB_DECL_ALLOC(canon_save_path, 0);
-  if (E(canonicalise_sb(canon_save_path, NULL, NULL, file_name))) {
+  if (E(os_fscontrol_canonicalise_sb(canon_save_path, NULL, NULL, file_name))) {
     strb_free(canon_save_path);
     return;
   }
@@ -2478,7 +2479,7 @@ static bool can_revert_individual(EditSession *const session,
   DEBUG("Full path of file to revert: '%s'", &*file_path);
 
   STRB_DECL_ALLOC(canon_ext_dir, 0);
-  if (E(canonicalise_sb(canon_ext_dir, NULL, NULL, Config_get_extern_levels_dir()))) {
+  if (E(os_fscontrol_canonicalise_sb(canon_ext_dir, NULL, NULL, Config_get_extern_levels_dir()))) {
     strb_free(canon_ext_dir);
     return false;
   }
