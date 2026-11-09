@@ -25,6 +25,8 @@
 #include "event.h"
 #include "gadgets.h"
 
+#include "TboxExtra.h"
+#include "strb.h"
 #include "Err.h"
 #include "Macros.h"
 
@@ -74,9 +76,8 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
                            // FIXME wrong for objects
 
   /* Save starting (e.g. last) filename */
-  E(writablefield_get_value(0, id_block->self_id,
-                                     NEWTRANSFER_GADGETS_NAME, initial_name,
-                                     sizeof(initial_name), NULL));
+  E(writablefield_get_value_sb(0, id_block->self_id,
+    NEWTRANSFER_GADGETS_NAME, STRB_TMP_USE(initial_name)));
 
   return 1; /* claim event */
 }
@@ -105,9 +106,8 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
           &edit_win), 0);
         Editor *const editor = EditWin_get_editor(edit_win);
 
-        E(writablefield_get_value(0, id_block->self_id,
-                   NEWTRANSFER_GADGETS_NAME, initial_name, sizeof(initial_name),
-                   NULL));
+        E(writablefield_get_value_sb(0, id_block->self_id,
+          NEWTRANSFER_GADGETS_NAME, STRB_TMP_USE(initial_name)));
 
         if (Editor_can_create_transfer(editor)) {
           Editor_create_transfer(editor, initial_name);

@@ -28,6 +28,8 @@
 #include "gadgets.h"
 #include "textarea.h"
 
+#include "TboxExtra.h"
+#include "strb.h"
 #include "EventExtra.h"
 
 #include "Debug.h"
@@ -61,28 +63,18 @@ enum {
 
 static bool read_brief_win(BriefingData *const briefing, ObjectId const id)
 {
-  int nbytes = 0;
-  if (E(textarea_get_text(0, id, ComponentId_TextArea, NULL, 0, &nbytes)) ||
-      nbytes < 0) {
+  STRB_DECL_ALLOC(text, 0);
+  if (E(textarea_get_text_sb(0, id, ComponentId_TextArea, text))) {
+    strb_free(text);
     return false;
   }
-
-  _Optional char *const buffer = malloc((unsigned)nbytes);
-  if (buffer == NULL) {
-    report_error(SFERROR(NoMem), "", "");
-    return false;
-  }
-
-  if (E(textarea_get_text(0, id, ComponentId_TextArea, &*buffer, nbytes, NULL))) {
-    free(buffer);
-    return false;
-  }
+  char *const buffer = strb_ptr(text);
 
   BriefingData new_briefing;
   briefing_init(&new_briefing);
 
   bool success = true;
-  char *string = &*buffer;
+  char *string = buffer;
   _Optional char *end;
   do {
     end = strchr(string, ENDPARA[0]);
@@ -111,7 +103,7 @@ static bool read_brief_win(BriefingData *const briefing, ObjectId const id)
     }
   } while (end != NULL);
 
-  free(buffer);
+  strb_free(text);
 
   if (success) {
     briefing_destroy(briefing);

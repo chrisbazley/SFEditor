@@ -29,6 +29,8 @@
 #include "textarea.h"
 
 #include "msgtrans.h"
+#include "TboxExtra.h"
+#include "strb.h"
 #include "Macros.h"
 #include "Err.h"
 #include "EventExtra.h"
@@ -119,7 +121,12 @@ static bool read_win(InfoPropDbox *const prop)
 {
   assert(prop);
 
-  _Optional char *buffers[TargetInfoTextIndex_Count] = {NULL};
+  STRB_DECL_ALLOC(type, 0);
+  STRB_DECL_ALLOC(details, 0);
+  strb_t *const buffers[TargetInfoTextIndex_Count] = {
+    [TargetInfoTextIndex_Type] = type,
+    [TargetInfoTextIndex_Details] = details,
+  };
   char const *strings[TargetInfoTextIndex_Count];
   bool ok = true;
 
@@ -128,27 +135,11 @@ static bool read_win(InfoPropDbox *const prop)
        ++k) {
     ComponentId const textarea = text_index_to_component[k];
 
-    int nbytes = 0;
-    if (E(textarea_get_text(0, prop->my_object, textarea, NULL, 0, &nbytes)) ||
-        nbytes < 0) {
+    if (E(textarea_get_text_sb(0, prop->my_object, textarea, buffers[k]))) {
       ok = false;
       break;
     }
-
-    _Optional char *const buffer = malloc((unsigned)nbytes);
-    if (buffer == NULL) {
-      report_error(SFERROR(NoMem), "", "");
-      ok = false;
-      break;
-    }
-
-    if (E(textarea_get_text(0, prop->my_object, textarea, &*buffer, nbytes, NULL))) {
-      ok = false;
-      break;
-    }
-
-    buffers[k] = buffer;
-    strings[k] = &*buffer; // shallow copy for read-only use
+    strings[k] = strb_cptr(buffers[k]);
   }
 
   if (ok) {
@@ -158,7 +149,7 @@ static bool read_win(InfoPropDbox *const prop)
   for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
        k < TargetInfoTextIndex_Count;
        ++k) {
-    free(buffers[k]);
+    strb_free(buffers[k]);
   }
 
   return ok;

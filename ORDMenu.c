@@ -24,6 +24,8 @@
 #include "toolbox.h"
 #include "menu.h"
 
+#include "TboxExtra.h"
+#include "strb.h"
 #include "Err.h"
 #include "msgtrans.h"
 #include "Macros.h"
@@ -68,9 +70,8 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
   /* Set menu title appropriately according to parent menu entry */
   {
     char title_buffer[12];
-    if (!E(menu_get_entry_text(0, id_block->parent_id,
-                               id_block->parent_component, title_buffer,
-                               sizeof(title_buffer), NULL)))
+    if (!E(menu_get_entry_text_sb(0, id_block->parent_id,
+      id_block->parent_component, STRB_TMP_USE(title_buffer))))
       E(menu_set_title(0, id_block->self_id, title_buffer));
   }
 

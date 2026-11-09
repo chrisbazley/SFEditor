@@ -32,6 +32,7 @@
 #include "wimplib.h"
 
 #include "msgtrans.h"
+#include "TboxExtra.h"
 #include "Err.h"
 #include "Macros.h"
 #include "Debug.h"
@@ -147,8 +148,8 @@ static bool read_win(ObjectId const window_id)
     return false;
   }
 
-  if (E(writablefield_get_value(0, window_id, ComponentId_CustomGamePath,
-         read_custom_game_dir, sizeof(read_custom_game_dir), NULL))) {
+  if (E(writablefield_get_value_sb(0, window_id,
+    ComponentId_CustomGamePath, STRB_TMP_USE(read_custom_game_dir)))) {
     return false;
   }
 
@@ -158,14 +159,14 @@ static bool read_win(ObjectId const window_id)
     return false;
   }
 
-  if (E(writablefield_get_value(0, window_id, ComponentId_UserLevelsPath,
-         read_extern_levels_dir, sizeof(read_extern_levels_dir), NULL))) {
+  if (E(writablefield_get_value_sb(0, window_id,
+    ComponentId_UserLevelsPath, STRB_TMP_USE(read_extern_levels_dir)))) {
     return false;
   }
 
   /* Transfers location */
-  if (E(writablefield_get_value(0, window_id, ComponentId_TransfersPath,
-         read_transfers_dir, sizeof(read_transfers_dir), NULL))) {
+  if (E(writablefield_get_value_sb(0, window_id,
+    ComponentId_TransfersPath, STRB_TMP_USE(read_transfers_dir)))) {
     return false;
   }
 

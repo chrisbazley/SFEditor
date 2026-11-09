@@ -22,7 +22,7 @@ FetchContent_Declare(CBDebug GIT_REPOSITORY https://github.com/chrisbazley/CBDeb
 FetchContent_Declare(CBPseudo GIT_REPOSITORY https://github.com/chrisbazley/CBPseudoLib.git GIT_TAG main)
 FetchContent_Declare(OptionalAcornC GIT_REPOSITORY https://github.com/chrisbazley/OptionalAcornC.git GIT_TAG main)
 FetchContent_Declare(GKey GIT_REPOSITORY https://github.com/chrisbazley/GKeyLib.git GIT_TAG main)
-FetchContent_Declare(CBOS GIT_REPOSITORY https://github.com/chrisbazley/CBOSLib.git GIT_TAG 782092644cedffd8fccdb4d816d0b0d05d5453fe)
+FetchContent_Declare(CBOS GIT_REPOSITORY https://github.com/chrisbazley/CBOSLib.git GIT_TAG 419f65f255f762306ac6e3a8149daa5afb154051)
 FetchContent_Declare(SF3K GIT_REPOSITORY https://github.com/chrisbazley/SF3KLib.git GIT_TAG main)
 
 FetchContent_MakeAvailable(strb CBUtil CB CBOS GKey CBDebug CBPseudo SF3K OptionalAcornC)

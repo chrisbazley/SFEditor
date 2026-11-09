@@ -22,6 +22,8 @@
 #include "menu.h"
 #include "event.h"
 
+#include "TboxExtra.h"
+#include "strb.h"
 #include "Err.h"
 #include "Macros.h"
 
@@ -60,9 +62,8 @@ static int menu_submenu(int const event_code, ToolboxEvent *const event,
   NOT_USED(handle);
 
   char title[32];
-  ON_ERR_RPT_RTN_V(menu_get_entry_text(0, id_block->self_id,
-                                       id_block->self_component,
-                                       title, sizeof(title), NULL), 1);
+  ON_ERR_RPT_RTN_V(menu_get_entry_text_sb(0, id_block->self_id,
+    id_block->self_component, STRB_TMP_USE(title)), 1);
 
   ObjectId sub_menu;
   ON_ERR_RPT_RTN_V(menu_get_sub_menu_show(0, id_block->self_id,
