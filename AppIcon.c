@@ -140,7 +140,7 @@ static int dataload_message(WimpMessage *const message, void *const handle)
       report_error(SFERROR(BadFileType), strb_cptr(filename), "");
     }
   }
-  strb_free(filename);
+  strb_destroy(filename);
 
   /* Acknowledge that the file was loaded successfully
      (just a courtesy message, we don't expect a reply) */

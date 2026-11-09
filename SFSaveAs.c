@@ -123,7 +123,7 @@ static int save_to_file(int const event_code, ToolboxEvent *const event,
       success = Session_save_file(session, data_type, strb_ptr(canonicalised));
     }
   }
-  strb_free(canonicalised);
+  strb_destroy(canonicalised);
   saveas_file_save_completed(success, id_block->self_id, sastf->filename);
 
   return 1; /* claim event */

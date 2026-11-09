@@ -2009,7 +2009,7 @@ static void ObjectsMode_palette_selection(Editor *const editor, int const object
       }
 
       msg = msgs_lookup_subn("StatusObSel", 1, strb_cptr(obj_name));
-      strb_free(obj_name);
+      strb_destroy(obj_name);
       break;
     }
 

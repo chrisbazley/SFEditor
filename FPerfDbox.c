@@ -267,7 +267,7 @@ void FPerfDbox_update_title(FPerfDboxData *const performance_data)
   {
     report_error(SFERROR(NoMem), "", "");
   }
-  strb_free(ship_name);
+  strb_destroy(ship_name);
 }
 
 void FPerfDbox_show(FPerfDboxData *const performance_data)

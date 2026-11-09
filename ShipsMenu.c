@@ -166,7 +166,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
       new_entry.component_id++;
     } /* next ship_no */
 
-    strb_free(ship_name);
+    strb_destroy(ship_name);
 
   } else {
     ComponentId const new_tick = (ComponentId)(launch_type - ShipType_Fighter1);

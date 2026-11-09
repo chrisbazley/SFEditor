@@ -354,7 +354,7 @@ static int dataload_message(WimpMessage *const message, void *const handle)
         E(writablefield_set_value(0, Config_tboxID,
                    ComponentId_CustomGamePath, strb_cptr(add_leaf)));
       }
-      strb_free(add_leaf);
+      strb_destroy(add_leaf);
 
       send_dataloadack(message);
       return 1; /* claim message */

@@ -56,7 +56,7 @@ static bool get_name_from_type(strb_t *const output_string,
     }
   }
 
-  strb_free(token);
+  strb_destroy(token);
   return success;
 }
 
@@ -157,7 +157,7 @@ bool build_ships_stringset(strb_t *const output_string,
     }
   }
 
-  strb_free(ship_name);
+  strb_destroy(ship_name);
 
   return success;
 }
@@ -225,7 +225,7 @@ bool build_objs_stringset(strb_t *const output_string,
     }
   }
 
-  strb_free(obj_name);
+  strb_destroy(obj_name);
 
   return success;
 }

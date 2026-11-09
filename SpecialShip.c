@@ -299,7 +299,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
       E(stringset_set_available(0, id_block->self_id,
                  ComponentId_SHIPTYPE, strb_cptr(ships_stringset)));
     }
-    strb_free(ships_stringset);
+    strb_destroy(ships_stringset);
   }
 
   setup_win(special_ship_data->session, id_block->self_id);

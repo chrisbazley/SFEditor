@@ -705,7 +705,7 @@ void Config_init(void)
     if (!loadfile(strb_cptr(config_read_file)) || !Config_setup_levels_path()) {
       exit(EXIT_FAILURE);
     }
-    strb_free(config_read_file);
+    strb_destroy(config_read_file);
   }
 
   /* Check that levels directory paths are still valid */
@@ -752,7 +752,7 @@ void Config_save(void)
     }
 
   }
-  strb_free(config_write_file);
+  strb_destroy(config_write_file);
 }
 
 bool Config_setup_levels_path(void)
@@ -792,7 +792,7 @@ bool Config_setup_levels_path(void)
     }
   }
 
-  strb_free(levels_path);
+  strb_destroy(levels_path);
   return success;
 }
 

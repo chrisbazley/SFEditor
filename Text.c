@@ -138,7 +138,7 @@ static int decode_char(int const ch)
 void text_destroy(Text *const text)
 {
   assert(text != NULL);
-  strb_free(&text->string);
+  strb_destroy(&text->string);
 }
 
 void text_init(Text *const text)

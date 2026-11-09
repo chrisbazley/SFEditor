@@ -65,7 +65,7 @@ static bool read_brief_win(BriefingData *const briefing, ObjectId const id)
 {
   STRB_DECL_ALLOC(text, 0);
   if (E(textarea_get_text_sb(0, id, ComponentId_TextArea, text))) {
-    strb_free(text);
+    strb_destroy(text);
     return false;
   }
   char *const buffer = strb_ptr(text);
@@ -103,7 +103,7 @@ static bool read_brief_win(BriefingData *const briefing, ObjectId const id)
     }
   } while (end != NULL);
 
-  strb_free(text);
+  strb_destroy(text);
 
   if (success) {
     briefing_destroy(briefing);

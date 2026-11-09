@@ -70,7 +70,7 @@ void parse_arguments(int argc, char *argv[])
           report_error(SFERROR(BadFileType), strb_cptr(filename), "");
         }
       }
-      strb_free(filename);
+      strb_destroy(filename);
     }
   }
 }

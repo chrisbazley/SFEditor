@@ -149,7 +149,7 @@ static bool read_win(InfoPropDbox *const prop)
   for (TargetInfoTextIndex k = TargetInfoTextIndex_First;
        k < TargetInfoTextIndex_Count;
        ++k) {
-    strb_free(buffers[k]);
+    strb_destroy(buffers[k]);
   }
 
   return ok;
