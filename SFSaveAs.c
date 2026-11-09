@@ -18,6 +18,8 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#include "strb.h"
+#include "OSFSCntrl.h"
 #include "stdlib.h"
 
 #include "event.h"
@@ -106,7 +108,7 @@ static int save_to_file(int const event_code, ToolboxEvent *const event,
   /* Warn if we are about to save to a different file path and a file of
      that name already exists */
   STRB_DECL_ALLOC(canonicalised, 0);
-  if (!E(canonicalise_sb(canonicalised, NULL, NULL, sastf->filename))) {
+  if (!E(os_fscontrol_canonicalise_sb(canonicalised, NULL, NULL, sastf->filename))) {
     _Optional char *const old_filename = Session_get_file_name(session, data_type);
 
     if (old_filename && stricmp(&*old_filename, strb_cptr(canonicalised)) != 0 &&

@@ -19,6 +19,8 @@
  */
 
 /* ANSI library headers */
+#include "strb.h"
+#include "OSFSCntrl.h"
 #include "stdlib.h"
 #include <stdbool.h>
 #include <assert.h>
@@ -127,7 +129,7 @@ static int dataload_message(WimpMessage *const message, void *const handle)
   }
 
   STRB_DECL_ALLOC(filename, 0);
-  if (!E(canonicalise_sb(filename, NULL, NULL, message->data.data_load.leaf_name)))
+  if (!E(os_fscontrol_canonicalise_sb(filename, NULL, NULL, message->data.data_load.leaf_name)))
   {
     DataType const data_type = file_type_to_data_type(
       message->data.data_load.file_type, strb_cptr(filename));

@@ -18,6 +18,8 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#include "strb.h"
+#include "OSFSCntrl.h"
 #include "stdio.h"
 #include <string.h>
 #include <stdbool.h>
@@ -32,7 +34,6 @@
 #include "Macros.h"
 #include "FileUtils.h"
 #include "Debug.h"
-#include "strb.h"
 #include "SFError.h"
 #include "Config.h"
 #include "Utils.h"
@@ -699,7 +700,7 @@ void Config_init(void)
   /* We canonicalise the path so that any error messages are meaningful */
   {
     STRB_DECL_ALLOC(config_read_file, 0);
-    EF(canonicalise_sb(config_read_file, NULL, NULL, CHOICES_READ_PATH CONFIG_FILE));
+    EF(os_fscontrol_canonicalise_sb(config_read_file, NULL, NULL, CHOICES_READ_PATH CONFIG_FILE));
 
     if (!loadfile(strb_cptr(config_read_file)) || !Config_setup_levels_path()) {
       exit(EXIT_FAILURE);
@@ -744,7 +745,7 @@ void Config_save(void)
 {
   /* Success - save configuration to file and close window */
   STRB_DECL_ALLOC(config_write_file, 0);
-  if (!E(canonicalise_sb(config_write_file, NULL, NULL, CHOICES_WRITE_PATH CONFIG_FILE))) {
+  if (!E(os_fscontrol_canonicalise_sb(config_write_file, NULL, NULL, CHOICES_WRITE_PATH CONFIG_FILE))) {
     /* (we canonicalise the path so that any error messages are meaningful) */
     if (ensure_path_exists(strb_ptr(config_write_file))) {
       savefile(strb_cptr(config_write_file));
