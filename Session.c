@@ -1924,12 +1924,12 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
         "saved as '%s'", (void *)session, data_type, file_name);
 
   /* Canonicalise path file was saved as (for comparison purposes) */
-  _Optional char *canon_save_path;
-  ON_ERR_RPT_RTN(canonicalise(&canon_save_path, NULL, NULL, file_name));
-  if (!canon_save_path) {
+  STRB_DECL_ALLOC(canon_save_path, 0);
+  if (E(canonicalise_sb(canon_save_path, NULL, NULL, file_name))) {
+    strb_free(canon_save_path);
     return;
   }
-  DEBUG("Canonicalised save path is '%s'", canon_save_path);
+  DEBUG("Canonicalised save path is '%s'", strb_cptr(canon_save_path));
 
   /* We may have affected any of the paths that we have cached catalogue
      information on. Note that files of incompatible type are not recorded in our
@@ -1965,11 +1965,11 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
   {
     _Optional char *const intern_compare_path = make_file_path_in_dir(Config_get_read_dir(), sub_dir);
     if (intern_compare_path == NULL) {
-      free(canon_save_path);
+      strb_free(canon_save_path);
       return;
     }
 
-    if (strnicmp(&*canon_save_path, &*intern_compare_path, strlen(&*intern_compare_path)) == 0) {
+    if (strnicmp(strb_cptr(canon_save_path), &*intern_compare_path, strlen(&*intern_compare_path)) == 0) {
       DEBUG("Matched save path with int. %s", intern_compare_path);
       free(intern_compare_path);
       filescan_directory_updated(dir_up);
@@ -1983,11 +1983,11 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
         _Optional char *const extern_compare_path = make_file_path_in_dir(
                                                    Config_get_extern_levels_dir(), sub_dir);
         if (extern_compare_path == NULL) {
-          free(canon_save_path);
+          strb_free(canon_save_path);
           return;
         }
 
-        if (strnicmp(&*canon_save_path, &*extern_compare_path,
+        if (strnicmp(strb_cptr(canon_save_path), &*extern_compare_path,
                      strlen(&*extern_compare_path)) == 0) {
           DEBUG("Matched save path with ext. %s", extern_compare_path);
           filescan_directory_updated(dir_up);
@@ -2006,8 +2006,8 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
     {
       /* For oddball files we don't care where they are saved */
       DEBUG("Is oddball file");
-      (void)set_saved_with_stamp(&*dfile, &*canon_save_path);
-      set_main_filename(session, &*canon_save_path);
+      (void)set_saved_with_stamp(&*dfile, strb_cptr(canon_save_path));
+      set_main_filename(session, strb_cptr(canon_save_path));
     }
     else if (Session_can_quick_save(session))
     {
@@ -2017,12 +2017,12 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
       _Optional char *const expect_path = make_file_path_in_subdir(Config_get_write_dir(), sub_dir, main_filename);
       if (expect_path == NULL)
       {
-        free(canon_save_path);
+        strb_free(canon_save_path);
         return;
       }
       DEBUG("Expected save path for component is '%s'", expect_path);
 
-      if (stricmp(&*canon_save_path, &*expect_path) == 0)
+      if (stricmp(strb_cptr(canon_save_path), &*expect_path) == 0)
       {
         /* File was saved to expected path - treat as if saved via
            main save dbox */
@@ -2041,16 +2041,16 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
           }
         }
 
-        (void)set_saved_with_stamp(&*dfile, &*canon_save_path);
+        (void)set_saved_with_stamp(&*dfile, strb_cptr(canon_save_path));
         set_edit_win_titles(session); /* remove unsaved indicator */
       }
       free(expect_path);
     }
 
     Session_display_msg(session, msgs_lookup_subn("Status1Saved", 2,
-                        get_data_type_string(data_type), canon_save_path), true);
+                        get_data_type_string(data_type), strb_cptr(canon_save_path)), true);
   }
-  free(canon_save_path);
+  strb_free(canon_save_path);
 }
 
 static bool load_single_core(EditSession *const session, char const *const filename,
@@ -2131,7 +2131,7 @@ static InterfaceType data_type_to_ui(DataType const data_type)
   return ui_type;
 }
 
-bool Session_open_single_file(char *const filename, DataType const data_type)
+bool Session_open_single_file(char const *const filename, DataType const data_type)
 {
   bool success = true;
   _Optional EditSession *session = strdict_find_value(&single_dict, filename, NULL);
@@ -2477,16 +2477,16 @@ static bool can_revert_individual(EditSession *const session,
   }
   DEBUG("Full path of file to revert: '%s'", &*file_path);
 
-  _Optional char *canon_ext_dir = NULL;
-  if (E(canonicalise(&canon_ext_dir, NULL, NULL, Config_get_extern_levels_dir())) ||
-      !canon_ext_dir) {
+  STRB_DECL_ALLOC(canon_ext_dir, 0);
+  if (E(canonicalise_sb(canon_ext_dir, NULL, NULL, Config_get_extern_levels_dir()))) {
+    strb_free(canon_ext_dir);
     return false;
   }
 
-  DEBUG("Canonicalised path of ext. dir: '%s'", canon_ext_dir);
-  size_t const root_len = strlen(&*canon_ext_dir);
-  bool const is_external = (strnicmp(&*canon_ext_dir, &*file_path, root_len) == 0);
-  free(canon_ext_dir);
+  DEBUG("Canonicalised path of ext. dir: '%s'", strb_cptr(canon_ext_dir));
+  size_t const root_len = strlen(strb_cptr(canon_ext_dir));
+  bool const is_external = (strnicmp(strb_cptr(canon_ext_dir), &*file_path, root_len) == 0);
+  strb_free(canon_ext_dir);
 
   if (!is_external) {
     DEBUG("File is not in external levels dir");

@@ -126,19 +126,19 @@ static int dataload_message(WimpMessage *const message, void *const handle)
     return 0;
   }
 
-  _Optional char *filename = NULL;
-  if (!E(canonicalise(&filename, NULL, NULL, message->data.data_load.leaf_name)) && filename)
+  STRB_DECL_ALLOC(filename, 0);
+  if (!E(canonicalise_sb(filename, NULL, NULL, message->data.data_load.leaf_name)))
   {
     DataType const data_type = file_type_to_data_type(
-      message->data.data_load.file_type, &*filename);
+      message->data.data_load.file_type, strb_cptr(filename));
 
     if (data_type != DataType_Count) {
-      Session_open_single_file(&*filename, data_type);
+      Session_open_single_file(strb_cptr(filename), data_type);
     } else {
-      report_error(SFERROR(BadFileType), &*filename, "");
+      report_error(SFERROR(BadFileType), strb_cptr(filename), "");
     }
-    free(filename);
   }
+  strb_free(filename);
 
   /* Acknowledge that the file was loaded successfully
      (just a courtesy message, we don't expect a reply) */

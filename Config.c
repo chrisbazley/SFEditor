@@ -698,13 +698,13 @@ void Config_init(void)
 
   /* We canonicalise the path so that any error messages are meaningful */
   {
-    _Optional char *config_read_file;
-    EF(canonicalise(&config_read_file, NULL, NULL, CHOICES_READ_PATH CONFIG_FILE));
+    STRB_DECL_ALLOC(config_read_file, 0);
+    EF(canonicalise_sb(config_read_file, NULL, NULL, CHOICES_READ_PATH CONFIG_FILE));
 
-    if (!config_read_file || !loadfile(&*config_read_file) || !Config_setup_levels_path()) {
+    if (!loadfile(strb_cptr(config_read_file)) || !Config_setup_levels_path()) {
       exit(EXIT_FAILURE);
     }
-    free(config_read_file);
+    strb_free(config_read_file);
   }
 
   /* Check that levels directory paths are still valid */
@@ -743,15 +743,15 @@ char const *Config_get_read_dir(void)
 void Config_save(void)
 {
   /* Success - save configuration to file and close window */
-  _Optional char *config_write_file;
-  if (!E(canonicalise(&config_write_file, NULL, NULL, CHOICES_WRITE_PATH CONFIG_FILE)) && config_write_file) {
+  STRB_DECL_ALLOC(config_write_file, 0);
+  if (!E(canonicalise_sb(config_write_file, NULL, NULL, CHOICES_WRITE_PATH CONFIG_FILE))) {
     /* (we canonicalise the path so that any error messages are meaningful) */
-    if (ensure_path_exists(&*config_write_file)) {
-      savefile(&*config_write_file);
+    if (ensure_path_exists(strb_ptr(config_write_file))) {
+      savefile(strb_cptr(config_write_file));
     }
 
-    free(config_write_file);
   }
+  strb_free(config_write_file);
 }
 
 bool Config_setup_levels_path(void)

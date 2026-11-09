@@ -241,11 +241,11 @@ static int DataOpen_handler(WimpMessage *const message, void *const handle)
   NOT_USED(handle);
 
   bool claim = false;
-  _Optional char *filename = NULL;
-  if (!E(canonicalise(&filename, NULL, NULL, message->data.data_open.path_name)) && filename)
+  STRB_DECL_ALLOC(filename, 0);
+  if (!E(canonicalise_sb(filename, NULL, NULL, message->data.data_open.path_name)))
   {
     DataType const data_type = file_type_to_data_type(
-      message->data.data_open.file_type, &*filename);
+      message->data.data_open.file_type, strb_cptr(filename));
 
     switch (data_type) {
     case DataType_BaseMap:
@@ -255,14 +255,14 @@ static int DataOpen_handler(WimpMessage *const message, void *const handle)
     case DataType_OverlayMapAnimations:
     case DataType_BaseMapAnimations:
     case DataType_Mission:
-      claim = Session_open_single_file(&*filename, data_type);
+      claim = Session_open_single_file(strb_cptr(filename), data_type);
       break;
 
     default:
       break;
     }
-    free(filename);
   }
+  strb_free(filename);
 
   if (claim) {
     message->hdr.your_ref = message->hdr.my_ref;
