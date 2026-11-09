@@ -28,6 +28,8 @@
 #include "window.h"
 #include "gadgets.h"
 
+#include "TboxExtra.h"
+#include "strb.h"
 #include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
@@ -97,8 +99,8 @@ static void setup_win(void)
 {
   /* Get currently (or soon-to-be) displayed source path */
   Filename source_sub_path;
-  ON_ERR_RPT_RTN(displayfield_get_value(0, RenameMiss_id,
-    RENAMEMISS_DISP_SOURCE, source_sub_path, sizeof(source_sub_path), NULL));
+  ON_ERR_RPT_RTN(displayfield_get_value_sb(0, RenameMiss_id,
+    RENAMEMISS_DISP_SOURCE, STRB_TMP_USE(source_sub_path)));
 
   struct {
     filescan_type dir;
@@ -187,8 +189,8 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
       ON_ERR_RPT_RTN_V(optionbutton_get_state(0, id_block->self_id,
         RENAMEMISS_OPTION_COPY, &copy), 1);
 
-      ON_ERR_RPT_RTN_V(displayfield_get_value(0, id_block->self_id,
-        RENAMEMISS_DISP_SOURCE, source_sub_path, sizeof(source_sub_path), NULL),
+      ON_ERR_RPT_RTN_V(displayfield_get_value_sb(0, id_block->self_id,
+        RENAMEMISS_DISP_SOURCE, STRB_TMP_USE(source_sub_path)),
       1);
 
       int miss_number = 1;
@@ -203,8 +205,8 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
           ON_ERR_RPT_RTN_V(numberrange_get_value(0, id_block->self_id,
             RENAMEMISS_NUMBER_RANGE, &miss_number), 1);
         else
-          ON_ERR_RPT_RTN_V(writablefield_get_value(0, id_block->self_id,
-            RENAMEMISS_WRITABLE_DEST, miss_name, sizeof(miss_name), NULL), 1);
+          ON_ERR_RPT_RTN_V(writablefield_get_value_sb(0, id_block->self_id,
+            RENAMEMISS_WRITABLE_DEST, STRB_TMP_USE(miss_name)), 1);
 
         switch (radio_selected) {
           case RENAMEMISS_RADIO_EASY:
@@ -341,8 +343,8 @@ void RenameMiss_get_path(ComponentId const component, Filename *const file_path)
   if (component != RENAMEMISS_POPUP_SOURCE)
     return;
 
-  if (E(displayfield_get_value(0, RenameMiss_id, RENAMEMISS_DISP_SOURCE,
-  *file_path, sizeof(*file_path), NULL)))
+  if (E(displayfield_get_value_sb(0, RenameMiss_id,
+    RENAMEMISS_DISP_SOURCE, STRB_TMP_USE(*file_path))))
     *file_path[0] = '\0';
 }
 

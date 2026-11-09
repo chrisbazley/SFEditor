@@ -28,6 +28,8 @@
 #include "gadgets.h"
 #include "window.h"
 
+#include "TboxExtra.h"
+#include "strb.h"
 #include "Err.h"
 #include "msgtrans.h"
 #include "Macros.h"
@@ -101,8 +103,8 @@ void StatusBar_show_hint(StatusBarData *const statusbar_data, char const *const 
 
   /* First read current value and only update if new value is different */
   char buf[128];
-  E(displayfield_get_value(0, statusbar_data->my_object, STATUSBAR_HINT,
-                                    buf, sizeof(buf), NULL));
+  E(displayfield_get_value_sb(0, statusbar_data->my_object,
+    STATUSBAR_HINT, STRB_TMP_USE(buf)));
 
   if (strcmp(buf, hint) != 0) {
     buf[0] = '\0';

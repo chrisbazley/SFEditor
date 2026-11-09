@@ -30,6 +30,8 @@
 #include "gadgets.h"
 
 #include "Hourglass.h"
+#include "TboxExtra.h"
+#include "strb.h"
 #include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
@@ -130,8 +132,8 @@ static void setup_win(void)
   {
     /* Get currently (or soon-to-be) displayed source leaf name */
     Filename source_name;
-    ON_ERR_RPT_RTN(displayfield_get_value(0, RenameMap_id,
-      RENAMEMAP_DISP_SOURCE, source_name, sizeof(source_name), NULL));
+    ON_ERR_RPT_RTN(displayfield_get_value_sb(0, RenameMap_id,
+      RENAMEMAP_DISP_SOURCE, STRB_TMP_USE(source_name)));
 
     /* Check to see whether that file exists on our list */
     for (size_t i = 0; *new_combined_list[i].leaf_name != '\0'; i++) {
@@ -176,11 +178,11 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
       ON_ERR_RPT_RTN_V(optionbutton_get_state(0, id_block->self_id,
         RENAMEMAP_OPTION_COPY, &copy), 1);
 
-      ON_ERR_RPT_RTN_V(writablefield_get_value(0, id_block->self_id,
-        RENAMEMAP_WRITABLE_DEST, dest_name, sizeof(dest_name), NULL), 1);
+      ON_ERR_RPT_RTN_V(writablefield_get_value_sb(0, id_block->self_id,
+        RENAMEMAP_WRITABLE_DEST, STRB_TMP_USE(dest_name)), 1);
 
-      ON_ERR_RPT_RTN_V(displayfield_get_value(0, id_block->self_id,
-        RENAMEMAP_DISP_SOURCE, source_name, sizeof(source_name), NULL), 1);
+      ON_ERR_RPT_RTN_V(displayfield_get_value_sb(0, id_block->self_id,
+        RENAMEMAP_DISP_SOURCE, STRB_TMP_USE(source_name)), 1);
 
       if (filepaths_map_exists(dest_name) &&
           !dialogue_confirm(msgs_lookup_subn("MultOv", 1, dest_name), "OvBut"))
@@ -238,14 +240,14 @@ void RenameMap_get_path(ComponentId const component, Filename *const file_path)
 {
   switch (component) {
     case RENAMEMAP_POPUP_SOURCE:
-      if (E(displayfield_get_value(0, RenameMap_id, RENAMEMAP_DISP_SOURCE,
-      *file_path, sizeof(*file_path), NULL)))
+      if (E(displayfield_get_value_sb(0, RenameMap_id,
+        RENAMEMAP_DISP_SOURCE, STRB_TMP_USE(*file_path))))
         *file_path[0] = '\0';
       break;
 
     case RENAMEMAP_POPUP_DEST:
-      if (E(writablefield_get_value(0, RenameMap_id, RENAMEMAP_WRITABLE_DEST,
-      *file_path, sizeof(*file_path), NULL)))
+      if (E(writablefield_get_value_sb(0, RenameMap_id,
+        RENAMEMAP_WRITABLE_DEST, STRB_TMP_USE(*file_path))))
         *file_path[0] = '\0';
       break;
 

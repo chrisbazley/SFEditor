@@ -25,6 +25,8 @@
 #include "event.h"
 #include "menu.h"
 
+#include "TboxExtra.h"
+#include "strb.h"
 #include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
@@ -118,8 +120,8 @@ static int menu_submenu(int const event_code, ToolboxEvent *const event,
   Picker_set_colour(colour);
 
   char title[32];
-  if (!E(menu_get_entry_text(0, id_block->self_id, id_block->self_component,
-         title, sizeof(title), NULL))) {
+  if (!E(menu_get_entry_text_sb(0, id_block->self_id,
+    id_block->self_component, STRB_TMP_USE(title)))) {
     Picker_set_title(title);
   }
 

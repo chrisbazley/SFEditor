@@ -27,6 +27,8 @@
 #include "toolbox.h"
 #include "menu.h"
 
+#include "TboxExtra.h"
+#include "strb.h"
 #include "Err.h"
 #include "Macros.h"
 #include "StrExtra.h"
@@ -75,8 +77,8 @@ static int selectionhandler(int const event_code, ToolboxEvent *const event,
   char path[sizeof(leafname) + sizeof(E_PATH) - 1];
 
   /* get filename from menu text */
-  ON_ERR_RPT_RTN_V(menu_get_entry_text(0, id_block->self_id,
-   id_block->self_component, leafname, sizeof(leafname), NULL), 1);
+  ON_ERR_RPT_RTN_V(menu_get_entry_text_sb(0, id_block->self_id,
+    id_block->self_component, STRB_TMP_USE(leafname)), 1);
 
   char const *const emh_path = filescan_get_emh_path(which);
   strcpy(path, emh_path);
@@ -187,8 +189,7 @@ static int openhandler(int const event_code, ToolboxEvent *const event,
     /* Search the menu for an entry matching the current leaf name */
     for (ComponentId entry = 0; entry < menu_states[which].next_cid; entry++) {
       Filename read_name;
-      if (E(menu_get_entry_text(0, id_block->self_id, entry,
-                                &*read_name, sizeof(read_name), 0)))
+      if (E(menu_get_entry_text_sb(0, id_block->self_id, entry, STRB_TMP_USE(read_name))))
         break;
 
       if (stricmp(read_name, &*leafname_ptr) == 0) {

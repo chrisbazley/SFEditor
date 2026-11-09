@@ -29,6 +29,8 @@
 #include "window.h"
 #include "gadgets.h"
 
+#include "TboxExtra.h"
+#include "strb.h"
 #include "Err.h"
 #include "Macros.h"
 #include "msgtrans.h"
@@ -89,8 +91,8 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
       if (transfer_to_rename == NULL)
         return 1; /* claim event */
 
-      ON_ERR_RPT_RTN_V(writablefield_get_value(0, id_block->self_id,
-                       RENAMETRANS_NAME, new_name, sizeof(new_name), NULL),
+      ON_ERR_RPT_RTN_V(writablefield_get_value_sb(0, id_block->self_id,
+        RENAMETRANS_NAME, STRB_TMP_USE(new_name)),
                        1 /* claim event */);
 
       if (!MapTransfers_rename(&textures->transfers.obj,

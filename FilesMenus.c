@@ -30,6 +30,8 @@
 #include "menu.h"
 #include "flex.h"
 
+#include "TboxExtra.h"
+#include "strb.h"
 #include "Err.h"
 #include "msgtrans.h"
 #include "Macros.h"
@@ -112,8 +114,8 @@ static int menu_selection(int const event_code, ToolboxEvent *const event,
     DEBUG("'None' menu entry selected");
     strcpy(leaf, NO_FILE);
   } else {
-    ON_ERR_RPT_RTN_V(menu_get_entry_text(0, id_block->self_id,
-                     id_block->self_component, leaf, sizeof(leaf), NULL), 1);
+    ON_ERR_RPT_RTN_V(menu_get_entry_text_sb(0, id_block->self_id,
+      id_block->self_component, STRB_TMP_USE(leaf)), 1);
   }
 
   if (Session_switch_file(session, data_type, leaf))
@@ -202,9 +204,8 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
     /* Search the menu for an entry matching the current leaf name */
     for (ComponentId entry = 0; entry < menu_states[which].next_cid; entry++) {
       Filename read_name;
-      ON_ERR_RPT_RTN_V(menu_get_entry_text(0, id_block->self_id, entry,
-                                           (char *)&read_name,
-                                           sizeof(read_name), 0), 1);
+      ON_ERR_RPT_RTN_V(menu_get_entry_text_sb(0, id_block->self_id,
+        entry, STRB_TMP_USE(read_name)), 1);
 
       assert(menu_states[which].next_cid > 0);
       bool const tick_none = (data_type_allow_none(data_type) &&
