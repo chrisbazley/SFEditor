@@ -482,6 +482,22 @@ static void test_state_transfer(void)
 }
 
 #ifdef FORTIFY
+static void test_first_string_one_allocation(void)
+{
+  /* First long string needs only a character allocation. */
+  char string[257];
+  memset(string, 'A', sizeof string - 1);
+  string[sizeof string - 1] = '\0';
+  Text text;
+  text_init(&text);
+  Fortify_SetNumAllocationsLimit(1);
+  SFError const err = text_set_string(&text, string);
+  Fortify_SetNumAllocationsLimit(ULONG_MAX);
+  assert(!SFError_fail(err));
+  assert(!strcmp(text_get_string(&text), string));
+  text_destroy(&text);
+}
+
 static void test_empty_without_allocation(void)
 {
   /* Empty text needs no allocation. */
@@ -560,6 +576,7 @@ void Text_tests(void)
     { "Corrupt text data", test16 },
 #ifdef FORTIFY
     { "String allocation failure", test17 },
+    { "First string uses one allocation", test_first_string_one_allocation },
     { "Empty text without allocation", test_empty_without_allocation },
     { "Empty read without allocation", test_empty_read_without_allocation },
     { "Reuse after clear", test_reuse_after_clear },

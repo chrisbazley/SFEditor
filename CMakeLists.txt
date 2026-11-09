@@ -10,7 +10,7 @@ option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 include(FetchContent)
 
 FetchContent_Declare(strb GIT_REPOSITORY https://github.com/chrisbazley/strb_t.git
-    GIT_TAG 848cb11b419c73016fe63f199b7b840ea2ba0220)
+    GIT_TAG 3b1c87fae18a4e22dde780def9e7e245b98d3569)
 
 # Match SFEditor's use of the pseudo interfaces, including Fortify I/O.
 set(CBLIB_USE_CBDEBUG ON)

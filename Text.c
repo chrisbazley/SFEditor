@@ -138,7 +138,7 @@ static int decode_char(int const ch)
 void text_destroy(Text *const text)
 {
   assert(text != NULL);
-  strb_free(text->string);
+  strb_free(&text->string);
 }
 
 void text_init(Text *const text)
@@ -162,7 +162,7 @@ void text_init(Text *const text)
 char const *text_get_string(Text const *const text)
 {
   assert(text != NULL);
-  char const *const s = text->string ? strb_cptr(&*text->string) : "";
+  char const *const s = strb_cptr(&text->string);
   DEBUGF("Text string: '%s'\n", s);
   return s;
 }
@@ -172,21 +172,7 @@ SFError text_set_string(Text *const text, char const *const string)
   assert(text != NULL);
   DEBUGF("Set text string '%s'\n", string);
   size_t const len = strlen(string);
-  _Optional strb_t *buffer = text->string;
-  if (!buffer)
-  {
-    if (!len)
-    {
-      return SFERROR(OK);
-    }
-    buffer = strb_alloc(len);
-    if (!buffer)
-    {
-      return SFERROR(NoMem);
-    }
-    text->string = &*buffer;
-  }
-  strb_t *const sb = &*buffer;
+  strb_t *const sb = &text->string;
   size_t const old_len = strb_len(sb);
   // The position is at the end; reserve any growth before changing characters.
   if (len > old_len && !strb_write(sb, len - old_len))
@@ -238,7 +224,7 @@ void text_write_offset(Text const *const text, Writer *const writer,
   assert(text != NULL);
   assert(offset != NULL);
   writer_fwrite_int32(*offset, writer);
-  size_t const len = text->string ? strb_len(&*text->string) : 0;
+  size_t const len = strb_len(&text->string);
   *offset += BytesPerTextHeader + (int)WORD_ALIGN_SZ(len + 1);
 }
 
@@ -357,11 +343,8 @@ SFError text_read_block(Text *const text, Reader *const reader)
     return SFERROR(BadTextColour);
   }
 
-  _Optional strb_t *buffer = text->string;
-  if (buffer)
-  {
-    strb_empty(&*buffer);
-  }
+  strb_t *const sb = &text->string;
+  strb_empty(sb);
   text->params = (TextParams){
     .duration = duration,
     .delay = delay,
@@ -387,16 +370,6 @@ SFError text_read_block(Text *const text, Reader *const reader)
   {
     return SFERROR(OK);
   }
-  if (!buffer)
-  {
-    buffer = strb_alloc(0);
-    if (!buffer)
-    {
-      return SFERROR(NoMem);
-    }
-    text->string = &*buffer;
-  }
-  strb_t *const sb = &*buffer;
   for (; ch != '\0'; ch = decode_char(reader_fgetc(reader)))
   {
     if (ch == EOF)
