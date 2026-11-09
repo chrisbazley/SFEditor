@@ -426,7 +426,7 @@ static char const *get_list_text(ObjPropDbox const *const prop, TriggerFullParam
         sprintf(loc, "%03" PRIMapCoord ",%03" PRIMapCoord, item.next_coords.x, item.next_coords.y);
 
         text = msgs_lookup_subn(token, 3, delay, strb_cptr(obj_name), loc);
-        strb_free(obj_name);
+        strb_destroy(obj_name);
       }
       break;
 
@@ -440,7 +440,7 @@ static char const *get_list_text(ObjPropDbox const *const prop, TriggerFullParam
           report_error(SFERROR(NoMem), "", "");
         }
         text = msgs_lookup_subn(token, 1, strb_cptr(ship_name));
-        strb_free(ship_name);
+        strb_destroy(ship_name);
       }
       break;
 
@@ -692,7 +692,7 @@ static void populate_type_set(ObjPropDbox const *const prop)
     E(stringset_set_available(0, prop->my_object,
                ComponentId_TypeSet, strb_cptr(objs_stringset)));
   }
-  strb_free(objs_stringset);
+  strb_destroy(objs_stringset);
 }
 
 static void populate_ship_set(ObjPropDbox const *const prop)
@@ -708,7 +708,7 @@ static void populate_ship_set(ObjPropDbox const *const prop)
     E(stringset_set_available(0, prop->my_add_object,
                ComponentId_ShieldType, strb_cptr(ships_stringset)));
   }
-  strb_free(ships_stringset);
+  strb_destroy(ships_stringset);
 }
 
 static void display_chain_name(ObjPropDbox const *const prop)
@@ -729,7 +729,7 @@ static void display_chain_name(ObjPropDbox const *const prop)
   E(displayfield_set_value(0, prop->my_add_object, ComponentId_ChainNext,
                            strb_cptr(obj_name)));
 
-  strb_free(obj_name);
+  strb_destroy(obj_name);
 }
 
 static void maybe_set_faded(ObjPropDbox const *const prop, ComponentId const component_id,

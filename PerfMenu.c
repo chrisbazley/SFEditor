@@ -110,7 +110,7 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
     }
   }
 
-  strb_free(ship_name);
+  strb_destroy(ship_name);
   return 1; /* claim event */
 }
 

@@ -279,7 +279,7 @@ static void redraw_label(Editor *const editor, Vertex origin, BBox const *bbox,
   }
   *truncated_name = '\0';
   strncat(truncated_name, strb_cptr(obj_name), MaxNameLen);
-  strb_free(obj_name);
+  strb_destroy(obj_name);
 
   int const width = truncate_string(truncated_name, bbox->xmax - bbox->xmin);
 

@@ -264,7 +264,7 @@ static int DataOpen_handler(WimpMessage *const message, void *const handle)
       break;
     }
   }
-  strb_free(filename);
+  strb_destroy(filename);
 
   if (claim) {
     message->hdr.your_ref = message->hdr.my_ref;

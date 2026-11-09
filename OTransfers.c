@@ -652,7 +652,7 @@ void ObjTransfers_load_all(ObjTransfers *const transfers_data,
   }
 
   DEBUG("Number of transfers in list is %d", transfers_data->count);
-  strb_free(path_buffer);
+  strb_destroy(path_buffer);
   diriterator_destroy(iter);
   hourglass_off();
 }

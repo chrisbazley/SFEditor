@@ -726,8 +726,8 @@ static _Optional EditSession *create_session(InterfaceType const ui_type,
     return session;
   }
 
-  strb_free(&session->filename);
-  strb_free(&session->edit_win_titles);
+  strb_destroy(&session->filename);
+  strb_destroy(&session->edit_win_titles);
   free(session);
 
   return NULL;
@@ -919,8 +919,8 @@ void Session_destroy(EditSession *const session)
     }
   }
 
-  strb_free(&session->filename);
-  strb_free(&session->edit_win_titles);
+  strb_destroy(&session->filename);
+  strb_destroy(&session->edit_win_titles);
   linkedlist_remove(&all_list, &session->all_link);
   free(session);
 }
@@ -1924,7 +1924,7 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
   /* Canonicalise path file was saved as (for comparison purposes) */
   STRB_DECL_ALLOC(canon_save_path, 0);
   if (E(os_fscontrol_canonicalise_sb(canon_save_path, NULL, NULL, file_name))) {
-    strb_free(canon_save_path);
+    strb_destroy(canon_save_path);
     return;
   }
   DEBUG("Canonicalised save path is '%s'", strb_cptr(canon_save_path));
@@ -1963,7 +1963,7 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
   {
     _Optional char *const intern_compare_path = make_file_path_in_dir(Config_get_read_dir(), sub_dir);
     if (intern_compare_path == NULL) {
-      strb_free(canon_save_path);
+      strb_destroy(canon_save_path);
       return;
     }
 
@@ -1981,7 +1981,7 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
         _Optional char *const extern_compare_path = make_file_path_in_dir(
                                                    Config_get_extern_levels_dir(), sub_dir);
         if (extern_compare_path == NULL) {
-          strb_free(canon_save_path);
+          strb_destroy(canon_save_path);
           return;
         }
 
@@ -2015,7 +2015,7 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
       _Optional char *const expect_path = make_file_path_in_subdir(Config_get_write_dir(), sub_dir, main_filename);
       if (expect_path == NULL)
       {
-        strb_free(canon_save_path);
+        strb_destroy(canon_save_path);
         return;
       }
       DEBUG("Expected save path for component is '%s'", expect_path);
@@ -2048,7 +2048,7 @@ void Session_notify_saved(EditSession *const session, DataType const data_type,
     Session_display_msg(session, msgs_lookup_subn("Status1Saved", 2,
                         get_data_type_string(data_type), strb_cptr(canon_save_path)), true);
   }
-  strb_free(canon_save_path);
+  strb_destroy(canon_save_path);
 }
 
 static bool load_single_core(EditSession *const session, char const *const filename,
@@ -2477,14 +2477,14 @@ static bool can_revert_individual(EditSession *const session,
 
   STRB_DECL_ALLOC(canon_ext_dir, 0);
   if (E(os_fscontrol_canonicalise_sb(canon_ext_dir, NULL, NULL, Config_get_extern_levels_dir()))) {
-    strb_free(canon_ext_dir);
+    strb_destroy(canon_ext_dir);
     return false;
   }
 
   DEBUG("Canonicalised path of ext. dir: '%s'", strb_cptr(canon_ext_dir));
   size_t const root_len = strlen(strb_cptr(canon_ext_dir));
   bool const is_external = (strnicmp(strb_cptr(canon_ext_dir), &*file_path, root_len) == 0);
-  strb_free(canon_ext_dir);
+  strb_destroy(canon_ext_dir);
 
   if (!is_external) {
     DEBUG("File is not in external levels dir");

@@ -313,7 +313,7 @@ void BPerfDbox_update_title(BPerfDboxData *const performance_data)
   {
     report_error(SFERROR(NoMem), "", "");
   }
-  strb_free(ship_name);
+  strb_destroy(ship_name);
 }
 
 void BPerfDbox_show(BPerfDboxData *const performance_data)

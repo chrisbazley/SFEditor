@@ -535,7 +535,7 @@ static void exec_cmd(char const *const prefix, char const *const file_name)
   } else if (_kernel_oscli(strb_cptr(cmd)) == _kernel_ERROR) {
     E(_kernel_last_oserror());
   }
-  strb_free(cmd);
+  strb_destroy(cmd);
 }
 
 void open_file(char const *const file_name)
@@ -648,7 +648,7 @@ _Optional char *make_file_path_in_dir_on_path(char const *const path,
     report_error(SFERROR(NoMem), "", "");
   }
 
-  strb_free(full_path);
+  strb_destroy(full_path);
   return canonical;
 }
 
@@ -668,7 +668,7 @@ _Optional char *make_file_path_in_subdir(char const *const dir,
     report_error(SFERROR(NoMem), "", "");
   }
 
-  strb_free(path);
+  strb_destroy(path);
   return canonical;
 }
 
