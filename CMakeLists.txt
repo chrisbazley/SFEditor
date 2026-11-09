@@ -10,14 +10,14 @@ option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 include(FetchContent)
 
 FetchContent_Declare(strb GIT_REPOSITORY https://github.com/chrisbazley/strb_t.git
-    GIT_TAG 00291cd9fce181a62e99c1d4ea619681aecdb07d)
+    GIT_TAG 848cb11b419c73016fe63f199b7b840ea2ba0220)
 
 # Match SFEditor's use of the pseudo interfaces, including Fortify I/O.
 set(CBLIB_USE_CBDEBUG ON)
 
 FetchContent_Declare(CBUtil GIT_REPOSITORY https://github.com/chrisbazley/CBUtilLib.git GIT_TAG main)
 FetchContent_Declare(CB GIT_REPOSITORY https://github.com/chrisbazley/CBLibrary.git
-    GIT_TAG e9199d621a9d8e87d67489fe213d2e049241c69a)
+    GIT_TAG 48558990ea079fa9a8b08c09eaed5148563290f5)
 FetchContent_Declare(CBDebug GIT_REPOSITORY https://github.com/chrisbazley/CBDebugLib.git GIT_TAG main)
 FetchContent_Declare(CBPseudo GIT_REPOSITORY https://github.com/chrisbazley/CBPseudoLib.git GIT_TAG main)
 FetchContent_Declare(OptionalAcornC GIT_REPOSITORY https://github.com/chrisbazley/OptionalAcornC.git GIT_TAG main)

@@ -105,23 +105,23 @@ static int save_to_file(int const event_code, ToolboxEvent *const event,
 
   /* Warn if we are about to save to a different file path and a file of
      that name already exists */
-  _Optional char *canonicalised = NULL;
-  if (!E(canonicalise(&canonicalised, NULL, NULL, sastf->filename)) && canonicalised) {
+  STRB_DECL_ALLOC(canonicalised, 0);
+  if (!E(canonicalise_sb(canonicalised, NULL, NULL, sastf->filename))) {
     _Optional char *const old_filename = Session_get_file_name(session, data_type);
 
-    if (old_filename && stricmp(&*old_filename, &*canonicalised) != 0 &&
-        file_exists(&*canonicalised) &&
+    if (old_filename && stricmp(&*old_filename, strb_cptr(canonicalised)) != 0 &&
+        file_exists(strb_cptr(canonicalised)) &&
         stricmp(sastf->filename, "<Wimp$Scrap>") != 0) {
 
-      if (dialogue_confirm(msgs_lookup_subn("FileOv", 1, &*canonicalised),
+      if (dialogue_confirm(msgs_lookup_subn("FileOv", 1, strb_cptr(canonicalised)),
           "OvBut")) {
-        success = Session_save_file(session, data_type, &*canonicalised);
+        success = Session_save_file(session, data_type, strb_ptr(canonicalised));
       }
     } else {
-      success = Session_save_file(session, data_type, &*canonicalised);
+      success = Session_save_file(session, data_type, strb_ptr(canonicalised));
     }
-    free(canonicalised);
   }
+  strb_free(canonicalised);
   saveas_file_save_completed(success, id_block->self_id, sastf->filename);
 
   return 1; /* claim event */

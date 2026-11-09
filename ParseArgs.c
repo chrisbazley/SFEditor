@@ -59,16 +59,16 @@ void parse_arguments(int argc, char *argv[])
       int const file_type = decode_load_exec(catalogue_info.load,
                                              catalogue_info.exec, NULL);
       /* Attempt to load the file, if it is a recognised type */
-      _Optional char *filename = NULL;
-      if (!E(canonicalise(&filename, NULL, NULL, argv[i])) && filename) {
-        DataType const data_type = file_type_to_data_type(file_type, &*filename);
+      STRB_DECL_ALLOC(filename, 0);
+      if (!E(canonicalise_sb(filename, NULL, NULL, argv[i]))) {
+        DataType const data_type = file_type_to_data_type(file_type, strb_cptr(filename));
         if (data_type != DataType_Count) {
-          Session_open_single_file(&*filename, data_type);
+          Session_open_single_file(strb_cptr(filename), data_type);
         } else {
-          report_error(SFERROR(BadFileType), &*filename, "");
+          report_error(SFERROR(BadFileType), strb_cptr(filename), "");
         }
-        free(filename);
       }
+      strb_free(filename);
     }
   }
 }

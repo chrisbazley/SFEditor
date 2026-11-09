@@ -80,7 +80,7 @@ void Session_new_mission(void);
 /* Main map/mission loaders (invoked from NewMission/NewMap/ibar menus) */
 void Session_open_map(const char *filename);
 void Session_open_mission(const char *filename);
-bool Session_open_single_file(char *filename, DataType data_type);
+bool Session_open_single_file(char const *filename, DataType data_type);
 bool Session_load_single(const char *filename, DataType data_type, struct Reader *reader);
 
 void Session_redraw(EditSession *session, MapArea const *const redraw_area, bool immediate);
