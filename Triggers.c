@@ -135,7 +135,7 @@ SFError triggers_init(TriggersData *const triggers)
 {
   assert(triggers);
   *triggers = (TriggersData){
-    .bit_map = (void *)NULL};
+    .bit_map = FLEX_NULL};
   linkedlist_init(&triggers->list);
   linkedlist_init(&triggers->delete_list);
   intdict_init(&triggers->all_triggers);

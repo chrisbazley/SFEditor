@@ -143,14 +143,14 @@ void obj_polygons_init(ObjPolygons *const polygons)
   assert(polygons);
   *polygons = (ObjPolygons){
     .groups = {
-      {.polygons = (void *)NULL},
-      {.polygons = (void *)NULL},
-      {.polygons = (void *)NULL},
-      {.polygons = (void *)NULL},
-      {.polygons = (void *)NULL},
-      {.polygons = (void *)NULL},
-      {.polygons = (void *)NULL},
-      {.polygons = (void *)NULL},
+      {.polygons = FLEX_NULL},
+      {.polygons = FLEX_NULL},
+      {.polygons = FLEX_NULL},
+      {.polygons = FLEX_NULL},
+      {.polygons = FLEX_NULL},
+      {.polygons = FLEX_NULL},
+      {.polygons = FLEX_NULL},
+      {.polygons = FLEX_NULL},
     },
   };
 }
