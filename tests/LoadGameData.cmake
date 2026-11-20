@@ -25,8 +25,12 @@ if(NOT ARCHIVE)
             file(REMOVE "${partial}")
             # EXPECTED_HASH makes CMake abort on network failure before the
             # STATUS result can be handled. Check the digest ourselves.
-            file(DOWNLOAD
-                "http://www.starfighter.acornarcade.com/download/sf3000.zip"
+            if(attempt EQUAL 3)
+                set(url "https://web.archive.org/web/20240913023248id_/http://starfighter.acornarcade.com/download/sf3000.zip")
+            else()
+                set(url "http://www.starfighter.acornarcade.com/download/sf3000.zip")
+            endif()
+            file(DOWNLOAD "${url}"
                 "${partial}" STATUS status TIMEOUT 20)
             list(GET status 0 result)
             if(result EQUAL 0)

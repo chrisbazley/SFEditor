@@ -40,6 +40,11 @@
 #include "Optional.h"
 #endif
 
+/* OS_SpriteOp returns only the fixed fields of each local SpriteAreaHeader. */
+#ifdef _MSC_VER
+#pragma warning(disable: 4815)
+#endif
+
 enum {
   GROWTH_FACTOR = 2,
   PREALLOC_SIZE = 512
