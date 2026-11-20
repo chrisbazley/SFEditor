@@ -11,7 +11,10 @@
 
 struct MapData {
   DFile dfile;
-  void *flex;
+  union {
+    char nil;
+    void *ptr;
+  } flex;
   bool is_overlay;
 };
 

@@ -27,7 +27,10 @@ typedef struct
   bool super;
   int count;
   /* flex anchor for array of tile or group numbers in definition order */
-  void *array_anchor;
+  union {
+    char nil;
+    void *ptr;
+  } array_anchor;
 } TexGroupRoot;
 
 struct MapTexGroups {

@@ -20,7 +20,7 @@ struct Writer;
 struct ObjGfxMeshes;
 struct ObjTransfer;
 
-bool ObjectsMode_set_properties(struct Editor *editor, MapPoint pos, ObjRef obj_ref, TriggerFullParam const *trig, size_t nitems);
+bool ObjectsMode_set_properties(struct Editor *editor, MapPoint pos, ObjRef obj_ref, _Optional TriggerFullParam const *trig, size_t nitems);
 
 bool ObjectsMode_enter(struct Editor *editor);
 bool ObjectsMode_can_enter(struct Editor *editor);

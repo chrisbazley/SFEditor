@@ -221,7 +221,7 @@ static inline ObjRef objects_get_ref(ObjectsData const *const objects,
   MapPoint const pos)
 {
   assert(objects);
-  size_t const value = ((unsigned char *)objects->flex)[objects_coords_to_index(pos)];
+  size_t const value = ((unsigned char *)objects->flex.ptr)[objects_coords_to_index(pos)];
   DEBUG("Got ref %zu at grid location %" PRIMapCoord ",%" PRIMapCoord,
         value, pos.x, pos.y);
   /* If you're thinking of converting values here, don't! It's more
@@ -239,7 +239,7 @@ static inline void objects_set_ref(ObjectsData const *const objects,
   unsigned char const value = objects_ref_to_num(ref);
   DEBUG("Set ref %d at grid location %" PRIMapCoord ",%" PRIMapCoord,
         value, pos.x, pos.y);
-  ((unsigned char *)objects->flex)[objects_coords_to_index(pos)] = value;
+  ((unsigned char *)objects->flex.ptr)[objects_coords_to_index(pos)] = value;
   /* If you're thinking of converting values here, don't! It's more
      efficient to do so when reading/writing the file. */
 }
@@ -251,7 +251,7 @@ static inline ObjRef objects_update_ref(ObjectsData const *const objects,
   assert(objects_ref_is_valid(objects, ref));
   size_t const index = objects_coords_to_index(pos);
 
-  unsigned char const current = ((unsigned char *)objects->flex)[index];
+  unsigned char const current = ((unsigned char *)objects->flex.ptr)[index];
   ObjRef const cref = objects_ref_from_num(current);
   assert(objects_ref_is_valid(objects, cref));
 
@@ -259,7 +259,7 @@ static inline ObjRef objects_update_ref(ObjectsData const *const objects,
     unsigned char const value = objects_ref_to_num(ref);
     DEBUG("Change ref %d to %d at grid location %" PRIMapCoord ",%" PRIMapCoord,
           current, value, pos.x, pos.y);
-    ((unsigned char *)objects->flex)[index] = value;
+    ((unsigned char *)objects->flex.ptr)[index] = value;
   }
   return cref;
 }

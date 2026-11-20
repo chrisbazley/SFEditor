@@ -576,11 +576,11 @@ bool ObjectsEdit_add_trigger(ObjEditContext const *const objects, MapPoint const
 }
 
 bool ObjectsEdit_write_ref_n_triggers(ObjEditContext const *const objects, MapPoint const pos,
-  ObjRef const ref_num, TriggerFullParam const *const fparam, size_t const nitems,
+  ObjRef const ref_num, _Optional TriggerFullParam const *const fparam, size_t const nitems,
   ObjEditChanges *const change_info, ObjGfxMeshes *const meshes)
 {
   assert(objects);
-  if (!objects->triggers) {
+  if (!objects->triggers || (nitems && !fparam)) {
     return false;
   }
   TriggersData *triggers = &*objects->triggers;
@@ -592,8 +592,8 @@ bool ObjectsEdit_write_ref_n_triggers(ObjEditContext const *const objects, MapPo
   bool matching = true;
 
   if (triggers) {
-    _Optional bool *const matched = calloc(nitems, sizeof(*matched));
-    if (!matched) {
+    _Optional bool *const matched = nitems ? calloc(nitems, sizeof(*matched)) : NULL;
+    if (nitems && !matched) {
       report_error(SFERROR(NoMem), "", "");
       return false;
     }

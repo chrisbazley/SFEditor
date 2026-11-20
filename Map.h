@@ -130,7 +130,7 @@ static inline MapRef map_get_tile(MapData const *const map,
   MapPoint const pos)
 {
   assert(map);
-  unsigned char const value = ((unsigned char *)map->flex)[map_coords_to_index(pos)];
+  unsigned char const value = ((unsigned char *)map->flex.ptr)[map_coords_to_index(pos)];
   /* If you're thinking of converting values here, don't! It's more
      efficient to do so when reading/writing the file. */
   MapRef const tile = map_ref_from_num(value);
@@ -144,7 +144,7 @@ static inline void map_set_tile(MapData const *const map,
   assert(map);
   assert(map_ref_is_valid(map, tile));
   unsigned char const value = map_ref_to_num(tile);
-  ((unsigned char *)map->flex)[map_coords_to_index(pos)] = value;
+  ((unsigned char *)map->flex.ptr)[map_coords_to_index(pos)] = value;
   /* If you're thinking of converting values here, don't! It's more
      efficient to do so when reading/writing the file. */
 }
@@ -156,7 +156,7 @@ static inline MapRef map_update_tile(MapData const *const map,
   assert(map_ref_is_valid(map, tile));
   size_t const index = map_coords_to_index(pos);
 
-  unsigned char const current = ((unsigned char *)map->flex)[index];
+  unsigned char const current = ((unsigned char *)map->flex.ptr)[index];
   MapRef const ctile = map_ref_from_num(current);
   assert(map_ref_is_valid(map, ctile));
 
@@ -164,7 +164,7 @@ static inline MapRef map_update_tile(MapData const *const map,
     unsigned char const value = map_ref_to_num(tile);
     DEBUG("Changing tile %d to %d at grid location %" PRIMapCoord ",%" PRIMapCoord,
           current, value, pos.x, pos.y);
-    ((unsigned char *)map->flex)[index] = value;
+    ((unsigned char *)map->flex.ptr)[index] = value;
   }
   return ctile;
 }

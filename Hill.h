@@ -55,7 +55,10 @@ typedef struct HillsData {
   HillReadFn *read_hill_cb;
   HillRedrawFn *redraw_cb;
   struct EditWin *edit_win;
-  void *data;
+  union {
+    char nil;
+    void *ptr;
+  } data;
 #if 0
   unsigned char swap_row_mixer[Hill_Size / CHAR_BIT];
 #endif

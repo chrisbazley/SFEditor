@@ -192,6 +192,9 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 
 void ShipsMenu_created(ObjectId const id)
 {
+  static ObjectId menu_id;
+  menu_id = id;
+
   static const struct {
     int event_code;
     ToolboxEventHandler *handler;
@@ -203,6 +206,6 @@ void ShipsMenu_created(ObjectId const id)
   for (size_t i = 0; i < ARRAY_SIZE(handlers); ++i)
   {
     EF(event_register_toolbox_handler(id, handlers[i].event_code,
-                                      handlers[i].handler, (void *)NULL));
+                                      handlers[i].handler, &menu_id));
   }
 }

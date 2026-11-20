@@ -82,12 +82,12 @@ static unsigned char get_group_member(TexGroupRoot *const group, int const index
 {
   assert(group != NULL);
   assert(index < group->count);
-  assert(group->array_anchor != NULL);
+  assert(group->array_anchor.ptr != NULL);
   DEBUG_VERBOSEF("get_group_member %p,%d, count %d\n", (void *)group, index,
                  group->count);
-  assert(index < flex_size(&group->array_anchor));
+  assert(index < flex_size(&group->array_anchor.ptr));
 
-  const unsigned char *const member_array = group->array_anchor;
+  const unsigned char *const member_array = group->array_anchor.ptr;
   return member_array[index];
 }
 
@@ -180,7 +180,6 @@ static void init_group(TexGroupRoot *const tile_group)
 {
   assert(tile_group != NULL);
   *tile_group = (TexGroupRoot){
-    .array_anchor = (void *)NULL,
     .count = 0,
     .super = false,
   };
@@ -197,11 +196,11 @@ static bool add_group_member(TexGroupRoot *const group, unsigned char const new_
   bool success = true;
 
   if (group->count == 0) {
-    success = flex_alloc(&group->array_anchor, InitGroupSize);
+    success = flex_alloc(&group->array_anchor.ptr, InitGroupSize);
   } else {
-    int const size = flex_size(&group->array_anchor);
+    int const size = flex_size(&group->array_anchor.ptr);
     if (group->count >= size) {
-      success = flex_extend(&group->array_anchor, size * GroupGrowthFactor);
+      success = flex_extend(&group->array_anchor.ptr, size * GroupGrowthFactor);
     }
   }
 
@@ -210,7 +209,7 @@ static bool add_group_member(TexGroupRoot *const group, unsigned char const new_
     DEBUG("Adding member %d to group %p at index %d", new_member, (void *)group,
           group->count);
 
-    unsigned char *const member_array = group->array_anchor;
+    unsigned char *const member_array = group->array_anchor.ptr;
     member_array[group->count++] = new_member;
   }
 
@@ -701,8 +700,8 @@ void MapTexGroups_free(MapTexGroups *const groups_data)
   if (groups_data->array != NULL) {
     TexGroupRoot *const tile_groups = &*groups_data->array;
     for (int i = 0; i < groups_data->count; i++) {
-      if (tile_groups[i].array_anchor != NULL)
-        flex_free(&tile_groups[i].array_anchor);
+      if (tile_groups[i].count > 0)
+        flex_free(&tile_groups[i].array_anchor.ptr);
     }
     free(tile_groups);
   }

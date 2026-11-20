@@ -138,7 +138,10 @@ typedef struct
   ObjectId my_object;
   ObjectId my_add_object;
   int my_add_window;
-  void *items;
+  union {
+    char nil;
+    void *ptr;
+  } items;
   TriggerFullParam last_added;
   int nitems;
   int nalloc;
@@ -474,7 +477,7 @@ static inline TriggerFullParam get_trigger(ObjPropDbox *const prop, int const in
   assert(prop->nitems <= prop->nalloc);
   assert(index >= 0);
   assert(index < prop->nitems);
-  TriggerFullParam *const triggers = prop->items;
+  TriggerFullParam *const triggers = prop->items.ptr;
   return triggers[index];
 }
 
@@ -484,7 +487,7 @@ static inline void set_trigger(ObjPropDbox *const prop, int const index, Trigger
   assert(prop->nitems <= prop->nalloc);
   assert(index >= 0);
   assert(index < prop->nitems);
-  TriggerFullParam *const triggers = prop->items;
+  TriggerFullParam *const triggers = prop->items.ptr;
   triggers[index] = item;
 }
 
@@ -518,9 +521,9 @@ static bool add_to_list(ObjPropDbox *const prop, TriggerFullParam const item)
         new_size = limit;
       }
       assert(new_size <= INT_MAX);
-      success = flex_extend(&prop->items, new_size * (int)sizeof(TriggerFullParam));
+      success = flex_extend(&prop->items.ptr, new_size * (int)sizeof(TriggerFullParam));
     } else {
-      success = flex_alloc(&prop->items, new_size * (int)sizeof(TriggerFullParam));
+      success = flex_alloc(&prop->items.ptr, new_size * (int)sizeof(TriggerFullParam));
     }
     if (!success) {
       report_error(SFERROR(NoMem), "", "");
@@ -542,7 +545,7 @@ static bool add_to_list(ObjPropDbox *const prop, TriggerFullParam const item)
   }
 
   { /* flex must not budge */
-    TriggerFullParam *const triggers = prop->items;
+    TriggerFullParam *const triggers = prop->items.ptr;
     for (int i = prop->nitems; i > offset; --i) {
       triggers[i] = triggers[i - 1];
     }
@@ -887,7 +890,7 @@ static void delete_sel_triggers(ObjPropDbox *const prop)
 
       { /* flex must not budge */
         int const last = prop->nitems;
-        TriggerFullParam *const triggers = prop->items;
+        TriggerFullParam *const triggers = prop->items.ptr;
         for (int i = offset; i < last; ++i) {
           triggers[i] = triggers[i + 1];
         }
@@ -984,7 +987,7 @@ static int actionbutton_selected(int const event_code, ToolboxEvent *const event
     case ComponentId_SetButton:
       prop->keep = true;
       if (ObjectsMode_set_properties(get_editor(prop), prop->pos, get_obj_type(prop),
-                                     prop->items, (size_t)prop->nitems))
+                                     prop->nitems ? prop->items.ptr : NULL, (size_t)prop->nitems))
       {
         if (!TEST_BITS(event->hdr.flags, ActionButton_Selected_Adjust)) {
           E(toolbox_hide_object(0, prop->my_object));
@@ -1125,8 +1128,8 @@ static void delete_dbox(ObjPropDbox *const prop)
 #if !SINGLE_DBOX
   E(remove_event_handlers_delete(prop->my_add_object));
 #endif
-  if (prop->items) {
-    flex_free(&prop->items);
+  if (prop->nalloc > 0) {
+    flex_free(&prop->items.ptr);
   }
   _Optional ObjPropDbox *const removed = intdict_remove_value(&prop->prop_dboxes->sa_window, prop->my_add_window, NULL);
   assert(removed == prop);
@@ -1242,7 +1245,6 @@ static _Optional ObjPropDbox *create_dbox(ObjPropDboxes *const prop_dboxes, MapP
   }
 
   *prop = (ObjPropDbox){
-    .items = (void *)NULL,
     .prop_dboxes = prop_dboxes,
     .last_added = {.param.action = TriggerAction_MissionTarget},
     .edited_item = -1,

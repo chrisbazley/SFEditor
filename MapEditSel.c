@@ -80,7 +80,7 @@ static inline bool is_selected(MapEditSelection const *const selection,
   size_t const char_index = index / CHAR_BIT;
   unsigned char const mask = 1u << (index % CHAR_BIT);
   assert(char_index < MapEditSelection_NBytes);
-  return ((unsigned char *)selection->flex)[char_index] & mask;
+  return ((unsigned char *)selection->flex.ptr)[char_index] & mask;
 }
 
 static inline void validate_selection(MapEditSelection const *const selection)
@@ -90,7 +90,7 @@ static inline void validate_selection(MapEditSelection const *const selection)
 #else
   assert(selection);
   assert(selection->num_selected <= Map_Area);
-  assert(selection->flex);
+  assert(selection->flex.ptr);
 
   if (!MapArea_is_valid(&selection->max_bounds)) {
     assert(selection->num_selected == 0);
@@ -121,7 +121,7 @@ static inline void select_in_map(MapEditSelection const *const selection,
   size_t const char_index = index / CHAR_BIT;
   unsigned char const mask = 1u << (index % CHAR_BIT);
   assert(char_index < MapEditSelection_NBytes);
-  ((unsigned char *)selection->flex)[char_index] |= mask;
+  ((unsigned char *)selection->flex.ptr)[char_index] |= mask;
 }
 
 static inline void deselect_in_map(MapEditSelection const *const selection,
@@ -132,7 +132,7 @@ static inline void deselect_in_map(MapEditSelection const *const selection,
   size_t const char_index = index / CHAR_BIT;
   unsigned char const mask = 1u << (index % CHAR_BIT);
   assert(char_index < MapEditSelection_NBytes);
-  ((unsigned char *)selection->flex)[char_index] &= ~mask;
+  ((unsigned char *)selection->flex.ptr)[char_index] &= ~mask;
 }
 
 static void update_bounds_for_deselect(MapEditSelection *const selection,
@@ -185,14 +185,14 @@ SFError MapEditSelection_init(MapEditSelection *const selection,
   assert(selection != NULL);
 
   *selection = (MapEditSelection){
-    .flex = (void *)NULL, .num_selected = 0,
+    .num_selected = 0,
     .redraw_cb = redraw_cb, .redraw_arg = redraw_arg};
   clear_bounds(selection);
-  if (!flex_alloc(&selection->flex, MapEditSelection_NBytes)) {
+  if (!flex_alloc(&selection->flex.ptr, MapEditSelection_NBytes)) {
     return SFERROR(NoMem);
   }
 
-  memset_flex(&selection->flex, 0, MapEditSelection_NBytes);
+  memset_flex(&selection->flex.ptr, 0, MapEditSelection_NBytes);
   validate_selection(selection);
   return SFERROR(OK);
 }
@@ -555,7 +555,7 @@ void MapEditSelection_clear(MapEditSelection *const selection)
 
   if (MapEditSelection_is_all(selection)) {
     DEBUGF("Everything is selected\n");
-    memset_flex(&selection->flex, 0, MapEditSelection_NBytes);
+    memset_flex(&selection->flex.ptr, 0, MapEditSelection_NBytes);
   } else {
     DEBUGF("Deselect individually\n");
 
@@ -594,7 +594,7 @@ void MapEditSelection_select_all(MapEditSelection *const selection)
     return; /* nothing to do */
   }
 
-  memset_flex(&selection->flex, UINT8_MAX, MapEditSelection_NBytes);
+  memset_flex(&selection->flex.ptr, UINT8_MAX, MapEditSelection_NBytes);
   selection->num_selected = Map_Area;
   maximise_bounds(selection);
   redraw(selection, &selection->max_bounds);
@@ -605,5 +605,5 @@ void MapEditSelection_select_all(MapEditSelection *const selection)
 void MapEditSelection_destroy(MapEditSelection *const selection)
 {
   validate_selection(selection);
-  flex_free(&selection->flex);
+  flex_free(&selection->flex.ptr);
 }
