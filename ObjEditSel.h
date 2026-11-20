@@ -21,7 +21,10 @@ typedef void ObjEditSelectionRedrawFn(MapPoint, void *);
 
 typedef struct ObjEditSelection
 {
-  void *flex;
+  union {
+    char nil;
+    void *ptr;
+  } flex;
   MapArea max_bounds;
   size_t num_selected;
   _Optional ObjEditSelectionRedrawFn *redraw_cb;

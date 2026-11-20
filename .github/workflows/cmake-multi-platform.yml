@@ -277,12 +277,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with:
-          repository: TinyCC/tinycc
-          ref: 0f004a0883c640528d69a006706f867d56c809e5
-          path: .ci/tinycc
-          persist-credentials: false
+      - name: Fetch upstream TCC
+        run: |
+          git init -q .ci/tinycc
+          git -C .ci/tinycc fetch --no-tags https://repo.or.cz/tinycc.git refs/heads/mob
+          git -C .ci/tinycc checkout -q --detach fc1fc50f7a5b3151a8932e9c2adb784140306db4
       - name: Build TCC
         working-directory: .ci/tinycc
         run: |
@@ -295,7 +294,7 @@ jobs:
           path: build/tests/SFEditor-game-data/sf3000.zip
           key: sfeditor-game-data-4f4eff756d475bd5-build-${{ runner.os }}-Release
       - name: Configure with _Optional
-        run: cmake -S . -B build -DCMAKE_C_COMPILER="$RUNNER_TEMP/tcc/bin/tcc" -DUSE_OPTIONAL=ON -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build -DCMAKE_C_COMPILER="$RUNNER_TEMP/tcc/bin/tcc" -DCMAKE_C_FLAGS=-Werror=null-to-nonoptional -DUSE_OPTIONAL=ON -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: cmake --build build --parallel 2
       - name: Test

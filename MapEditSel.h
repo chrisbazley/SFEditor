@@ -15,7 +15,10 @@
 
 typedef struct MapEditSelection
 {
-  void *flex;
+  union {
+    char nil;
+    void *ptr;
+  } flex;
   MapArea max_bounds;
   size_t num_selected;
   bool max_bounds_are_min;

@@ -86,7 +86,7 @@ static void map_destroy_cb(DFile const *const dfile)
 {
   assert(dfile);
   MapData *const map = CONTAINER_OF(dfile, MapData, dfile);
-  flex_free(&map->flex);
+  flex_free(&map->flex.ptr);
   dfile_destroy(&map->dfile);
   free(map);
 }
@@ -100,7 +100,7 @@ static void map_write_cb(DFile const *const dfile, Writer *const writer)
          (void*)map, (void*)dfile);
 
   nobudge_register(PREALLOC_SIZE);
-  writer_fwrite(map->flex, Map_Area, 1, writer);
+  writer_fwrite(map->flex.ptr, Map_Area, 1, writer);
   nobudge_deregister();
 }
 
@@ -126,12 +126,12 @@ static _Optional MapData *map_create(bool const is_overlay)
   _Optional MapData *map = malloc(sizeof(*map));
   if (map)
   {
-    *map = (MapData){.flex = (void *)NULL, .is_overlay = is_overlay};
+    *map = (MapData){.is_overlay = is_overlay};
 
     dfile_init(&map->dfile, map_read_cb, map_write_cb,
                map_get_min_size_cb, map_destroy_cb);
 
-    if (!flex_alloc(&map->flex, Map_Area))
+    if (!flex_alloc(&map->flex.ptr, Map_Area))
     {
       free(map);
       map = NULL;

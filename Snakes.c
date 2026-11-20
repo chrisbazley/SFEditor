@@ -107,7 +107,7 @@ static int get_snake_read_tile(Snakes const *const snakes_data, int const snake,
   assert(snake < snakes_data->count);
   assert((part & ~SNAKE_ALL) == 0);
 
-  SnakeDefinition const *const defs = snakes_data->data_anchor;
+  SnakeDefinition const *const defs = snakes_data->data_anchor.ptr;
   int const tile = defs[snake].read_parts[part];
 
   DEBUG("%d is read part %u (N:%u: E:%u S:%u W:%u I:%u) in snake definition %d",
@@ -125,7 +125,7 @@ static int get_snake_write_tile(Snakes const *const snakes_data, int const snake
   assert(snake < snakes_data->count);
   assert((part & ~SNAKE_ALL) == 0);
 
-  SnakeDefinition const *const defs = snakes_data->data_anchor;
+  SnakeDefinition const *const defs = snakes_data->data_anchor.ptr;
   int const tile = defs[snake].write_parts[part];
 
   DEBUG("%d is write part %u (N:%u: E:%u S:%u W:%u I:%u) in snake definition %d",
@@ -271,12 +271,12 @@ static bool add_snake(Snakes *const snakes_data, SnakeDefinition *const snake)
   bool success = true;
 
   if (snakes_data->count == 0) {
-    success = flex_alloc(&snakes_data->data_anchor,
+    success = flex_alloc(&snakes_data->data_anchor.ptr,
               sizeof(SnakeDefinition) * InitSnakesArraySize);
   } else {
-    int const size = flex_size(&snakes_data->data_anchor);
+    int const size = flex_size(&snakes_data->data_anchor.ptr);
     if (snakes_data->count * sizeof(SnakeDefinition) >= (unsigned)size) {
-      success = flex_extend(&snakes_data->data_anchor,
+      success = flex_extend(&snakes_data->data_anchor.ptr,
                             size * SnakesArrayGrowthFactor);
     }
   }
@@ -284,7 +284,7 @@ static bool add_snake(Snakes *const snakes_data, SnakeDefinition *const snake)
   if (success) {
     /* Add snake to array */
     DEBUG("Adding snake '%s' to array at index %d", snake->name, snakes_data->count);
-    SnakeDefinition *const defs = snakes_data->data_anchor;
+    SnakeDefinition *const defs = snakes_data->data_anchor.ptr;
     defs[snakes_data->count++] = *snake;
   }
 
@@ -1035,7 +1035,7 @@ void Snakes_get_name(const Snakes *const snakes_data, int const snake,
   if (n > 0) {
     size_t len = 0;
     char *out = snake_name;
-    SnakeDefinition const *const defs = snakes_data->data_anchor;
+    SnakeDefinition const *const defs = snakes_data->data_anchor.ptr;
     char const *const in = defs[snake].name;
     for (char c = in[len]; c != '\0'; c = in[len]) {
       if (len++ < n - 1) {
@@ -1100,7 +1100,7 @@ void Snakes_init(Snakes *const snakes_data)
 {
   assert(snakes_data);
   *snakes_data = (Snakes){
-    .data_anchor = (void *)NULL, .count = 0};
+    .count = 0};
 }
 
 SFError Snakes_load(FILE *const file, Snakes *const snakes_data,
@@ -1224,9 +1224,10 @@ SFError Snakes_load(FILE *const file, Snakes *const snakes_data,
 void Snakes_free(Snakes *const snakes_data)
 {
   assert(snakes_data != NULL);
-  if (snakes_data->data_anchor != NULL)
+  if (snakes_data->count > 0)
   {
-    flex_free(&snakes_data->data_anchor);
+    flex_free(&snakes_data->data_anchor.ptr);
+    snakes_data->count = 0;
   }
 }
 

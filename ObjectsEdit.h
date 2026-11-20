@@ -90,7 +90,7 @@ void ObjectsEdit_wipe_triggers(ObjEditContext const *objects,
   struct ObjEditSelection *selected, struct ObjEditChanges *change_info);
 
 bool ObjectsEdit_write_ref_n_triggers(ObjEditContext const *objects,
-  MapPoint pos, ObjRef ref_num, TriggerFullParam const *fparam, size_t nitems,
+  MapPoint pos, ObjRef ref_num, _Optional TriggerFullParam const *fparam, size_t nitems,
   struct ObjEditChanges *change_info, struct ObjGfxMeshes *meshes);
 
 bool ObjectsEdit_add_trigger(ObjEditContext const *objects,

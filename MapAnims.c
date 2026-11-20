@@ -61,7 +61,10 @@ struct ConvAnimations
 {
   DFile dfile;
   IntDict sa_coords;
-  void *bit_map; /* flex anchor for array [32][256], one bit per
+  union {
+    char nil;
+    void *ptr;
+  } bit_map; /* flex anchor for array [32][256], one bit per
 map location */
   int steps_since_reset;
 };
@@ -91,9 +94,9 @@ static void update_anims_map(ConvAnimations *const anims, CoarsePoint2d const co
 
   assert(byte_offset < ANIMS_BIT_MAP_SIZE);
   if (set) {
-    SET_BITS(((char *)anims->bit_map)[byte_offset], bit_mask);
+    SET_BITS(((char *)anims->bit_map.ptr)[byte_offset], bit_mask);
   } else {
-    CLEAR_BITS(((char *)anims->bit_map)[byte_offset], bit_mask);
+    CLEAR_BITS(((char *)anims->bit_map.ptr)[byte_offset], bit_mask);
   }
 }
 
@@ -199,7 +202,7 @@ static bool check_wrapped(ConvAnimations *const anims, MapPoint const map_pos)
   DEBUG("Checking byte %zu, bits %u", byte_offset, bit_mask);
 
   assert(byte_offset < ANIMS_BIT_MAP_SIZE);
-  if (TEST_BITS(((char *)anims->bit_map)[byte_offset], bit_mask)) {
+  if (TEST_BITS(((char *)anims->bit_map.ptr)[byte_offset], bit_mask)) {
     DEBUG("Found an animation at %" PRIMapCoord ",%" PRIMapCoord, map_pos.x, map_pos.y);
     return true;
   }
@@ -216,7 +219,7 @@ static void anim_destroy_cb(IntDictKey const key, _Optional void *const data, vo
 static void clear_all(ConvAnimations *const anims)
 {
   assert(anims);
-  memset_flex(&anims->bit_map, 0, ANIMS_BIT_MAP_SIZE);
+  memset_flex(&anims->bit_map.ptr, 0, ANIMS_BIT_MAP_SIZE);
   intdict_destroy(&anims->sa_coords, anim_destroy_cb, anims);
   intdict_init(&anims->sa_coords);
 }
@@ -354,10 +357,7 @@ static void MapAnims_destroy_cb(DFile const *const dfile)
   assert(dfile);
   ConvAnimations *const anims = CONTAINER_OF(dfile, ConvAnimations, dfile);
 
-  if (anims->bit_map != NULL)
-  {
-    flex_free(&anims->bit_map);
-  }
+  flex_free(&anims->bit_map.ptr);
 
   intdict_destroy(&anims->sa_coords, anim_destroy_cb, anims);
   dfile_destroy(&anims->dfile);
@@ -401,19 +401,18 @@ _Optional ConvAnimations *MapAnims_create(void)
   if (anims)
   {
     *anims = (ConvAnimations){
-      .bit_map = (void *)NULL,
       .dfile = {0},
       .sa_coords = {0},
       .steps_since_reset = 0,
     };
     intdict_init(&anims->sa_coords);
 
-    if (!flex_alloc(&anims->bit_map, ANIMS_BIT_MAP_SIZE)) {
+    if (!flex_alloc(&anims->bit_map.ptr, ANIMS_BIT_MAP_SIZE)) {
       free(anims);
       return NULL;
     }
 
-    memset_flex(&anims->bit_map, 0, ANIMS_BIT_MAP_SIZE);
+    memset_flex(&anims->bit_map.ptr, 0, ANIMS_BIT_MAP_SIZE);
 
     dfile_init(&anims->dfile, MapAnims_read_cb, MapAnims_write_cb,
                MapAnims_get_min_size_cb, MapAnims_destroy_cb);

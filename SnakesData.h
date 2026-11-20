@@ -10,7 +10,10 @@
 struct Snakes
 {
   int count;
-  void  *data_anchor; /* flex anchor for array of 32-byte
+  union {
+    char nil;
+    void *ptr;
+  } data_anchor; /* flex anchor for array of 32-byte
                          snake definition blocks, one for
                          each snake. */
 };

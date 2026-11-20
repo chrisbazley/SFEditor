@@ -94,7 +94,7 @@ static void objects_destroy_cb(DFile const *const dfile)
 {
   assert(dfile);
   ObjectsData *const obj = CONTAINER_OF(dfile, ObjectsData, dfile);
-  flex_free(&obj->flex);
+  flex_free(&obj->flex.ptr);
   dfile_destroy(&obj->dfile);
   free(obj);
 }
@@ -108,7 +108,7 @@ static void objects_write_cb(DFile const *const dfile, Writer *const writer)
          (void*)obj, (void*)dfile);
 
   nobudge_register(PREALLOC_SIZE);
-  writer_fwrite(obj->flex, Obj_Area, 1, writer);
+  writer_fwrite(obj->flex.ptr, Obj_Area, 1, writer);
   nobudge_deregister();
 }
 
@@ -134,13 +134,13 @@ static _Optional ObjectsData *objects_create(bool const is_overlay)
   _Optional ObjectsData *obj = malloc(sizeof(*obj));
   if (obj)
   {
-    *obj = (ObjectsData){.flex = (void *)NULL, .is_overlay = is_overlay};
+    *obj = (ObjectsData){.is_overlay = is_overlay};
 
     dfile_init(&obj->dfile, objects_read_cb, objects_write_cb,
                objects_get_min_size_cb,
                objects_destroy_cb);
 
-    if (!flex_alloc(&obj->flex, Obj_Area))
+    if (!flex_alloc(&obj->flex.ptr, Obj_Area))
     {
       free(obj);
       obj = NULL;

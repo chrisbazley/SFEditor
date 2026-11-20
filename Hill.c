@@ -68,7 +68,7 @@ typedef struct {
 static unsigned char get_hill_height(HillsData const *const hills, MapPoint const pos)
 {
   size_t const index = hill_coords_to_index(pos);
-  Hill const *const data = (Hill *)hills->data;
+  Hill const *const data = (Hill *)hills->data.ptr;
   unsigned char const height = data[index].height;
   DEBUGF("Got hill height %d at %" PRIMapCoord ",%" PRIMapCoord "\n", height, pos.x, pos.y);
   return height;
@@ -79,9 +79,9 @@ static inline void set_hill_height(HillsData const *const hills, MapPoint const 
 {
   DEBUGF("Set hill height %d at %" PRIMapCoord ",%" PRIMapCoord "\n", height, pos.x, pos.y);
   assert(hills);
-  assert(hills->data);
+  assert(hills->data.ptr);
   assert(height <= Hill_MaxHeight);
-  ((Hill *)hills->data)[hill_coords_to_index(pos)].height = height;
+  ((Hill *)hills->data.ptr)[hill_coords_to_index(pos)].height = height;
 }
 
 static inline bool change_mixer_for_type(HillType const type)
@@ -98,9 +98,9 @@ static inline bool change_mixer_for_type(HillType const type)
 static inline unsigned char get_hill_mixer(HillsData const *const hills, MapPoint const pos)
 {
   assert(hills);
-  assert(hills->data);
+  assert(hills->data.ptr);
   assert(hills_coords_in_range(pos));
-  Hill *const hill = &((Hill *)hills->data)[hill_coords_to_index(pos)];
+  Hill *const hill = &((Hill *)hills->data.ptr)[hill_coords_to_index(pos)];
   unsigned char const mixer = hill->mixer;
   assert(mixer == 0 || mixer == 1);
   DEBUGF("Get mixer %d at %"PRIMapCoord",%" PRIMapCoord"\n", mixer, pos.x, pos.y);
@@ -110,9 +110,9 @@ static inline unsigned char get_hill_mixer(HillsData const *const hills, MapPoin
 static inline int swap_hill_mixer(HillsData *const hills, MapPoint const pos)
 {
   assert(hills);
-  assert(hills->data);
+  assert(hills->data.ptr);
   assert(hills_coords_in_range(pos));
-  Hill *const hill = &((Hill *)hills->data)[hill_coords_to_index(pos)];
+  Hill *const hill = &((Hill *)hills->data.ptr)[hill_coords_to_index(pos)];
   assert(hill->mixer >= 0);
   assert(hill->mixer <= 1);
   hill->mixer = 1 - hill->mixer;
@@ -122,11 +122,11 @@ static inline int swap_hill_mixer(HillsData *const hills, MapPoint const pos)
 static inline HillType get_hill_type(HillsData *const hills, MapPoint const pos)
 {
   assert(hills);
-  assert(hills->data);
+  assert(hills->data.ptr);
   assert(hills_coords_in_range(pos));
 
   size_t const index = hill_coords_to_index(pos);
-  Hill *const hill = &((Hill *)hills->data)[index];
+  Hill *const hill = &((Hill *)hills->data.ptr)[index];
   HillType type = hill->type;
   assert(type >= HillType_None);
   assert(type < HillType_Count);
@@ -137,7 +137,7 @@ static inline void set_hill_metadata(HillsData *const hills, MapPoint const pos,
   HillType const type, unsigned char mixer, unsigned char (*const colours)[Hill_MaxPolygons])
 {
   assert(hills);
-  assert(hills->data);
+  assert(hills->data.ptr);
   assert(hills_coords_in_range(pos));
   assert(type >= HillType_None);
   assert(type < HillType_Count);
@@ -145,7 +145,7 @@ static inline void set_hill_metadata(HillsData *const hills, MapPoint const pos,
   assert(colours);
 
   size_t const index = hill_coords_to_index(pos);
-  Hill *const hill = &((Hill *)hills->data)[index];
+  Hill *const hill = &((Hill *)hills->data.ptr)[index];
 
   for (size_t i = 0; i < ARRAY_SIZE(*colours); ++i) {
     assert((*colours)[i] >= 0);
@@ -162,9 +162,9 @@ static inline void set_hill_metadata(HillsData *const hills, MapPoint const pos,
 static void clear_hill_metadata(HillsData *const hills)
 {
   assert(hills);
-  assert(hills->data);
+  assert(hills->data.ptr);
 
-  Hill *const data = hills->data;
+  Hill *const data = hills->data.ptr;
   for (int i = 0; i < Hill_Size * Hill_Size; ++i) {
     data[i] = (Hill){.type = HillType_None, .height = 0, .mixer = 0};
   }
@@ -458,7 +458,7 @@ static HillType get_hill_metadata_from_heights(unsigned char (*const heights)[Hi
 static void check_mixers(HillsData const *const hills)
 {
   assert(hills);
-  assert(hills->data);
+  assert(hills->data.ptr);
 
   for (MapPoint pos = {.y = 1}; pos.y <= GenerateHillAreaSize; ++pos.y) {
     for (pos.x = 1; pos.x <= GenerateHillAreaSize; ++pos.x) {
@@ -589,9 +589,9 @@ SFError hills_init(HillsData *const hills, HillReadFn *const read_hill_cb, HillR
 {
   assert(hills);
   *hills = (HillsData){
-    .data = (void *)NULL, .read_hill_cb = read_hill_cb, .redraw_cb = redraw_cb, .edit_win = edit_win};
+    .read_hill_cb = read_hill_cb, .redraw_cb = redraw_cb, .edit_win = edit_win};
 
-  if (!flex_alloc(&hills->data, Hill_Size * Hill_Size * sizeof(Hill))) {
+  if (!flex_alloc(&hills->data.ptr, Hill_Size * Hill_Size * sizeof(Hill))) {
     return SFERROR(NoMem);
   }
 
@@ -602,7 +602,7 @@ SFError hills_init(HillsData *const hills, HillReadFn *const read_hill_cb, HillR
 void hills_destroy(HillsData *const hills)
 {
   assert(hills);
-  flex_free(&hills->data);
+  flex_free(&hills->data.ptr);
 }
 
 void hills_make(HillsData *const hills)
@@ -643,8 +643,8 @@ HillType hills_read(HillsData const *const hills, MapPoint const pos,
   unsigned char (*const heights)[HillCorner_Count])
 {
   assert(hills);
-  assert(hills->data);
-  Hill const *const data = (Hill *)hills->data;
+  assert(hills->data.ptr);
+  Hill const *const data = (Hill *)hills->data.ptr;
   size_t const index = hill_coords_to_index(pos);
   Hill const *const hill = &data[index];
   HillType const type = hill->type;

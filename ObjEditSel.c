@@ -58,7 +58,7 @@ static inline bool is_selected(ObjEditSelection const *const selection,
   size_t const char_index = index / CHAR_BIT;
   unsigned char const mask = 1u << (index % CHAR_BIT);
   assert(char_index < ObjEditSelection_NBytes);
-  return ((unsigned char *)selection->flex)[char_index] & mask;
+  return ((unsigned char *)selection->flex.ptr)[char_index] & mask;
 }
 
 static inline void validate_selection(ObjEditSelection const *const selection)
@@ -66,7 +66,7 @@ static inline void validate_selection(ObjEditSelection const *const selection)
 #ifndef NDEBUG
   assert(selection);
   assert(selection->num_selected <= Obj_Area);
-  assert(selection->flex);
+  assert(selection->flex.ptr);
 
   if (!MapArea_is_valid(&selection->max_bounds)) {
     assert(selection->num_selected == 0);
@@ -99,7 +99,7 @@ static inline void select_in_map(ObjEditSelection const *const selection,
   size_t const char_index = index / CHAR_BIT;
   unsigned char const mask = 1u << (index % CHAR_BIT);
   assert(char_index < ObjEditSelection_NBytes);
-  ((unsigned char *)selection->flex)[char_index] |= mask;
+  ((unsigned char *)selection->flex.ptr)[char_index] |= mask;
 }
 
 static inline void deselect_in_map(ObjEditSelection const *const selection,
@@ -110,7 +110,7 @@ static inline void deselect_in_map(ObjEditSelection const *const selection,
   size_t const char_index = index / CHAR_BIT;
   unsigned char const mask = 1u << (index % CHAR_BIT);
   assert(char_index < ObjEditSelection_NBytes);
-  ((unsigned char *)selection->flex)[char_index] &= ~mask;
+  ((unsigned char *)selection->flex.ptr)[char_index] &= ~mask;
 }
 
 static void update_bounds_for_deselect(ObjEditSelection *const selection)
@@ -171,15 +171,14 @@ SFError ObjEditSelection_init(ObjEditSelection *const selection,
   assert(selection != NULL);
 
   *selection = (ObjEditSelection){
-    .flex = (void *)NULL, .num_selected = 0,
-    .redraw_cb = redraw_cb, .redraw_arg = redraw_arg};
+    .num_selected = 0, .redraw_cb = redraw_cb, .redraw_arg = redraw_arg};
   clear_bounds(selection);
-  if (!flex_alloc(&selection->flex, ObjEditSelection_NBytes)) {
+  if (!flex_alloc(&selection->flex.ptr, ObjEditSelection_NBytes)) {
     report_error(SFERROR(NoMem), "", "");
     return SFERROR(NoMem);
   }
 
-  memset_flex(&selection->flex, 0, ObjEditSelection_NBytes);
+  memset_flex(&selection->flex.ptr, 0, ObjEditSelection_NBytes);
   validate_selection(selection);
   return SFERROR(OK);
 }
@@ -190,7 +189,7 @@ void ObjEditSelection_copy(ObjEditSelection *const dst, ObjEditSelection *const 
   assert(src != NULL);
   dst->max_bounds = src->max_bounds;
   dst->num_selected = src->num_selected;
-  memcpy_flex(&dst->flex, &src->flex, ObjEditSelection_NBytes);
+  memcpy_flex(&dst->flex.ptr, &src->flex.ptr, ObjEditSelection_NBytes);
 }
 
 bool ObjEditSelection_get_bounds(ObjEditSelection *const selection,
@@ -467,7 +466,7 @@ void ObjEditSelection_clear(ObjEditSelection *const selection)
 void ObjEditSelection_destroy(ObjEditSelection *const selection)
 {
   validate_selection(selection);
-  flex_free(&selection->flex);
+  flex_free(&selection->flex.ptr);
 }
 
 bool ObjEditSelection_for_each_changed(

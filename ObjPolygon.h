@@ -31,7 +31,10 @@ typedef struct {
 
 typedef struct {
   int pcount, palloc;
-  void *polygons;
+  union {
+    char nil;
+    void *ptr;
+  } polygons;
 } ObjGroup;
 
 typedef struct {

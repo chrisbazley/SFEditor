@@ -858,6 +858,23 @@ static void test36(void)
 
 #endif
 
+static void test37(void)
+{
+  /* An empty replacement removes the last trigger. */
+
+  init();
+  ObjRef const ref = objects_ref_from_num(100);
+  objects_set_ref(fixture.overlay, fixture.probe, ref);
+  assert(!SFError_fail(triggers_add(&fixture.triggers.obj, fixture.probe, target(1))));
+
+  assert(ObjectsEdit_write_ref_n_triggers(&fixture.objects, fixture.probe, ref,
+    NULL, 0, &fixture.changes, &meshes));
+
+  assert(count_actions(fixture.probe) == 0);
+  check_changes((ObjEditChanges){.triggers_deleted = 1});
+  destroy();
+}
+
 void ObjectsEdit_tests(void)
 {
   ObjGfxMeshes_init(&meshes);
@@ -903,6 +920,7 @@ void ObjectsEdit_tests(void)
     { "Equivalent trigger replacement avoids mutation", test31 },
     { "Replace object trigger set", test32 },
     { "Trigger replacement without trigger data fails", test33 },
+    { "Empty replacement removes the last trigger", test37 },
     { "Collision preflight identifies occluded object", test34 },
     { "Object placement clears overlap", test35 },
 #ifdef FORTIFY

@@ -92,7 +92,10 @@ static int about_to_be_shown(int const event_code, ToolboxEvent *const event,
 
 void sffileinfo_created(ObjectId const id)
 {
+  static ObjectId fileinfo_id;
+  fileinfo_id = id;
+
   /* Install handlers */
   EF(event_register_toolbox_handler(id, FileInfo_AboutToBeShown,
-                                    about_to_be_shown, (void *)NULL));
+                                    about_to_be_shown, &fileinfo_id));
 }

@@ -2860,7 +2860,7 @@ long int ObjectsMode_estimate_clipboard(DataType const data_type)
 }
 
 bool ObjectsMode_set_properties(Editor *const editor, MapPoint const pos, ObjRef const obj_ref,
-  TriggerFullParam const *const fparam, size_t const nitems)
+  _Optional TriggerFullParam const *const fparam, size_t const nitems)
 {
   ObjectsModeData *const mode_data = get_mode_data(editor);
   EditSession *const session = Editor_get_session(editor);
