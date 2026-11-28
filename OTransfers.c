@@ -548,7 +548,7 @@ _Optional ObjTransfer *ObjTransfer_create(void)
   };
 
   dfile_init(&transfer->dfile, ObjTransfer_read_cb,
-             ObjTransfer_write_cb, (DFileGetMinSizeFn *)NULL, ObjTransfer_destroy_cb);
+             ObjTransfer_write_cb, NULL, ObjTransfer_destroy_cb);
 
   return transfer;
 }

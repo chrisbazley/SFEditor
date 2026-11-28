@@ -120,7 +120,7 @@ ObjRef ObjSnakes_get_value(EditSession *const session,
   };
   return objects_ref_from_num(
     Snakes_begin_line(&ctx.super.obj, &snakes_data->super.obj, map_pos, snake, inside,
-                      read_map, (SnakesWriteFunction *)NULL));
+                      read_map, NULL));
 }
 
 void ObjSnakes_begin_line(ObjSnakesContext *const ctx,

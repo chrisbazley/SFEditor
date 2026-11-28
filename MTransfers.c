@@ -779,7 +779,7 @@ _Optional MapTransfer *MapTransfer_create(void)
     .tiles = (void *)NULL, .anims = (void *)NULL, .dfile = {0}, .size_minus_one = {0,0}};
 
   dfile_init(&transfer->dfile, MapTransfer_read_cb,
-             MapTransfer_write_cb, (DFileGetMinSizeFn *)NULL, MapTransfer_destroy_cb);
+             MapTransfer_write_cb, NULL, MapTransfer_destroy_cb);
 
   return transfer;
 }

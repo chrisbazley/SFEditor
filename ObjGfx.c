@@ -79,7 +79,7 @@ static void ObjGfx_destroy_cb(DFile const *const dfile)
 
 static void ObjGfx_cleanup(void)
 {
-  strdict_destroy(&file_dict, (StrDictDestructorFn *)NULL, &file_dict);
+  strdict_destroy(&file_dict, NULL, &file_dict);
 }
 
 void ObjGfx_init(void)
@@ -101,7 +101,7 @@ _Optional ObjGfx *ObjGfx_create(void)
   {
     *graphics = (ObjGfx){.dfile = {0}};
 
-    dfile_init(&graphics->dfile, ObjGfx_read_cb, (DFileWriteFn *)NULL, (DFileGetMinSizeFn *)NULL,
+    dfile_init(&graphics->dfile, ObjGfx_read_cb, NULL, NULL,
                ObjGfx_destroy_cb);
 
     ObjTransfers_init(&graphics->transfers.obj);

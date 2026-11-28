@@ -62,7 +62,7 @@ static void hillcol_destroy_cb(DFile const *const dfile)
 
 static void hillcol_cleanup(void)
 {
-  strdict_destroy(&file_dict, (StrDictDestructorFn *)NULL, &file_dict);
+  strdict_destroy(&file_dict, NULL, &file_dict);
 }
 
 void hillcol_init(void)
@@ -82,8 +82,8 @@ _Optional HillColData *hillcol_create(void)
       return NULL;
     }
 
-    dfile_init(&hill_colours->dfile, hillcol_read_cb, (DFileWriteFn *)NULL,
-               (DFileGetMinSizeFn *)NULL, hillcol_destroy_cb);
+    dfile_init(&hill_colours->dfile, hillcol_read_cb, NULL,
+               NULL, hillcol_destroy_cb);
   }
   return hill_colours;
 }

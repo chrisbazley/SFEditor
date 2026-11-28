@@ -231,7 +231,7 @@ _Optional InfoTransfer *InfoTransfer_create(void)
   target_infos_init(&transfer->infos);
 
   dfile_init(&transfer->dfile, InfoTransfer_read_cb,
-             InfoTransfer_write_cb, (DFileGetMinSizeFn *)NULL,
+             InfoTransfer_write_cb, NULL,
              InfoTransfer_destroy_cb);
 
   return transfer;

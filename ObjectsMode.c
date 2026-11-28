@@ -857,7 +857,7 @@ static ObjEditContext get_no_prechange_cb_ctx(ObjEditContext const *const object
 
   ObjEditContext no_prechange_cb_ctx = *objects;
   // Suppress EDITOR_CHANGE_OBJ_PRECHANGE messages
-  no_prechange_cb_ctx.prechange_cb = (ObjEditPreChangeFn *)NULL;
+  no_prechange_cb_ctx.prechange_cb = NULL;
   return no_prechange_cb_ctx;
 }
 
@@ -2813,10 +2813,10 @@ bool ObjectsMode_enter(Editor *const editor)
 
   SFError err = ObjEditSelection_init(&mode_data->selection.obj, redraw_selection, editor);
   if (!SFError_fail(err)) {
-    err = ObjEditSelection_init(&mode_data->tmp.obj, (ObjEditSelectionRedrawFn *)NULL, editor);
+    err = ObjEditSelection_init(&mode_data->tmp.obj, NULL, editor);
     if (!SFError_fail(err)) {
       // No redraw callback to avoid flickering of objects still occluded from one frame to the next
-      err = ObjEditSelection_init(&mode_data->occluded.obj, (ObjEditSelectionRedrawFn *)NULL, editor);
+      err = ObjEditSelection_init(&mode_data->occluded.obj, NULL, editor);
       if (!SFError_fail(err)) {
         Editor_display_msg(editor, msgs_lookup("StatusObjMode"), false);
         return true;

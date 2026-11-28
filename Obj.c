@@ -114,7 +114,7 @@ static void objects_write_cb(DFile const *const dfile, Writer *const writer)
 
 static void objects_cleanup(void)
 {
-  strdict_destroy(&file_dict, (StrDictDestructorFn *)NULL, &file_dict);
+  strdict_destroy(&file_dict, NULL, &file_dict);
 }
 
 void objects_init(void)

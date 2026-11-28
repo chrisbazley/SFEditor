@@ -2757,7 +2757,7 @@ static MapEditContext get_no_prechange_cb_ctx(MapEditContext const *const map)
 
   MapEditContext no_prechange_cb_ctx = *map;
   // Suppress EDITOR_CHANGE_MAP_PRECHANGE messages
-  no_prechange_cb_ctx.prechange_cb = (MapEditPreChangeFn *)NULL;
+  no_prechange_cb_ctx.prechange_cb = NULL;
   return no_prechange_cb_ctx;
 }
 

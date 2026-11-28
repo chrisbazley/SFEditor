@@ -165,8 +165,8 @@ void triggers_destroy(TriggersData *const triggers)
     flex_free(&triggers->bit_map);
   }
 
-  intdict_destroy(&triggers->all_triggers, (IntDictDestructorFn *)NULL, triggers);
-  intdict_destroy(&triggers->chain_triggers, (IntDictDestructorFn *)NULL, triggers);
+  intdict_destroy(&triggers->all_triggers, NULL, triggers);
+  intdict_destroy(&triggers->chain_triggers, NULL, triggers);
 }
 
 static void insert_trigger(TriggersData *const triggers,
