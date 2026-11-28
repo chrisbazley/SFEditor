@@ -1468,8 +1468,8 @@ bool InfoMode_enter(Editor *const editor)
 
   size_t const count = InfoEdit_count(Session_get_infos(Editor_get_session(editor)));
   SelectionBitmask_init(&mode_data->selection.obj, count, redraw_selection, editor);
-  SelectionBitmask_init(&mode_data->tmp.obj, count, (SelectionBitmaskRedrawFn *)NULL, editor);
-  SelectionBitmask_init(&mode_data->occluded.obj, count, (SelectionBitmaskRedrawFn *)NULL, editor);
+  SelectionBitmask_init(&mode_data->tmp.obj, count, NULL, editor);
+  SelectionBitmask_init(&mode_data->occluded.obj, count, NULL, editor);
 
   editor->editingmode_data = &*mode_data;
 

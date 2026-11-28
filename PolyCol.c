@@ -63,7 +63,7 @@ static void polycol_destroy_cb(DFile const *const dfile)
 
 static void polycol_cleanup(void)
 {
-  strdict_destroy(&file_dict, (StrDictDestructorFn *)NULL, &file_dict);
+  strdict_destroy(&file_dict, NULL, &file_dict);
 }
 
 void polycol_init(void)
@@ -84,7 +84,7 @@ _Optional PolyColData *polycol_create(void)
     }
 
     dfile_init(&poly_colours->dfile, polycol_read_cb,
-               (DFileWriteFn *)NULL, (DFileGetMinSizeFn *)NULL,
+               NULL, NULL,
                polycol_destroy_cb);
   }
   return poly_colours;

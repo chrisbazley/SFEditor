@@ -106,7 +106,7 @@ static void map_write_cb(DFile const *const dfile, Writer *const writer)
 
 static void map_cleanup(void)
 {
-  strdict_destroy(&file_dict, (StrDictDestructorFn *)NULL, &file_dict);
+  strdict_destroy(&file_dict, NULL, &file_dict);
 }
 
 void map_init(void)

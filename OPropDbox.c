@@ -1325,7 +1325,7 @@ void ObjPropDboxes_destroy(ObjPropDboxes *const prop_dboxes)
 {
   assert(prop_dboxes);
   intdict_destroy(&prop_dboxes->sa_coords, destroy_cb, prop_dboxes);
-  intdict_destroy(&prop_dboxes->sa_window, (IntDictDestructorFn *)NULL, prop_dboxes);
+  intdict_destroy(&prop_dboxes->sa_window, NULL, prop_dboxes);
 }
 
 void ObjPropDboxes_update_title(ObjPropDboxes *const prop_dboxes)

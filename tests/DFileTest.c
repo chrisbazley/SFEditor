@@ -94,7 +94,7 @@ static void check_metadata(DFile const *file, _Optional char const *name,
 
 static void destroy_dict(StrDict *dict)
 {
-  strdict_destroy(dict, (StrDictDestructorFn *)NULL, dict);
+  strdict_destroy(dict, NULL, dict);
 }
 
 static void test1(void)

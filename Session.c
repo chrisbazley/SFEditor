@@ -466,9 +466,9 @@ static void redraw_map(MapArea const *const area, EditSession *const session)
 
 static void session_cleanup(void)
 {
-  strdict_destroy(&single_dict, (StrDictDestructorFn *)NULL, &single_dict);
-  strdict_destroy(&map_dict, (StrDictDestructorFn *)NULL, &map_dict);
-  strdict_destroy(&mission_dict, (StrDictDestructorFn *)NULL, &mission_dict);
+  strdict_destroy(&single_dict, NULL, &single_dict);
+  strdict_destroy(&map_dict, NULL, &map_dict);
+  strdict_destroy(&mission_dict, NULL, &mission_dict);
 }
 
 /* ---------------- Public functions ---------------- */

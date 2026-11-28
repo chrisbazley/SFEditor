@@ -86,7 +86,7 @@ static void MapTex_destroy_cb(DFile const *const dfile)
 
 static void MapTex_cleanup(void)
 {
-  strdict_destroy(&file_dict, (StrDictDestructorFn *)NULL, &file_dict);
+  strdict_destroy(&file_dict, NULL, &file_dict);
 }
 
 void MapTex_init(void)
@@ -108,8 +108,8 @@ _Optional MapTex *MapTex_create(void)
   {
     *textures = (MapTex){.dfile = {0}};
 
-    dfile_init(&textures->dfile, MapTex_read_cb, (DFileWriteFn *)NULL,
-               (DFileGetMinSizeFn *)NULL, MapTex_destroy_cb);
+    dfile_init(&textures->dfile, MapTex_read_cb, NULL,
+               NULL, MapTex_destroy_cb);
 
     init_all(&*textures);
   }

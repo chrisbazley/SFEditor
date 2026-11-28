@@ -1856,8 +1856,8 @@ static int gain_caret(int const event_code, WimpPollBlock *const event,
   if (!edit_win->has_input_focus &&
       !E(entity2_claim(Wimp_MClaimEntity_CaretOrSelection,
                        NULL,
-                       (Entity2EstimateMethod *)NULL,
-                       (Saver2WriteMethod *)NULL,
+                       NULL,
+                       NULL,
                        caret_lost, edit_win)))
   {
     edit_win->has_input_focus = true;
@@ -2475,7 +2475,7 @@ static bool drop_method(bool const shift_held, int const window, int const icon,
     STRCPY_SAFE(msg.data.data_save.leaf_name, msgs_lookup("LeafName"));
 
     if (E(saver2_send_data(claimant_task, &msg, drag_write,
-                           shift_held ? drag_moved : (Saver2CompleteMethod *)NULL,
+                           shift_held ? drag_moved : NULL,
                            drag_failed, src_edit_win)))
     {
       Editor_cancel_drag_obj(src_edit_win->editor);

@@ -83,7 +83,7 @@ void InfoEdit_move(InfoEditContext const *const infos, MapPoint const vec,
 
   SelectionBitmask copy;
   SelectionBitmask_init(&copy, SelectionBitmask_size(selected),
-                        (SelectionBitmaskRedrawFn *)NULL, selected);
+                        NULL, selected);
   SelectionBitmask_copy(&copy, selected); // because moved_cb changes the selection
 
   SelectionBitmaskIter iter;
